@@ -64,3 +64,10 @@ Zone data is stored in SQLite (not RDF) per D336 (privacy-by-design for coordina
 - `backend/app/dependencies.py` — modified: get_zone_service added
 - `backend/tests/test_zone_service.py` — service unit tests
 - `backend/tests/test_zone_router.py` — router unit tests
+
+## Observability Impact
+
+- **New structured log**: `context.zone_crud` emitted by `ZoneService` on create/update/delete with `action`, `user_id`, `zone_id`, and `name`/`fields`. Grep for `context.zone_crud` to trace zone mutations.
+- **Inspection surface**: `GET /api/context/zones` returns all zones for the authenticated user — usable by agents to verify zone state.
+- **Failure visibility**: Pydantic validation returns 422 with field-level errors; 404 for missing/wrong-user zones; 401 for unauthenticated requests. All standard FastAPI error responses.
+- **Migration chain**: `020_context_zones.py` chains from `019`. Verify with `rg "down_revision.*019" backend/migrations/versions/020_context_zones.py`.

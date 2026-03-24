@@ -41,6 +41,7 @@ from app.task_templates.router import api_router as templates_api_router, browse
 from app.persona.router import browser_router as persona_browser_router, api_router as persona_api_router
 from app.context.router import router as context_router
 from app.context.rules_router import router as context_rules_router
+from app.context.zone_router import router as context_zones_router
 from app.debug.router import router as debug_router
 from app.middleware.etag import ConditionalGetMiddleware
 from app.middleware.timing import TimingMiddleware, timing_router
@@ -364,6 +365,10 @@ async def lifespan(app: FastAPI):
     from app.context.rules_engine import RulesEngine
     app.state.rules_engine = RulesEngine(async_session_factory)
 
+    # Create ZoneService for geofence zone CRUD
+    from app.context.zone_service import ZoneService
+    app.state.zone_service = ZoneService(async_session_factory)
+
     # Create LintFilterService and store on app state
     from app.lint.filter_service import LintFilterService
     app.state.lint_filter_service = LintFilterService(async_session_factory)
@@ -658,6 +663,7 @@ app.include_router(persona_browser_router)
 app.include_router(persona_api_router)
 app.include_router(context_router)
 app.include_router(context_rules_router)
+app.include_router(context_zones_router)
 app.include_router(vfs_browser_router)
 app.include_router(vfs_mount_router)
 app.include_router(app_commands_router)

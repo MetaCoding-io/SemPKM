@@ -225,3 +225,14 @@ async def get_persona_service(request: Request):
     from app.persona.service import PersonaService
 
     return request.app.state.persona_service
+
+
+async def get_zone_service(request: Request):
+    """Get the ZoneService instance from app state.
+
+    The service is created during app lifespan startup and stored on
+    app.state.zone_service.
+    """
+    from app.context.zone_service import ZoneService
+
+    return request.app.state.zone_service
