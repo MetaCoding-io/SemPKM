@@ -1,16 +1,23 @@
-"""Podcast service — subscription management, IRI minting, and feedparser-to-RDF conversion.
+"""Podcast service — subscription management, IRI minting, feed fetching, and feedparser-to-RDF conversion.
 
 Pure functions (no SDK dependency):
 - ``mint_source_iri(feed_url)`` — deterministic IRI from feed URL
 - ``mint_item_iri(source_iri, episode_id)`` — deterministic IRI from source + episode ID
 - ``entry_to_media_item(entry, source_iri)`` — convert feedparser entry to object.create params
 - ``parse_duration(raw)`` — parse iTunes-style duration string to seconds
+- ``parse_feed_content(raw_bytes, content_type)`` — dispatch XML/JSON to feedparser
+
+I/O boundary functions (require an http_client):
+- ``fetch_feed(http_client, url, ...)`` — conditional GET with ETag/Last-Modified
 
 Async / SDK-dependent:
 - ``get_existing_item_iris(graph_client, source_iri)`` — SPARQL dedup query
 - ``subscribe_podcast(ctx, feed_url, title)`` — create MediaSource via object.create
 - ``unsubscribe_source(ctx, source_iri)`` — soft-delete via object.patch
 - ``update_source_state(ctx, source_iri, ...)`` — persist poll state
+
+Exception:
+- ``FeedFetchError`` — raised by ``fetch_feed()`` on HTTP 4xx/5xx responses
 
 Constants:
 - ``SOURCES_WITH_STATE_SPARQL`` — query for all active MediaSource objects with polling state
@@ -19,10 +26,13 @@ Constants:
 from __future__ import annotations
 
 import hashlib
+import io
 import logging
 from datetime import datetime, timezone
 from time import mktime, struct_time
 from typing import Any
+
+import feedparser
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +50,7 @@ SELECT ?source ?feedUrl ?title ?sourceType ?etag ?lastModified ?errorCount ?last
     ?source a <{MEDIA_SOURCE_TYPE}> .
     ?source <{MS_NS}feedUrl> ?feedUrl .
     ?source <{MS_NS}sourceType> ?sourceType .
+    FILTER(?sourceType = "podcast")
     OPTIONAL {{ ?source <http://purl.org/dc/terms/title> ?title }}
     OPTIONAL {{ ?source <{MS_NS}etag> ?etag }}
     OPTIONAL {{ ?source <{MS_NS}lastModifiedHeader> ?lastModified }}
@@ -386,3 +397,104 @@ async def update_source_state(
     logger.debug(
         "Updated source state for %s: %s", source_iri, list(properties.keys())
     )
+
+
+# ── Exceptions ──
+
+
+class FeedFetchError(Exception):
+    """Raised by :func:`fetch_feed` on HTTP error responses (4xx/5xx).
+
+    Attributes:
+        url: The feed URL that returned an error.
+        status_code: The HTTP status code received.
+    """
+
+    def __init__(self, url: str, status_code: int) -> None:
+        self.url = url
+        self.status_code = status_code
+        super().__init__(f"Feed fetch failed: HTTP {status_code} for {url}")
+
+
+# ── HTTP fetching with conditional GET ──
+
+
+async def fetch_feed(
+    http_client: Any,
+    url: str,
+    etag: str | None = None,
+    last_modified: str | None = None,
+) -> tuple[bytes | None, dict, int]:
+    """Fetch a feed URL using conditional GET (ETag / Last-Modified).
+
+    Sends ``If-None-Match`` and ``If-Modified-Since`` headers when the
+    caller provides cached *etag* / *last_modified* values.
+
+    Args:
+        http_client: An object with an async ``.get(url, **kwargs)`` method
+            returning an httpx-compatible response (e.g. SDK HttpClient).
+        url: Feed URL to fetch.
+        etag: Previously received ``ETag`` header value.
+        last_modified: Previously received ``Last-Modified`` header value.
+
+    Returns:
+        A 3-tuple ``(content, headers, status_code)`` where:
+
+        - *content* is ``bytes`` on HTTP 200, or ``None`` on HTTP 304
+          (not modified — caller should skip parsing).
+        - *headers* is a plain dict with keys ``etag``, ``last_modified``,
+          ``content_type`` extracted from the response.
+        - *status_code* is the integer HTTP status.
+
+    Raises:
+        FeedFetchError: On HTTP 4xx/5xx error responses.
+    """
+    headers: dict[str, str] = {}
+    if etag is not None:
+        headers["If-None-Match"] = etag
+    if last_modified is not None:
+        headers["If-Modified-Since"] = last_modified
+
+    response = await http_client.get(url, headers=headers, follow_redirects=True)
+
+    # Extract relevant response headers into a clean dict
+    resp_headers = {
+        "etag": response.headers.get("etag"),
+        "last_modified": response.headers.get("last-modified"),
+        "content_type": response.headers.get("content-type", ""),
+    }
+
+    if response.status_code == 304:
+        logger.info("Conditional GET hit (304 Not Modified): %s", url)
+        return (None, resp_headers, 304)
+
+    if response.status_code >= 400:
+        logger.warning(
+            "Feed fetch error: HTTP %d for %s", response.status_code, url
+        )
+        raise FeedFetchError(url, response.status_code)
+
+    logger.info("Feed fetched (HTTP %d): %s", response.status_code, url)
+    return (response.content, resp_headers, response.status_code)
+
+
+# ── Content-type dispatch ──
+
+
+def parse_feed_content(raw_bytes: bytes, content_type: str) -> dict:
+    """Parse feed content, dispatching by content type.
+
+    For podcast feeds, this is almost always XML (RSS 2.0 with iTunes
+    namespace extensions). Delegates to ``feedparser.parse()`` which
+    handles the ``<itunes:duration>``, ``<enclosure>``, and other
+    podcast-specific elements.
+
+    Args:
+        raw_bytes: Raw bytes of the feed content.
+        content_type: HTTP Content-Type header value.
+
+    Returns:
+        feedparser result dict with ``feed``, ``entries``,
+        ``bozo``, and ``bozo_exception`` keys.
+    """
+    return feedparser.parse(io.BytesIO(raw_bytes))

@@ -2,16 +2,20 @@
 
 Registers:
 - 5 fragment routes (main page, sources list, add-podcast, remove source, items list)
+- 1 scheduled task (poll-sources)
 - Lifecycle hooks (startup, shutdown)
 
-The poll-sources task handler is implemented in T03 and registered here
-once that task completes. This module establishes the app scaffold and
-CRUD routes.
+The poll-sources task handler queries all podcast MediaSource objects,
+fetches their RSS feeds with conditional GET, parses episodes via
+feedparser, deduplicates against existing MediaItems, and bulk-creates
+new items. Source poll state (etag, errorCount, lastError) is updated
+after each feed.
 """
 
 from __future__ import annotations
 
 import logging
+from datetime import datetime, timezone
 from typing import Any
 
 from sempkm_app_sdk import App, AppContext
@@ -24,8 +28,14 @@ try:
         MEDIA_SOURCE_TYPE,
         MS_NS,
         SOURCES_WITH_STATE_SPARQL,
+        FeedFetchError,
+        entry_to_media_item,
+        fetch_feed,
+        get_existing_item_iris,
+        parse_feed_content,
         subscribe_podcast,
         unsubscribe_source,
+        update_source_state,
     )
 except ModuleNotFoundError:
     # When loaded via importlib.util.spec_from_file_location (test context),
@@ -42,12 +52,204 @@ except ModuleNotFoundError:
     MEDIA_SOURCE_TYPE = _fm.MEDIA_SOURCE_TYPE
     MS_NS = _fm.MS_NS
     SOURCES_WITH_STATE_SPARQL = _fm.SOURCES_WITH_STATE_SPARQL
+    FeedFetchError = _fm.FeedFetchError
+    entry_to_media_item = _fm.entry_to_media_item
+    fetch_feed = _fm.fetch_feed
+    get_existing_item_iris = _fm.get_existing_item_iris
+    parse_feed_content = _fm.parse_feed_content
     subscribe_podcast = _fm.subscribe_podcast
     unsubscribe_source = _fm.unsubscribe_source
+    update_source_state = _fm.update_source_state
 
 logger = logging.getLogger(__name__)
 
 media_scheduler_app = App("media-scheduler")
+
+MAX_INITIAL_ITEMS = 50
+"""Cap on MediaItems created per source per poll cycle.
+
+Prevents a first-time import of a prolific podcast from flooding the store.
+Podcast feeds are typically reverse-chronological, so the first 50 entries
+are the most recent.
+"""
+
+
+# ── Task handler ──
+
+
+def _get_current_error_count(binding: dict) -> int:
+    """Extract errorCount from a SPARQL binding, defaulting to 0."""
+    try:
+        return int(binding.get("errorCount", {}).get("value", 0))
+    except (ValueError, TypeError, AttributeError):
+        return 0
+
+
+@media_scheduler_app.task("poll-sources")
+async def poll_sources(ctx: AppContext) -> dict:
+    """Poll all podcast MediaSource objects and create new MediaItem objects.
+
+    Uses conditional GET (ETag/Last-Modified) for efficient polling.
+    Parses RSS feeds via feedparser (which handles iTunes namespace
+    extensions for duration, enclosure, etc.). Deduplicates against
+    existing MediaItems per source. Bulk-creates new items atomically.
+
+    Updates source state (lastPolled, etag, errorCount, lastError) after
+    every poll attempt. Feed-level errors don't block other feeds.
+
+    Returns:
+        Summary dict with feeds_polled and items_created counts,
+        logged by the AppScheduler.
+    """
+    # Query all podcast-type MediaSource objects with conditional GET state
+    result = await ctx.graph.query(SOURCES_WITH_STATE_SPARQL)
+    bindings = result.get("results", {}).get("bindings", [])
+
+    feeds_polled = 0
+    items_created = 0
+
+    for binding in bindings:
+        source_iri = binding.get("source", {}).get("value", "")
+        feed_url = binding.get("feedUrl", {}).get("value", "")
+
+        if not feed_url:
+            logger.warning("MediaSource %s has no feedUrl, skipping", source_iri)
+            continue
+
+        # Extract conditional GET headers from SPARQL results
+        etag = binding.get("etag", {}).get("value") if "etag" in binding else None
+        last_mod = (
+            binding.get("lastModified", {}).get("value")
+            if "lastModified" in binding
+            else None
+        )
+
+        now_iso = datetime.now(timezone.utc).isoformat()
+
+        try:
+            # Fetch via conditional GET
+            content, headers, status = await fetch_feed(
+                ctx.http, feed_url, etag=etag, last_modified=last_mod
+            )
+
+            if status == 304:
+                logger.info("304 Not Modified: %s", feed_url)
+                await update_source_state(ctx, source_iri, last_polled=now_iso)
+                feeds_polled += 1
+                continue
+
+            logger.info(
+                "Fetched %s: %d bytes",
+                feed_url,
+                len(content) if content else 0,
+            )
+
+            # Parse the feed content
+            parsed = parse_feed_content(
+                content, headers.get("content_type", "")
+            )
+            if parsed.get("bozo") and not parsed.get("entries"):
+                logger.warning(
+                    "Feed parse error for %s: %s",
+                    feed_url,
+                    parsed.get("bozo_exception"),
+                )
+                current_error_count = _get_current_error_count(binding)
+                await update_source_state(
+                    ctx,
+                    source_iri,
+                    last_polled=now_iso,
+                    error_count=current_error_count + 1,
+                    last_error=str(
+                        parsed.get("bozo_exception", "Parse error")
+                    ),
+                )
+                continue
+
+            # Get existing item IRIs for dedup
+            existing_iris = await get_existing_item_iris(
+                ctx.graph, source_iri
+            )
+
+            # Build list of new MediaItems
+            new_items = []
+            for entry in parsed.get("entries", []):
+                # Convert SimpleNamespace entries to dict if needed
+                if hasattr(entry, "__dict__") and not isinstance(entry, dict):
+                    entry_dict = vars(entry)
+                else:
+                    entry_dict = entry
+                item = entry_to_media_item(entry_dict, source_iri)
+                if item["iri"] not in existing_iris:
+                    new_items.append(item)
+
+            # Cap initial imports
+            if len(new_items) > MAX_INITIAL_ITEMS:
+                logger.info(
+                    "Capping %d new items to %d for %s",
+                    len(new_items),
+                    MAX_INITIAL_ITEMS,
+                    feed_url,
+                )
+                new_items = new_items[:MAX_INITIAL_ITEMS]
+
+            # Bulk-create new items
+            if new_items:
+                async with ctx.commands.bulk(
+                    summary=f"Poll podcast: {feed_url}",
+                    source=ctx.app_id,
+                ) as batch:
+                    for item in new_items:
+                        batch.add("object.create", item)
+
+            feeds_polled += 1
+            created_count = len(new_items)
+            items_created += created_count
+            logger.info(
+                "Polled %s: %d new items (skipped %d existing)",
+                feed_url,
+                created_count,
+                len(parsed.get("entries", [])) - created_count,
+            )
+
+            # Success: reset error state, persist etag + lastPolled
+            await update_source_state(
+                ctx,
+                source_iri,
+                last_polled=now_iso,
+                etag=headers.get("etag"),
+                last_modified=headers.get("last_modified"),
+                error_count=0,
+                last_error="",
+            )
+
+        except FeedFetchError as e:
+            logger.warning("Feed error for %s: %s", feed_url, e)
+            current_error_count = _get_current_error_count(binding)
+            await update_source_state(
+                ctx,
+                source_iri,
+                last_polled=now_iso,
+                error_count=current_error_count + 1,
+                last_error=str(e),
+            )
+        except Exception as e:
+            logger.exception("Error polling feed %s", feed_url)
+            current_error_count = _get_current_error_count(binding)
+            await update_source_state(
+                ctx,
+                source_iri,
+                last_polled=now_iso,
+                error_count=current_error_count + 1,
+                last_error=str(e),
+            )
+
+    logger.info(
+        "poll-sources complete: %d feeds polled, %d items created",
+        feeds_polled,
+        items_created,
+    )
+    return {"feeds_polled": feeds_polled, "items_created": items_created}
 
 
 # ── Helper ──
