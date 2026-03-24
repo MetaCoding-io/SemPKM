@@ -706,10 +706,13 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - 12-test integration suite proving full loop: context update → rule evaluation → persona switch → notification dispatch/suppression
 - 184 backend tests (172 unit/router + 12 integration), user guide Chapter 48 (386 lines)
 
-**Personal Media Scheduler App** — queued as M038 (depends on M037)
+**Personal Media Scheduler App** — in progress as M038 (S01–S04 complete, S05–S07 remaining)
 - Daily media queue: podcasts, YouTube, Spotify scheduled by context and rules
-- Integrates with podcast RSS, YouTube Data API, Spotify Web API
-- Real-time adaptation when user context changes
+- Podcast RSS polling, YouTube Data API polling, Spotify OAuth + playlist polling all operational
+- Schedule rules engine with daily plan generation (time-slot entries from rules + content)
+- Spotify OAuth 2.0 with PKCE, playlist track discovery, Premium/Free tier detection
+- 321 unit tests across all media scheduler services
+- Remaining: context-driven adaptation (S05), stats dashboard (S06), E2E verification (S07)
 
 **RDF Data Import & API Documentation Cleanup** — complete (M039, 2026-03-22)
 - RDF import wizard: paste/upload JSON-LD/Turtle/N-Triples → SHACL preview → event-sourced import
