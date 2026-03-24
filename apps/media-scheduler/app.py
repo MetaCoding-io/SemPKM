@@ -61,6 +61,19 @@ except ModuleNotFoundError:
     unsubscribe_source = _fm.unsubscribe_source
     update_source_state = _fm.update_source_state
 
+try:
+    from services.plan_service import fetch_context, generate_plan
+except ModuleNotFoundError:
+    import importlib.util as _ilu2
+    import pathlib as _pl2
+
+    _plan_svc = _pl2.Path(__file__).resolve().parent / "services" / "plan_service.py"
+    _plan_sp = _ilu2.spec_from_file_location("_plan_service_fallback", _plan_svc)
+    _plan_fm = _ilu2.module_from_spec(_plan_sp)
+    _plan_sp.loader.exec_module(_plan_fm)
+    fetch_context = _plan_fm.fetch_context
+    generate_plan = _plan_fm.generate_plan
+
 logger = logging.getLogger(__name__)
 
 media_scheduler_app = App("media-scheduler")
@@ -250,6 +263,19 @@ async def poll_sources(ctx: AppContext) -> dict:
         items_created,
     )
     return {"feeds_polled": feeds_polled, "items_created": items_created}
+
+
+@media_scheduler_app.task("generate-plan")
+async def generate_plan_task(ctx: AppContext) -> dict:
+    """Generate a daily media plan based on schedule rules and current context.
+
+    Delegates to ``plan_service.generate_plan()`` which orchestrates:
+    rules evaluation → item selection → slot allocation → RDF creation.
+
+    Returns:
+        Summary dict with plan_iri, date, rules_matched, entries_created.
+    """
+    return await generate_plan(ctx)
 
 
 # ── Helper ──

@@ -53,7 +53,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_media_scheduler.py -v -k "rule"` — all rule tests pass
   - Done when: rules_service.py exists with working CRUD + evaluate(), ontology has DailyMediaPlan + PlanEntry, manifest has generate-plan task, ≥20 new rule-related tests pass
 
-- [ ] **T02: Plan generation service + task handler** `est:1h30m`
+- [x] **T02: Plan generation service + task handler** `est:1h30m`
   - Why: Builds the core plan generation logic — selecting items per matched rule, allocating time slots, and creating plan entries as RDF via CommandClient. Wires the generate-plan scheduled task.
   - Files: `apps/media-scheduler/services/plan_service.py`, `apps/media-scheduler/app.py`, `backend/tests/test_media_scheduler.py`
   - Do: Create plan_service.py with: fetch_context() helper (GET /api/context/current via platform client), build_item_selection_sparql(action) for each action type (source_type/source_iri/category), allocate_time_slots(items, start_time) with default durations (1800s podcast, 900s video, 240s track), generate_plan(ctx, date, context) that orchestrates rules→items→slots→bulk create. In app.py add generate-plan task handler that calls generate_plan(). Old plan entries get patched to "replaced" status before new ones are created (no object.delete needed). Write ~20 tests for slot allocation, item selection SPARQL construction, plan generation flow with mocked clients.

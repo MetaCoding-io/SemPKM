@@ -62,6 +62,7 @@ _app_mod = importlib.util.module_from_spec(_app_spec)
 _app_spec.loader.exec_module(_app_mod)
 
 poll_sources = _app_mod.poll_sources
+generate_plan_task = _app_mod.generate_plan_task
 MAX_INITIAL_ITEMS = _app_mod.MAX_INITIAL_ITEMS
 _get_current_error_count = _app_mod._get_current_error_count
 _format_date = _app_mod._format_date
@@ -1141,3 +1142,593 @@ class TestRuleEvaluation:
     def test_rules_state_key_is_string(self):
         assert isinstance(RULES_STATE_KEY, str)
         assert RULES_STATE_KEY == "schedule_rules"
+
+
+# ── Import plan_service via file path ──
+
+_plan_svc_path = (
+    Path(__file__).resolve().parent.parent.parent
+    / "apps" / "media-scheduler" / "services" / "plan_service.py"
+)
+_plan_svc_spec = importlib.util.spec_from_file_location("plan_service_test", str(_plan_svc_path))
+_plan_svc_mod = importlib.util.module_from_spec(_plan_svc_spec)
+_plan_svc_spec.loader.exec_module(_plan_svc_mod)
+
+mint_plan_iri = _plan_svc_mod.mint_plan_iri
+mint_entry_iri = _plan_svc_mod.mint_entry_iri
+build_item_query = _plan_svc_mod.build_item_query
+allocate_slots = _plan_svc_mod.allocate_slots
+fetch_context = _plan_svc_mod.fetch_context
+get_existing_plan_entries = _plan_svc_mod.get_existing_plan_entries
+generate_plan = _plan_svc_mod.generate_plan
+PLAN_START_HOUR = _plan_svc_mod.PLAN_START_HOUR
+MAX_ITEMS_PER_RULE = _plan_svc_mod.MAX_ITEMS_PER_RULE
+DAILY_MEDIA_PLAN_TYPE = _plan_svc_mod.DAILY_MEDIA_PLAN_TYPE
+PLAN_ENTRY_TYPE = _plan_svc_mod.PLAN_ENTRY_TYPE
+PLAN_DEFAULT_DURATIONS = _plan_svc_mod.DEFAULT_DURATIONS
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Plan IRI minting tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestPlanIriMinting:
+    """Test deterministic IRI generation for plans and entries."""
+
+    def test_mint_plan_iri_format(self):
+        iri = mint_plan_iri("2026-03-23")
+        assert iri == "urn:sempkm:app:media-scheduler:plan-2026-03-23"
+
+    def test_mint_plan_iri_different_dates(self):
+        iri1 = mint_plan_iri("2026-01-01")
+        iri2 = mint_plan_iri("2026-12-31")
+        assert iri1 != iri2
+
+    def test_mint_plan_iri_deterministic(self):
+        iri1 = mint_plan_iri("2026-06-15")
+        iri2 = mint_plan_iri("2026-06-15")
+        assert iri1 == iri2
+
+    def test_mint_entry_iri_format(self):
+        iri = mint_entry_iri("2026-03-23", 0)
+        assert iri == "urn:sempkm:app:media-scheduler:entry-2026-03-23-000"
+
+    def test_mint_entry_iri_order_padding(self):
+        iri = mint_entry_iri("2026-03-23", 5)
+        assert iri.endswith("-005")
+
+    def test_mint_entry_iri_different_orders(self):
+        iri1 = mint_entry_iri("2026-03-23", 0)
+        iri2 = mint_entry_iri("2026-03-23", 1)
+        assert iri1 != iri2
+
+    def test_mint_entry_iri_different_dates(self):
+        iri1 = mint_entry_iri("2026-03-01", 0)
+        iri2 = mint_entry_iri("2026-03-02", 0)
+        assert iri1 != iri2
+
+    def test_mint_entry_iri_large_order(self):
+        iri = mint_entry_iri("2026-03-23", 100)
+        assert iri.endswith("-100")
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Build item query tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestBuildItemQuery:
+    """Test SPARQL query construction for different action types."""
+
+    def test_source_type_action(self):
+        action = {"type": "source_type", "value": "podcast"}
+        sparql = build_item_query(action)
+        assert 'FILTER(?sourceType = "podcast")' in sparql
+        assert '"queued"' in sparql
+        assert "LIMIT 5" in sparql
+
+    def test_source_iri_action(self):
+        action = {"type": "source_iri", "value": "urn:sempkm:app:media-scheduler:source-abc"}
+        sparql = build_item_query(action)
+        assert "FILTER(?source = <urn:sempkm:app:media-scheduler:source-abc>)" in sparql
+        assert '"queued"' in sparql
+
+    def test_category_action(self):
+        action = {"type": "category", "value": "urn:sempkm:app:media-scheduler:cat-news"}
+        sparql = build_item_query(action)
+        assert "category" in sparql.lower()
+        assert "FILTER(?category = <urn:sempkm:app:media-scheduler:cat-news>)" in sparql
+        assert '"queued"' in sparql
+
+    def test_custom_limit(self):
+        action = {"type": "source_type", "value": "podcast"}
+        sparql = build_item_query(action, limit=10)
+        assert "LIMIT 10" in sparql
+
+    def test_empty_action_raises(self):
+        with pytest.raises(ValueError):
+            build_item_query({})
+
+    def test_unknown_action_type_raises(self):
+        with pytest.raises(ValueError, match="Unknown action type"):
+            build_item_query({"type": "invalid_type", "value": "something"})
+
+    def test_missing_value_raises(self):
+        with pytest.raises(ValueError):
+            build_item_query({"type": "source_type", "value": ""})
+
+    def test_query_has_media_item_type(self):
+        action = {"type": "source_type", "value": "podcast"}
+        sparql = build_item_query(action)
+        assert "MediaItem" in sparql
+
+    def test_query_orders_by_title(self):
+        action = {"type": "source_type", "value": "podcast"}
+        sparql = build_item_query(action)
+        assert "ORDER BY" in sparql
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Slot allocation tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestAllocateSlots:
+    """Test time-slot allocation logic."""
+
+    def test_empty_items(self):
+        slots = allocate_slots([])
+        assert slots == []
+
+    def test_single_item_with_duration(self):
+        items = [{
+            "item_iri": "urn:item-1",
+            "title": "Episode 1",
+            "source_type": "podcast",
+            "duration": 600,
+            "rule_id": "r1",
+        }]
+        slots = allocate_slots(items)
+        assert len(slots) == 1
+        assert slots[0]["slot_start"] == "08:00"
+        assert slots[0]["slot_end"] == "08:10"  # 600s = 10min
+        assert slots[0]["slot_order"] == 0
+        assert slots[0]["duration"] == 600
+
+    def test_multiple_items_sequential(self):
+        items = [
+            {"item_iri": "urn:item-1", "title": "Ep1", "source_type": "podcast", "duration": 1800, "rule_id": "r1"},
+            {"item_iri": "urn:item-2", "title": "Ep2", "source_type": "podcast", "duration": 1800, "rule_id": "r1"},
+        ]
+        slots = allocate_slots(items)
+        assert len(slots) == 2
+        assert slots[0]["slot_start"] == "08:00"
+        assert slots[0]["slot_end"] == "08:30"
+        assert slots[1]["slot_start"] == "08:30"
+        assert slots[1]["slot_end"] == "09:00"
+
+    def test_default_duration_podcast(self):
+        items = [{"item_iri": "urn:item-1", "title": "Ep1", "source_type": "podcast", "rule_id": "r1"}]
+        slots = allocate_slots(items)
+        assert slots[0]["duration"] == 1800
+
+    def test_default_duration_youtube(self):
+        items = [{"item_iri": "urn:item-1", "title": "Vid1", "source_type": "youtube", "rule_id": "r1"}]
+        slots = allocate_slots(items)
+        assert slots[0]["duration"] == 900
+
+    def test_default_duration_spotify(self):
+        items = [{"item_iri": "urn:item-1", "title": "Track1", "source_type": "spotify", "rule_id": "r1"}]
+        slots = allocate_slots(items)
+        assert slots[0]["duration"] == 240
+
+    def test_default_duration_unknown_type(self):
+        """Unknown source types fall back to 1800s."""
+        items = [{"item_iri": "urn:item-1", "title": "X", "source_type": "unknown", "rule_id": "r1"}]
+        slots = allocate_slots(items)
+        assert slots[0]["duration"] == 1800
+
+    def test_zero_duration_uses_default(self):
+        items = [{"item_iri": "urn:item-1", "title": "Ep1", "source_type": "podcast", "duration": 0, "rule_id": "r1"}]
+        slots = allocate_slots(items)
+        assert slots[0]["duration"] == 1800
+
+    def test_negative_duration_uses_default(self):
+        items = [{"item_iri": "urn:item-1", "title": "Ep1", "source_type": "youtube", "duration": -100, "rule_id": "r1"}]
+        slots = allocate_slots(items)
+        assert slots[0]["duration"] == 900
+
+    def test_custom_start_hour(self):
+        items = [{"item_iri": "urn:item-1", "title": "Ep1", "source_type": "podcast", "duration": 600, "rule_id": "r1"}]
+        slots = allocate_slots(items, start_hour=14)
+        assert slots[0]["slot_start"] == "14:00"
+        assert slots[0]["slot_end"] == "14:10"
+
+    def test_mixed_source_types(self):
+        items = [
+            {"item_iri": "urn:item-1", "title": "Pod1", "source_type": "podcast", "rule_id": "r1"},
+            {"item_iri": "urn:item-2", "title": "Vid1", "source_type": "youtube", "rule_id": "r2"},
+            {"item_iri": "urn:item-3", "title": "Track1", "source_type": "spotify", "rule_id": "r3"},
+        ]
+        slots = allocate_slots(items)
+        assert len(slots) == 3
+        # Podcast: 1800s = 30min → 08:00-08:30
+        assert slots[0]["slot_start"] == "08:00"
+        assert slots[0]["slot_end"] == "08:30"
+        # YouTube: 900s = 15min → 08:30-08:45
+        assert slots[1]["slot_start"] == "08:30"
+        assert slots[1]["slot_end"] == "08:45"
+        # Spotify: 240s = 4min → 08:45-08:49
+        assert slots[2]["slot_start"] == "08:45"
+        assert slots[2]["slot_end"] == "08:49"
+
+    def test_slot_order_is_sequential(self):
+        items = [
+            {"item_iri": f"urn:item-{i}", "title": f"Item {i}", "source_type": "podcast", "duration": 600, "rule_id": "r1"}
+            for i in range(5)
+        ]
+        slots = allocate_slots(items)
+        for i, slot in enumerate(slots):
+            assert slot["slot_order"] == i
+
+    def test_preserves_item_fields(self):
+        items = [{"item_iri": "urn:item-1", "title": "My Title", "source_type": "podcast", "duration": 600, "rule_id": "rule-abc"}]
+        slots = allocate_slots(items)
+        assert slots[0]["item_iri"] == "urn:item-1"
+        assert slots[0]["title"] == "My Title"
+        assert slots[0]["source_type"] == "podcast"
+        assert slots[0]["rule_id"] == "rule-abc"
+
+    def test_none_duration_uses_default(self):
+        items = [{"item_iri": "urn:item-1", "title": "Ep1", "source_type": "spotify", "duration": None, "rule_id": "r1"}]
+        slots = allocate_slots(items)
+        assert slots[0]["duration"] == 240
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Context fetching tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestFetchContext:
+    """Test context fetch from platform API."""
+
+    @pytest.mark.asyncio
+    async def test_successful_fetch(self):
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"location_zone": "home", "activity": "working"}
+        http = AsyncMock()
+        http.get = AsyncMock(return_value=mock_response)
+        result = await fetch_context(http)
+        assert result == {"location_zone": "home", "activity": "working"}
+
+    @pytest.mark.asyncio
+    async def test_http_error_returns_empty(self):
+        mock_response = MagicMock()
+        mock_response.status_code = 401
+        http = AsyncMock()
+        http.get = AsyncMock(return_value=mock_response)
+        result = await fetch_context(http)
+        assert result == {}
+
+    @pytest.mark.asyncio
+    async def test_exception_returns_empty(self):
+        http = AsyncMock()
+        http.get = AsyncMock(side_effect=ConnectionError("timeout"))
+        result = await fetch_context(http)
+        assert result == {}
+
+    @pytest.mark.asyncio
+    async def test_non_dict_response_returns_empty(self):
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = ["not", "a", "dict"]
+        http = AsyncMock()
+        http.get = AsyncMock(return_value=mock_response)
+        result = await fetch_context(http)
+        assert result == {}
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Existing plan entries query tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestGetExistingPlanEntries:
+    """Test SPARQL query for existing plan entries."""
+
+    @pytest.mark.asyncio
+    async def test_returns_entry_iris(self):
+        graph = AsyncMock()
+        graph.query = AsyncMock(return_value={
+            "results": {"bindings": [
+                {"entry": {"value": "urn:entry-1"}},
+                {"entry": {"value": "urn:entry-2"}},
+            ]}
+        })
+        entries = await get_existing_plan_entries(graph, "urn:plan-2026-03-23")
+        assert entries == ["urn:entry-1", "urn:entry-2"]
+
+    @pytest.mark.asyncio
+    async def test_returns_empty_on_no_results(self):
+        graph = AsyncMock()
+        graph.query = AsyncMock(return_value={"results": {"bindings": []}})
+        entries = await get_existing_plan_entries(graph, "urn:plan-2026-03-23")
+        assert entries == []
+
+    @pytest.mark.asyncio
+    async def test_returns_empty_on_error(self):
+        graph = AsyncMock()
+        graph.query = AsyncMock(side_effect=Exception("SPARQL error"))
+        entries = await get_existing_plan_entries(graph, "urn:plan-2026-03-23")
+        assert entries == []
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Plan generation tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestGeneratePlan:
+    """Test the full plan generation orchestration."""
+
+    def _make_ctx(self, context_response=None, rules=None, query_results=None, existing_entries=None):
+        """Build a mock AppContext for plan generation tests."""
+        ctx = MagicMock()
+
+        # HTTP client for context fetch
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        if context_response is not None:
+            mock_response.json.return_value = context_response
+        else:
+            mock_response.json.return_value = {"location_zone": "home", "activity": "working"}
+        ctx.http = AsyncMock()
+        ctx.http.get = AsyncMock(return_value=mock_response)
+
+        # State client for rules
+        rules_data = rules if rules is not None else []
+        ctx.state = AsyncMock()
+        ctx.state.get = AsyncMock(return_value=json.dumps(rules_data))
+
+        # Graph client for item queries + existing entries
+        query_results = query_results or {"results": {"bindings": []}}
+        existing_entries = existing_entries or {"results": {"bindings": []}}
+
+        async def _mock_query(sparql):
+            if "PlanEntry" in sparql:
+                return existing_entries
+            return query_results
+
+        ctx.graph = AsyncMock()
+        ctx.graph.query = AsyncMock(side_effect=_mock_query)
+
+        # Commands client
+        ctx.commands = AsyncMock()
+        ctx.commands.execute = AsyncMock()
+
+        return ctx
+
+    @pytest.mark.asyncio
+    async def test_empty_context_returns_empty_plan(self):
+        ctx = self._make_ctx()
+        ctx.http.get = AsyncMock(side_effect=ConnectionError("no context"))
+        result = await generate_plan(ctx, date_str="2026-03-23")
+        assert result["entries_created"] == 0
+        assert result["rules_matched"] == 0
+
+    @pytest.mark.asyncio
+    async def test_no_rules_returns_empty_plan(self):
+        ctx = self._make_ctx(rules=[])
+        result = await generate_plan(ctx, date_str="2026-03-23",
+                                     context_override={"location_zone": "home"})
+        assert result["entries_created"] == 0
+        assert result["rules_matched"] == 0
+
+    @pytest.mark.asyncio
+    async def test_no_matching_rules_returns_empty_plan(self):
+        rules = [{
+            "id": "r1", "name": "Office rule", "priority": 1, "enabled": True,
+            "conditions": {"location_zone": "office"},
+            "action": {"type": "source_type", "value": "podcast"},
+        }]
+        ctx = self._make_ctx(rules=rules)
+        result = await generate_plan(ctx, date_str="2026-03-23",
+                                     context_override={"location_zone": "home"})
+        assert result["entries_created"] == 0
+        assert result["rules_matched"] == 0
+
+    @pytest.mark.asyncio
+    async def test_matched_rule_no_items_returns_zero_entries(self):
+        rules = [{
+            "id": "r1", "name": "Home podcasts", "priority": 1, "enabled": True,
+            "conditions": {"location_zone": "home"},
+            "action": {"type": "source_type", "value": "podcast"},
+        }]
+        ctx = self._make_ctx(rules=rules)
+        result = await generate_plan(ctx, date_str="2026-03-23",
+                                     context_override={"location_zone": "home"})
+        assert result["rules_matched"] == 1
+        assert result["entries_created"] == 0
+
+    @pytest.mark.asyncio
+    async def test_successful_plan_generation(self):
+        rules = [{
+            "id": "r1", "name": "Home podcasts", "priority": 1, "enabled": True,
+            "conditions": {"location_zone": "home"},
+            "action": {"type": "source_type", "value": "podcast"},
+        }]
+        items = {"results": {"bindings": [
+            {"item": {"value": "urn:item-1"}, "title": {"value": "Episode 1"},
+             "sourceType": {"value": "podcast"}, "duration": {"value": "1800"}},
+            {"item": {"value": "urn:item-2"}, "title": {"value": "Episode 2"},
+             "sourceType": {"value": "podcast"}, "duration": {"value": "900"}},
+        ]}}
+        ctx = self._make_ctx(rules=rules, query_results=items)
+        result = await generate_plan(ctx, date_str="2026-03-23",
+                                     context_override={"location_zone": "home"})
+        assert result["plan_iri"] == "urn:sempkm:app:media-scheduler:plan-2026-03-23"
+        assert result["date"] == "2026-03-23"
+        assert result["rules_matched"] == 1
+        assert result["entries_created"] == 2
+
+    @pytest.mark.asyncio
+    async def test_plan_creates_correct_objects(self):
+        """Verify the plan + entries are created via CommandClient."""
+        rules = [{
+            "id": "r1", "name": "Test", "priority": 1, "enabled": True,
+            "conditions": {},
+            "action": {"type": "source_type", "value": "podcast"},
+        }]
+        items = {"results": {"bindings": [
+            {"item": {"value": "urn:item-1"}, "title": {"value": "Ep1"},
+             "sourceType": {"value": "podcast"}, "duration": {"value": "600"}},
+        ]}}
+        ctx = self._make_ctx(rules=rules, query_results=items)
+        await generate_plan(ctx, date_str="2026-03-23",
+                            context_override={"location_zone": "home"})
+
+        calls = ctx.commands.execute.call_args_list
+        # First call: plan creation
+        assert calls[0].args[0] == "object.create"
+        plan_params = calls[0].args[1]
+        assert plan_params["iri"] == "urn:sempkm:app:media-scheduler:plan-2026-03-23"
+        assert "DailyMediaPlan" in plan_params["type"]
+
+        # Second call: entry creation
+        assert calls[1].args[0] == "object.create"
+        entry_params = calls[1].args[1]
+        assert entry_params["iri"] == "urn:sempkm:app:media-scheduler:entry-2026-03-23-000"
+        assert "PlanEntry" in entry_params["type"]
+
+    @pytest.mark.asyncio
+    async def test_dedup_items_across_rules(self):
+        """Items appearing in multiple rules are only included once."""
+        rules = [
+            {"id": "r1", "name": "Rule 1", "priority": 2, "enabled": True,
+             "conditions": {}, "action": {"type": "source_type", "value": "podcast"}},
+            {"id": "r2", "name": "Rule 2", "priority": 1, "enabled": True,
+             "conditions": {}, "action": {"type": "source_type", "value": "podcast"}},
+        ]
+        # Both rules return the same item
+        items = {"results": {"bindings": [
+            {"item": {"value": "urn:item-1"}, "title": {"value": "Ep1"},
+             "sourceType": {"value": "podcast"}, "duration": {"value": "1800"}},
+        ]}}
+        ctx = self._make_ctx(rules=rules, query_results=items)
+        result = await generate_plan(ctx, date_str="2026-03-23",
+                                     context_override={"activity": "any"})
+        assert result["entries_created"] == 1  # deduped
+
+    @pytest.mark.asyncio
+    async def test_existing_entries_patched_to_replaced(self):
+        """Old plan entries are patched to 'replaced' status."""
+        rules = [{
+            "id": "r1", "name": "Test", "priority": 1, "enabled": True,
+            "conditions": {},
+            "action": {"type": "source_type", "value": "podcast"},
+        }]
+        items = {"results": {"bindings": [
+            {"item": {"value": "urn:item-1"}, "title": {"value": "Ep1"},
+             "sourceType": {"value": "podcast"}, "duration": {"value": "600"}},
+        ]}}
+        existing = {"results": {"bindings": [
+            {"entry": {"value": "urn:old-entry-1"}},
+            {"entry": {"value": "urn:old-entry-2"}},
+        ]}}
+        ctx = self._make_ctx(rules=rules, query_results=items, existing_entries=existing)
+        await generate_plan(ctx, date_str="2026-03-23",
+                            context_override={"location_zone": "home"})
+
+        # First two calls should be patches to "replaced"
+        calls = ctx.commands.execute.call_args_list
+        assert calls[0].args[0] == "object.patch"
+        assert "replaced" in str(calls[0].args[1])
+        assert calls[1].args[0] == "object.patch"
+        assert "replaced" in str(calls[1].args[1])
+        # Then plan + entry creation
+        assert calls[2].args[0] == "object.create"
+
+    @pytest.mark.asyncio
+    async def test_context_override_skips_fetch(self):
+        """When context_override is provided, fetch_context is not called."""
+        rules = [{
+            "id": "r1", "name": "Test", "priority": 1, "enabled": True,
+            "conditions": {"location_zone": "commute"},
+            "action": {"type": "source_type", "value": "podcast"},
+        }]
+        ctx = self._make_ctx(rules=rules)
+        result = await generate_plan(ctx, date_str="2026-03-23",
+                                     context_override={"location_zone": "commute"})
+        # http.get should not have been called (context_override used)
+        ctx.http.get.assert_not_called()
+        assert result["rules_matched"] == 1
+
+    @pytest.mark.asyncio
+    async def test_rule_with_invalid_action_skipped(self):
+        """Rules with empty actions are skipped gracefully."""
+        rules = [
+            {"id": "r1", "name": "Bad rule", "priority": 2, "enabled": True,
+             "conditions": {}, "action": {}},
+            {"id": "r2", "name": "Good rule", "priority": 1, "enabled": True,
+             "conditions": {}, "action": {"type": "source_type", "value": "podcast"}},
+        ]
+        items = {"results": {"bindings": [
+            {"item": {"value": "urn:item-1"}, "title": {"value": "Ep1"},
+             "sourceType": {"value": "podcast"}, "duration": {"value": "600"}},
+        ]}}
+        ctx = self._make_ctx(rules=rules, query_results=items)
+        result = await generate_plan(ctx, date_str="2026-03-23",
+                                     context_override={"activity": "any"})
+        # Both match but one has invalid action — still creates entries from good rule
+        assert result["entries_created"] == 1
+
+    @pytest.mark.asyncio
+    async def test_plan_iri_in_result(self):
+        ctx = self._make_ctx()
+        result = await generate_plan(ctx, date_str="2026-03-23",
+                                     context_override={"location_zone": "home"})
+        assert result["plan_iri"] == "urn:sempkm:app:media-scheduler:plan-2026-03-23"
+
+    @pytest.mark.asyncio
+    async def test_date_defaults_to_today(self):
+        ctx = self._make_ctx()
+        result = await generate_plan(ctx, context_override={"location_zone": "home"})
+        from datetime import date
+        assert result["date"] == date.today().isoformat()
+
+    @pytest.mark.asyncio
+    async def test_plan_constants(self):
+        """Verify plan constants are set correctly."""
+        assert PLAN_DEFAULT_DURATIONS["podcast"] == 1800
+        assert PLAN_DEFAULT_DURATIONS["youtube"] == 900
+        assert PLAN_DEFAULT_DURATIONS["spotify"] == 240
+        assert PLAN_START_HOUR == 8
+        assert MAX_ITEMS_PER_RULE == 5
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Generate-plan task handler tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestGeneratePlanTask:
+    """Test the generate-plan task handler in app.py."""
+
+    @pytest.mark.asyncio
+    async def test_task_handler_delegates_to_generate_plan(self):
+        """The task handler should call generate_plan and return its result."""
+        ctx = MagicMock()
+        ctx.http = AsyncMock()
+        ctx.http.get = AsyncMock(side_effect=ConnectionError("skip"))
+        ctx.state = AsyncMock()
+        ctx.state.get = AsyncMock(return_value="[]")
+        ctx.graph = AsyncMock()
+        ctx.commands = AsyncMock()
+
+        result = await generate_plan_task(ctx)
+        assert "plan_iri" in result
+        assert "entries_created" in result
+

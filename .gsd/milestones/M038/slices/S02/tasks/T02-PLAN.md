@@ -103,3 +103,10 @@ IRI patterns: `urn:sempkm:app:media-scheduler:plan-{YYYY-MM-DD}` for plans, `urn
 - `apps/media-scheduler/services/plan_service.py` — new plan generation service
 - `apps/media-scheduler/app.py` — extended with generate-plan task handler
 - `backend/tests/test_media_scheduler.py` — extended with ≥20 plan tests
+
+## Observability Impact
+
+- **New signals:** `logger.info` on plan generation start (rules matched count, items selected, entries created); `logger.warning` on context fetch failure, empty context, item query failure, old entry patch failure; `logger.error` on plan creation failure.
+- **Inspection surface:** `generate_plan()` returns a structured summary dict (`plan_iri`, `date`, `rules_matched`, `entries_created`, optional `error`) — the task scheduler logs this automatically. Plan + entry objects are stored as RDF queryable via SPARQL (`?plan a ms:DailyMediaPlan`, `?entry a ms:PlanEntry`).
+- **Failure visibility:** Context fetch errors return empty plan (not crash) with warning. Item query errors per-rule are logged and skipped. CommandClient errors surface in the return dict's `error` field.
+- **Future agent inspection:** Call `generate_plan(ctx, date_str="YYYY-MM-DD", context_override={...})` with a mock or real context to test end-to-end. Check `allocate_slots()` output for slot math. Use `build_item_query(action)` to inspect the SPARQL generated for a given action.
