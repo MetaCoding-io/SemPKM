@@ -90,6 +90,14 @@ This is mechanical wiring following the YouTube + Google Calendar patterns. The 
 - `grep -q 'spotify' apps/media-scheduler/frontend/templates/add-source.html` — Spotify section exists in template
 - `grep -c '/app/media-scheduler/' apps/media-scheduler/frontend/templates/add-source.html` returns >= 5 (proxy-prefixed URLs)
 
+## Observability Impact
+
+- **New poll task logging:** `poll_spotify` task handler uses `spotify.poll` logger for cycle summaries (sources_polled, items_created), `spotify.auth` for token refresh events, `spotify.client` for per-source API calls. Same structured logging pattern as `poll_sources` and `poll_youtube`.
+- **Connection status:** `get_spotify_connection_status()` callable from any route — returns `{connected, display_name, product, token_expiry}`. Used by the add-source template to render connected/disconnected state.
+- **Per-source error tracking:** SpotifyAPIError increments `errorCount` and sets `lastError` on the source via `update_source_state()`. SpotifyAuthError (shared auth) breaks the poll loop and is visible in the task return summary.
+- **OAuth flow tracing:** `spotify.auth` logger records token exchange success/failure, CSRF state validation, code_verifier usage, and token refresh cycles. Never logs token values.
+- **Inspection:** Poll task returns `{"sources_polled": N, "items_created": N}` — logged by AppScheduler. Route handlers return HTML fragments with inline success/error status. Manifest `poll-spotify` task visible via standard task listing.
+
 ## Inputs
 
 - `apps/media-scheduler/services/spotify_service.py` — T01 output: all Spotify service functions
