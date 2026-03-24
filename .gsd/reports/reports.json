@@ -451,6 +451,22 @@
       "doneMilestones": 40,
       "totalMilestones": 40,
       "phase": "complete"
+    },
+    {
+      "filename": "M041-2026-03-24T21-25-51.html",
+      "generatedAt": "2026-03-24T21:25:51.249Z",
+      "milestoneId": "M041",
+      "milestoneTitle": "Code Quality Audit - Backend & Frontend",
+      "label": "M041: Code Quality Audit - Backend & Frontend",
+      "kind": "milestone",
+      "totalCost": 1518.5313807500008,
+      "totalTokens": 2126746181,
+      "totalDuration": 258103544,
+      "doneSlices": 249,
+      "totalSlices": 249,
+      "doneMilestones": 41,
+      "totalMilestones": 42,
+      "phase": "pre-planning"
     }
   ]
 }
