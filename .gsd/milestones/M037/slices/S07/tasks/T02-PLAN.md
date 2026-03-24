@@ -77,3 +77,7 @@ Per KNOWLEDGE.md rule "User guide has THREE files that must stay in sync", all t
 - `docs/guide/README.md` — modified with chapter 48 entry
 - `docs/guide/index.html` — modified with chapter 48 sidebar link
 - `backend/app/templates/guide.html` — modified with chapter 48 button
+
+## Observability Impact
+
+This is a documentation-only task — no runtime signals change. The guide chapter documents existing observability surfaces (context indicator staleness, notification test endpoint, rule test endpoint) but does not create new ones. Future agents can verify this task by checking file existence and grep-matching the three index files.

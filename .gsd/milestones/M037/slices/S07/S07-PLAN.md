@@ -48,7 +48,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_context_integration.py -v` — 8+ tests pass. Then run all existing context/rules/notification tests to confirm no regression.
   - Done when: integration test passes with 8+ test cases covering the full loop, suppression, staleness, and edge cases; all 176+ existing tests still pass.
 
-- [ ] **T02: User guide chapter 48 and index updates** `est:30m`
+- [x] **T02: User guide chapter 48 and index updates** `est:30m`
   - Why: The mobile app and context system need user-facing documentation. Three index files must stay in sync per KNOWLEDGE.md rule.
   - Files: `docs/guide/48-mobile-app-context.md`, `docs/guide/README.md`, `docs/guide/index.html`, `backend/app/templates/guide.html`
   - Do: Write chapter 48 covering: overview (mobile app as context provider, not full client), installation (Expo dev build), onboarding (instance URL + API key), zone configuration (map interface, geofence limits), context dashboard, auto-persona rules (Settings UI), push notification preferences (quiet hours, suppress when busy), workspace context indicator (sidebar chip), and troubleshooting (stale context, permission revocation, offline behavior). Follow the style of chapter 33 (Context Overlay) — feature overview, setup steps, usage walkthrough, troubleshooting. Add chapter 48 entry to all three guide indexes: README.md ToC line, index.html sidebar `<li>`, guide.html `<button>` with smartphone icon.
