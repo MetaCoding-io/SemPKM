@@ -23,6 +23,7 @@
 
 - `cd backend && .venv/bin/python -m pytest tests/test_context_integration.py -v` — 8+ tests pass
 - `cd backend && .venv/bin/python -m pytest tests/test_context_service.py tests/test_context_router.py tests/test_rules_engine.py tests/test_rules_router.py tests/test_zone_service.py tests/test_zone_router.py tests/test_notification_service.py tests/test_notification_router.py -v` — all 176 existing tests still pass
+- `cd backend && .venv/bin/python -m pytest tests/test_context_integration.py -v -k "diagnostic" 2>&1 | grep -q "PASSED"` — diagnostic/failure-path tests exercise error-handling branches (rule eval failure and notification dispatch failure are logged, not raised)
 - `test -f docs/guide/48-mobile-app-context.md` — guide chapter exists
 - `grep -q '48-mobile-app-context' docs/guide/README.md && grep -q '48-mobile-app-context' docs/guide/index.html && grep -q '48-mobile-app-context' backend/app/templates/guide.html` — all three indexes reference chapter 48
 
@@ -40,7 +41,7 @@
 
 ## Tasks
 
-- [ ] **T01: Backend integration test proving cross-service context loop** `est:45m`
+- [x] **T01: Backend integration test proving cross-service context loop** `est:45m`
   - Why: Individual slice tests mock adjacent services. The full chain — context update → rule evaluation → persona switch → SSE event → notification dispatch/suppression — has never been tested with real service instances wired together. This is the only remaining verification gap.
   - Files: `backend/tests/test_context_integration.py`
   - Do: Create integration test file using real `ContextService`, `RulesEngine`, `PersonaService`, `NotificationService` (with mock FCM only), and `ContextBroadcast` backed by in-memory SQLite. Wire into a FastAPI test app following the existing `httpx.AsyncClient` pattern. Test cases: (1) full loop — POST context with location_zone matching a rule → persona switches → persona_switched SSE event emitted → notification dispatched, (2) notification suppression via calendar_busy, (3) notification suppression via quiet hours, (4) context staleness via TTL, (5) no-rule-match — context updates without persona change, (6) multiple updates — second update with same zone skips redundant switch, (7) rule priority ordering — higher priority wins, (8) notification suppression when master toggle disabled.

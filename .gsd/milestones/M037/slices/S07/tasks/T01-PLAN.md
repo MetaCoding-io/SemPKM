@@ -72,3 +72,9 @@ Firebase dispatch is the only thing mocked (no real FCM in tests). All other ser
 ## Expected Output
 
 - `backend/tests/test_context_integration.py` — integration test file with 8+ tests, all passing
+
+## Observability Impact
+
+- **Signals exercised:** Integration tests trigger structured log messages from ContextService (`context.update`), RulesEngine (`context.rule_matched`, `context.no_rule_matched`), PersonaService (`Persona activated`), and NotificationService (`notification.suppressed`, `notification.dispatch_triggered`). These log lines are the primary diagnostic signals for the context loop in production.
+- **Failure-path coverage:** `TestDiagnosticSignals` class proves that rule evaluation errors and notification dispatch errors are caught and logged without breaking the context update response — verifying the fire-and-forget error isolation pattern.
+- **Inspection surface:** The test file itself is the inspection surface: `pytest tests/test_context_integration.py -v` shows which step in the chain broke, making it easy for a future agent to identify whether context persist, rule eval, persona switch, or notification dispatch is the failing layer.
