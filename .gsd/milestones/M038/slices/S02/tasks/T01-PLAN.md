@@ -81,6 +81,13 @@ Rules are stored as a JSON array under StateClient key `schedule_rules`. Each ru
 - `python3 -c "import json; d=json.load(open('models/media-scheduler/ontology/media-scheduler.jsonld')); types=[n['@id'] for n in d['@graph'] if n.get('@type')=='owl:Class']; assert 'ms:DailyMediaPlan' in types and 'ms:PlanEntry' in types"`
 - `python3 -c "import yaml; m=yaml.safe_load(open('apps/media-scheduler/manifest.yaml')); ids=[t['id'] for t in m['tasks']]; assert 'generate-plan' in ids"`
 
+## Observability Impact
+
+- **New signals:** `rules_service.py` is pure-function — no runtime logging. Observability is in the test surface: any future regression in rule evaluation logic is caught by the ≥20 unit tests covering wildcards, priority ordering, and time ranges.
+- **Inspection surface:** `evaluate_rules()` returns a list of matched rules with full rule dicts — callers (plan_service in T02) can log `len(matched_rules)` and individual rule IDs for tracing.
+- **Failure visibility:** `validate_rule()` raises `ValueError` with descriptive messages on invalid input (missing name, invalid priority type). These propagate to the route layer for user-facing error display.
+- **Ontology extension:** DailyMediaPlan and PlanEntry classes are queryable via SPARQL once populated. `ms:planStatus` and `ms:entryStatus` provide plan lifecycle state visible to both the UI and diagnostic queries.
+
 ## Inputs
 
 - `apps/media-scheduler/services/podcast_service.py` — MS_NS, APP_NS constants to reuse

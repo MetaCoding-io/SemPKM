@@ -29,6 +29,7 @@
 - Rules evaluation tests: wildcard matching, priority ordering, time range checks, empty rules
 - Plan generation tests: slot allocation math, default durations, dedup, empty item handling
 - `rg 'hx-get="|hx-post="' apps/media-scheduler/frontend/templates/ | grep -v '/app/media-scheduler/'` — returns empty (all htmx URLs prefixed)
+- `cd backend && .venv/bin/python -m pytest tests/test_media_scheduler.py -v -k "invalid or error or empty" --no-header -q 2>&1 | tail -1` — failure-path tests present and passing (validates error handling coverage)
 
 ## Observability / Diagnostics
 
@@ -45,7 +46,7 @@
 
 ## Tasks
 
-- [ ] **T01: Rules service + ontology extension** `est:1h30m`
+- [x] **T01: Rules service + ontology extension** `est:1h30m`
   - Why: Establishes the rules data model (JSON in StateClient), pure-function CRUD and evaluation logic, and extends the ontology with DailyMediaPlan + PlanEntry types needed by plan generation
   - Files: `apps/media-scheduler/services/rules_service.py`, `models/media-scheduler/ontology/media-scheduler.jsonld`, `models/media-scheduler/shapes/media-scheduler.jsonld`, `apps/media-scheduler/manifest.yaml`, `backend/tests/test_media_scheduler.py`
   - Do: Create rules_service.py with rule schema validation, CRUD (load_rules/save_rules/add_rule/update_rule/delete_rule via StateClient JSON), evaluate(context, rules) → matched rules sorted by priority. Extend ontology JSON-LD with DailyMediaPlan and PlanEntry classes + 6 new properties. Extend shapes JSON-LD with DailyMediaPlanShape and PlanEntryShape. Add generate-plan task to manifest. Write ~20 unit tests for rules evaluation, CRUD, serialization.
