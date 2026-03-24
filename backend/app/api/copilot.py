@@ -25,7 +25,12 @@ from app.auth.dependencies import get_current_user_or_api
 from app.auth.models import User
 from app.copilot.context import GraphContextService
 from app.copilot.conversation import ConversationService
-from app.copilot.schemas import CopilotChatRequest
+from app.copilot.personas import AIPersonaService
+from app.copilot.schemas import (
+    CopilotChatRequest,
+    CreatePersonaRequest,
+    UpdatePersonaRequest,
+)
 from app.copilot.service import CopilotService, MAX_RETRIES, _build_system_prompt
 from app.db.session import get_db_session
 from app.services.llm import LLMConfigService
@@ -35,6 +40,7 @@ logger = logging.getLogger(__name__)
 copilot_router = APIRouter(prefix="/api/copilot", tags=["copilot"])
 
 conversation_svc = ConversationService()
+persona_svc = AIPersonaService()
 
 
 # ---------------------------------------------------------------------------
@@ -107,6 +113,114 @@ async def delete_conversation(
             status_code=404,
         )
     return {"status": "deleted"}
+
+
+# ---------------------------------------------------------------------------
+# Persona CRUD endpoints
+# ---------------------------------------------------------------------------
+
+
+def _persona_to_response(p) -> dict:
+    """Convert an AIPersona ORM object to a response dict."""
+    return {
+        "id": str(p.id),
+        "name": p.name,
+        "icon": p.icon,
+        "system_prompt_template": p.system_prompt_template,
+        "model_preference": p.model_preference,
+        "temperature": p.temperature,
+        "is_builtin": p.is_builtin,
+        "is_active": p.is_active,
+    }
+
+
+@copilot_router.get("/personas")
+async def list_personas(
+    user: User = Depends(get_current_user_or_api),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """List all AI personas for the current user. Seeds built-ins on first call."""
+    personas = await persona_svc.list_for_user(db, user.id)
+    await db.commit()
+    return [_persona_to_response(p) for p in personas]
+
+
+@copilot_router.post("/personas")
+async def create_persona(
+    body: CreatePersonaRequest,
+    user: User = Depends(get_current_user_or_api),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Create a custom AI persona."""
+    persona = await persona_svc.create(
+        db,
+        user_id=user.id,
+        name=body.name,
+        icon=body.icon,
+        system_prompt_template=body.system_prompt_template,
+        model_preference=body.model_preference,
+        temperature=body.temperature,
+    )
+    await db.commit()
+    return _persona_to_response(persona)
+
+
+@copilot_router.put("/personas/{persona_id}")
+async def update_persona(
+    persona_id: UUID,
+    body: UpdatePersonaRequest,
+    user: User = Depends(get_current_user_or_api),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Update a custom persona. Built-in personas cannot be modified."""
+    try:
+        update_fields = body.model_dump(exclude_unset=True)
+        persona = await persona_svc.update(
+            db, persona_id, user.id, **update_fields
+        )
+        await db.commit()
+        return _persona_to_response(persona)
+    except ValueError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=400)
+
+
+@copilot_router.delete("/personas/{persona_id}")
+async def delete_persona(
+    persona_id: UUID,
+    user: User = Depends(get_current_user_or_api),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Delete a custom persona. Built-in personas cannot be deleted."""
+    try:
+        deleted = await persona_svc.delete(db, persona_id, user.id)
+        await db.commit()
+        if not deleted:
+            return JSONResponse(
+                {"error": f"Persona {persona_id} not found"}, status_code=404
+            )
+        return {"status": "deleted"}
+    except ValueError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=400)
+
+
+@copilot_router.post("/personas/{persona_id}/activate")
+async def activate_persona(
+    persona_id: UUID,
+    user: User = Depends(get_current_user_or_api),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Set a persona as the active one for the current user."""
+    try:
+        persona = await persona_svc.set_active(db, user.id, persona_id)
+        await db.commit()
+        logger.info(
+            "copilot.persona.activated: user_id=%s, persona_id=%s",
+            user.id,
+            persona_id,
+        )
+        return _persona_to_response(persona)
+    except ValueError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=404)
 
 
 # ---------------------------------------------------------------------------
@@ -263,7 +377,55 @@ async def copilot_chat(
             )
             # Graceful degradation — proceed without graph context
 
-    system_prompt = _build_system_prompt(schema_context, graph_context=graph_context_text)
+    # -------------------------------------------------------------------
+    # Persona lookup and system prompt construction
+    # -------------------------------------------------------------------
+    persona_prompt_rendered: str | None = None
+    try:
+        active_persona = None
+        if chat_req.persona_id:
+            try:
+                pid = UUID(chat_req.persona_id)
+                active_persona = await persona_svc.get(db, pid, user.id)
+            except (ValueError, AttributeError):
+                logger.warning(
+                    "copilot.chat.invalid_persona_id: value=%s",
+                    chat_req.persona_id,
+                )
+
+        if active_persona is None:
+            # Fall back to user's active persona (seeding if needed)
+            active_persona = await persona_svc.get_active(db, user.id)
+            if active_persona is None:
+                # Trigger seed and try again
+                await persona_svc.seed_builtins(db, user.id)
+                active_persona = await persona_svc.get_active(db, user.id)
+
+        if active_persona:
+            # Render the template with slot variables
+            persona_prompt_rendered = active_persona.system_prompt_template.format(
+                installed_models=schema_context[:200] if schema_context else "",
+                type_schemas=schema_context if schema_context else "",
+                current_context=graph_context_text if graph_context_text else "",
+            )
+            logger.info(
+                "copilot.chat.persona_applied: persona_id=%s, name=%s",
+                active_persona.id,
+                active_persona.name,
+            )
+    except Exception as exc:
+        logger.warning(
+            "copilot.chat.persona_error: error=%s",
+            str(exc),
+            exc_info=True,
+        )
+        # Graceful degradation — proceed without persona prompt
+
+    system_prompt = _build_system_prompt(
+        schema_context,
+        graph_context=graph_context_text,
+        persona_prompt=persona_prompt_rendered,
+    )
 
     # -------------------------------------------------------------------
     # Conversation persistence: load or auto-create
