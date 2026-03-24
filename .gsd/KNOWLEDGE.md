@@ -558,3 +558,26 @@ existing_count = await db.scalar(select(func.count(...)))  # sees the pending ad
 ```
 
 **Affected file:** `backend/app/copilot/conversation.py` — `add_message()` method
+
+
+### Copilot tab lazy-load requires two-phase wait in E2E tests
+
+**Discovered:** M035/S04/T02
+
+The AI COPILOT tab is lazy-loaded via dynamic `import()` in workspace.js. The module only initializes when the tab is first clicked. In E2E tests, clicking the `button.panel-tab[data-panel="ai-copilot"]` tab triggers an async import + initialization chain. Simply waiting for `#copilot-container` to be visible is insufficient — the conversation header and input area aren't ready until the async fetch of conversations completes.
+
+**Pattern:** The `openCopilotTab()` E2E helper uses a two-phase wait:
+1. Click the tab button, wait for `#copilot-container` to be visible
+2. Wait for `#copilot-conv-header` to render (signals async initialization complete)
+
+**Affected file:** `e2e/tests/46-copilot/copilot.spec.ts`
+
+### Mock LLM server: _select_response() route priority matters for backward compat
+
+**Discovered:** M035/S04/T01
+
+The mock LLM server at `e2e/mock-llm-api/server.py` uses keyword matching on user message content to select canned responses. Route checking order is: claims > SPARQL > create-object > summarize > generic. The claims route MUST stay first because M028 browser extension tests depend on messages containing "extract" or "claim" routing to the claims handler.
+
+**Impact:** When adding new copilot-specific canned routes, insert them AFTER the claims check but BEFORE the generic fallback. A message matching multiple routes (e.g., "extract data and create a task") will hit the first matching route.
+
+**Affected file:** `e2e/mock-llm-api/server.py` — `_select_response()` function

@@ -63,7 +63,7 @@ This milestone is complete only when all are true:
   > After this: copilot automatically includes the active object's 1-hop neighborhood in its context, user asks "Summarize this project" while viewing a Project and gets an answer referencing linked tasks and notes by name, and conversation history persists across page reloads in SQLite
 - [x] **S03: AI Personas & Object Creation from Chat** `risk:low` `depends:[S01]`
   > After this: user picks "Research Assistant" from the persona selector and copilot shifts to citation-heavy responses, user says "Create a task: Review Q1 goals, due Friday" and copilot shows a confirmation card then creates the object via Command API
-- [ ] **S04: LLM Test Harness & E2E Integration** `risk:low` `depends:[S01,S02,S03]`
+- [x] **S04: LLM Test Harness & E2E Integration** `risk:low` `depends:[S01,S02,S03]`
   > After this: mock LLM E2E tests run in CI in <5s with deterministic copilot assertions, Ollama docker-compose variant runs real inference locally, cloud tier enforces per-run budget cap and reports token costs
 
 ## Boundary Map
