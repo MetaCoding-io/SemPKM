@@ -26,7 +26,7 @@
 
 ## Tasks
 
-- [ ] **T01: Document A05 (Security Misconfiguration) and A09 (Logging & Monitoring) findings** `est:1h`
+- [x] **T01: Document A05 (Security Misconfiguration) and A09 (Logging & Monitoring) findings** `est:1h`
   - Why: These two categories share config files (nginx, Docker, main.py) and both involve operational security posture gaps rather than code-level vulnerabilities
   - Files: `frontend/nginx.conf`, `frontend/nginx.demo.conf`, `Caddyfile.cloud`, `backend/Dockerfile`, `frontend/Dockerfile`, `docker-compose.yml`, `docker-compose.demo.yml`, `backend/app/main.py`, `backend/app/auth/router.py`, `backend/app/workflow/router.py`, `backend/app/dashboard/router.py`
   - Do: Read each config file to confirm the research findings (missing headers, CORS duplication, Docker root user, `--reload`, `detail=str(e)` leaks, magic link token logging, absent audit trail). Write findings F-021 through ~F-030 following S01's format. Include severity, OWASP category, affected files with line numbers, exploit scenario, localhost mitigation where relevant, and remediation for each. End with A09 logging/monitoring gaps.
