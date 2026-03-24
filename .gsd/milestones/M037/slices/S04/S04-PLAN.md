@@ -45,7 +45,7 @@
 
 ## Tasks
 
-- [ ] **T01: Backend zone model, migration 020, and CRUD API with tests** `est:1.5h`
+- [x] **T01: Backend zone model, migration 020, and CRUD API with tests** `est:1.5h`
   - Why: The mobile app needs server-side zone storage and retrieval before it can register geofences. This follows the exact CRUD pattern from `context_rules` (S02).
   - Files: `backend/app/context/zone_models.py`, `backend/app/context/zone_service.py`, `backend/app/context/zone_router.py`, `backend/migrations/versions/020_context_zones.py`, `backend/app/main.py`, `backend/app/dependencies.py`, `backend/tests/test_zone_service.py`, `backend/tests/test_zone_router.py`
   - Do: Create `ContextZone` SQLAlchemy model (id UUID, user_id FK, name str 100, latitude float, longitude float, radius_meters float default 200, enabled bool, created_at, updated_at). Create Alembic migration 020 chaining from 019. Build `ZoneService` with CRUD methods (create, list_for_user, get, update, delete) scoped by user_id. Build zone router with 4 endpoints at `/api/context/zones`. Register service and router in `main.py` and `dependencies.py`. Write pytest unit tests for service CRUD and router endpoints following `test_context_service.py` / `test_rules_router.py` patterns. Validate radius bounds (min 50, max 10000) and name length in Pydantic models.
