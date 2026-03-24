@@ -419,6 +419,22 @@
       "doneMilestones": 38,
       "totalMilestones": 40,
       "phase": "pre-planning"
+    },
+    {
+      "filename": "M037-2026-03-24T08-48-20.html",
+      "generatedAt": "2026-03-24T08:48:20.981Z",
+      "milestoneId": "M037",
+      "milestoneTitle": "User Context & Mobile App",
+      "label": "M037: User Context & Mobile App",
+      "kind": "milestone",
+      "totalCost": 1414.0618667500005,
+      "totalTokens": 1986803450,
+      "totalDuration": 242757386,
+      "doneSlices": 239,
+      "totalSlices": 239,
+      "doneMilestones": 39,
+      "totalMilestones": 40,
+      "phase": "pre-planning"
     }
   ]
 }
