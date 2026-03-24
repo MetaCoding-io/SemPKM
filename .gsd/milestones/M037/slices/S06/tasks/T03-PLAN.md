@@ -69,3 +69,11 @@ Wire the notification service into the context update flow so that notable conte
 - `backend/tests/test_notification_service.py` — modified: additional integration tests
 - `backend/tests/test_notification_router.py` — modified: dispatch-related router tests
 - `backend/app/context/notification_service.py` — potentially adjusted if integration reveals issues
+
+## Observability Impact
+
+- **New structured log:** `notification.dispatch_triggered user_id={} type=context_changes location_zone={}` — logged when location_zone change triggers dispatch
+- **New structured log:** `notification.dispatch_triggered user_id={} type=context_changes calendar_busy=free` — logged when calendar busy→free transition triggers dispatch
+- **New error log:** `context.notification_dispatch_failed user_id={}` — logged with exc_info if the notification dispatch block raises
+- **Inspection:** Check structured logs for `notification.dispatch_triggered` to verify dispatch is firing on context updates; check `notification.suppressed` to verify suppression is working downstream
+- **Failure visibility:** The try/except guard ensures notification failures never break context update responses — check `context.notification_dispatch_failed` logs for dispatch errors

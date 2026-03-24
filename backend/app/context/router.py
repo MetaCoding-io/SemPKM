@@ -85,6 +85,9 @@ async def update_context(
             detail="At least one context field must be provided",
         )
 
+    # Capture pre-update state for transition detection (calendar_busy→free)
+    old_ctx = await service.get_current(user.id) if "calendar_busy" in fields else None
+
     ctx = await service.update(user.id, **fields)
 
     # Publish SSE event to all connected clients
@@ -129,6 +132,54 @@ async def update_context(
     except Exception:
         logger.error(
             "context.rule_evaluation_failed user_id=%s", user.id, exc_info=True
+        )
+
+    # ── Notification dispatch for notable state changes ──────────
+    # Fire-and-forget: errors here must never break the context update.
+    try:
+        notification_service = getattr(
+            request.app.state, "notification_service", None
+        )
+        if notification_service is not None:
+            # Location zone change → push notification
+            if fields.get("location_zone"):
+                zone = fields["location_zone"]
+                logger.info(
+                    "notification.dispatch_triggered user_id=%s type=context_changes location_zone=%s",
+                    user.id,
+                    zone,
+                )
+                await notification_service.send_to_user(
+                    user.id,
+                    "Location Update",
+                    f"Location: {zone}",
+                    data={"type": "context_changes"},
+                    notification_type="context_changes",
+                )
+
+            # Calendar busy → free transition → push notification
+            if (
+                "calendar_busy" in fields
+                and fields["calendar_busy"] is False
+                and old_ctx is not None
+                and old_ctx.calendar_busy
+            ):
+                logger.info(
+                    "notification.dispatch_triggered user_id=%s type=context_changes calendar_busy=free",
+                    user.id,
+                )
+                await notification_service.send_to_user(
+                    user.id,
+                    "Focus Block Ended",
+                    "Your calendar busy period has ended",
+                    data={"type": "context_changes"},
+                    notification_type="context_changes",
+                )
+    except Exception:
+        logger.error(
+            "context.notification_dispatch_failed user_id=%s",
+            user.id,
+            exc_info=True,
         )
 
     return dataclasses.asdict(ctx)

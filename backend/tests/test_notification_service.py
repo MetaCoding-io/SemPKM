@@ -359,3 +359,112 @@ class TestDispatch:
         results = await service.send_to_user(user_id, "Title", "Body")
         assert len(results) == 2
         assert all(r is None for r in results)
+
+
+# ── Integration: suppress→skip and allow→send paths ──────────────
+
+
+class TestIntegrationSuppressAndSend:
+    """Integration tests exercising the full suppress→skip and allow→send
+    code paths through send_to_user() with real service logic."""
+
+    @pytest.mark.asyncio
+    async def test_send_to_user_skipped_when_calendar_busy(
+        self, service, user_id, context_service
+    ):
+        """send_to_user returns [] when calendar_busy suppression fires."""
+        context_service.get_current.return_value.calendar_busy = True
+        await service.register_token(user_id, "tok_cal_busy", "ios")
+        results = await service.send_to_user(
+            user_id, "Title", "Body", notification_type="context_changes"
+        )
+        assert results == []
+
+    @pytest.mark.asyncio
+    async def test_send_to_user_proceeds_when_not_suppressed(
+        self, service, user_id
+    ):
+        """send_to_user dispatches to all tokens when suppression allows."""
+        await service.register_token(user_id, "tok_allowed_1", "ios")
+        await service.register_token(user_id, "tok_allowed_2", "android")
+        results = await service.send_to_user(
+            user_id,
+            "Title",
+            "Body",
+            notification_type="context_changes",
+        )
+        # In no-op mode (firebase_app=None), each send returns None
+        assert len(results) == 2
+        assert all(r is None for r in results)
+
+    @pytest.mark.asyncio
+    async def test_send_to_user_no_tokens_noop(self, service, user_id):
+        """send_to_user with zero registered tokens returns [] without error."""
+        results = await service.send_to_user(
+            user_id, "Title", "Body", notification_type="context_changes"
+        )
+        assert results == []
+
+    @pytest.mark.asyncio
+    async def test_send_notification_noop_mode_returns_none(
+        self, session_factory
+    ):
+        """send_notification with firebase_app=None returns None, no crash."""
+        svc = NotificationService(session_factory, firebase_app=None)
+        result = await svc.send_notification("any-token", "Title", "Body")
+        assert result is None
+
+
+# ── Midnight-spanning quiet hours edge cases ─────────────────────
+
+
+class TestMidnightSpanningQuietHours:
+    """Dedicated tests for quiet hours 22:00→07:00 at 4 time points."""
+
+    @pytest.mark.asyncio
+    async def test_suppress_at_23_00(self, service, user_id):
+        """23:00 is within 22:00–07:00 → suppressed."""
+        await service.update_preferences(
+            user_id, quiet_hours_start="22:00", quiet_hours_end="07:00"
+        )
+        suppressed, reason = await service.should_suppress(
+            user_id, _now=datetime(2026, 3, 23, 23, 0, tzinfo=timezone.utc)
+        )
+        assert suppressed is True
+        assert reason == "quiet_hours"
+
+    @pytest.mark.asyncio
+    async def test_suppress_at_03_00(self, service, user_id):
+        """03:00 is within 22:00–07:00 → suppressed."""
+        await service.update_preferences(
+            user_id, quiet_hours_start="22:00", quiet_hours_end="07:00"
+        )
+        suppressed, reason = await service.should_suppress(
+            user_id, _now=datetime(2026, 3, 24, 3, 0, tzinfo=timezone.utc)
+        )
+        assert suppressed is True
+        assert reason == "quiet_hours"
+
+    @pytest.mark.asyncio
+    async def test_allow_at_08_00(self, service, user_id):
+        """08:00 is outside 22:00–07:00 → allowed."""
+        await service.update_preferences(
+            user_id, quiet_hours_start="22:00", quiet_hours_end="07:00"
+        )
+        suppressed, reason = await service.should_suppress(
+            user_id, _now=datetime(2026, 3, 24, 8, 0, tzinfo=timezone.utc)
+        )
+        assert suppressed is False
+        assert reason is None
+
+    @pytest.mark.asyncio
+    async def test_allow_at_21_00(self, service, user_id):
+        """21:00 is outside 22:00–07:00 → allowed."""
+        await service.update_preferences(
+            user_id, quiet_hours_start="22:00", quiet_hours_end="07:00"
+        )
+        suppressed, reason = await service.should_suppress(
+            user_id, _now=datetime(2026, 3, 23, 21, 0, tzinfo=timezone.utc)
+        )
+        assert suppressed is False
+        assert reason is None
