@@ -697,11 +697,9 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - User guide chapter 39 section 5 documents all frameworks with type reference tables
 - All frameworks stored as typed RDF for AI copilot queryability
 
-**User Context & Mobile App** — queued as M037 (depends on M033)
-- React Native mobile app (iOS + Android) as real-time context provider
-- Background GPS geofencing, activity detection, calendar integration
-- Backend Context API with auto-persona switching rules engine
-- Push notifications with context-aware filtering
+**User Context & Mobile App** — in progress as M037 (S01 complete, S02–S07 remaining)
+- S01 complete: Backend Context API (`POST /api/context/update`, `GET /api/context/current`, `GET /api/context/stream` SSE), ContextService with TTL-based staleness (default 15 min), ContextBroadcast SSE fan-out, workspace sidebar context indicator with real-time updates, Alembic migration 018, 28 unit tests
+- Remaining: S02 auto-persona rules engine, S03 React Native mobile app foundation, S04 geofencing, S05 calendar/activity detection, S06 push notifications, S07 integration acceptance
 
 **Personal Media Scheduler App** — queued as M038 (depends on M037)
 - Daily media queue: podcasts, YouTube, Spotify scheduled by context and rules
@@ -1168,4 +1166,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-22 after M034 complete (Task Planning, Time-Blocking & Calendar UX — editable calendar, timeline/Gantt, cross-view drag, recurring tasks, templates, review workflows. 5 slices, 99 unit tests + 8 E2E tests. All 10 PLAN requirements validated. User guide docs gap.)*
+*Last updated: 2026-03-23 after M037/S01 complete (User Context & Mobile App — Backend Context API with TTL staleness, SSE streaming, workspace sidebar indicator. 28 unit tests.)*
