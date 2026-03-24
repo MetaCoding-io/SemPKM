@@ -66,6 +66,23 @@ Note: `expo-sensors` was installed in T01. This task only creates the service fi
 - `mobile/package.json` — has `expo-sensors` installed (from T01)
 - `mobile/src/services/geofencing.ts` — reference pattern for service module structure
 
+## Observability Impact
+
+**New signals:**
+- `activity.monitoring_started` — logged when accelerometer subscription begins, includes `{ pedometerAvailable: boolean }`
+- `activity.hardware_unavailable` — logged once if `Accelerometer.isAvailableAsync()` returns false; service degrades to "unknown"
+- `activity.classified` — logged on each classification update with `{ activity, variance, windowSize, stepsIncreasing }`
+- `activity.monitoring_stopped` — logged when subscriptions are removed
+
+**Inspection surface:**
+- `getCurrentActivity()` returns the latest `ActivityType` — visible in React DevTools via the orchestrator hook
+- Module-level state is self-contained: `magnitudeWindow`, `currentActivity`, `lastStepCount`, subscription references
+
+**Failure visibility:**
+- Hardware unavailable → single `activity.hardware_unavailable` log entry, `getCurrentActivity()` returns "unknown" permanently
+- Pedometer unavailable → `activity.pedometer_unavailable` log, classification proceeds on accelerometer alone
+- Double-start guard → `startActivityMonitoring()` is idempotent, no diagnostic noise from duplicate calls
+
 ## Expected Output
 
 - `mobile/src/services/activity.ts` — new file with activity classification via accelerometer + pedometer
