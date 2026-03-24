@@ -55,7 +55,7 @@
   - Verify: `cd backend && .venv/bin/python -m pytest tests/test_rules_router.py -v` — all tests pass
   - Done when: All CRUD endpoints work, test endpoint returns match/no-match, context update triggers rule evaluation and persona switch with SSE event
 
-- [ ] **T03: Settings UI — Context Rules category panel with CRUD and test** `est:40m`
+- [x] **T03: Settings UI — Context Rules category panel with CRUD and test** `est:40m`
   - Why: Users need a UI to create, edit, delete, and test context rules — without this the feature is API-only
   - Files: `backend/app/templates/browser/settings_page.html`, `backend/app/templates/browser/_context_rules.html`, `backend/app/browser/settings.py`, `frontend/static/css/settings.css`
   - Do: Add "Context Rules" button to settings sidebar in settings_page.html. Add corresponding panel div with htmx load trigger. Create `_context_rules.html` template partial: rule list (htmx-loaded), create/edit form with fields (name, condition dropdowns for location_zone/activity/time_period, calendar_busy checkbox, target persona dropdown from `/api/personas`, priority number, enabled toggle), delete button with confirmation, "Test against current context" button that POSTs to `/api/context/rules/test`. Add browser settings route to serve the partial. Style the rule builder form in settings.css matching existing settings patterns.

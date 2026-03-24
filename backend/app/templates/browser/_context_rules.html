@@ -1,0 +1,366 @@
+{# Context Rules settings partial — loaded via htmx into #context-rules-content #}
+
+<div class="context-rules-container">
+
+  {# ── Test against current context ──────────────────────────── #}
+  <div class="context-rules-test-section">
+    <button class="settings-action-btn" id="context-rules-test-btn"
+            onclick="contextRulesTestCurrent()">
+      <i data-lucide="play"></i>
+      Test against current context
+    </button>
+    <div id="context-rules-test-result" class="context-rule-test-result"></div>
+  </div>
+
+  {# ── Rule list ─────────────────────────────────────────────── #}
+  <div id="context-rules-list" class="context-rules-list">
+    {% if rules %}
+    {% for rule in rules %}
+    <div class="context-rule-card {% if not rule.enabled %}context-rule-disabled{% endif %}"
+         data-rule-id="{{ rule.id }}">
+      <div class="context-rule-card-header">
+        <div class="context-rule-card-info">
+          <span class="context-rule-name">{{ rule.name }}</span>
+          <span class="context-rule-persona-badge">→ {{ persona_map.get(rule.persona_id, 'Unknown') }}</span>
+          <span class="context-rule-priority" title="Priority (higher evaluates first)">P{{ rule.priority }}</span>
+        </div>
+        <div class="context-rule-card-actions">
+          <label class="settings-toggle context-rule-toggle" title="{% if rule.enabled %}Disable{% else %}Enable{% endif %} rule">
+            <input type="checkbox" class="settings-toggle-input"
+                   {% if rule.enabled %}checked{% endif %}
+                   onchange="contextRulesToggleEnabled('{{ rule.id }}', this.checked)">
+            <span class="settings-toggle-slider"></span>
+          </label>
+          <button class="settings-action-btn"
+                  onclick="contextRulesToggleEdit('{{ rule.id }}')" title="Edit">
+            <i data-lucide="pencil"></i>
+          </button>
+          <button class="settings-action-btn btn-danger-sm"
+                  onclick="contextRulesDelete('{{ rule.id }}', '{{ rule.name }}')" title="Delete">
+            <i data-lucide="trash-2"></i>
+          </button>
+        </div>
+      </div>
+      <div class="context-rule-conditions-summary">
+        {% set conds = rule.conditions or {} %}
+        {% set has_conds = [] %}
+        {% for key, val in conds.items() %}
+          {% if val is not none and val != '' %}
+            {% if has_conds.append(1) %}{% endif %}
+            <span class="context-rule-condition-tag">{{ key | replace('_', ' ') | title }}: {{ val }}</span>
+          {% endif %}
+        {% endfor %}
+        {% if not has_conds %}
+          <span class="context-rule-condition-tag context-rule-condition-any">Any context (catch-all)</span>
+        {% endif %}
+      </div>
+
+      {# Inline edit form — hidden by default #}
+      <div class="context-rule-edit-form" id="edit-form-{{ rule.id }}" style="display:none">
+        <form onsubmit="return contextRulesUpdate(event, '{{ rule.id }}')">
+          <div class="context-rule-form-grid">
+            <label class="context-rule-form-label">
+              Name
+              <input type="text" name="rule_name" value="{{ rule.name }}" required
+                     class="settings-text-input context-rule-input-wide">
+            </label>
+            <label class="context-rule-form-label">
+              Target Persona
+              <select name="persona_id" class="settings-select context-rule-input-wide" required>
+                {% for p in personas %}
+                <option value="{{ p.id }}" {% if p.id == rule.persona_id %}selected{% endif %}>{{ p.name }}</option>
+                {% endfor %}
+              </select>
+            </label>
+            <label class="context-rule-form-label">
+              Priority
+              <input type="number" name="priority" value="{{ rule.priority }}" min="0"
+                     class="settings-text-input" style="width:80px;">
+            </label>
+          </div>
+          <fieldset class="context-rule-conditions-fieldset">
+            <legend>Conditions <span class="context-rule-hint">(empty = any)</span></legend>
+            <div class="context-rule-conditions-grid">
+              {% set conds = rule.conditions or {} %}
+              <label class="context-rule-form-label">
+                Location
+                <select name="cond_location_zone" class="settings-select">
+                  <option value="">Any</option>
+                  {% for opt in ["home","office","transit","gym","other"] %}
+                  <option value="{{ opt }}" {% if conds.get('location_zone') == opt %}selected{% endif %}>{{ opt | capitalize }}</option>
+                  {% endfor %}
+                </select>
+              </label>
+              <label class="context-rule-form-label">
+                Activity
+                <select name="cond_activity" class="settings-select">
+                  <option value="">Any</option>
+                  {% for opt in ["stationary","walking","driving","cycling","running"] %}
+                  <option value="{{ opt }}" {% if conds.get('activity') == opt %}selected{% endif %}>{{ opt | capitalize }}</option>
+                  {% endfor %}
+                </select>
+              </label>
+              <label class="context-rule-form-label">
+                Time Period
+                <select name="cond_time_period" class="settings-select">
+                  <option value="">Any</option>
+                  {% for opt in ["morning","work_hours","afternoon","evening","night"] %}
+                  <option value="{{ opt }}" {% if conds.get('time_period') == opt %}selected{% endif %}>{{ opt | capitalize }}</option>
+                  {% endfor %}
+                </select>
+              </label>
+              <label class="context-rule-form-label context-rule-checkbox-label">
+                <input type="checkbox" name="cond_calendar_busy"
+                       {% if conds.get('calendar_busy') == true %}checked{% endif %}>
+                Calendar busy
+              </label>
+            </div>
+          </fieldset>
+          <div class="context-rule-form-actions">
+            <button type="submit" class="settings-action-btn settings-action-btn--primary">Save Changes</button>
+            <button type="button" class="settings-action-btn"
+                    onclick="contextRulesToggleEdit('{{ rule.id }}')">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p class="context-rules-empty">No context rules yet. Create one below to enable automatic persona switching.</p>
+    {% endif %}
+  </div>
+
+  {# ── Create new rule form ──────────────────────────────────── #}
+  <details class="context-rules-create-section" id="context-rules-create-details">
+    <summary class="settings-action-btn context-rules-create-toggle">
+      <i data-lucide="plus"></i>
+      New Rule
+    </summary>
+    <form class="context-rule-form" onsubmit="return contextRulesCreate(event)">
+      <div class="context-rule-form-grid">
+        <label class="context-rule-form-label">
+          Name <span class="context-rule-required">*</span>
+          <input type="text" name="rule_name" required placeholder="e.g. Office Work → Focus"
+                 class="settings-text-input context-rule-input-wide">
+        </label>
+        <label class="context-rule-form-label">
+          Target Persona <span class="context-rule-required">*</span>
+          <select name="persona_id" class="settings-select context-rule-input-wide" required>
+            <option value="">— Select persona —</option>
+            {% for p in personas %}
+            <option value="{{ p.id }}">{{ p.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="context-rule-form-label">
+          Priority
+          <input type="number" name="priority" value="0" min="0"
+                 class="settings-text-input" style="width:80px;">
+        </label>
+      </div>
+      <fieldset class="context-rule-conditions-fieldset">
+        <legend>Conditions <span class="context-rule-hint">(empty = catch-all)</span></legend>
+        <div class="context-rule-conditions-grid">
+          <label class="context-rule-form-label">
+            Location
+            <select name="cond_location_zone" class="settings-select">
+              <option value="">Any</option>
+              <option value="home">Home</option>
+              <option value="office">Office</option>
+              <option value="transit">Transit</option>
+              <option value="gym">Gym</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+          <label class="context-rule-form-label">
+            Activity
+            <select name="cond_activity" class="settings-select">
+              <option value="">Any</option>
+              <option value="stationary">Stationary</option>
+              <option value="walking">Walking</option>
+              <option value="driving">Driving</option>
+              <option value="cycling">Cycling</option>
+              <option value="running">Running</option>
+            </select>
+          </label>
+          <label class="context-rule-form-label">
+            Time Period
+            <select name="cond_time_period" class="settings-select">
+              <option value="">Any</option>
+              <option value="morning">Morning</option>
+              <option value="work_hours">Work Hours</option>
+              <option value="afternoon">Afternoon</option>
+              <option value="evening">Evening</option>
+              <option value="night">Night</option>
+            </select>
+          </label>
+          <label class="context-rule-form-label context-rule-checkbox-label">
+            <input type="checkbox" name="cond_calendar_busy">
+            Calendar busy
+          </label>
+        </div>
+      </fieldset>
+      <div class="context-rule-form-actions">
+        <button type="submit" class="settings-action-btn settings-action-btn--primary">Create Rule</button>
+      </div>
+    </form>
+  </details>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ── Helpers ──────────────────────────────────────────────── */
+
+  /** Reload the context-rules panel via htmx. */
+  function _reloadPanel() {
+    htmx.ajax('GET', '/browser/settings/context-rules', '#context-rules-content');
+  }
+
+  /** Build conditions dict from form condition selects. */
+  function _buildConditions(formEl) {
+    var conditions = {};
+    var loc = formEl.querySelector('[name="cond_location_zone"]');
+    var act = formEl.querySelector('[name="cond_activity"]');
+    var time = formEl.querySelector('[name="cond_time_period"]');
+    var busy = formEl.querySelector('[name="cond_calendar_busy"]');
+
+    if (loc && loc.value) conditions.location_zone = loc.value;
+    if (act && act.value) conditions.activity = act.value;
+    if (time && time.value) conditions.time_period = time.value;
+    if (busy && busy.checked) conditions.calendar_busy = true;
+
+    return conditions;
+  }
+
+  /** Build JSON payload from a rule form. */
+  function _buildPayload(formEl) {
+    var payload = {
+      name: formEl.querySelector('[name="rule_name"]').value,
+      persona_id: formEl.querySelector('[name="persona_id"]').value,
+      priority: parseInt(formEl.querySelector('[name="priority"]').value, 10) || 0,
+      conditions: _buildConditions(formEl)
+    };
+    return payload;
+  }
+
+  /* ── CRUD actions ────────────────────────────────────────── */
+
+  /** Create a new rule. */
+  window.contextRulesCreate = function (e) {
+    e.preventDefault();
+    var formEl = e.target;
+    var payload = _buildPayload(formEl);
+
+    fetch('/api/context/rules', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(function (resp) {
+      if (resp.ok) {
+        _reloadPanel();
+      } else {
+        resp.json().then(function (err) {
+          alert('Error creating rule: ' + (err.detail || resp.statusText));
+        }).catch(function () {
+          alert('Error creating rule: ' + resp.statusText);
+        });
+      }
+    }).catch(function (err) {
+      alert('Network error: ' + err.message);
+    });
+    return false;
+  };
+
+  /** Update an existing rule. */
+  window.contextRulesUpdate = function (e, ruleId) {
+    e.preventDefault();
+    var formEl = e.target;
+    var payload = _buildPayload(formEl);
+
+    fetch('/api/context/rules/' + ruleId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(function (resp) {
+      if (resp.ok) {
+        _reloadPanel();
+      } else {
+        resp.json().then(function (err) {
+          alert('Error updating rule: ' + (err.detail || resp.statusText));
+        }).catch(function () {
+          alert('Error updating rule: ' + resp.statusText);
+        });
+      }
+    }).catch(function (err) {
+      alert('Network error: ' + err.message);
+    });
+    return false;
+  };
+
+  /** Toggle enabled/disabled state for a rule. */
+  window.contextRulesToggleEnabled = function (ruleId, enabled) {
+    fetch('/api/context/rules/' + ruleId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled: enabled })
+    }).then(function (resp) {
+      if (resp.ok) _reloadPanel();
+    });
+  };
+
+  /** Delete a rule with confirmation. */
+  window.contextRulesDelete = function (ruleId, ruleName) {
+    if (!confirm("Delete rule '" + ruleName + "'?")) return;
+    fetch('/api/context/rules/' + ruleId, {
+      method: 'DELETE'
+    }).then(function (resp) {
+      if (resp.ok || resp.status === 204) {
+        _reloadPanel();
+      }
+    });
+  };
+
+  /** Toggle the inline edit form for a rule card. */
+  window.contextRulesToggleEdit = function (ruleId) {
+    var form = document.getElementById('edit-form-' + ruleId);
+    if (form) {
+      form.style.display = form.style.display === 'none' ? '' : 'none';
+    }
+  };
+
+  /** Test rules against current context. */
+  window.contextRulesTestCurrent = function () {
+    var resultDiv = document.getElementById('context-rules-test-result');
+    resultDiv.textContent = 'Evaluating…';
+    resultDiv.className = 'context-rule-test-result';
+
+    fetch('/api/context/rules/test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    }).then(function (resp) { return resp.json(); })
+      .then(function (data) {
+        if (data.match) {
+          resultDiv.textContent = '✓ Matched: ' + data.rule_name + ' → persona ' + (data.persona_id || '').substring(0, 8) + '…';
+          resultDiv.className = 'context-rule-test-result context-rule-test-match';
+        } else {
+          var reason = data.reason === 'no_context' ? ' (no context data yet)' : '';
+          resultDiv.textContent = '✗ No rule matches current context' + reason;
+          resultDiv.className = 'context-rule-test-result context-rule-test-no-match';
+        }
+      })
+      .catch(function (err) {
+        resultDiv.textContent = 'Error: ' + err.message;
+        resultDiv.className = 'context-rule-test-result context-rule-test-no-match';
+      });
+  };
+
+  /* Re-init Lucide icons for this htmx-swapped fragment */
+  if (typeof lucide !== 'undefined') {
+    var container = document.getElementById('context-rules-content');
+    if (container) lucide.createIcons({ nodes: [container] });
+  }
+})();
+</script>

@@ -102,3 +102,11 @@ Add a "Context Rules" category to the Settings page where users can create, edit
 - `backend/app/templates/browser/_context_rules.html` — new template partial
 - `backend/app/browser/settings.py` — modified with context rules route (or new route file)
 - `frontend/static/css/settings.css` — modified with rule builder styles
+
+## Observability Impact
+
+- **Browser route:** `GET /browser/settings/context-rules` returns the HTML partial with rules list and personas. Errors in the route handler (e.g., persona service down) surface as 500 responses visible in browser Network tab.
+- **Client-side JS:** All CRUD functions (`contextRulesCreate`, `contextRulesUpdate`, `contextRulesDelete`) show `alert()` dialogs on API errors, making failures immediately visible to the user.
+- **Test result display:** The `contextRulesTestCurrent()` function displays the API test result (match/no-match/error) in a visible `#context-rules-test-result` div with CSS color coding (green for match, red for no match/error).
+- **Inspection:** The panel's rule list reflects the API state — any rule visible in `GET /api/context/rules` JSON is rendered in the UI. Discrepancies indicate a template rendering issue.
+- **Lucide icon init:** The partial re-initializes Lucide icons after htmx swap. If icons render as empty `<i>` tags, the `lucide.createIcons()` call failed (check console for Lucide errors).
