@@ -46,6 +46,12 @@ Scaffold the Expo SDK 55 project in `mobile/`, configure app identity, install `
 - `grep -q "expo-secure-store" mobile/package.json` — dependency installed
 - `grep -q "mobile/.expo/" .gitignore` — gitignore updated
 
+## Observability Impact
+
+- **What signals change:** After this task, `cd mobile && npx tsc --noEmit` becomes a meaningful health check (currently no `mobile/` exists). Metro bundler start/fail becomes observable.
+- **How to inspect:** `ls mobile/package.json mobile/app.json mobile/tsconfig.json` confirms scaffold exists. `grep expo-secure-store mobile/package.json` confirms dependency. `cat mobile/app.json | jq '.expo.slug'` confirms app identity.
+- **Failure visibility:** If scaffold fails, `mobile/` won't exist — all downstream tasks immediately blocked. If `expo-secure-store` install fails, it won't appear in `package.json` dependencies.
+
 ## Inputs
 
 - `extension/shared/api-client.js` — reference pattern for API client (not modified, read for context only)

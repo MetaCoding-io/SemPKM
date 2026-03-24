@@ -38,7 +38,7 @@
 
 ## Tasks
 
-- [ ] **T01: Expo Project Scaffold & Build Verification** `est:45m`
+- [x] **T01: Expo Project Scaffold & Build Verification** `est:45m`
   - Why: The build toolchain is the highest-risk unknown — if create-expo-app or Metro bundler doesn't work, nothing else in S03-S07 can proceed. This task retires the React Native build chain risk.
   - Files: `mobile/app.json`, `mobile/package.json`, `mobile/tsconfig.json`, `.gitignore`
   - Do: Run `npx create-expo-app@latest mobile --template default@sdk-55` to scaffold the Expo project. Configure `app.json` (name: "SemPKM", slug: "sempkm", scheme: "sempkm", bundleIdentifier: "app.sempkm.mobile", package: "app.sempkm.mobile"). Install `expo-secure-store` via `npx expo install expo-secure-store`. Add mobile-specific entries to the root `.gitignore` (`mobile/.expo/`, `mobile/node_modules/`, `mobile/android/`, `mobile/ios/`, `mobile/dist/`). Verify Metro bundler starts.
@@ -65,6 +65,15 @@
   - Do: Create tab layout with 3 tabs using `<Tabs>` from expo-router — Dashboard (home icon), Zones (map-pin icon), Settings (settings icon). Use `@expo/vector-icons` Ionicons for tab icons. Dashboard screen (`index.tsx`): fetch `GET /api/context/current` on mount via SemPKMClient (constructed from session credentials), display location_zone, activity, time_period, calendar_event with labels, show staleness indicator (green/yellow/red dot based on is_stale), show "No context" empty state if no context posted, implement pull-to-refresh via `RefreshControl`. Zones screen: simple placeholder text "Zones — coming in a future update" (ready for S04). Settings screen: show connected instance URL from session, show app version, "Sign Out" button calling signOut() from useSession().
   - Verify: `cd mobile && npx tsc --noEmit` exits 0; `test -f mobile/src/app/\(app\)/\(tabs\)/_layout.tsx && test -f mobile/src/app/\(app\)/\(tabs\)/index.tsx`
   - Done when: All 3 tabs render, dashboard fetches and displays context, settings shows connection info and sign-out works, zones shows placeholder
+
+## Observability / Diagnostics
+
+- **Build health:** `cd mobile && npx tsc --noEmit` — zero exit code confirms TypeScript compilation. Any type errors surface immediately.
+- **Metro bundler:** `cd mobile && npx expo start --no-dev --non-interactive` — "Metro waiting on" message confirms bundler health. Crashes logged to stderr.
+- **API client connectivity:** `SemPKMClient.connect()` calls `GET /.well-known/sempkm` and throws `SemPKMError` with HTTP status code and message on failure. Network errors include the original error message.
+- **Auth state:** Session stored in `expo-secure-store` under key `session`. Null session = unauthenticated. JSON payload: `{instanceUrl, apiKey}`.
+- **Failure visibility:** Connection test errors shown inline on sign-in screen (not swallowed). API fetch failures on dashboard show error text, not silent empty state.
+- **Redaction:** API key never logged or displayed after initial entry. Stored only in secure store, transmitted only in `Authorization: Bearer` header.
 
 ## Files Likely Touched
 
