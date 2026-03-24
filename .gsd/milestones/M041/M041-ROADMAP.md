@@ -42,7 +42,7 @@ This milestone is complete only when all are true:
 
 ## Slices
 
-- [ ] **S01: Backend Code Quality Audit** `risk:high` `depends:[]`
+- [x] **S01: Backend Code Quality Audit** `risk:high` `depends:[]`
   > After this: the user can read a structured findings section covering backend Python across 8 dimensions (readability, module structure, logging, error handling, type safety, SPARQL patterns, async hygiene, FastAPI patterns) with severity-rated, effort-estimated entries anchored to specific files
 - [ ] **S02: Frontend Code Quality Audit** `risk:medium` `depends:[]`
   > After this: the user can read a structured findings section covering frontend JS, CSS, and Jinja2 templates across 5 dimensions (JS structure, CSS architecture, template hygiene, DOM/event patterns, htmx consistency) with severity-rated, effort-estimated entries anchored to specific files
