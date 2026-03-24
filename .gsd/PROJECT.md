@@ -652,7 +652,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Backlinks panel (incoming references for any object)
 - Edge model enhancements: edge inspector panel, inline wiki-link creation
 - JSON-LD export for objects/collections
-- AI Copilot (chat about data, SPARQL generation, graph context, conversation persistence, AI personas, object creation from chat) — in progress (M035, S01–S03 complete)
+- AI Copilot (chat about data, SPARQL generation, graph context, conversation persistence, AI personas, object creation from chat) — complete (M035)
 - pgvector / semantic search (deferred until keyword FTS validated in v2.2)
 
 **Task Planning, Time-Blocking & Calendar UX** — complete (M034, 2026-03-22)
@@ -665,11 +665,12 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - PPV review workflows: 4 seeded WorkflowSpecs (Weekly/Monthly/Quarterly/Yearly)
 - 99 unit tests + 8 E2E tests. User guide docs gap — no chapters written.
 
-**AI Copilot & LLM Test Harness** — in progress (M035, S01–S03 complete)
+**AI Copilot & LLM Test Harness** — complete (M035, 2026-03-23)
 - S01 delivered: AI Copilot chat panel with SSE streaming, schema-aware SPARQL generation, query approval flow (approve/edit/reject), self-correction retry, markdown rendering, clickable object pills, 48 unit tests
 - S02 delivered: Graph context injection (1-hop neighborhood SPARQL, token-budgeted serialization, active object tracking), conversation persistence (SQLAlchemy models, Alembic migration 016, CRUD service + REST endpoints, auto-create/load/save in chat flow, frontend conversation selector), 35 unit tests
 - S03 delivered: AI persona system (4 built-in personas, CRUD service, migration 017, REST endpoints, system prompt injection with slot variables, persona selector dropdown), object creation from chat (JSON block detection in SSE stream, confirmation card UI, Command API dispatch), 56 unit tests
-- Remaining: S04 (mock LLM E2E tests, Ollama integration, cloud budget cap)
+- S04 delivered: 3-tier LLM test harness — mock server with SSE streaming and 5-route pattern matching (12-check selftest), 5-test copilot E2E Playwright spec, Ollama compose variant, cloud tier cost tracker with budget cap ($1.00 default)
+- Total: 139 backend unit tests + 5 E2E test cases across 4 slices
 - M028 AI endpoints wired into main.py alongside new copilot router
 
 **Business Planning Mental Models & Custom Renderers** — complete (M036)
