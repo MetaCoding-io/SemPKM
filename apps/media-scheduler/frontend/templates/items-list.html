@@ -1,0 +1,36 @@
+<div class="ms-items" id="ms-items-content">
+  {% if items %}
+  <table class="ms-items-table">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Source</th>
+        <th>Date</th>
+        <th>Duration</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr class="ms-item-row ms-status-{{ item.status }}">
+        <td class="ms-item-title">
+          {% if item.enclosure_url %}
+          <a href="{{ item.enclosure_url }}" target="_blank">{{ item.title }}</a>
+          {% else %}
+          {{ item.title }}
+          {% endif %}
+        </td>
+        <td class="ms-item-source">{{ item.source_title }}</td>
+        <td class="ms-item-date">{{ item.date }}</td>
+        <td class="ms-item-duration">{{ item.duration }}</td>
+        <td class="ms-item-status">{{ item.status }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="ms-empty-state">
+    <p>No items discovered yet. Add a source and run poll-sources.</p>
+  </div>
+  {% endif %}
+</div>
