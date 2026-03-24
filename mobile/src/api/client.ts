@@ -67,6 +67,31 @@ export interface ContextUpdate {
   device_id?: string | null;
 }
 
+// ── Notification types ──────────────────────────────────────────
+
+/** User's notification preferences from GET/PUT /api/notifications/preferences. */
+export interface NotificationPreferences {
+  enabled: boolean;
+  quiet_hours_start: string | null;
+  quiet_hours_end: string | null;
+  suppress_when_busy: boolean;
+  enabled_types: string[];
+}
+
+/** Payload for POST /api/notifications/register. */
+export interface RegisterTokenPayload {
+  token: string;
+  platform: string;
+  device_name?: string;
+}
+
+/** Response from POST /api/notifications/test. */
+export interface TestNotificationResponse {
+  sent_count: number;
+  suppressed: boolean;
+  reason?: string | null;
+}
+
 // ── Error class ─────────────────────────────────────────────────
 
 /**
@@ -267,5 +292,58 @@ export class SemPKMClient {
       );
     }
     // 204 No Content — no body to parse
+  }
+
+  // ── Notification methods ──────────────────────────────────────
+
+  /**
+   * Register a native push token (FCM/APNs) with the backend.
+   * POST /api/notifications/register
+   */
+  async registerPushToken(
+    token: string,
+    platform: string,
+    deviceName?: string,
+  ): Promise<void> {
+    const payload: RegisterTokenPayload = { token, platform };
+    if (deviceName) payload.device_name = deviceName;
+
+    await this.request<{ status: string }>('/api/notifications/register', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  /**
+   * Get the current user's notification preferences.
+   * GET /api/notifications/preferences
+   */
+  async getNotificationPreferences(): Promise<NotificationPreferences> {
+    return this.request<NotificationPreferences>('/api/notifications/preferences');
+  }
+
+  /**
+   * Update notification preferences. Only provided fields are changed.
+   * PUT /api/notifications/preferences
+   */
+  async updateNotificationPreferences(
+    prefs: Partial<NotificationPreferences>,
+  ): Promise<NotificationPreferences> {
+    return this.request<NotificationPreferences>('/api/notifications/preferences', {
+      method: 'PUT',
+      body: JSON.stringify(prefs),
+    });
+  }
+
+  /**
+   * Send a test notification to the current user's devices.
+   * POST /api/notifications/test
+   *
+   * Returns delivery info including suppression status.
+   */
+  async sendTestNotification(): Promise<TestNotificationResponse> {
+    return this.request<TestNotificationResponse>('/api/notifications/test', {
+      method: 'POST',
+    });
   }
 }

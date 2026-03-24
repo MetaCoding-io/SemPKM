@@ -93,3 +93,10 @@ Add push notification support to the React Native mobile app. Install `expo-noti
 - `mobile/src/api/client.ts` — modified: notification API methods + interfaces
 - `mobile/src/app/(app)/(tabs)/settings.tsx` — modified: Push Notifications section
 - `mobile/src/app/(app)/_layout.tsx` — modified: notification setup + registration on auth
+
+## Observability Impact
+
+- **New runtime signals:** `notifications.permission_status` (granted/denied/undetermined), `notifications.token_registered` (platform, token prefix), `notifications.handler_setup` (foreground display enabled), `notifications.registration_error` (error message)
+- **Inspection surface:** Settings screen shows live permission status (granted/denied/undetermined), enable toggle state, and test-send button with result display
+- **Failure visibility:** `Device.isDevice` check surfaces "Not available on simulator" in Settings UI; token registration failures are caught and logged without breaking app startup; network errors from `registerPushToken()` throw `SemPKMError` with status code and detail
+- **Redaction:** FCM/APNs tokens are never displayed in UI — only the registration success/failure status is shown

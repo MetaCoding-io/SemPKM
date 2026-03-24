@@ -633,3 +633,11 @@ expo-router matches root-level files in `src/app/` before group directories like
 **Discovered:** M037/S05/T02
 
 Accelerometer magnitude variance alone misclassifies steady-pace straight-line walking as "stationary" because the magnitude stays nearly constant despite movement. Supplementing with `Pedometer.watchStepCount()` on a 3-second snapshot window resolves this — increasing step count overrides the variance-based classification to "walking". This dual-sensor pattern should be used whenever accelerometer-only classification proves insufficient.
+
+### expo-notifications SDK 55: shouldShowBanner/shouldShowList replaces shouldShowAlert
+
+**Discovered:** M037/S06/T04
+
+In Expo SDK 55 (`expo-notifications ~55.0.10`), the `NotificationBehavior` interface requires `shouldShowBanner: boolean` and `shouldShowList: boolean` instead of the old `shouldShowAlert: boolean`. Using `shouldShowAlert` still compiles with a deprecation warning at runtime but causes a TypeScript error because the required fields are missing. The handler must return both `shouldShowBanner` and `shouldShowList` for foreground notification display to work.
+
+**Affected file:** `mobile/src/services/notifications.ts` — `setupNotificationHandler()` function.
