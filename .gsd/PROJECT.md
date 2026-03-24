@@ -697,14 +697,14 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - User guide chapter 39 section 5 documents all frameworks with type reference tables
 - All frameworks stored as typed RDF for AI copilot queryability
 
-**User Context & Mobile App** — in progress as M037 (S01–S06 complete, S07 remaining)
-- S01 complete: Backend Context API (`POST /api/context/update`, `GET /api/context/current`, `GET /api/context/stream` SSE), ContextService with TTL-based staleness (default 15 min), ContextBroadcast SSE fan-out, workspace sidebar context indicator with real-time updates, Alembic migration 018, 28 unit tests
-- S02 complete: Auto-persona rules engine — ContextRule model + Alembic migration 019, RulesEngine with priority-ordered AND-condition evaluation, 5-endpoint CRUD+test API, integration hook (context update → rule match → persona activation → `persona_switched` SSE event), Settings UI "Context Rules" category with full CRUD and test-against-current-context, frontend SSE handler with toast notification, 45 unit/router tests
-- S03 complete: Expo SDK 55 React Native mobile app in `mobile/` — TypeScript API client (SemPKMClient with connect/getCurrentContext/updateContext), expo-secure-store auth with SessionProvider, sign-in onboarding with connection test + error handling, three-tab navigator (Dashboard/Zones/Settings), context dashboard with pull-to-refresh and staleness indicator, route guards. React Native build chain risk retired.
-- S04 complete: Mobile geofencing & location zones — Backend zone CRUD API (`/api/context/zones`) with ContextZone model + Alembic migration 020, ZoneService with user-scoped CRUD + Pydantic validation (lat/lon/radius bounds). Mobile: expo-location geofencing background task (TaskManager.defineTask at module scope), foreground-then-background permission flow, MapView-based zone management UI with Circle overlays, FlatList, ZoneEditor modal, geofence re-registration on every zone mutation. 44 backend tests, TypeScript compiles clean.
-- S05 complete: Mobile calendar & activity detection — expo-calendar integration with permission request, event polling, calendar_event/calendar_busy context enrichment. Accelerometer-based activity classification (stationary/walking/driving) with magnitude thresholds. Time-of-day classification (morning/work_hours/evening/night). Background context update dispatch combining all context sources. Settings screen with calendar permission toggle and activity detection toggle. TypeScript compiles clean.
-- S06 complete: Push notifications with context filtering — DeviceToken + NotificationPreferences models with Alembic migration 021, NotificationService with token CRUD, context-aware suppression (calendar_busy, midnight-spanning quiet hours, disabled types), FCM dispatch with no-op mode, stale token auto-cleanup. 4-endpoint API router, Settings UI "Notifications" panel. Context update dispatch hook for location_zone changes and calendar_busy→free transitions. Mobile expo-notifications integration with permission request, native FCM token registration, foreground handler, settings UI section. 55 backend tests, TypeScript compiles clean.
-- Remaining: S07 end-to-end integration & acceptance
+**User Context & Mobile App** — complete (M037, 2026-03-23)
+- Backend Context API with SSE streaming, TTL-based staleness, ContextBroadcast fan-out, workspace sidebar indicator
+- Auto-persona rules engine with priority-ordered AND-condition evaluation, Settings UI CRUD + test-against-current-context
+- Expo SDK 55 React Native mobile app: API client, onboarding, context dashboard, geofencing, calendar, activity detection
+- Geofence zone CRUD API + mobile MapView management, background task with expo-location
+- FCM push notifications via firebase-admin with context-aware suppression (calendar_busy, quiet hours, disabled types)
+- 12-test integration suite proving full loop: context update → rule evaluation → persona switch → notification dispatch/suppression
+- 184 backend tests (172 unit/router + 12 integration), user guide Chapter 48 (386 lines)
 
 **Personal Media Scheduler App** — queued as M038 (depends on M037)
 - Daily media queue: podcasts, YouTube, Spotify scheduled by context and rules

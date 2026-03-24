@@ -74,7 +74,7 @@ This milestone is complete only when all are true:
 - [x] **S06: Push Notifications with Context Filtering** `risk:medium` `depends:[S01,S02]`
   > After this: backend dispatches push notifications to registered mobile devices via FCM, suppressing notifications during configured quiet periods (focus blocks, outside work hours) — verified by receiving a test notification on the mobile device
 
-- [ ] **S07: End-to-End Integration & Acceptance** `risk:low` `depends:[S01,S02,S03,S04,S05,S06]`
+- [x] **S07: End-to-End Integration & Acceptance** `risk:low` `depends:[S01,S02,S03,S04,S05,S06]`
   > After this: the full loop is proven on real hardware — user installs mobile app, configures zones, arrives at office geofence, workspace persona switches within 60 seconds, calendar focus block suppresses notifications, and workspace sidebar shows "Office • Work Hours • Focus Block"
 
 ## Boundary Map
