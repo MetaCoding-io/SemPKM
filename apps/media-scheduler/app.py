@@ -185,6 +185,24 @@ except ModuleNotFoundError:
     track_to_media_item = _sp_fm.track_to_media_item
 
 try:
+    from services.stats_service import (
+        get_hours_by_source_type,
+        get_top_sources,
+        get_weekly_trends,
+    )
+except ModuleNotFoundError:
+    import importlib.util as _ilu_stats
+    import pathlib as _pl_stats
+
+    _stats_svc = _pl_stats.Path(__file__).resolve().parent / "services" / "stats_service.py"
+    _stats_sp = _ilu_stats.spec_from_file_location("_stats_service_fallback", _stats_svc)
+    _stats_fm = _ilu_stats.module_from_spec(_stats_sp)
+    _stats_sp.loader.exec_module(_stats_fm)
+    get_hours_by_source_type = _stats_fm.get_hours_by_source_type
+    get_top_sources = _stats_fm.get_top_sources
+    get_weekly_trends = _stats_fm.get_weekly_trends
+
+try:
     from services.context_service import (
         get_context_subscription_status,
         start_context_listener,
@@ -1849,6 +1867,37 @@ async def entry_status_fragment(request: Request):
         f'<span class="ms-status-badge ms-status-{status}">{status}</span>'
         f'</div>'
     )
+
+
+# ── Stats route ──
+
+
+@media_scheduler_app.route("/_fragments/stats")
+async def stats_fragment(request: Request):
+    """Stats dashboard fragment — Chart.js charts of listening activity.
+
+    Calls three stats service queries and injects the combined result
+    as JSON into the stats.html template for client-side rendering.
+    """
+    ctx = request.app.state.ctx
+
+    hours_data = await get_hours_by_source_type(ctx)
+    top_data = await get_top_sources(ctx, limit=10)
+    weekly_data = await get_weekly_trends(ctx, days=7)
+
+    stats = {
+        "hours_by_source_type": hours_data,
+        "top_sources": top_data,
+        "weekly_trends": weekly_data,
+    }
+
+    stats_json = json.dumps(stats)
+    logger.info(
+        "stats.rendered hours=%d top=%d weekly=%d",
+        len(hours_data), len(top_data), len(weekly_data),
+    )
+
+    return HTMLResponse(ctx.render_template("stats.html", stats_json=stats_json))
 
 
 # ── JSON suggestion endpoint (mobile) ──

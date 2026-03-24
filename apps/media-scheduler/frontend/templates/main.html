@@ -41,6 +41,12 @@
         <i data-lucide="sliders-horizontal"></i>
         <span>Rules</span>
       </button>
+      <button class="ms-tab" data-tab="stats"
+              onclick="msSelectTab(this, 'stats')"
+              title="Stats">
+        <i data-lucide="bar-chart-3"></i>
+        <span>Stats</span>
+      </button>
     </div>
     <div id="ms-tab-content"
          hx-get="/app/media-scheduler/_fragments/today"
@@ -64,7 +70,8 @@ function msSelectTab(btn, tab) {
   var urls = {
     today: '/app/media-scheduler/_fragments/today',
     episodes: '/app/media-scheduler/_fragments/items',
-    rules: '/app/media-scheduler/_fragments/rules'
+    rules: '/app/media-scheduler/_fragments/rules',
+    stats: '/app/media-scheduler/_fragments/stats'
   };
 
   // Load the fragment via htmx
