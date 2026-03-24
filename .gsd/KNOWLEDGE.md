@@ -607,3 +607,17 @@ expo-router matches root-level files in `src/app/` before group directories like
 **Discovered:** M037/S03/T01
 
 `npx expo start --non-interactive` does not work as a standalone CLI flag in SDK 55. Metro prints "use $CI=1 instead". For headless/CI verification, use `CI=1 npx expo start --no-dev` or `CI=1 timeout 20 npx expo start --no-dev --non-interactive`.
+
+### expo-task-manager: TaskManager.defineTask MUST be at module top-level scope
+
+**Discovered:** M037/S04/T02
+
+`TaskManager.defineTask('task-name', callback)` must be called at the top level of a module — not inside a component, hook, or async function. The native side registers task callbacks at app initialization time. If the call is inside a component, the callback isn't registered when the OS triggers the background task, and the event is silently dropped.
+
+**Pattern:** Define the task in a dedicated service file (e.g., `geofencing.ts`) at module scope. Import the file as a side-effect (`import '@/services/geofencing'`) in the root `_layout.tsx` before any component renders. The callback cannot use React context — read credentials from `expo-secure-store` directly.
+
+### react-native-maps: LongPressEvent vs MapPressEvent types
+
+**Discovered:** M037/S04/T03
+
+`react-native-maps` TypeScript types distinguish between `MapPressEvent` (for `onPress`) and `LongPressEvent` (for `onLongPress`). Using `MapPressEvent` for the `onLongPress` handler causes a type error. The `LongPressEvent` type includes the `action` discriminant that identifies it as a long-press.

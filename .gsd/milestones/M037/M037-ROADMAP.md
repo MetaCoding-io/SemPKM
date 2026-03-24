@@ -65,7 +65,7 @@ This milestone is complete only when all are true:
 - [x] **S03: Mobile App Foundation & API Connection** `risk:high` `depends:[S01]`
   > After this: user can install the Expo dev build on a phone, enter their SemPKM instance URL and API key, and see their current context state displayed in the mobile app — verified on a real device or simulator
 
-- [ ] **S04: Mobile Geofencing & Location Zones** `risk:high` `depends:[S03]`
+- [x] **S04: Mobile Geofencing & Location Zones** `risk:high` `depends:[S03]`
   > After this: user can define home/office geofence zones in the mobile app, and entering or leaving a zone pushes a context update to the backend — verified by observing the workspace context indicator change after a simulated or real zone transition
 
 - [ ] **S05: Mobile Calendar & Activity Detection** `risk:medium` `depends:[S03]`
