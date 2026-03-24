@@ -59,7 +59,7 @@
   - Verify: `cd mobile && npx tsc --noEmit` exits 0; `grep -q "useSession" mobile/src/app/sign-in.tsx`
   - Done when: Sign-in screen collects URL + API key, tests connection, stores credentials on success, shows errors on failure; unauthenticated users are redirected to sign-in
 
-- [ ] **T04: Dashboard, Tab Navigation & Settings** `est:30m`
+- [x] **T04: Dashboard, Tab Navigation & Settings** `est:30m`
   - Why: The dashboard and settings screens complete the mobile app's core functionality — displaying context and managing the connection.
   - Files: `mobile/src/app/(app)/(tabs)/_layout.tsx`, `mobile/src/app/(app)/(tabs)/index.tsx`, `mobile/src/app/(app)/(tabs)/zones.tsx`, `mobile/src/app/(app)/(tabs)/settings.tsx`
   - Do: Create tab layout with 3 tabs using `<Tabs>` from expo-router — Dashboard (home icon), Zones (map-pin icon), Settings (settings icon). Use `@expo/vector-icons` Ionicons for tab icons. Dashboard screen (`index.tsx`): fetch `GET /api/context/current` on mount via SemPKMClient (constructed from session credentials), display location_zone, activity, time_period, calendar_event with labels, show staleness indicator (green/yellow/red dot based on is_stale), show "No context" empty state if no context posted, implement pull-to-refresh via `RefreshControl`. Zones screen: simple placeholder text "Zones — coming in a future update" (ready for S04). Settings screen: show connected instance URL from session, show app version, "Sign Out" button calling signOut() from useSession().

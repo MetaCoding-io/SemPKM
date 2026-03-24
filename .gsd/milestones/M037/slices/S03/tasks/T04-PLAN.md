@@ -72,6 +72,14 @@ Create the tab navigator with three tabs (Dashboard, Zones, Settings), the conte
 - `grep -q "RefreshControl" mobile/src/app/\(app\)/\(tabs\)/index.tsx` — pull-to-refresh implemented
 - `grep -q "signOut" mobile/src/app/\(app\)/\(tabs\)/settings.tsx` — sign-out wired
 
+## Observability Impact
+
+- **Dashboard fetch errors:** Displayed inline on the dashboard screen — network errors show "Could not reach server", HTTP errors show the status detail. Errors are never swallowed into empty states.
+- **Context staleness:** Green/red dot indicator with relative timestamp. `is_stale === true` from the API response triggers red indicator.
+- **Pull-to-refresh:** RefreshControl provides visual feedback during refresh. State transitions: idle → refreshing → idle (success or error).
+- **Sign-out confirmation:** Alert.alert requires explicit user confirmation before clearing credentials, preventing accidental sign-out.
+- **Failure inspection:** `parseSession()` returns null for corrupted session data, causing the route guard to redirect to sign-in. This is the observable fallback for storage corruption.
+
 ## Inputs
 
 - `mobile/src/api/client.ts` — SemPKMClient for context fetching (from T02)
