@@ -103,6 +103,38 @@ except ModuleNotFoundError:
     toggle_rule = _rules_fm.toggle_rule
     validate_rule = _rules_fm.validate_rule
 
+try:
+    from services.youtube_service import (
+        YOUTUBE_SOURCES_SPARQL,
+        YouTubeAPIError,
+        YouTubeClient,
+        check_quota,
+        get_existing_item_iris as yt_get_existing_item_iris,
+        increment_quota,
+        mint_item_iri as yt_mint_item_iri,
+        parse_youtube_url,
+        subscribe_youtube,
+        video_to_media_item,
+    )
+except ModuleNotFoundError:
+    import importlib.util as _ilu4
+    import pathlib as _pl4
+
+    _yt_svc = _pl4.Path(__file__).resolve().parent / "services" / "youtube_service.py"
+    _yt_sp = _ilu4.spec_from_file_location("_youtube_service_fallback", _yt_svc)
+    _yt_fm = _ilu4.module_from_spec(_yt_sp)
+    _yt_sp.loader.exec_module(_yt_fm)
+    YOUTUBE_SOURCES_SPARQL = _yt_fm.YOUTUBE_SOURCES_SPARQL
+    YouTubeAPIError = _yt_fm.YouTubeAPIError
+    YouTubeClient = _yt_fm.YouTubeClient
+    check_quota = _yt_fm.check_quota
+    yt_get_existing_item_iris = _yt_fm.get_existing_item_iris
+    yt_mint_item_iri = _yt_fm.mint_item_iri
+    increment_quota = _yt_fm.increment_quota
+    parse_youtube_url = _yt_fm.parse_youtube_url
+    subscribe_youtube = _yt_fm.subscribe_youtube
+    video_to_media_item = _yt_fm.video_to_media_item
+
 logger = logging.getLogger(__name__)
 
 media_scheduler_app = App("media-scheduler")
@@ -307,6 +339,192 @@ async def generate_plan_task(ctx: AppContext) -> dict:
     return await generate_plan(ctx)
 
 
+@media_scheduler_app.task("poll-youtube")
+async def poll_youtube(ctx: AppContext) -> dict:
+    """Poll all YouTube MediaSource objects and create new MediaItem objects.
+
+    Queries sources with sourceType="youtube", resolves each to a playlist ID,
+    fetches recent videos via YouTube Data API v3, deduplicates against existing
+    items, fetches video durations in a batch call, and bulk-creates new
+    MediaItems.
+
+    Respects daily API quota limits tracked via StateClient. On quota exceeded
+    from the API, stops polling remaining sources. On other API errors,
+    increments the source's error count and continues.
+
+    Returns:
+        Summary dict with sources_polled and items_created counts.
+    """
+    # Require API key
+    api_key = await ctx.state.get("youtube_api_key")
+    if not api_key:
+        logger.warning("poll-youtube: no youtube_api_key configured, skipping")
+        return {"skipped": "no_api_key"}
+
+    # Check daily quota
+    under_quota = await check_quota(ctx.state)
+    if not under_quota:
+        logger.warning("poll-youtube: daily quota exceeded, skipping")
+        return {"skipped": "quota_exceeded"}
+
+    # Query YouTube-type sources
+    result = await ctx.graph.query(YOUTUBE_SOURCES_SPARQL)
+    bindings = result.get("results", {}).get("bindings", [])
+
+    sources_polled = 0
+    items_created = 0
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    for binding in bindings:
+        source_iri = binding.get("source", {}).get("value", "")
+        feed_url = binding.get("feedUrl", {}).get("value", "")
+        external_id = binding.get("externalId", {}).get("value", "")
+
+        if not feed_url:
+            logger.warning("YouTube source %s has no feedUrl, skipping", source_iri)
+            continue
+
+        # Use pre-resolved playlist ID if available, otherwise skip
+        playlist_id = external_id
+        if not playlist_id:
+            logger.warning(
+                "YouTube source %s has no externalId (playlist ID), skipping",
+                source_iri,
+            )
+            continue
+
+        try:
+            client = YouTubeClient(ctx.http, api_key)
+
+            # Fetch recent playlist items (quota cost: 1 unit)
+            playlist_items = await client.list_playlist_items(playlist_id)
+            await increment_quota(ctx.state, 1)
+
+            # Deduplicate against existing items
+            existing_iris = await yt_get_existing_item_iris(ctx.graph, source_iri)
+
+            new_videos = []
+            for item in playlist_items:
+                snippet = item.get("snippet", {})
+                video_id = snippet.get("resourceId", {}).get("videoId", "")
+                if not video_id:
+                    continue
+                # Build a temp item to check IRI
+                    candidate_iri = yt_mint_item_iri(source_iri, video_id)
+                if candidate_iri not in existing_iris:
+                    new_videos.append(item)
+
+            if not new_videos:
+                logger.info(
+                    "Polled %s: 0 new items (all %d existing)",
+                    feed_url, len(playlist_items),
+                )
+                sources_polled += 1
+                await _update_youtube_source_state(ctx, source_iri, now_iso)
+                continue
+
+            # Cap imports
+            if len(new_videos) > MAX_INITIAL_ITEMS:
+                logger.info(
+                    "Capping %d new YouTube items to %d for %s",
+                    len(new_videos), MAX_INITIAL_ITEMS, feed_url,
+                )
+                new_videos = new_videos[:MAX_INITIAL_ITEMS]
+
+            # Get durations for new videos in a batch call (quota cost: 1 unit)
+            video_ids = []
+            for v in new_videos:
+                vid = v.get("snippet", {}).get("resourceId", {}).get("videoId", "")
+                if vid:
+                    video_ids.append(vid)
+
+            durations = {}
+            if video_ids:
+                durations = await client.get_video_durations(video_ids)
+                await increment_quota(ctx.state, 1)
+
+            # Convert to MediaItem objects
+            media_items = []
+            for v in new_videos:
+                vid = v.get("snippet", {}).get("resourceId", {}).get("videoId", "")
+                if vid and vid in durations:
+                    v["duration_seconds"] = durations[vid]
+                media_items.append(video_to_media_item(v, source_iri))
+
+            # Bulk-create
+            if media_items:
+                async with ctx.commands.bulk(
+                    summary=f"Poll YouTube: {feed_url}",
+                    source=ctx.app_id,
+                ) as batch:
+                    for item in media_items:
+                        batch.add("object.create", item)
+
+            created_count = len(media_items)
+            items_created += created_count
+            sources_polled += 1
+
+            logger.info(
+                "Polled %s: %d new items (skipped %d existing, quota +2 units)",
+                feed_url, created_count,
+                len(playlist_items) - len(new_videos),
+            )
+
+            # Success: reset error state
+            await _update_youtube_source_state(
+                ctx, source_iri, now_iso, error_count=0, last_error=""
+            )
+
+        except YouTubeAPIError as e:
+            if e.error_type == "quotaExceeded":
+                logger.warning(
+                    "YouTube quota exceeded during poll of %s — stopping",
+                    feed_url,
+                )
+                break
+            else:
+                current_error_count = _get_current_error_count(binding)
+                logger.warning(
+                    "YouTube API error polling %s: %s", feed_url, e,
+                )
+                await _update_youtube_source_state(
+                    ctx, source_iri, now_iso,
+                    error_count=current_error_count + 1,
+                    last_error=str(e),
+                )
+        except Exception as e:
+            current_error_count = _get_current_error_count(binding)
+            logger.exception("Error polling YouTube source %s", feed_url)
+            await _update_youtube_source_state(
+                ctx, source_iri, now_iso,
+                error_count=current_error_count + 1,
+                last_error=str(e),
+            )
+
+    logger.info(
+        "poll-youtube complete: %d sources polled, %d items created",
+        sources_polled, items_created,
+    )
+    return {"sources_polled": sources_polled, "items_created": items_created}
+
+
+async def _update_youtube_source_state(
+    ctx: AppContext,
+    source_iri: str,
+    last_polled: str,
+    error_count: int | None = None,
+    last_error: str | None = None,
+) -> None:
+    """Update a YouTube source's poll state via SPARQL."""
+    await update_source_state(
+        ctx,
+        source_iri,
+        last_polled=last_polled,
+        error_count=error_count if error_count is not None else 0,
+        last_error=last_error if last_error is not None else "",
+    )
+
+
 # ── Helper ──
 
 
@@ -440,6 +658,76 @@ async def add_podcast_fragment(request: Request):
 
     response = HTMLResponse(
         '<div class="ms-success">Subscribed to podcast!</div>'
+    )
+    response.headers["HX-Trigger"] = "sourcesChanged"
+    return response
+
+
+@media_scheduler_app.route("/_fragments/sources/add-youtube", methods=["POST"])
+async def add_youtube_fragment(request: Request):
+    """Add a YouTube channel or playlist subscription from form data.
+
+    Reads ``youtube_url`` and ``api_key`` from the POST body.
+    Validates the URL via ``parse_youtube_url()``, then calls
+    ``subscribe_youtube()`` which validates the API key via a test API
+    call, resolves channel → uploads playlist, and creates the
+    MediaSource.
+
+    Returns an HTML fragment indicating success, duplicate, or error.
+    Emits ``HX-Trigger: sourcesChanged`` on success so the sources
+    list refreshes.
+    """
+    ctx = request.app.state.ctx
+    form = await request.form()
+    youtube_url = form.get("youtube_url", "").strip()
+    api_key = form.get("api_key", "").strip()
+
+    if not youtube_url:
+        return HTMLResponse(
+            '<div class="ms-error">Please enter a YouTube URL</div>'
+        )
+
+    if not api_key:
+        return HTMLResponse(
+            '<div class="ms-error">Please enter a YouTube Data API key</div>'
+        )
+
+    # Validate URL format first
+    parsed = parse_youtube_url(youtube_url)
+    if parsed is None:
+        logger.warning("add-youtube: invalid URL format: %s", youtube_url)
+        return HTMLResponse(
+            '<div class="ms-error">Not a recognized YouTube channel or playlist URL</div>'
+        )
+
+    try:
+        result = await subscribe_youtube(ctx, youtube_url, api_key)
+    except YouTubeAPIError as e:
+        logger.warning(
+            "add-youtube API error for %s: %s (type=%s)",
+            youtube_url, e.message, e.error_type,
+        )
+        return HTMLResponse(
+            f'<div class="ms-error">YouTube API error: {e.message}</div>'
+        )
+    except ValueError as e:
+        logger.warning("add-youtube validation error: %s", e)
+        return HTMLResponse(
+            f'<div class="ms-error">{e}</div>'
+        )
+    except Exception as exc:
+        logger.warning("subscribe_youtube failed for %s: %s", youtube_url, exc)
+        return HTMLResponse(
+            f'<div class="ms-error">Failed to subscribe: {exc}</div>'
+        )
+
+    if result["status"] == "duplicate":
+        return HTMLResponse(
+            '<div class="ms-info">Already subscribed to this YouTube source</div>'
+        )
+
+    response = HTMLResponse(
+        '<div class="ms-success">Subscribed to YouTube source!</div>'
     )
     response.headers["HX-Trigger"] = "sourcesChanged"
     return response

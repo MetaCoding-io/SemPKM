@@ -20,22 +20,32 @@
 - `grep -q "poll-youtube" apps/media-scheduler/manifest.yaml` — task registered
 - `grep -q "add-youtube" apps/media-scheduler/app.py` — route registered
 - `python -c "import yaml; m=yaml.safe_load(open('apps/media-scheduler/manifest.yaml')); tasks=[t['id'] for t in m['tasks']]; assert 'poll-youtube' in tasks"` — manifest parses and contains task
+- `cd backend && python -m pytest tests/test_media_scheduler.py -v -k "YouTubeAPIError or quota_exceeded or invalid"` — failure-path tests pass (API errors, quota limits, invalid URLs)
 
 ## Tasks
 
-- [ ] **T01: YouTube service module with unit tests** `est:1h`
+- [x] **T01: YouTube service module with unit tests** `est:1h`
   - Why: All YouTube-specific logic (URL parsing, API client, response conversion, quota tracking) lives in a single service module parallel to `podcast_service.py`. Pure functions need thorough unit tests before wiring into the app.
   - Files: `apps/media-scheduler/services/youtube_service.py`, `backend/tests/test_media_scheduler.py`
   - Do: Create `youtube_service.py` with: URL parsing for 5 formats (channel ID, @handle, playlist URL, /c/ URL, raw IDs), `parse_iso8601_duration()`, `video_to_media_item()` conversion, `YouTubeClient` class wrapping `ctx.http` with methods for `resolve_channel()`, `list_playlist_items()`, `get_video_durations()`, quota tracking helpers (`check_quota()`, `increment_quota()`, `reset_quota_if_new_day()`), `get_existing_item_iris()` reusing the podcast pattern, `subscribe_youtube()` and `unsubscribe_source()` async functions. Add 7+ test classes covering URL parsing, duration parsing, video-to-item conversion, IRI minting, quota tracking, subscribe flow, and poll logic.
   - Verify: `cd backend && python -m pytest tests/test_media_scheduler.py -v -k "YouTube or youtube"` — all new tests pass
   - Done when: All YouTube pure functions are tested, YouTubeClient methods have mock-based tests, and the module imports cleanly
 
-- [ ] **T02: Wire YouTube into app, manifest, and templates** `est:45m`
+- [x] **T02: Wire YouTube into app, manifest, and templates** `est:45m`
   - Why: Connects the YouTube service to the running app — registers the poll task, subscribe route, and adds the YouTube form to the UI. This completes the slice's user-facing demo.
   - Files: `apps/media-scheduler/manifest.yaml`, `apps/media-scheduler/app.py`, `apps/media-scheduler/frontend/templates/add-source.html`
   - Do: Add `poll-youtube` task to manifest (15m interval, same retry policy as poll-sources). Add YouTube service imports to app.py using the same importlib fallback pattern. Add `poll_youtube` task handler that: gets API key from StateClient, checks quota, queries YouTube-type sources via SPARQL, calls YouTubeClient methods, deduplicates, bulk-creates items. Add `/_fragments/sources/add-youtube` POST route that parses URL, validates via API test call, creates MediaSource with sourceType="youtube" and externalId=resolved playlist ID. Expand `add-source.html` with a tabbed/sectioned form for YouTube (URL input + API key input). Run full test suite to verify no regressions.
   - Verify: `cd backend && python -m pytest tests/test_media_scheduler.py -v` — all tests pass (existing + new); `grep -q "poll-youtube" apps/media-scheduler/manifest.yaml` succeeds
   - Done when: Manifest has `poll-youtube` task, app.py has the task handler and subscribe route, add-source template has the YouTube form, full test suite passes
+
+## Observability / Diagnostics
+
+- `youtube_service.py` uses `logging.getLogger(__name__)` for structured logging — all API calls log endpoint, quota cost, and response status
+- `YouTubeAPIError` includes `status_code`, `error_type`, and `message` for machine-readable failure classification
+- Quota state (`youtube_quota_used`, `youtube_quota_reset_date`) stored in StateClient — inspectable via state API or logs
+- Poll task logs: sources queried, items discovered, items deduplicated, quota consumed per run
+- Subscribe route logs: URL parsed type, channel resolution result, API key validation outcome
+- Failure modes: quota exceeded (logged + skipped gracefully), invalid API key (403 → clear error to user), invalid URL (400 → parse failure message), network errors (logged with status code)
 
 ## Files Likely Touched
 
