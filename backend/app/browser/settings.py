@@ -66,6 +66,52 @@ async def settings_page(
     return templates.TemplateResponse(request, "browser/settings_standalone.html", context)
 
 
+@settings_router.get("/settings/context-rules")
+async def context_rules_panel(
+    request: Request,
+    user: User = Depends(get_current_user),
+):
+    """Return the Context Rules settings partial (HTML fragment).
+
+    Fetches the user's rules and personas, builds a persona_id→name
+    lookup, and renders the _context_rules.html template.
+    """
+    import logging
+
+    logger = logging.getLogger(__name__)
+    templates = request.app.state.templates
+
+    # Fetch rules via RulesEngine (on app.state from T01/T02)
+    rules_engine = request.app.state.rules_engine
+    rules = await rules_engine.list_rules(user.id)
+
+    # Fetch personas via PersonaService (on app.state from M036)
+    persona_service = request.app.state.persona_service
+    personas = await persona_service.list_for_user(user.id)
+
+    # Build persona_id → name map for display in rule cards
+    persona_map = {p.id: p.name for p in personas}
+
+    # Convert rules to dicts for template (conditions needs dict access)
+    rule_dicts = []
+    for r in rules:
+        rule_dicts.append({
+            "id": str(r.id),
+            "name": r.name,
+            "conditions": r.conditions or {},
+            "persona_id": r.persona_id,
+            "priority": r.priority,
+            "enabled": r.enabled,
+        })
+
+    return templates.TemplateResponse(request, "browser/_context_rules.html", {
+        "request": request,
+        "rules": rule_dicts,
+        "personas": personas,
+        "persona_map": persona_map,
+    })
+
+
 @settings_router.get("/settings/data")
 async def settings_data(
     user: User = Depends(get_current_user),

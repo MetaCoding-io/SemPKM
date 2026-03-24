@@ -41,6 +41,12 @@
         <i data-lucide="key" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;"></i>
         Authorized Apps
       </button>
+      <button class="settings-category-btn"
+              data-category="context-rules"
+              onclick="showSettingsCategory('context-rules')">
+        <i data-lucide="brain" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;"></i>
+        Context Rules
+      </button>
     </nav>
 
     <!-- Right: settings detail panels -->
@@ -116,6 +122,19 @@
           <h2 class="settings-category-title">Authorized Apps</h2>
         </div>
         {% include "browser/_indieauth_settings.html" %}
+      </div>
+      <div class="settings-category-panel" id="category-context-rules"
+           data-category="context-rules"
+           style="display:none">
+        <div class="settings-category-header">
+          <h2 class="settings-category-title">Context Rules</h2>
+        </div>
+        <div id="context-rules-content"
+             hx-get="/browser/settings/context-rules"
+             hx-trigger="intersect once"
+             hx-swap="innerHTML">
+          <p class="settings-loading">Loading context rules…</p>
+        </div>
       </div>
     </div>
 
