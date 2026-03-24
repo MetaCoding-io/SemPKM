@@ -1,4 +1,4 @@
-# M041: Code Quality Audit — Backend & Frontend
+# M041: Code Quality Audit - Backend & Frontend
 
 **Vision:** A prioritized recommendation report covering every quality dimension of the SemPKM codebase — categorized, severity-rated, effort-estimated, and anchored to specific files. The report feeds a follow-up execution milestone.
 
