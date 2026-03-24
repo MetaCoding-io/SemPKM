@@ -74,3 +74,11 @@ Add a context indicator to the workspace sidebar that shows the user's current c
 - `frontend/static/js/context-indicator.js` — context indicator IIFE with SSE connection
 - `frontend/static/css/context-indicator.css` — compact indicator styles
 - `backend/app/templates/browser/workspace.html` — modified with indicator HTML, CSS link, JS script tag
+
+## Observability Impact
+
+- **Visual signal:** `#context-indicator` element in sidebar shows real-time context state. `context-stale` CSS class indicates disconnected/stale state — inspectable in browser DevTools.
+- **SSE connection:** `EventSource('/api/context/stream')` visible in browser Network tab as a persistent `text/event-stream` connection. Errors trigger `context-stale` class on the indicator.
+- **Initial load:** `fetch('/api/context/current')` on DOMContentLoaded — visible in Network tab. 401 or server error → indicator stays in "Context unknown" stale state.
+- **Console logging:** `[context-indicator]` prefix on SSE parse failures.
+- **Failure visibility:** SSE disconnect → indicator dims (opacity 0.5) and shows "Context unknown". No context ever posted → same stale appearance. Both visually distinguishable from active state.
