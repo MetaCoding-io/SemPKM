@@ -657,3 +657,11 @@ When testing cross-service integration (ContextService + RulesEngine + PersonaSe
 
 `NotificationService.__init__()` accepts an optional `firebase_app` parameter. When `None`, all dispatch methods become no-ops (return None without attempting to call `messaging.send()`). This means all 184 M037 tests pass without Firebase credentials, and the backend runs normally without push capability when `FIREBASE_CREDENTIALS_PATH` is empty. Import `firebase_admin.messaging` lazily inside `send_notification()` to avoid import failure when the package is installed but not initialized.
 
+
+### App module test patching: patch on _app_mod, not _svc_mod
+
+**Discovered:** M038/S01/T04
+
+When testing app modules loaded via `importlib.util.spec_from_file_location()`, the app's fallback import path creates its own bound function references. Patching the original service module (`_svc_mod.fetch_feed`) has no effect because `app.py` already captured a reference to that function at import time. Patch the app module instead (`_app_mod.fetch_feed`). This applies to all App Platform apps that use the `importlib` fallback import pattern (try SDK import, except ImportError use importlib).
+
+**Reference:** `backend/tests/test_media_scheduler.py` — `TestPollSources` class patches `_app_mod.fetch_feed`, `_app_mod.parse_feed_content`, etc.
