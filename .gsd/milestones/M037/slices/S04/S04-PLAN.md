@@ -59,7 +59,7 @@
   - Verify: `cd mobile && npx tsc --noEmit` — zero errors; `rg "TaskManager.defineTask" mobile/src/services/geofencing.ts` returns a match
   - Done when: TypeScript compiles, geofencing task defined at module scope, imported in root layout, app.json has expo-location plugin, API client has zone CRUD methods
 
-- [ ] **T03: Mobile zone management UI with map** `est:2h`
+- [x] **T03: Mobile zone management UI with map** `est:2h`
   - Why: Replaces the placeholder zones screen with a full map-based zone editor where users can create, edit, and delete geofence zones. This is the user-facing surface that ties backend zone CRUD to mobile geofence registration.
   - Files: `mobile/src/app/(app)/(tabs)/zones.tsx`, `mobile/src/components/ZoneEditor.tsx`, `mobile/package.json`
   - Do: Install `react-native-maps` via `npx expo install`. Replace placeholder `zones.tsx` with zone management screen: top half is `MapView` with `Circle` overlays for each zone and `showsUserLocation={true}`, bottom half is a `FlatList` of zones with name, radius badge, enable/disable switch, and delete button. Add floating action button to create new zone. Build `ZoneEditor.tsx` modal component for add/edit with name input, radius slider (50-1000m), and map tap or marker drag to set center. On zone create/update, call API client zone methods then call `registerGeofences()` from T02 to sync geofences. On zone delete, remove from API then re-register remaining zones. Request location permissions via T02's `requestLocationPermissions()` when first zone is created. Show zone count and iOS 20-region soft warning when approaching 15+ zones.
