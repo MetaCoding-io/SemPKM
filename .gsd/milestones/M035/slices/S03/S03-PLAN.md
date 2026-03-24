@@ -27,6 +27,7 @@
 - `cd backend && .venv/bin/python -m pytest tests/test_copilot_service.py -v` — S01 regression (48 tests)
 - `cd backend && .venv/bin/python -m pytest tests/test_conversation_service.py -v` — S02 regression (22 tests)
 - `bash .gsd/milestones/M035/slices/S03/verify-s03.sh` — structural checks (file existence, imports, endpoint wiring, migration, frontend elements)
+- `cd backend && .venv/bin/python -m pytest tests/test_ai_personas.py -v -k "reject"` — failure-path: built-in modification/deletion rejection returns clear error messages
 
 ## Observability / Diagnostics
 
@@ -43,7 +44,7 @@
 
 ## Tasks
 
-- [ ] **T01: AI Persona Backend — Model, Service, Endpoints, Tests** `est:35m`
+- [x] **T01: AI Persona Backend — Model, Service, Endpoints, Tests** `est:35m`
   - Why: The persona system needs a SQLAlchemy model, Alembic migration, CRUD service with built-in seeding, REST endpoints, and system prompt injection — all backend-only, no frontend changes
   - Files: `backend/app/copilot/models.py`, `backend/app/copilot/personas.py`, `backend/app/copilot/schemas.py`, `backend/app/copilot/service.py`, `backend/app/api/copilot.py`, `backend/migrations/versions/017_ai_personas.py`, `backend/tests/test_ai_personas.py`
   - Do: (1) Add AIPersona model to models.py with fields: id (UUID), user_id (FK→users), name, icon (emoji/lucide), system_prompt_template (Text), model_preference (nullable), temperature (float, 0.7), is_builtin (bool), is_active (bool), created_at, updated_at. Table name: `ai_personas`. (2) Write Alembic migration 017. (3) Create AIPersonaService in personas.py: create, list_for_user, get, update, delete (reject built-in deletion), get_active, set_active, seed_builtins (4 personas: General Assistant, Research Assistant, Project Manager, Writing Coach — each with distinct system_prompt_template). Seed lazily on first list_for_user if no personas exist. (4) Add persona_id to CopilotChatRequest in schemas.py. Add PersonaResponse schema. (5) Add `persona_prompt` kwarg to `_build_system_prompt()` — prepended before schema context when provided. The template supports `{installed_models}`, `{type_schemas}`, `{current_context}` slot variables. (6) Add REST endpoints to copilot_router: GET /personas, POST /personas, PUT /personas/{id}, DELETE /personas/{id}, POST /personas/{id}/activate. (7) In copilot_chat(), look up active persona (from persona_id on request or user's active), render template, pass to _build_system_prompt(). (8) Write unit tests covering CRUD lifecycle, built-in seeding, built-in deletion rejection, active persona switching, system prompt with persona injection.
