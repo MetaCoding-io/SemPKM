@@ -70,6 +70,12 @@ MAX_INITIAL_ITEMS = _app_mod.MAX_INITIAL_ITEMS
 _get_current_error_count = _app_mod._get_current_error_count
 _format_date = _app_mod._format_date
 _format_duration = _app_mod._format_duration
+entry_status_fragment = _app_mod.entry_status_fragment
+current_suggestion_json = _app_mod.current_suggestion_json
+on_startup = _app_mod.on_startup
+on_shutdown = _app_mod.on_shutdown
+VALID_ENTRY_STATUSES = _app_mod.VALID_ENTRY_STATUSES
+today_fragment = _app_mod.today_fragment
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -4317,3 +4323,433 @@ class TestContextErrorHandling:
         """DEBOUNCE_SECONDS is 120."""
         assert DEBOUNCE_SECONDS == 120.0
 
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Entry status route tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+def _make_request(path_params=None, form_data=None, query_params=None):
+    """Build a mock Starlette Request with path_params and form_data."""
+    request = MagicMock()
+    request.path_params = path_params or {}
+    request.query_params = query_params or {}
+
+    async def mock_form():
+        return form_data or {}
+
+    request.form = mock_form
+
+    # Wire up ctx via request.app.state.ctx
+    ctx = MagicMock()
+    ctx.commands = MagicMock()
+    ctx.commands.execute = AsyncMock(return_value=None)
+    ctx.graph = MagicMock()
+    ctx.graph.query = AsyncMock(return_value={"results": {"bindings": []}})
+    ctx.render_template = MagicMock(side_effect=lambda name, **kw: f"<rendered:{name}>")
+    request.app.state.ctx = ctx
+    return request, ctx
+
+
+class TestEntryStatusRoute:
+    """Tests for POST /_fragments/entry/{entry_iri}/status."""
+
+    @pytest.mark.asyncio
+    async def test_valid_status_completed(self):
+        """Completed status triggers object.patch and returns success HTML."""
+        req, ctx = _make_request(
+            path_params={"entry_iri": "urn%3Asempkm%3Aentry%3A123"},
+            form_data={"status": "completed"},
+        )
+        resp = await entry_status_fragment(req)
+        assert resp.status_code == 200
+        assert "completed" in resp.body.decode()
+        ctx.commands.execute.assert_awaited_once()
+        call_args = ctx.commands.execute.call_args
+        assert call_args[0][0] == "object.patch"
+        assert "entryStatus" in str(call_args[0][1]["properties"])
+
+    @pytest.mark.asyncio
+    async def test_valid_status_skipped(self):
+        """Skipped status triggers object.patch."""
+        req, ctx = _make_request(
+            path_params={"entry_iri": "urn:sempkm:entry:456"},
+            form_data={"status": "skipped"},
+        )
+        resp = await entry_status_fragment(req)
+        assert resp.status_code == 200
+        assert "skipped" in resp.body.decode()
+
+    @pytest.mark.asyncio
+    async def test_valid_status_saved(self):
+        """Saved status triggers object.patch."""
+        req, ctx = _make_request(
+            path_params={"entry_iri": "urn:sempkm:entry:789"},
+            form_data={"status": "saved"},
+        )
+        resp = await entry_status_fragment(req)
+        assert resp.status_code == 200
+        assert "saved" in resp.body.decode()
+
+    @pytest.mark.asyncio
+    async def test_invalid_status_returns_400(self):
+        """Invalid status value returns 400."""
+        req, ctx = _make_request(
+            path_params={"entry_iri": "urn:sempkm:entry:123"},
+            form_data={"status": "invalid_status"},
+        )
+        resp = await entry_status_fragment(req)
+        assert resp.status_code == 400
+        assert "Invalid status" in resp.body.decode()
+        ctx.commands.execute.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_empty_status_returns_400(self):
+        """Empty status field returns 400."""
+        req, ctx = _make_request(
+            path_params={"entry_iri": "urn:sempkm:entry:123"},
+            form_data={"status": ""},
+        )
+        resp = await entry_status_fragment(req)
+        assert resp.status_code == 400
+
+    @pytest.mark.asyncio
+    async def test_missing_entry_iri_returns_400(self):
+        """Missing entry_iri returns 400."""
+        req, ctx = _make_request(
+            path_params={"entry_iri": ""},
+            form_data={"status": "completed"},
+        )
+        resp = await entry_status_fragment(req)
+        assert resp.status_code == 400
+        assert "Missing entry IRI" in resp.body.decode()
+
+    @pytest.mark.asyncio
+    async def test_patch_failure_returns_500(self):
+        """If object.patch fails, return 500 with error message."""
+        req, ctx = _make_request(
+            path_params={"entry_iri": "urn:sempkm:entry:fail"},
+            form_data={"status": "completed"},
+        )
+        ctx.commands.execute = AsyncMock(side_effect=RuntimeError("triplestore down"))
+        resp = await entry_status_fragment(req)
+        assert resp.status_code == 500
+        assert "Failed to update" in resp.body.decode()
+
+    @pytest.mark.asyncio
+    async def test_response_contains_action_class(self):
+        """Response HTML contains the ms-entry-actions class for htmx swap."""
+        req, ctx = _make_request(
+            path_params={"entry_iri": "urn:sempkm:entry:123"},
+            form_data={"status": "completed"},
+        )
+        resp = await entry_status_fragment(req)
+        body = resp.body.decode()
+        assert "ms-entry-actions" in body
+        assert "ms-entry-done" in body
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# JSON suggestion endpoint tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestSuggestionJSON:
+    """Tests for GET /_fragments/current-suggestion/json."""
+
+    @pytest.mark.asyncio
+    async def test_empty_plan_returns_none_status(self):
+        """When no plan entries exist, returns {"status": "none"}."""
+        req, ctx = _make_request()
+        resp = await current_suggestion_json(req)
+        assert resp.status_code == 200
+        data = json.loads(resp.body)
+        assert data["status"] == "none"
+
+    @pytest.mark.asyncio
+    async def test_now_entry_returns_now_status(self):
+        """Entry whose time slot contains current time returns status=now."""
+        from datetime import datetime as dt
+        now_time = dt.now().strftime("%H:%M")
+        # Create a slot that contains now_time
+        h, m = map(int, now_time.split(":"))
+        start = f"{h:02d}:{max(0, m-5):02d}"
+        end = f"{h:02d}:{min(59, m+5):02d}"
+
+        bindings = [{
+            "entry": {"value": "urn:sempkm:entry:now1"},
+            "slotStart": {"value": start},
+            "slotEnd": {"value": end},
+            "entryStatus": {"value": "pending"},
+            "title": {"value": "Test Episode"},
+            "enclosureUrl": {"value": "https://example.com/ep.mp3"},
+            "sourceTitle": {"value": "Test Podcast"},
+            "sourceType": {"value": "podcast"},
+            "duration": {"value": "1800"},
+        }]
+
+        req, ctx = _make_request()
+        ctx.graph.query = AsyncMock(return_value={"results": {"bindings": bindings}})
+        resp = await current_suggestion_json(req)
+        data = json.loads(resp.body)
+        assert data["status"] == "now"
+        assert data["title"] == "Test Episode"
+        assert data["enclosure_url"] == "https://example.com/ep.mp3"
+        assert data["source_type"] == "podcast"
+        assert data["duration_seconds"] == 1800
+
+    @pytest.mark.asyncio
+    async def test_next_entry_returns_next_status(self):
+        """Entry in the future returns status=next."""
+        bindings = [{
+            "entry": {"value": "urn:sempkm:entry:next1"},
+            "slotStart": {"value": "23:55"},
+            "slotEnd": {"value": "23:59"},
+            "entryStatus": {"value": "pending"},
+            "title": {"value": "Late Night Episode"},
+            "sourceType": {"value": "youtube"},
+        }]
+
+        req, ctx = _make_request()
+        ctx.graph.query = AsyncMock(return_value={"results": {"bindings": bindings}})
+        resp = await current_suggestion_json(req)
+        data = json.loads(resp.body)
+        assert data["status"] == "next"
+        assert data["title"] == "Late Night Episode"
+        assert data["source_type"] == "youtube"
+
+    @pytest.mark.asyncio
+    async def test_completed_entries_skipped(self):
+        """Completed/skipped entries are not returned as current suggestion."""
+        bindings = [{
+            "entry": {"value": "urn:sempkm:entry:done1"},
+            "slotStart": {"value": "00:00"},
+            "slotEnd": {"value": "23:59"},
+            "entryStatus": {"value": "completed"},
+            "title": {"value": "Done Episode"},
+        }]
+
+        req, ctx = _make_request()
+        ctx.graph.query = AsyncMock(return_value={"results": {"bindings": bindings}})
+        resp = await current_suggestion_json(req)
+        data = json.loads(resp.body)
+        assert data["status"] == "none"
+
+    @pytest.mark.asyncio
+    async def test_json_response_all_fields(self):
+        """JSON response includes all expected fields."""
+        from datetime import datetime as dt
+        now_time = dt.now().strftime("%H:%M")
+        h, m = map(int, now_time.split(":"))
+        start = f"{h:02d}:{max(0, m-5):02d}"
+        end = f"{h:02d}:{min(59, m+5):02d}"
+
+        bindings = [{
+            "entry": {"value": "urn:sempkm:entry:full1"},
+            "slotStart": {"value": start},
+            "slotEnd": {"value": end},
+            "entryStatus": {"value": "pending"},
+            "title": {"value": "Full Episode"},
+            "enclosureUrl": {"value": "https://spotify.com/track/abc"},
+            "sourceTitle": {"value": "My Playlist"},
+            "sourceType": {"value": "spotify"},
+            "duration": {"value": "240"},
+        }]
+
+        req, ctx = _make_request()
+        ctx.graph.query = AsyncMock(return_value={"results": {"bindings": bindings}})
+        resp = await current_suggestion_json(req)
+        data = json.loads(resp.body)
+
+        expected_keys = {"title", "slot_start", "slot_end", "status",
+                         "source_type", "source_title", "enclosure_url",
+                         "duration_seconds"}
+        assert expected_keys.issubset(set(data.keys()))
+
+    @pytest.mark.asyncio
+    async def test_sparql_failure_returns_none(self):
+        """SPARQL failure returns status=none with error field."""
+        req, ctx = _make_request()
+        ctx.graph.query = AsyncMock(side_effect=RuntimeError("connection lost"))
+        resp = await current_suggestion_json(req)
+        data = json.loads(resp.body)
+        assert data["status"] == "none"
+
+    @pytest.mark.asyncio
+    async def test_missing_duration_returns_none(self):
+        """Entry with no duration field returns duration_seconds=None in JSON."""
+        bindings = [{
+            "entry": {"value": "urn:sempkm:entry:nodur"},
+            "slotStart": {"value": "23:55"},
+            "slotEnd": {"value": "23:59"},
+            "entryStatus": {"value": "pending"},
+            "title": {"value": "No Duration"},
+        }]
+
+        req, ctx = _make_request()
+        ctx.graph.query = AsyncMock(return_value={"results": {"bindings": bindings}})
+        resp = await current_suggestion_json(req)
+        data = json.loads(resp.body)
+        assert data["duration_seconds"] is None
+
+    @pytest.mark.asyncio
+    async def test_replaced_entries_skipped(self):
+        """Replaced entries are not returned as current suggestion."""
+        bindings = [{
+            "entry": {"value": "urn:sempkm:entry:replaced1"},
+            "slotStart": {"value": "00:00"},
+            "slotEnd": {"value": "23:59"},
+            "entryStatus": {"value": "replaced"},
+            "title": {"value": "Replaced Episode"},
+        }]
+
+        req, ctx = _make_request()
+        ctx.graph.query = AsyncMock(return_value={"results": {"bindings": bindings}})
+        resp = await current_suggestion_json(req)
+        data = json.loads(resp.body)
+        assert data["status"] == "none"
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Lifecycle wiring tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestLifecycleContext:
+    """Tests for on_startup/on_shutdown context service wiring."""
+
+    @pytest.mark.asyncio
+    async def test_on_startup_calls_start_context_listener(self):
+        """on_startup calls start_context_listener(ctx)."""
+        ctx = MagicMock()
+        ctx.app_id = "media-scheduler"
+        with patch.object(_app_mod, "start_context_listener") as mock_start:
+            await on_startup(ctx)
+            mock_start.assert_called_once_with(ctx)
+
+    @pytest.mark.asyncio
+    async def test_on_shutdown_calls_stop_context_listener(self):
+        """on_shutdown calls stop_context_listener()."""
+        ctx = MagicMock()
+        ctx.app_id = "media-scheduler"
+        with patch.object(_app_mod, "stop_context_listener") as mock_stop:
+            await on_shutdown(ctx)
+            mock_stop.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_on_startup_is_async(self):
+        """on_startup is an async function."""
+        import inspect
+        assert inspect.iscoroutinefunction(on_startup)
+
+    @pytest.mark.asyncio
+    async def test_on_shutdown_is_async(self):
+        """on_shutdown is an async function."""
+        import inspect
+        assert inspect.iscoroutinefunction(on_shutdown)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Template and htmx wiring tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestTodayTemplateActions:
+    """Tests for today.html template action buttons and htmx attributes."""
+
+    def test_template_contains_action_buttons(self):
+        """today.html has ms-entry-actions class."""
+        template_path = (
+            Path(__file__).resolve().parent.parent.parent
+            / "apps" / "media-scheduler" / "frontend" / "templates" / "today.html"
+        )
+        content = template_path.read_text()
+        assert "ms-entry-actions" in content
+
+    def test_template_has_complete_button(self):
+        """today.html has a complete button with hx-post."""
+        template_path = (
+            Path(__file__).resolve().parent.parent.parent
+            / "apps" / "media-scheduler" / "frontend" / "templates" / "today.html"
+        )
+        content = template_path.read_text()
+        assert '"completed"' in content
+        assert "ms-action-complete" in content
+
+    def test_template_has_skip_button(self):
+        """today.html has a skip button."""
+        template_path = (
+            Path(__file__).resolve().parent.parent.parent
+            / "apps" / "media-scheduler" / "frontend" / "templates" / "today.html"
+        )
+        content = template_path.read_text()
+        assert '"skipped"' in content
+        assert "ms-action-skip" in content
+
+    def test_template_has_save_button(self):
+        """today.html has a save button."""
+        template_path = (
+            Path(__file__).resolve().parent.parent.parent
+            / "apps" / "media-scheduler" / "frontend" / "templates" / "today.html"
+        )
+        content = template_path.read_text()
+        assert '"saved"' in content
+        assert "ms-action-save" in content
+
+    def test_template_uses_proxy_prefix(self):
+        """htmx URLs use the /app/media-scheduler/ proxy prefix."""
+        template_path = (
+            Path(__file__).resolve().parent.parent.parent
+            / "apps" / "media-scheduler" / "frontend" / "templates" / "today.html"
+        )
+        content = template_path.read_text()
+        assert "/app/media-scheduler/_fragments/entry/" in content
+
+    def test_template_passes_entry_iri(self):
+        """today.html uses entry.iri in the htmx URL."""
+        template_path = (
+            Path(__file__).resolve().parent.parent.parent
+            / "apps" / "media-scheduler" / "frontend" / "templates" / "today.html"
+        )
+        content = template_path.read_text()
+        assert "entry.iri" in content
+
+    def test_template_hides_actions_for_done_entries(self):
+        """today.html hides action buttons for completed/skipped/saved entries."""
+        template_path = (
+            Path(__file__).resolve().parent.parent.parent
+            / "apps" / "media-scheduler" / "frontend" / "templates" / "today.html"
+        )
+        content = template_path.read_text()
+        # Check for Jinja conditional that hides actions
+        assert "not in" in content or "entry.status" in content
+
+    def test_valid_entry_statuses_set(self):
+        """VALID_ENTRY_STATUSES contains exactly the three expected values."""
+        assert VALID_ENTRY_STATUSES == {"completed", "skipped", "saved"}
+
+    @pytest.mark.asyncio
+    async def test_today_fragment_passes_entry_iri(self):
+        """today_fragment includes entry_iri in template context."""
+        req, ctx = _make_request()
+        bindings = [{
+            "entry": {"value": "urn:sempkm:entry:abc123"},
+            "slotStart": {"value": "09:00"},
+            "slotEnd": {"value": "09:30"},
+            "entryStatus": {"value": "pending"},
+            "title": {"value": "Test"},
+        }]
+        ctx.graph.query = AsyncMock(return_value={"results": {"bindings": bindings}})
+        await today_fragment(req)
+        # render_template should have been called with entries containing iri
+        call_kwargs = ctx.render_template.call_args
+        assert call_kwargs is not None
+        entries = call_kwargs[1].get("entries") if call_kwargs[1] else None
+        if entries is None and len(call_kwargs[0]) > 1:
+            # Positional args
+            pass
+        else:
+            assert entries is not None
+            assert len(entries) == 1
+            assert entries[0]["iri"] == "urn:sempkm:entry:abc123"

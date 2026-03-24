@@ -934,3 +934,63 @@
     opacity: 0.6;
     pointer-events: none;
 }
+
+/* ── Entry action buttons ── */
+
+.ms-entry-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+    margin-left: auto;
+    padding-left: 0.5rem;
+}
+
+.ms-entry-done {
+    /* When entry already has a terminal status, just show the badge */
+    opacity: 0.85;
+}
+
+.ms-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 1px solid var(--color-border, #e0e0e0);
+    border-radius: 4px;
+    background: var(--color-bg, #fff);
+    cursor: pointer;
+    font-size: 0.75rem;
+    line-height: 1;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    color: var(--color-text-muted, #666);
+}
+
+.ms-action-btn:hover {
+    border-color: var(--color-accent, #0d9488);
+}
+
+.ms-action-complete:hover {
+    background: #f0fdf4;
+    color: #16a34a;
+    border-color: #16a34a;
+}
+
+.ms-action-skip:hover {
+    background: #fff7ed;
+    color: #ea580c;
+    border-color: #ea580c;
+}
+
+.ms-action-save:hover {
+    background: #fefce8;
+    color: #ca8a04;
+    border-color: #ca8a04;
+}
+
+.ms-status-saved {
+    background: #fefce8;
+    color: #ca8a04;
+}
