@@ -1,0 +1,14 @@
+<div class="media-scheduler" id="ms-container">
+  <div class="ms-sources-sidebar" id="ms-sources-sidebar"
+       hx-get="/_fragments/sources"
+       hx-trigger="load, sourcesChanged from:body"
+       hx-swap="innerHTML">
+    <div class="tree-empty">Loading sources...</div>
+  </div>
+  <div class="ms-items-list" id="ms-items-list"
+       hx-get="/_fragments/items"
+       hx-trigger="load, sourcesChanged from:body"
+       hx-swap="innerHTML">
+    <div class="tree-empty">Loading items...</div>
+  </div>
+</div>

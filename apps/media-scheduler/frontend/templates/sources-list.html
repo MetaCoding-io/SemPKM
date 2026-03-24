@@ -1,0 +1,34 @@
+<div class="ms-sources" id="ms-sources-content">
+  {% if sources %}
+  <ul class="ms-source-list">
+    {% for src in sources %}
+    <li class="ms-source-item{% if src.error_count > 0 %} ms-source-error{% endif %}">
+      <span class="ms-source-title">{{ src.title }}</span>
+      <span class="ms-source-type">{{ src.source_type }}</span>
+      {% if src.error_count > 0 %}
+      <span class="ms-source-error-badge" title="{{ src.last_error }}">⚠ {{ src.error_count }}</span>
+      {% endif %}
+      <form method="post" action="/_fragments/sources/remove" style="display:inline">
+        <input type="hidden" name="source_iri" value="{{ src.iri }}">
+        <button type="submit" class="ms-btn-remove" title="Remove source">×</button>
+      </form>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="ms-empty-state">
+    <p>No sources yet. Add a podcast feed to get started.</p>
+  </div>
+  {% endif %}
+
+  <form method="post" action="/_fragments/sources/add-podcast"
+        hx-post="/_fragments/sources/add-podcast"
+        hx-target="#ms-add-result"
+        hx-swap="innerHTML"
+        class="ms-add-form">
+    <input type="url" name="feed_url" placeholder="Podcast RSS feed URL" required>
+    <input type="text" name="title" placeholder="Title (optional)">
+    <button type="submit" class="ms-btn-add">Add Podcast</button>
+  </form>
+  <div id="ms-add-result"></div>
+</div>

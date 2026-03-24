@@ -1,0 +1,60 @@
+appId: "media-scheduler"
+name: "Media Scheduler"
+version: "0.1.0"
+description: "Schedule and track podcast episodes, YouTube videos, and Spotify tracks. Polls RSS feeds for new content and manages a personal media queue."
+author:
+  name: "SemPKM"
+license: "MIT"
+
+dependencies:
+  platform: ">=0.1.0"
+  models:
+    - id: "media-scheduler"
+      version: ">=1.0.0"
+
+permissions:
+  commands:
+    - "object.create"
+    - "object.patch"
+    - "edge.create"
+  sparql:
+    read: true
+  backgroundTasks: true
+  network:
+    - "*"
+  settings: true
+
+settings:
+  - key: "maxItemsPerPoll"
+    label: "Max items per poll"
+    description: "Maximum number of new items to create per source per poll cycle"
+    inputType: "number"
+    default: "50"
+
+backend:
+  entrypoint: "app:media_scheduler_app"
+  requirements: "requirements.txt"
+
+tasks:
+  - id: "poll-sources"
+    description: "Poll media sources for new content"
+    interval: "15m"
+    configurable: true
+    retryPolicy:
+      maxRetries: 2
+      backoffMultiplier: 2
+      maxBackoff: "5m"
+
+frontend:
+  staticDir: "frontend/static"
+  css: []
+  js: []
+
+ui:
+  pages:
+    - id: "scheduler"
+      path: "/scheduler"
+      label: "Media Scheduler"
+      icon: "radio"
+      nav: "apps"
+      fragment: "main"

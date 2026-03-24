@@ -70,6 +70,12 @@ The app's IRI namespace is `urn:sempkm:app:media-scheduler:` and uses the model 
 - `python -c "from app.apps.manifest import parse_app_manifest; m=parse_app_manifest('apps/media-scheduler/manifest.yaml'); assert m.appId=='media-scheduler' and len(m.tasks)==1 and m.tasks[0].id=='poll-sources'"` passes
 - The podcast_service pure functions are importable and callable (verified in T04 tests, but can be smoke-tested here with a Python one-liner)
 
+## Observability Impact
+
+- **New signals:** `media_scheduler_app` registers 5 fragment routes — each logs warnings on SPARQL failure and info on successful subscribe/unsubscribe via structured `logger.warning()` / `logger.info()` calls. `podcast_service.py` logs IRI minting and subscription state changes at debug/info levels.
+- **Inspection:** A future agent can verify the app loaded correctly by checking `app._routes` length (should be 5). SPARQL query `SOURCES_WITH_STATE_SPARQL` can be used to inspect all active MediaSource objects with their polling state.
+- **Failure visibility:** Subscribe/unsubscribe route handlers return HTML fragments with `.ms-error` class on failure, making errors visible in both UI and test assertions. Source state (errorCount, lastError) is persisted via `update_source_state()`.
+
 ## Inputs
 
 - `models/media-scheduler/manifest.yaml` — model type IRIs referenced in podcast_service constants
