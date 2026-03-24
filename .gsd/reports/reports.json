@@ -403,6 +403,22 @@
       "doneMilestones": 37,
       "totalMilestones": 40,
       "phase": "pre-planning"
+    },
+    {
+      "filename": "M035-2026-03-24T03-56-59.html",
+      "generatedAt": "2026-03-24T03:56:59.707Z",
+      "milestoneId": "M035",
+      "milestoneTitle": "AI Copilot & LLM Test Harness",
+      "label": "M035: AI Copilot & LLM Test Harness",
+      "kind": "milestone",
+      "totalCost": 1316.3545340000003,
+      "totalTokens": 1846965507,
+      "totalDuration": 229149930,
+      "doneSlices": 232,
+      "totalSlices": 232,
+      "doneMilestones": 38,
+      "totalMilestones": 40,
+      "phase": "pre-planning"
     }
   ]
 }
