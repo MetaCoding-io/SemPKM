@@ -621,3 +621,15 @@ expo-router matches root-level files in `src/app/` before group directories like
 **Discovered:** M037/S04/T03
 
 `react-native-maps` TypeScript types distinguish between `MapPressEvent` (for `onPress`) and `LongPressEvent` (for `onLongPress`). Using `MapPressEvent` for the `onLongPress` handler causes a type error. The `LongPressEvent` type includes the `action` discriminant that identifies it as a long-press.
+
+### expo-sensors does NOT require an app.json plugin entry for ≤1Hz sampling
+
+**Discovered:** M037/S05/T01
+
+`expo-sensors` (Accelerometer, Pedometer) at 1Hz or slower does not need an `expo-sensors` plugin entry in `app.json`. Android's `HIGH_SAMPLING_RATE_SENSORS` permission is only required for sampling rates above 200Hz. The package installs as a regular dependency without native config. Only `expo-calendar` needed a plugin entry (for calendar read permission).
+
+### Pedometer walking override for low-variance steady-pace walking
+
+**Discovered:** M037/S05/T02
+
+Accelerometer magnitude variance alone misclassifies steady-pace straight-line walking as "stationary" because the magnitude stays nearly constant despite movement. Supplementing with `Pedometer.watchStepCount()` on a 3-second snapshot window resolves this — increasing step count overrides the variance-based classification to "walking". This dual-sensor pattern should be used whenever accelerometer-only classification proves insufficient.
