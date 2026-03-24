@@ -62,7 +62,7 @@
   - Verify: Start Docker stack, navigate to Settings, verify Context Rules category appears, create/edit/delete a rule through the UI, test button shows match result
   - Done when: Full CRUD works through the Settings UI with test button showing match/no-match against current context
 
-- [ ] **T04: Frontend auto-switch handler — SSE persona_switched event** `est:20m`
+- [x] **T04: Frontend auto-switch handler — SSE persona_switched event** `est:20m`
   - Why: The workspace must react to auto-persona switches — without this handler, the backend switches the persona but the UI doesn't update
   - Files: `frontend/static/js/context-indicator.js`
   - Do: Add `persona_switched` event listener to the existing EventSource in context-indicator.js. On receiving the event (data: `{persona_id, persona_name, rule_name}`), call `window.switchPersona(persona_id)` to apply the workspace layout change. Show a brief toast/notification indicating the auto-switch (e.g., "Switched to Work persona (rule: Office Hours)"). Handle edge case: if `window.switchPersona` is undefined, log a warning and skip.
