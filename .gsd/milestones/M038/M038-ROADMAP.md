@@ -60,7 +60,7 @@ This milestone is complete only when all are true:
 - [x] **S03: YouTube Integration** `risk:medium` `depends:[S01]`
   > After this: user adds a YouTube channel or playlist as a media source, the app polls YouTube Data API for new videos, and discovered videos appear as MediaItems in the daily plan alongside podcast episodes.
 
-- [ ] **S04: Spotify Integration** `risk:high` `depends:[S01]`
+- [x] **S04: Spotify Integration** `risk:high` `depends:[S01]`
   > After this: user connects their Spotify account via OAuth, selects playlists as media sources, and Spotify tracks appear as MediaItems. Premium users see playback control hints; Free users see deep links.
 
 - [ ] **S05: Context-Driven Adaptation + Mobile** `risk:medium` `depends:[S02,S04]`
