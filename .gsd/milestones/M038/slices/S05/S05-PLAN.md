@@ -48,7 +48,7 @@
 
 ## Tasks
 
-- [ ] **T01: Context subscription service with SSE client, debounce, and reconnect** `est:1h`
+- [x] **T01: Context subscription service with SSE client, debounce, and reconnect** `est:1h`
   - Why: Core new capability — the media scheduler must subscribe to the platform's context SSE stream and trigger plan re-generation on context changes. This is the first app to use a persistent SSE subscription from inside the App SDK.
   - Files: `apps/media-scheduler/services/context_service.py`, `backend/tests/test_media_scheduler.py`
   - Do: Create `context_service.py` with: SSE line parser (`parse_sse_line`), debounce manager (2min default, immediate for location_zone per D349), reconnect-with-exponential-backoff, `start_context_listener(ctx)` that spawns asyncio task using `ctx._get_platform_client()` to stream `/api/context/stream`, `stop_context_listener()` that cancels the task, `get_context_subscription_status()` for inspection. Use `asyncio.Lock` around `generate_plan()` calls. Add ~45 tests covering SSE parsing, debounce logic, reconnect behavior, plan trigger, status inspection.
