@@ -44,6 +44,13 @@ Namespace: `urn:sempkm:model:media-scheduler:` with prefix `ms`.
 - `python -c "import json; d=json.load(open('models/media-scheduler/ontology/media-scheduler.jsonld')); types=[n['@id'] for n in d['@graph'] if n.get('@type')=='owl:Class']; assert 'ms:MediaSource' in types and 'ms:MediaItem' in types and 'ms:MediaCategory' in types"` passes
 - `python -c "import json; d=json.load(open('models/media-scheduler/shapes/media-scheduler.jsonld')); shapes=[n['@id'] for n in d['@graph'] if n.get('@type')=='sh:NodeShape']; assert 'ms:MediaSourceShape' in shapes and 'ms:MediaItemShape' in shapes"` passes
 
+## Observability Impact
+
+- **Model manifest validation:** `parse_app_manifest` or `yaml.safe_load` on `manifest.yaml` emits clear parse errors if YAML is malformed or required fields missing
+- **Ontology inspection:** `@graph` array in the JSON-LD is queryable for class/property counts; SPARQL `SELECT ?c WHERE { ?c a owl:Class }` returns the 3 types after install
+- **Shape inspection:** SHACL shapes with `sh:in` constraints are inspectable via `SELECT ?shape WHERE { ?shape a sh:NodeShape }` and drive form generation — broken shapes produce visible form rendering failures
+- **Failure visibility:** JSON parse errors on any `.jsonld` file surface immediately at model install time; missing `sh:targetClass` prevents form/view rendering for that type
+
 ## Inputs
 
 - `models/rss-feeds/manifest.yaml` — reference pattern for model manifest structure

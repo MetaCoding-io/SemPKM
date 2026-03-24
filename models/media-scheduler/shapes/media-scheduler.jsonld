@@ -1,0 +1,288 @@
+{
+  "@context": {
+    "sh": "http://www.w3.org/ns/shacl#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "schema": "https://schema.org/",
+    "ms": "urn:sempkm:model:media-scheduler:",
+    "sempkm": "urn:sempkm:"
+  },
+  "@graph": [
+    {
+      "@id": "ms:MediaSourceInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Source Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "ms:MediaSourcePollingGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Polling",
+      "sh:order": 2
+    },
+    {
+      "@id": "ms:MediaSourceMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 3
+    },
+
+    {
+      "@id": "ms:MediaSourceShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "ms:MediaSource" },
+      "rdfs:label": "Media Source Shape",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "ms:MediaSourceInfoGroup" },
+          "sh:description": "Display name of the source."
+        },
+        {
+          "sh:path": { "@id": "ms:sourceType" },
+          "sh:name": "Source Type",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:in": {
+            "@list": ["podcast", "youtube", "spotify"]
+          },
+          "sh:order": 2,
+          "sh:group": { "@id": "ms:MediaSourceInfoGroup" },
+          "sh:description": "Type of content source."
+        },
+        {
+          "sh:path": { "@id": "ms:feedUrl" },
+          "sh:name": "Feed URL",
+          "sh:datatype": { "@id": "xsd:anyURI" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "ms:MediaSourceInfoGroup" },
+          "sh:description": "URL of the RSS/Atom feed or channel/playlist."
+        },
+        {
+          "sh:path": { "@id": "ms:category" },
+          "sh:name": "Category",
+          "sh:class": { "@id": "ms:MediaCategory" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "ms:MediaSourceInfoGroup" },
+          "sh:description": "Category this source belongs to."
+        },
+        {
+          "sh:path": { "@id": "ms:lastPolled" },
+          "sh:name": "Last Polled",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "ms:MediaSourcePollingGroup" },
+          "sh:description": "When this source was last polled."
+        },
+        {
+          "sh:path": { "@id": "ms:errorCount" },
+          "sh:name": "Error Count",
+          "sh:datatype": { "@id": "xsd:integer" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "ms:MediaSourcePollingGroup" },
+          "sh:description": "Number of consecutive polling errors."
+        },
+        {
+          "sh:path": { "@id": "ms:lastError" },
+          "sh:name": "Last Error",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "ms:MediaSourcePollingGroup" },
+          "sh:description": "Description of the most recent polling error."
+        },
+        {
+          "sh:path": { "@id": "ms:etag" },
+          "sh:name": "ETag",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 8,
+          "sh:group": { "@id": "ms:MediaSourceMetadataGroup" },
+          "sh:description": "HTTP ETag for conditional GET requests."
+        },
+        {
+          "sh:path": { "@id": "ms:lastModifiedHeader" },
+          "sh:name": "Last-Modified Header",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 9,
+          "sh:group": { "@id": "ms:MediaSourceMetadataGroup" },
+          "sh:description": "HTTP Last-Modified header for conditional GET requests."
+        }
+      ]
+    },
+
+    {
+      "@id": "ms:MediaItemBasicInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "ms:MediaItemSourceGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Source",
+      "sh:order": 2
+    },
+    {
+      "@id": "ms:MediaItemStatusGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Status",
+      "sh:order": 3
+    },
+
+    {
+      "@id": "ms:MediaItemShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "ms:MediaItem" },
+      "rdfs:label": "Media Item Shape",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "ms:MediaItemBasicInfoGroup" },
+          "sh:description": "Title of the episode, video, or track."
+        },
+        {
+          "sh:path": { "@id": "ms:enclosureUrl" },
+          "sh:name": "Enclosure URL",
+          "sh:datatype": { "@id": "xsd:anyURI" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "ms:MediaItemBasicInfoGroup" },
+          "sh:description": "URL of the audio or video file."
+        },
+        {
+          "sh:path": { "@id": "ms:externalId" },
+          "sh:name": "External ID",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "ms:MediaItemBasicInfoGroup" },
+          "sh:description": "Unique identifier from the source (episode GUID, video ID)."
+        },
+        {
+          "sh:path": { "@id": "ms:duration" },
+          "sh:name": "Duration",
+          "sh:datatype": { "@id": "xsd:integer" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "ms:MediaItemBasicInfoGroup" },
+          "sh:description": "Duration in seconds."
+        },
+        {
+          "sh:path": { "@id": "ms:thumbnailUrl" },
+          "sh:name": "Thumbnail URL",
+          "sh:datatype": { "@id": "xsd:anyURI" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "ms:MediaItemBasicInfoGroup" },
+          "sh:description": "URL of the episode or video thumbnail."
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Published",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "ms:MediaItemBasicInfoGroup" },
+          "sh:description": "Publication date of the episode or video."
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "ms:MediaItemBasicInfoGroup" },
+          "sh:description": "Episode or video description/summary."
+        },
+        {
+          "sh:path": { "@id": "ms:mediaSource" },
+          "sh:name": "Media Source",
+          "sh:class": { "@id": "ms:MediaSource" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 8,
+          "sh:group": { "@id": "ms:MediaItemSourceGroup" },
+          "sh:description": "The content source this item was discovered from."
+        },
+        {
+          "sh:path": { "@id": "ms:status" },
+          "sh:name": "Status",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:in": {
+            "@list": ["queued", "playing", "completed", "skipped", "saved"]
+          },
+          "sh:defaultValue": "queued",
+          "sh:order": 9,
+          "sh:group": { "@id": "ms:MediaItemStatusGroup" },
+          "sh:description": "Consumption status of this item."
+        }
+      ]
+    },
+
+    {
+      "@id": "ms:MediaCategoryBasicInfoGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+
+    {
+      "@id": "ms:MediaCategoryShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "ms:MediaCategory" },
+      "rdfs:label": "Media Category Shape",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "ms:MediaCategoryBasicInfoGroup" },
+          "sh:description": "Name of the category."
+        },
+        {
+          "sh:path": { "@id": "dcterms:description" },
+          "sh:name": "Description",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "ms:MediaCategoryBasicInfoGroup" },
+          "sh:description": "Description of the category."
+        },
+        {
+          "sh:path": { "@id": "ms:color" },
+          "sh:name": "Color",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "ms:MediaCategoryBasicInfoGroup" },
+          "sh:description": "Display color for the category (hex code)."
+        }
+      ]
+    }
+  ]
+}
