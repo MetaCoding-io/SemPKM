@@ -1207,4 +1207,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-23 after M037/S06 complete (Push Notifications with Context Filtering — NotificationService with FCM dispatch and context-aware suppression, 4-endpoint API router, Settings UI Notifications panel, mobile expo-notifications integration, 55 backend tests.)*
+*Last updated: 2026-03-23 after M042 complete (Security Audit — OWASP Web Security & Backend Hardening. 44 severity-rated findings across all 10 OWASP Top 10:2021 categories. SPARQL injection classification of 33 modules (5 confirmed-exploitable, 4 likely-exploitable, 24 safe). Prioritized Top 10 remediation roadmap estimated at 19–35h. Analysis-only — no source code modified.)*
