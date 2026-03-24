@@ -62,7 +62,7 @@ This milestone is complete only when all are true:
 - [x] **S02: Auto-Persona Rules Engine & Settings UI** `risk:high` `depends:[S01]`
   > After this: user can create context→persona rules in the Settings UI, POST a context update that matches a rule, and watch the workspace persona switch automatically — verified in the browser
 
-- [ ] **S03: Mobile App Foundation & API Connection** `risk:high` `depends:[S01]`
+- [x] **S03: Mobile App Foundation & API Connection** `risk:high` `depends:[S01]`
   > After this: user can install the Expo dev build on a phone, enter their SemPKM instance URL and API key, and see their current context state displayed in the mobile app — verified on a real device or simulator
 
 - [ ] **S04: Mobile Geofencing & Location Zones** `risk:high` `depends:[S03]`
