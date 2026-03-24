@@ -706,7 +706,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - 12-test integration suite proving full loop: context update → rule evaluation → persona switch → notification dispatch/suppression
 - 184 backend tests (172 unit/router + 12 integration), user guide Chapter 48 (386 lines)
 
-**Personal Media Scheduler App** — in progress as M038 (S01–S05 complete, S06–S07 remaining)
+**Personal Media Scheduler App** — complete (M038, 2026-03-23)
 - Daily media queue: podcasts, YouTube, Spotify scheduled by context and rules
 - Podcast RSS polling, YouTube Data API polling, Spotify OAuth + playlist polling all operational
 - Schedule rules engine with daily plan generation (time-slot entries from rules + content)
@@ -714,8 +714,10 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Context SSE subscription: plan re-evaluates on M037 context changes (120s debounce, immediate for location)
 - Entry status tracking: complete/skip/save actions in today view via htmx
 - Mobile Now Playing card with deep links to Spotify/YouTube/podcast native apps
+- Stats dashboard: hours per category, most-played sources, weekly trends (Chart.js)
 - 395 unit tests across all media scheduler services
-- Remaining: stats dashboard (S06), E2E verification (S07)
+- E2E Playwright spec: 10-phase lifecycle test (install → subscribe → rules → plan → stats → uninstall)
+- User guide chapter documenting full app workflow
 
 **RDF Data Import & API Documentation Cleanup** — complete (M039, 2026-03-22)
 - RDF import wizard: paste/upload JSON-LD/Turtle/N-Triples → SHACL preview → event-sourced import
