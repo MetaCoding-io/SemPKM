@@ -78,3 +78,10 @@ Connect the YouTube service module (from T01) into the running app — register 
 - `apps/media-scheduler/manifest.yaml` — updated with `poll-youtube` task entry
 - `apps/media-scheduler/app.py` — extended with YouTube imports, SPARQL query, poll_youtube handler, add-youtube route
 - `apps/media-scheduler/frontend/templates/add-source.html` — expanded with YouTube source form
+
+## Observability Impact
+
+- **poll-youtube task handler** logs at INFO: sources queried count, items discovered/deduplicated per source, quota units consumed, and the final summary line (`poll-youtube complete: N sources polled, N items created`). On errors, logs at WARNING with source IRI + error details.
+- **add-youtube route** logs at WARNING on invalid URL format, API errors (with error_type), and subscription failures. Success path logs via the `subscribe_youtube()` function at INFO.
+- **Failure state**: Source-level errors increment `errorCount` and set `lastError` on the MediaSource object — visible in the sources list UI and queryable via SPARQL. Quota exhaustion returns `{"skipped": "quota_exceeded"}` in the task result.
+- **Future agent inspection**: `await ctx.state.get("youtube_api_key")` confirms key is configured; `await ctx.state.get("youtube_quota_used")` shows daily usage; the sources list fragment shows error counts and badges for YouTube sources.

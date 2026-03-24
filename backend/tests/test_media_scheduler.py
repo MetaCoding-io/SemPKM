@@ -91,9 +91,10 @@ class TestManifest:
             str(Path(__file__).resolve().parent.parent.parent
                 / "apps" / "media-scheduler" / "manifest.yaml")
         )
-        assert len(m.tasks) == 2
+        assert len(m.tasks) == 3
         assert m.tasks[0].id == "poll-sources"
-        assert m.tasks[1].id == "generate-plan"
+        assert m.tasks[1].id == "poll-youtube"
+        assert m.tasks[2].id == "generate-plan"
 
     def test_manifest_permissions(self):
         from app.apps.manifest import parse_app_manifest
@@ -1731,4 +1732,692 @@ class TestGeneratePlanTask:
         result = await generate_plan_task(ctx)
         assert "plan_iri" in result
         assert "entries_created" in result
+
+
+# ── Import youtube_service via file path ──
+
+_yt_svc_path = (
+    Path(__file__).resolve().parent.parent.parent
+    / "apps" / "media-scheduler" / "services" / "youtube_service.py"
+)
+_yt_svc_spec = importlib.util.spec_from_file_location("youtube_service_test", str(_yt_svc_path))
+_yt_svc_mod = importlib.util.module_from_spec(_yt_svc_spec)
+_yt_svc_spec.loader.exec_module(_yt_svc_mod)
+
+parse_youtube_url = _yt_svc_mod.parse_youtube_url
+parse_iso8601_duration = _yt_svc_mod.parse_iso8601_duration
+video_to_media_item = _yt_svc_mod.video_to_media_item
+YouTubeClient = _yt_svc_mod.YouTubeClient
+YouTubeAPIError = _yt_svc_mod.YouTubeAPIError
+yt_check_quota = _yt_svc_mod.check_quota
+yt_increment_quota = _yt_svc_mod.increment_quota
+yt_reset_quota_if_new_day = _yt_svc_mod.reset_quota_if_new_day
+subscribe_youtube = _yt_svc_mod.subscribe_youtube
+yt_get_existing_item_iris = _yt_svc_mod.get_existing_item_iris
+yt_mint_item_iri = _yt_svc_mod.mint_item_iri
+yt_YOUTUBE_SOURCES_SPARQL = _yt_svc_mod.YOUTUBE_SOURCES_SPARQL
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# YouTube URL parsing tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestYouTubeURLParsing:
+    """Test parse_youtube_url with all supported URL formats and edge cases."""
+
+    def test_channel_id_url(self):
+        result = parse_youtube_url("https://www.youtube.com/channel/UCxxxxxxxxxxxxxxxxxxxxxx")
+        assert result == {"type": "channel_id", "value": "UCxxxxxxxxxxxxxxxxxxxxxx"}
+
+    def test_handle_url(self):
+        result = parse_youtube_url("https://www.youtube.com/@techreviewer")
+        assert result == {"type": "handle", "value": "techreviewer"}
+
+    def test_playlist_url(self):
+        result = parse_youtube_url("https://www.youtube.com/playlist?list=PLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+        assert result == {"type": "playlist", "value": "PLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}
+
+    def test_custom_url(self):
+        result = parse_youtube_url("https://www.youtube.com/c/MyChannel")
+        assert result == {"type": "custom", "value": "MyChannel"}
+
+    def test_raw_channel_id(self):
+        result = parse_youtube_url("UCxxxxxxxxxxxxxxxxxxxxxx")
+        assert result == {"type": "raw_channel", "value": "UCxxxxxxxxxxxxxxxxxxxxxx"}
+
+    def test_raw_playlist_id(self):
+        result = parse_youtube_url("PLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+        assert result == {"type": "raw_playlist", "value": "PLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}
+
+    def test_raw_uploads_playlist_id(self):
+        """UU-prefixed playlist IDs (uploads playlists) should be recognized."""
+        result = parse_youtube_url("UUxxxxxxxxxxxxxxxxxxxxxx")
+        assert result == {"type": "raw_playlist", "value": "UUxxxxxxxxxxxxxxxxxxxxxx"}
+
+    def test_none_input(self):
+        assert parse_youtube_url(None) is None
+
+    def test_empty_string(self):
+        assert parse_youtube_url("") is None
+
+    def test_whitespace_only(self):
+        assert parse_youtube_url("   ") is None
+
+    def test_non_youtube_url(self):
+        assert parse_youtube_url("https://example.com/video") is None
+
+    def test_invalid_url(self):
+        assert parse_youtube_url("not-a-url") is None
+
+    def test_youtube_url_without_path(self):
+        assert parse_youtube_url("https://www.youtube.com/") is None
+
+    def test_channel_url_trailing_slash(self):
+        result = parse_youtube_url("https://www.youtube.com/channel/UCxxxxxxxxxxxxxxxxxxxxxx/")
+        assert result == {"type": "channel_id", "value": "UCxxxxxxxxxxxxxxxxxxxxxx"}
+
+    def test_handle_with_dots(self):
+        result = parse_youtube_url("https://www.youtube.com/@my.channel.name")
+        assert result == {"type": "handle", "value": "my.channel.name"}
+
+    def test_mobile_youtube_url(self):
+        result = parse_youtube_url("https://m.youtube.com/channel/UCxxxxxxxxxxxxxxxxxxxxxx")
+        assert result == {"type": "channel_id", "value": "UCxxxxxxxxxxxxxxxxxxxxxx"}
+
+    def test_playlist_from_watch_url(self):
+        """Watch URLs with a list parameter should extract the playlist."""
+        result = parse_youtube_url("https://www.youtube.com/watch?v=abc&list=PLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+        assert result == {"type": "playlist", "value": "PLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}
+
+    def test_integer_input_returns_none(self):
+        assert parse_youtube_url(12345) is None
+
+    def test_url_stripped(self):
+        result = parse_youtube_url("  https://www.youtube.com/@stripped  ")
+        assert result == {"type": "handle", "value": "stripped"}
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# ISO 8601 duration parsing tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestISO8601Duration:
+    """Test parse_iso8601_duration with various inputs."""
+
+    def test_minutes_and_seconds(self):
+        assert parse_iso8601_duration("PT4M13S") == 253
+
+    def test_hours_minutes_seconds(self):
+        assert parse_iso8601_duration("PT1H2M30S") == 3750
+
+    def test_seconds_only(self):
+        assert parse_iso8601_duration("PT45S") == 45
+
+    def test_hours_only(self):
+        assert parse_iso8601_duration("PT1H") == 3600
+
+    def test_minutes_only(self):
+        assert parse_iso8601_duration("PT30M") == 1800
+
+    def test_hours_and_seconds_no_minutes(self):
+        assert parse_iso8601_duration("PT2H15S") == 7215
+
+    def test_zero_duration(self):
+        assert parse_iso8601_duration("PT0S") == 0
+
+    def test_none_input(self):
+        assert parse_iso8601_duration(None) is None
+
+    def test_empty_string(self):
+        assert parse_iso8601_duration("") is None
+
+    def test_invalid_string(self):
+        assert parse_iso8601_duration("invalid") is None
+
+    def test_itunes_format_not_matched(self):
+        """iTunes HH:MM:SS format should not be matched by ISO 8601 parser."""
+        assert parse_iso8601_duration("1:23:45") is None
+
+    def test_bare_pt_no_components(self):
+        """PT with no time components should return 0 (regex matches with all groups None)."""
+        assert parse_iso8601_duration("PT") == 0
+
+    def test_whitespace_trimmed(self):
+        assert parse_iso8601_duration("  PT5M  ") == 300
+
+    def test_case_insensitive(self):
+        assert parse_iso8601_duration("pt1h30m") == 5400
+
+    def test_large_duration(self):
+        assert parse_iso8601_duration("PT12H59M59S") == 46799
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Video-to-MediaItem conversion tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestVideoToMediaItem:
+    """Test video_to_media_item field mapping and IRI minting."""
+
+    def _make_video(self, **overrides) -> dict:
+        """Create a standard YouTube API video item with reasonable defaults."""
+        base = {
+            "snippet": {
+                "title": "How to Build a REST API",
+                "description": "A tutorial on building REST APIs.",
+                "publishedAt": "2026-03-15T12:00:00Z",
+                "thumbnails": {
+                    "medium": {"url": "https://i.ytimg.com/vi/abc123/mqdefault.jpg"},
+                },
+                "resourceId": {"videoId": "abc123"},
+            },
+        }
+        # Apply overrides to snippet if needed
+        if "snippet" in overrides:
+            base["snippet"].update(overrides.pop("snippet"))
+        base.update(overrides)
+        return base
+
+    def test_basic_conversion(self):
+        source_iri = "urn:sempkm:app:media-scheduler:source-yt1"
+        video = self._make_video()
+        result = video_to_media_item(video, source_iri)
+
+        assert result["type"] == MEDIA_ITEM_TYPE
+        assert result["iri"].startswith("urn:sempkm:app:media-scheduler:item-")
+        props = result["properties"]
+        assert props["dcterms:title"] == "How to Build a REST API"
+        assert props["dcterms:description"] == "A tutorial on building REST APIs."
+        assert props["dcterms:created"] == "2026-03-15T12:00:00Z"
+        assert props[f"{MS_NS}thumbnailUrl"] == "https://i.ytimg.com/vi/abc123/mqdefault.jpg"
+        assert props[f"{MS_NS}externalId"] == "abc123"
+        assert props[f"{MS_NS}enclosureUrl"] == "https://www.youtube.com/watch?v=abc123"
+        assert props[f"{MS_NS}status"] == "queued"
+        assert props[f"{MS_NS}mediaSource"] == source_iri
+
+    def test_with_duration(self):
+        video = self._make_video(duration_seconds=253)
+        result = video_to_media_item(video, "urn:test:source")
+        assert result["properties"][f"{MS_NS}duration"] == 253
+
+    def test_without_duration(self):
+        video = self._make_video()
+        result = video_to_media_item(video, "urn:test:source")
+        assert f"{MS_NS}duration" not in result["properties"]
+
+    def test_missing_description(self):
+        video = self._make_video()
+        del video["snippet"]["description"]
+        result = video_to_media_item(video, "urn:test:source")
+        assert "dcterms:description" not in result["properties"]
+
+    def test_missing_thumbnail(self):
+        video = self._make_video()
+        video["snippet"]["thumbnails"] = {}
+        result = video_to_media_item(video, "urn:test:source")
+        assert f"{MS_NS}thumbnailUrl" not in result["properties"]
+
+    def test_thumbnail_fallback_to_default(self):
+        video = self._make_video()
+        video["snippet"]["thumbnails"] = {
+            "default": {"url": "https://i.ytimg.com/vi/abc123/default.jpg"},
+        }
+        result = video_to_media_item(video, "urn:test:source")
+        assert result["properties"][f"{MS_NS}thumbnailUrl"] == "https://i.ytimg.com/vi/abc123/default.jpg"
+
+    def test_iri_determinism(self):
+        """Same video + same source → same IRI."""
+        video = self._make_video()
+        source = "urn:test:source"
+        iri1 = video_to_media_item(video, source)["iri"]
+        iri2 = video_to_media_item(video, source)["iri"]
+        assert iri1 == iri2
+
+    def test_different_video_ids_different_iris(self):
+        source = "urn:test:source"
+        v1 = self._make_video()
+        v2 = self._make_video()
+        v2["snippet"]["resourceId"]["videoId"] = "xyz789"
+        iri1 = video_to_media_item(v1, source)["iri"]
+        iri2 = video_to_media_item(v2, source)["iri"]
+        assert iri1 != iri2
+
+    def test_fallback_to_top_level_id(self):
+        """When resourceId is missing, fall back to top-level 'id' field."""
+        video = {"snippet": {"title": "Test"}, "id": "fallback123"}
+        result = video_to_media_item(video, "urn:test:source")
+        assert result["properties"][f"{MS_NS}externalId"] == "fallback123"
+        assert "fallback123" in result["properties"][f"{MS_NS}enclosureUrl"]
+
+    def test_empty_snippet(self):
+        """Minimal video with no snippet data — should still produce valid structure."""
+        video = {"snippet": {}}
+        result = video_to_media_item(video, "urn:test:source")
+        assert result["type"] == MEDIA_ITEM_TYPE
+        assert result["properties"][f"{MS_NS}status"] == "queued"
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# YouTubeClient tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestYouTubeClient:
+    """Test YouTubeClient with mocked HTTP responses."""
+
+    def _make_response(self, status_code=200, json_body=None):
+        """Create a mock HTTP response."""
+        response = MagicMock()
+        response.status_code = status_code
+        response.json = MagicMock(return_value=json_body or {})
+        return response
+
+    @pytest.mark.asyncio
+    async def test_resolve_channel_by_id(self):
+        http = MagicMock()
+        http.get = AsyncMock(return_value=self._make_response(json_body={
+            "items": [{
+                "contentDetails": {
+                    "relatedPlaylists": {"uploads": "UUxxxxxx"}
+                }
+            }]
+        }))
+        client = YouTubeClient(http, "fake-key")
+        result = await client.resolve_channel(channel_id="UCxxxxxx")
+        assert result == "UUxxxxxx"
+
+    @pytest.mark.asyncio
+    async def test_resolve_channel_by_handle(self):
+        http = MagicMock()
+        http.get = AsyncMock(return_value=self._make_response(json_body={
+            "items": [{
+                "contentDetails": {
+                    "relatedPlaylists": {"uploads": "UUhandle"}
+                }
+            }]
+        }))
+        client = YouTubeClient(http, "fake-key")
+        result = await client.resolve_channel(handle="techreviewer")
+        assert result == "UUhandle"
+        # Verify forHandle was passed
+        call_kwargs = http.get.call_args
+        assert "forHandle" in call_kwargs.kwargs.get("params", call_kwargs[1].get("params", {}))
+
+    @pytest.mark.asyncio
+    async def test_resolve_channel_by_username(self):
+        http = MagicMock()
+        http.get = AsyncMock(return_value=self._make_response(json_body={
+            "items": [{
+                "contentDetails": {
+                    "relatedPlaylists": {"uploads": "UUuser"}
+                }
+            }]
+        }))
+        client = YouTubeClient(http, "fake-key")
+        result = await client.resolve_channel(username="MyChannel")
+        assert result == "UUuser"
+
+    @pytest.mark.asyncio
+    async def test_resolve_channel_not_found(self):
+        http = MagicMock()
+        http.get = AsyncMock(return_value=self._make_response(json_body={
+            "items": []
+        }))
+        client = YouTubeClient(http, "fake-key")
+        with pytest.raises(YouTubeAPIError) as exc_info:
+            await client.resolve_channel(channel_id="UCnonexistent")
+        assert exc_info.value.status_code == 404
+        assert exc_info.value.error_type == "notFound"
+
+    @pytest.mark.asyncio
+    async def test_resolve_channel_no_arguments(self):
+        http = MagicMock()
+        client = YouTubeClient(http, "fake-key")
+        with pytest.raises(ValueError, match="One of"):
+            await client.resolve_channel()
+
+    @pytest.mark.asyncio
+    async def test_list_playlist_items(self):
+        items = [
+            {"snippet": {"title": "Video 1", "resourceId": {"videoId": "v1"}}},
+            {"snippet": {"title": "Video 2", "resourceId": {"videoId": "v2"}}},
+        ]
+        http = MagicMock()
+        http.get = AsyncMock(return_value=self._make_response(json_body={
+            "items": items
+        }))
+        client = YouTubeClient(http, "fake-key")
+        result = await client.list_playlist_items("PLtest")
+        assert len(result) == 2
+        assert result[0]["snippet"]["title"] == "Video 1"
+
+    @pytest.mark.asyncio
+    async def test_list_playlist_items_caps_at_50(self):
+        http = MagicMock()
+        http.get = AsyncMock(return_value=self._make_response(json_body={"items": []}))
+        client = YouTubeClient(http, "fake-key")
+        await client.list_playlist_items("PLtest", max_results=100)
+        call_kwargs = http.get.call_args
+        params = call_kwargs.kwargs.get("params", call_kwargs[1].get("params", {}))
+        assert params["maxResults"] == "50"
+
+    @pytest.mark.asyncio
+    async def test_get_video_durations(self):
+        http = MagicMock()
+        http.get = AsyncMock(return_value=self._make_response(json_body={
+            "items": [
+                {"id": "v1", "contentDetails": {"duration": "PT4M13S"}},
+                {"id": "v2", "contentDetails": {"duration": "PT1H2M30S"}},
+            ]
+        }))
+        client = YouTubeClient(http, "fake-key")
+        result = await client.get_video_durations(["v1", "v2"])
+        assert result == {"v1": 253, "v2": 3750}
+
+    @pytest.mark.asyncio
+    async def test_get_video_durations_empty_list(self):
+        http = MagicMock()
+        client = YouTubeClient(http, "fake-key")
+        result = await client.get_video_durations([])
+        assert result == {}
+        http.get.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_api_error_403_quota(self):
+        http = MagicMock()
+        http.get = AsyncMock(return_value=self._make_response(
+            status_code=403,
+            json_body={
+                "error": {
+                    "errors": [{"reason": "quotaExceeded"}],
+                    "message": "The request cannot be completed because you have exceeded your quota.",
+                }
+            },
+        ))
+        client = YouTubeClient(http, "fake-key")
+        with pytest.raises(YouTubeAPIError) as exc_info:
+            await client.list_playlist_items("PLtest")
+        assert exc_info.value.status_code == 403
+        assert exc_info.value.error_type == "quotaExceeded"
+
+    @pytest.mark.asyncio
+    async def test_api_error_404(self):
+        http = MagicMock()
+        http.get = AsyncMock(return_value=self._make_response(
+            status_code=404,
+            json_body={"error": {"errors": [{"reason": "playlistNotFound"}], "message": "Not found"}},
+        ))
+        client = YouTubeClient(http, "fake-key")
+        with pytest.raises(YouTubeAPIError) as exc_info:
+            await client.list_playlist_items("PLbogus")
+        assert exc_info.value.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_api_error_unparseable_body(self):
+        """API error with non-JSON body should still raise with status code."""
+        response = MagicMock()
+        response.status_code = 500
+        response.json = MagicMock(side_effect=ValueError("not json"))
+        http = MagicMock()
+        http.get = AsyncMock(return_value=response)
+        client = YouTubeClient(http, "fake-key")
+        with pytest.raises(YouTubeAPIError) as exc_info:
+            await client.resolve_channel(channel_id="UCtest")
+        assert exc_info.value.status_code == 500
+        assert exc_info.value.error_type == ""
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# YouTubeAPIError tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestYouTubeAPIError:
+    """Test YouTubeAPIError exception class."""
+
+    def test_attributes(self):
+        err = YouTubeAPIError(403, "quotaExceeded", "Quota limit reached")
+        assert err.status_code == 403
+        assert err.error_type == "quotaExceeded"
+        assert err.message == "Quota limit reached"
+
+    def test_str_representation(self):
+        err = YouTubeAPIError(404, "notFound", "Channel not found")
+        s = str(err)
+        assert "404" in s
+        assert "notFound" in s
+        assert "Channel not found" in s
+
+    def test_inherits_from_exception(self):
+        err = YouTubeAPIError(500, "internalError", "Server error")
+        assert isinstance(err, Exception)
+
+    def test_empty_error_type(self):
+        err = YouTubeAPIError(500, "", "Unknown error")
+        assert err.error_type == ""
+        assert "500" in str(err)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Quota tracking tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestQuotaTracking:
+    """Test quota check/increment/reset with mock StateClient."""
+
+    def _make_state_client(self, quota_used="0", reset_date=None):
+        """Create a mock StateClient with get/set methods for quota tracking."""
+        stored = {
+            "youtube_quota_used": quota_used,
+            "youtube_quota_reset_date": reset_date,
+        }
+
+        async def mock_get(key):
+            return stored.get(key)
+
+        async def mock_set(key, value):
+            stored[key] = value
+
+        client = AsyncMock()
+        client.get = AsyncMock(side_effect=mock_get)
+        client.set = AsyncMock(side_effect=mock_set)
+        client._stored = stored
+        return client
+
+    @pytest.mark.asyncio
+    async def test_check_quota_under_threshold(self):
+        from datetime import date as _date
+        client = self._make_state_client(quota_used="100", reset_date=_date.today().isoformat())
+        result = await yt_check_quota(client, threshold=8000)
+        assert result is True
+
+    @pytest.mark.asyncio
+    async def test_check_quota_over_threshold(self):
+        from datetime import date as _date
+        client = self._make_state_client(quota_used="9000", reset_date=_date.today().isoformat())
+        result = await yt_check_quota(client, threshold=8000)
+        assert result is False
+
+    @pytest.mark.asyncio
+    async def test_check_quota_at_threshold(self):
+        from datetime import date as _date
+        client = self._make_state_client(quota_used="8000", reset_date=_date.today().isoformat())
+        result = await yt_check_quota(client, threshold=8000)
+        assert result is False  # not strictly under
+
+    @pytest.mark.asyncio
+    async def test_check_quota_resets_on_new_day(self):
+        """If the stored date is yesterday, quota should reset."""
+        client = self._make_state_client(quota_used="9999", reset_date="2020-01-01")
+        result = await yt_check_quota(client, threshold=8000)
+        assert result is True  # reset happened, now at 0
+        assert client._stored["youtube_quota_used"] == "0"
+
+    @pytest.mark.asyncio
+    async def test_check_quota_no_stored_values(self):
+        """First run with no stored quota values."""
+        client = self._make_state_client(quota_used=None, reset_date=None)
+        result = await yt_check_quota(client, threshold=8000)
+        assert result is True
+
+    @pytest.mark.asyncio
+    async def test_increment_quota(self):
+        from datetime import date as _date
+        client = self._make_state_client(quota_used="100", reset_date=_date.today().isoformat())
+        await yt_increment_quota(client, 3)
+        assert client._stored["youtube_quota_used"] == "103"
+
+    @pytest.mark.asyncio
+    async def test_increment_quota_from_zero(self):
+        client = self._make_state_client(quota_used="0")
+        await yt_increment_quota(client, 5)
+        assert client._stored["youtube_quota_used"] == "5"
+
+    @pytest.mark.asyncio
+    async def test_increment_quota_from_none(self):
+        """No stored value yet — should treat as 0."""
+        client = self._make_state_client(quota_used=None)
+        await yt_increment_quota(client, 2)
+        assert client._stored["youtube_quota_used"] == "2"
+
+    @pytest.mark.asyncio
+    async def test_reset_quota_if_new_day(self):
+        client = self._make_state_client(quota_used="5000", reset_date="2020-01-01")
+        await yt_reset_quota_if_new_day(client)
+        assert client._stored["youtube_quota_used"] == "0"
+        from datetime import date as _date
+        assert client._stored["youtube_quota_reset_date"] == _date.today().isoformat()
+
+    @pytest.mark.asyncio
+    async def test_reset_quota_same_day_noop(self):
+        from datetime import date as _date
+        today = _date.today().isoformat()
+        client = self._make_state_client(quota_used="500", reset_date=today)
+        await yt_reset_quota_if_new_day(client)
+        # Should NOT have reset
+        assert client._stored["youtube_quota_used"] == "500"
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Subscribe YouTube tests
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestSubscribeYouTube:
+    """Test subscribe_youtube with mocked context."""
+
+    def _make_ctx(self, source_exists=False):
+        """Build a mock AppContext for subscribe tests."""
+        ctx = MagicMock()
+
+        if source_exists:
+            ctx.graph.query = AsyncMock(return_value={
+                "results": {"bindings": [
+                    {"source": {"value": "urn:existing:yt-source"}}
+                ]}
+            })
+        else:
+            ctx.graph.query = AsyncMock(return_value={
+                "results": {"bindings": []}
+            })
+
+        ctx.commands.execute = AsyncMock()
+        ctx.state.set = AsyncMock()
+
+        # Mock HTTP for API validation call
+        response = MagicMock()
+        response.status_code = 200
+        response.json = MagicMock(return_value={
+            "items": [{
+                "contentDetails": {
+                    "relatedPlaylists": {"uploads": "UUresolved"}
+                }
+            }]
+        })
+        ctx.http.get = AsyncMock(return_value=response)
+
+        return ctx
+
+    @pytest.mark.asyncio
+    async def test_subscribe_new_channel(self):
+        ctx = self._make_ctx()
+        result = await subscribe_youtube(
+            ctx, "https://www.youtube.com/channel/UCtest123456789", "api-key-123"
+        )
+        assert result["status"] == "created"
+        assert result["iri"].startswith("urn:sempkm:app:media-scheduler:source-")
+        assert result["playlist_id"] == "UUresolved"
+        ctx.commands.execute.assert_awaited_once()
+
+        # Verify object.create params
+        call_args = ctx.commands.execute.call_args
+        assert call_args[0][0] == "object.create"
+        params = call_args[0][1]
+        assert params["type"] == MEDIA_SOURCE_TYPE
+        assert params["properties"][f"{MS_NS}sourceType"] == "youtube"
+        assert params["properties"][f"{MS_NS}externalId"] == "UUresolved"
+
+    @pytest.mark.asyncio
+    async def test_subscribe_duplicate(self):
+        ctx = self._make_ctx(source_exists=True)
+        result = await subscribe_youtube(
+            ctx, "https://www.youtube.com/@existing", "api-key-123"
+        )
+        assert result["status"] == "duplicate"
+        assert result["iri"] == "urn:existing:yt-source"
+        ctx.commands.execute.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_subscribe_invalid_url(self):
+        ctx = self._make_ctx()
+        with pytest.raises(ValueError, match="Unrecognized YouTube URL"):
+            await subscribe_youtube(ctx, "https://example.com/not-youtube", "api-key")
+
+    @pytest.mark.asyncio
+    async def test_subscribe_api_key_validation_failure(self):
+        """If the API key is invalid, the validation API call should fail."""
+        ctx = self._make_ctx()
+        error_response = MagicMock()
+        error_response.status_code = 403
+        error_response.json = MagicMock(return_value={
+            "error": {
+                "errors": [{"reason": "forbidden"}],
+                "message": "API key not valid",
+            }
+        })
+        ctx.http.get = AsyncMock(return_value=error_response)
+
+        with pytest.raises(YouTubeAPIError) as exc_info:
+            await subscribe_youtube(
+                ctx, "https://www.youtube.com/channel/UCtest123456789", "bad-key"
+            )
+        assert exc_info.value.status_code == 403
+
+    @pytest.mark.asyncio
+    async def test_subscribe_saves_api_key(self):
+        ctx = self._make_ctx()
+        await subscribe_youtube(
+            ctx, "https://www.youtube.com/@testchannel", "my-secret-key"
+        )
+        ctx.state.set.assert_any_call("youtube_api_key", "my-secret-key")
+
+    @pytest.mark.asyncio
+    async def test_subscribe_playlist_url(self):
+        """Playlist URLs should validate by listing 1 item, not resolving channel."""
+        ctx = self._make_ctx()
+        # Override response for playlist items list
+        playlist_response = MagicMock()
+        playlist_response.status_code = 200
+        playlist_response.json = MagicMock(return_value={"items": [{"snippet": {}}]})
+        ctx.http.get = AsyncMock(return_value=playlist_response)
+
+        result = await subscribe_youtube(
+            ctx, "https://www.youtube.com/playlist?list=PLtestlist12345", "api-key"
+        )
+        assert result["status"] == "created"
+        assert result["playlist_id"] == "PLtestlist12345"
 

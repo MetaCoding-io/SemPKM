@@ -395,3 +395,11 @@
 {"ts":"2026-03-24T17:16:24.602Z","flowId":"aa65d4cb-d800-4cc5-8dce-ee9a556ed678","seq":2,"eventType":"dispatch-match","rule":"planning → plan-slice","data":{"unitType":"plan-slice","unitId":"M038/S03"}}
 {"ts":"2026-03-24T17:16:24.636Z","flowId":"aa65d4cb-d800-4cc5-8dce-ee9a556ed678","seq":3,"eventType":"unit-start","data":{"unitType":"plan-slice","unitId":"M038/S03"}}
 {"ts":"2026-03-24T17:19:14.901Z","flowId":"aa65d4cb-d800-4cc5-8dce-ee9a556ed678","seq":4,"eventType":"unit-end","data":{"unitType":"plan-slice","unitId":"M038/S03","status":"completed","artifactVerified":true},"causedBy":{"flowId":"aa65d4cb-d800-4cc5-8dce-ee9a556ed678","seq":3}}
+{"ts":"2026-03-24T17:19:16.663Z","flowId":"aa65d4cb-d800-4cc5-8dce-ee9a556ed678","seq":5,"eventType":"iteration-end","data":{"iteration":62}}
+{"ts":"2026-03-24T17:19:16.663Z","flowId":"72e520f8-e8af-4553-9ac9-22076a9e0fa0","seq":1,"eventType":"iteration-start","data":{"iteration":63}}
+{"ts":"2026-03-24T17:19:17.755Z","flowId":"72e520f8-e8af-4553-9ac9-22076a9e0fa0","seq":2,"eventType":"dispatch-match","rule":"executing → execute-task","data":{"unitType":"execute-task","unitId":"M038/S03/T01"}}
+{"ts":"2026-03-24T17:19:17.793Z","flowId":"72e520f8-e8af-4553-9ac9-22076a9e0fa0","seq":3,"eventType":"unit-start","data":{"unitType":"execute-task","unitId":"M038/S03/T01"}}
+{"ts":"2026-03-24T18:02:14.678Z","flowId":"f0fc7e8e-11cc-4891-8de1-ec737ff652fb","seq":1,"eventType":"iteration-start","data":{"iteration":1}}
+{"ts":"2026-03-24T18:02:15.809Z","flowId":"f0fc7e8e-11cc-4891-8de1-ec737ff652fb","seq":2,"eventType":"dispatch-match","rule":"executing → execute-task","data":{"unitType":"execute-task","unitId":"M038/S03/T02"}}
+{"ts":"2026-03-24T18:02:15.847Z","flowId":"f0fc7e8e-11cc-4891-8de1-ec737ff652fb","seq":3,"eventType":"unit-start","data":{"unitType":"execute-task","unitId":"M038/S03/T02"}}
+{"ts":"2026-03-24T18:06:29.372Z","flowId":"f0fc7e8e-11cc-4891-8de1-ec737ff652fb","seq":4,"eventType":"unit-end","data":{"unitType":"execute-task","unitId":"M038/S03/T02","status":"completed","artifactVerified":true},"causedBy":{"flowId":"f0fc7e8e-11cc-4891-8de1-ec737ff652fb","seq":3}}

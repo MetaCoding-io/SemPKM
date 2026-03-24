@@ -45,6 +45,15 @@ tasks:
       backoffMultiplier: 2
       maxBackoff: "5m"
 
+  - id: "poll-youtube"
+    description: "Poll YouTube sources for new videos"
+    interval: "15m"
+    configurable: true
+    retryPolicy:
+      maxRetries: 2
+      backoffMultiplier: 2
+      maxBackoff: "5m"
+
   - id: "generate-plan"
     description: "Generate or regenerate today's media plan"
     interval: "6h"

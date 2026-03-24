@@ -1,16 +1,40 @@
-<form class="ms-add-form"
-      method="post"
-      action="/app/media-scheduler/_fragments/sources/add-podcast"
-      hx-post="/app/media-scheduler/_fragments/sources/add-podcast"
-      hx-target="#ms-add-result"
-      hx-swap="innerHTML">
-  <input type="url" name="feed_url"
-         placeholder="Podcast RSS feed URL"
-         class="ms-input"
-         required>
-  <input type="text" name="title"
-         placeholder="Title (optional)"
-         class="ms-input">
-  <button type="submit" class="ms-btn ms-btn-primary">Add Podcast</button>
-</form>
+<div class="ms-add-section">
+  <h4 class="ms-add-heading">Podcast</h4>
+  <form class="ms-add-form"
+        method="post"
+        action="/app/media-scheduler/_fragments/sources/add-podcast"
+        hx-post="/app/media-scheduler/_fragments/sources/add-podcast"
+        hx-target="#ms-add-result"
+        hx-swap="innerHTML">
+    <input type="url" name="feed_url"
+           placeholder="Podcast RSS feed URL"
+           class="ms-input"
+           required>
+    <input type="text" name="title"
+           placeholder="Title (optional)"
+           class="ms-input">
+    <button type="submit" class="ms-btn ms-btn-primary">Add Podcast</button>
+  </form>
+</div>
+
+<div class="ms-add-section">
+  <h4 class="ms-add-heading">YouTube</h4>
+  <form class="ms-add-form"
+        method="post"
+        action="/app/media-scheduler/_fragments/sources/add-youtube"
+        hx-post="/app/media-scheduler/_fragments/sources/add-youtube"
+        hx-target="#ms-add-result"
+        hx-swap="innerHTML">
+    <input type="url" name="youtube_url"
+           placeholder="YouTube channel or playlist URL"
+           class="ms-input"
+           required>
+    <input type="text" name="api_key"
+           placeholder="YouTube Data API key"
+           class="ms-input"
+           required>
+    <button type="submit" class="ms-btn ms-btn-primary">Add YouTube Source</button>
+  </form>
+</div>
+
 <div id="ms-add-result"></div>
