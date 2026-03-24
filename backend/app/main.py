@@ -42,6 +42,7 @@ from app.persona.router import browser_router as persona_browser_router, api_rou
 from app.context.router import router as context_router
 from app.context.rules_router import router as context_rules_router
 from app.context.zone_router import router as context_zones_router
+from app.context.notification_router import router as notification_router
 from app.debug.router import router as debug_router
 from app.middleware.etag import ConditionalGetMiddleware
 from app.middleware.timing import TimingMiddleware, timing_router
@@ -369,6 +370,26 @@ async def lifespan(app: FastAPI):
     from app.context.zone_service import ZoneService
     app.state.zone_service = ZoneService(async_session_factory)
 
+    # Create NotificationService for push notification dispatch
+    import os
+    from app.context.notification_service import NotificationService
+    firebase_app = None
+    creds_path = settings.firebase_credentials_path
+    if creds_path and os.path.isfile(creds_path):
+        try:
+            import firebase_admin
+            from firebase_admin import credentials as fb_credentials
+            cred = fb_credentials.Certificate(creds_path)
+            firebase_app = firebase_admin.initialize_app(cred)
+            logger.info("Firebase Admin initialized from %s", creds_path)
+        except Exception:
+            logger.error("Failed to initialize Firebase Admin", exc_info=True)
+    else:
+        logger.info("notification.skipped reason=firebase_not_configured")
+    app.state.notification_service = NotificationService(
+        async_session_factory, app.state.context_service, firebase_app
+    )
+
     # Create LintFilterService and store on app state
     from app.lint.filter_service import LintFilterService
     app.state.lint_filter_service = LintFilterService(async_session_factory)
@@ -664,6 +685,7 @@ app.include_router(persona_api_router)
 app.include_router(context_router)
 app.include_router(context_rules_router)
 app.include_router(context_zones_router)
+app.include_router(notification_router)
 app.include_router(vfs_browser_router)
 app.include_router(vfs_mount_router)
 app.include_router(app_commands_router)

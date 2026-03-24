@@ -107,3 +107,11 @@ Expose the NotificationService via HTTP API endpoints and wire it into the FastA
 - `backend/app/templates/browser/_notification_preferences.html` — new template partial
 - `frontend/static/css/settings.css` — modified: notification preference styles
 - `backend/tests/test_notification_router.py` — 12+ router tests
+
+## Observability Impact
+
+- **New HTTP endpoints:** `POST /api/notifications/register` (201 on success), `GET /api/notifications/preferences`, `PUT /api/notifications/preferences`, `POST /api/notifications/test` — all return structured JSON with diagnostic info (sent_count, suppressed, reason).
+- **Test endpoint diagnostics:** `POST /api/notifications/test` returns `{sent_count, suppressed, reason}` — a built-in diagnostic surface for verifying push notification delivery and suppression without external tools.
+- **Service unavailable signal:** If `notification_service` is not on `app.state`, endpoints return HTTP 503 with `"Notification service not available"` — explicit failure mode instead of AttributeError.
+- **Firebase init logging:** Lifespan logs `"Firebase Admin initialized from <path>"` on success, or `"notification.skipped reason=firebase_not_configured"` when no credentials — visible in container logs.
+- **Inspection via API:** `GET /api/notifications/preferences` exposes the current suppression config for any authenticated user, enabling runtime debugging of why notifications are or aren't being delivered.

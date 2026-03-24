@@ -236,3 +236,14 @@ async def get_zone_service(request: Request):
     from app.context.zone_service import ZoneService
 
     return request.app.state.zone_service
+
+
+async def get_notification_service(request: Request):
+    """Get the NotificationService instance from app state.
+
+    The service is created during app lifespan startup and stored on
+    app.state.notification_service.
+    """
+    from app.context.notification_service import NotificationService
+
+    return request.app.state.notification_service
