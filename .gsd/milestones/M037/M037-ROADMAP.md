@@ -68,7 +68,7 @@ This milestone is complete only when all are true:
 - [x] **S04: Mobile Geofencing & Location Zones** `risk:high` `depends:[S03]`
   > After this: user can define home/office geofence zones in the mobile app, and entering or leaving a zone pushes a context update to the backend — verified by observing the workspace context indicator change after a simulated or real zone transition
 
-- [ ] **S05: Mobile Calendar & Activity Detection** `risk:medium` `depends:[S03]`
+- [x] **S05: Mobile Calendar & Activity Detection** `risk:medium` `depends:[S03]`
   > After this: mobile app reads the device calendar and detects activity type (stationary/walking/driving), enriching context updates with calendar event name and activity — verified by checking context API response after calendar event starts
 
 - [ ] **S06: Push Notifications with Context Filtering** `risk:medium` `depends:[S01,S02]`
