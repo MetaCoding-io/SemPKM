@@ -711,3 +711,29 @@ All three dockview content renderers (object-editor, view-panel, special-panel) 
 **Pattern for document/window listeners in per-panel JS:** Store handler references in module-scoped variables (not anonymous functions). Remove before re-adding to prevent stacking on panel reopen. Register a `registerCleanup()` callback that removes all document/window listeners + destroys library instances. See `calendar.js` and `canvas.js` for reference implementations.
 
 **Affected files:** `frontend/static/js/workspace-layout.js`, `frontend/static/js/cleanup.js`, `frontend/static/js/calendar.js`, `frontend/static/js/canvas.js`
+
+### Three-phase cross-file symbol migration pattern
+
+**Discovered:** M044/S03
+
+When renaming or relocating cross-file symbols (e.g., `window.X` → `window.SemPKM.X`), use a three-phase rollout:
+1. **T01 — Add new exports + backward-compat shims:** Each JS file exports to the new location AND sets the old name as a shim (`window.openTab = window.SemPKM.openTab`). All callers continue working against old names.
+2. **T02 — Migrate all consumers:** Templates, inline scripts, and E2E tests switch from old names to new names. Old shims still catch any missed references.
+3. **T03 — Remove all shims:** Grep confirms zero old-name references remain, then remove all shim assignments.
+
+This ensures zero breakage at any intermediate commit — the shim phase is the key safety mechanism. Applied to 228 exports across 26 JS files, 52 templates, and 40 E2E files with zero functional regressions.
+
+**Affected files:** All `frontend/static/js/*.js` files exporting to window
+
+### CSS color-mix() replaces rgba() for transparent theme colors
+
+**Discovered:** M044/S04
+
+Instead of `rgba(255, 182, 43, 0.1)` for semi-transparent decorative colors, use `color-mix(in srgb, var(--_color-amber-500) 10%, transparent)`. This pattern:
+1. References theme tokens instead of hardcoded RGB values
+2. Automatically adapts to dark mode (tokens can be overridden per-theme)
+3. Eliminated 66 dark-mode override blocks in M044
+
+Define primitive tokens in theme.css `:root` (e.g., `--_color-bmc-revenue: #59a14f`) and reference them via color-mix in component CSS. The `--_` prefix convention denotes internal/primitive tokens not intended for direct use by component authors.
+
+**Affected files:** `frontend/static/css/theme.css`, `frontend/static/css/bmc.css`, `frontend/static/css/quadrant.css`, `frontend/static/css/okr.css`, `frontend/static/css/decision-matrix.css`

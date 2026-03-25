@@ -769,7 +769,17 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: M043 Security Hardening (2026-03-25) — 4 slices, 227 new tests, SPARQL injection fixes, auth hardening (single-use magic links, scoped API tokens, session management), CORS consolidation, rate limiting, security audit logging**
+**Latest shipped: M044 Frontend Code Quality Execution (2026-03-25) — 6 slices, 175 files changed, net -587 lines. Centralized fetch wrapper (167 callers), event leak fixes, window.SemPKM namespace (228 exports), 100% CSS theme adoption, template deduplication, convention documentation. S07 E2E regression suite not executed.**
+
+**What shipped in M044:**
+- Centralized fetch wrapper: `window.apiFetch()` in `api-fetch.js` wrapping native fetch with structured error handling ({status, body, response}), AbortError catching, 401 redirect, toast fallback. All 167 callers across 36 files migrated with {silent:true}. 1 raw-fetch exemption (auth.js /api/auth/me).
+- Event listener & timer leak fixes: dispose() methods on all 3 dockview content renderers (object-editor, view-panel, special-panel). Calendar anonymous listeners → named handlers with balanced remove. Canvas 7 window/document listeners cleaned via unbindEvents(). Federation badge interval cleared on beforeunload. Dead _cytoscapeInstances code removed.
+- Window namespace consolidation: all cross-IIFE globals migrated from window.X to window.SemPKM.X. 228 exports across 26 JS files, 52 templates updated, 40 E2E test files updated, 157 backward-compat shims created then removed.
+- CSS theme completion: 100% variable adoption (0 standalone hex, 0 standalone rgba outside theme.css). ~45 new tokens including ~15 decorative primitives. color-mix() for transparency. 66 dark-mode override blocks eliminated. Breakpoints standardized to 600px/768px.
+- Template hygiene: all 10 .append() and 7 namespace() hacks eliminated via Python-side pre-computation in 7 view functions. 5 shared importer partials replacing 10 Notion/Obsidian duplicates. Guide page 375→79 lines via GUIDE_SECTIONS data-driven loop.
+- Console cleanup & conventions: 37 console.log→SemPKM.debug() (localStorage-gated). docs/FRONTEND-CONVENTIONS.md (370 lines, 8 sections).
+- 3 key decisions (D369 fetch wrapper, D370 namespace strategy, D371 CSS full conversion)
+- Gap: S07 E2E regression suite was not executed — static verification only
 
 **What shipped in M043:**
 - Centralized SPARQLBuilder module: safe_iri(), safe_literal(), sparql_escape_string(), values_clause(), triple_pattern() — all 17 modules migrated from 9 scattered escape functions
@@ -1069,7 +1079,7 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 **Previous milestones:** M032 Block-Based Custom UI Builder (2026-03-22), M031 Views Overhaul (2026-03-21), M030 Data Quality Linting & Lint UX (2026-03-21), M029 Frontend Performance & Build Pipeline (2026-03-20), M026 Homepage & Messaging Rewrite (2026-03-20), M025 Hosted Demo Instance (2026-03-20), M024 Monday.com Sync App (2026-03-20), M023 Jira Sync App (2026-03-19), M017 GitHub Issues Sync App (2026-03-18), M016 Linear Sync App (2026-03-18), M015 Browser Extension Phase 2 (2026-03-18), M014 Browser Extension Phase 1 (2026-03-18), M013 API Surface for External Clients (2026-03-17), M012 Workspace & Event Log Polish (2026-03-17), M011 Mental Models Expansion (2026-03-17), M008 Spatial Canvas (2026-03-16), M007 Generic Views, VFS Completion & Polish (2026-03-16), M006 Dashboards, Workflows & Platform Alignment (2026-03-15), M005 Platform Polish & Foundation (2026-03-14), M004 Ontology & Type System Completion (2026-03-14), M003 Workspace UX & Knowledge Organization (2026-03-12), M002 Hardening & Polish (2026-03-12), v2.6 (2026-03-12), v2.5 (2026-03-09), v2.4 (2026-03-06), v2.3 (2026-03-03), v2.2–v2.1 (2026-03-01), v2.0 (2026-03-01), v1.0 (2026-02-23)
 
-**Latest shipped: M041 Code Quality Audit (2026-03-23) — pure analysis milestone, 84 findings across 17 quality dimensions in M041-RECOMMENDATIONS.md, prioritized Top 10 execution roadmap**
+**Latest shipped: M044 Frontend Code Quality Execution (2026-03-25) — 6 slices, 175 files changed, net -587 lines. Centralized fetch wrapper, window.SemPKM namespace, 100% CSS theme adoption, template deduplication, convention documentation.**
 
 **What shipped in M013 (API Surface for External Clients):**
 - `GET /.well-known/sempkm` discovery endpoint with version, endpoints, auth methods, capabilities
