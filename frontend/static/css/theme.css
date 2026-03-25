@@ -7,6 +7,15 @@
    Dark mode: html[data-theme="dark"]
    ============================================ */
 
+/* ============================================
+   Theme Adoption Exemptions
+   All non-theme CSS files use var(--*) tokens exclusively.
+   Standalone hex: 0, standalone rgba: 0, non-standard breakpoints: 0.
+   CSS named colors (gold, silver) are used in decision-matrix.css
+   rank badges — these are not hex/rgba and adapt via color-mix().
+   No intentional exemptions remain as of M044/S04.
+   ============================================ */
+
 :root {
   /* ============================================
      Primitive Tokens (raw values — never change between themes)
@@ -293,6 +302,9 @@ html[data-theme="dark"] {
   --_color-bmc-customer-seg: rgb(192, 132, 252);
   --_color-bmc-cost-structure: rgb(148, 163, 184);
   --_color-bmc-revenue: rgb(250, 204, 21);
+
+  /* --- Decision Matrix Primitives --- */
+  --_color-dm-bronze: #cd7f32;
 
   /* --- VFS / Import Status Primitives --- */
   --_color-vfs-warning: #F0C060;

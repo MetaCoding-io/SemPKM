@@ -154,7 +154,7 @@
 }
 
 .dm-row[data-rank="3"] .dm-cell-rank {
-    background: color-mix(in srgb, #cd7f32 12%, transparent);
+    background: color-mix(in srgb, var(--_color-dm-bronze) 12%, transparent);
 }
 
 /* --- Alternative Column --- */

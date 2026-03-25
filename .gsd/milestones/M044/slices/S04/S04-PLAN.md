@@ -37,7 +37,7 @@ rg 'rgba?\(' frontend/static/css/workspace.css | grep -v '^\s*/\*' | grep -v '\*
 rg 'rgba?\(' frontend/static/css/ --glob '!theme.css' | grep -v '^\s*/\*' | grep -v '\*/' | grep -v 'var(' | grep -v '^\s*\*' | wc -l  # target: ≤20
 rg '@media.*max-width' frontend/static/css/ | grep -v '600\|768'  # target: zero results
 
-- [ ] **T03: Verify adoption metrics and visual regression check** `est:30m`
+- [x] **T03: Verify adoption metrics and visual regression check** `est:30m`
   Run the adoption metric counts to confirm ≤10 standalone hex and ≤20 standalone rgba. Verify breakpoint standardization. Start the Docker dev stack and visually verify light and dark mode on workspace, settings, and import pages — checking that colors render correctly and no regressions are visible. Document any intentional exemptions (e.g., FullCalendar !important overrides) in a brief comment block in theme.css.
   - Files: `frontend/static/css/theme.css`
   - Verify: rg '#[0-9a-fA-F]{3,8}\b' frontend/static/css/ --glob '!theme.css' | grep -v '^\s*/\*' | grep -v '\*/' | grep -v 'var(' | grep -v '^\s*\*' | wc -l  # must be ≤10
