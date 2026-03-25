@@ -22,6 +22,7 @@ from app.auth.models import User
 from app.config import settings
 from app.services.icons import IconService
 from app.services.search import SearchService
+from app.sparql.builder import sparql_escape_string
 
 logger = logging.getLogger(__name__)
 
@@ -340,16 +341,6 @@ class ContextQueryResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Helpers for context-query
-# ---------------------------------------------------------------------------
-
-
-def _sparql_escape_str(value: str) -> str:
-    """Escape special characters for SPARQL string literals."""
-    return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
-
-
-# ---------------------------------------------------------------------------
 # POST /api/context-query — find related objects by URL/title/keywords
 # ---------------------------------------------------------------------------
 
@@ -398,7 +389,7 @@ async def context_query(
 
     # --- URL matching via SPARQL ---
     if body.url:
-        escaped_url = _sparql_escape_str(body.url)
+        escaped_url = sparql_escape_string(body.url)
         url_sparql = (
             "SELECT DISTINCT ?s WHERE { "
             "GRAPH <urn:sempkm:current> { "

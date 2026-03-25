@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "taskId": "T01",
   "unitId": "M043/S01/T01",
-  "timestamp": 1774422773870,
+  "timestamp": 1774424841098,
   "passed": false,
   "discoverySource": "task-plan",
   "checks": [
@@ -15,7 +15,7 @@
     {
       "command": ".venv/bin/python -m pytest tests/test_sparql_builder.py -v",
       "exitCode": 127,
-      "durationMs": 14,
+      "durationMs": 16,
       "verdict": "fail"
     }
   ],

@@ -16,6 +16,7 @@ from app.dependencies import (
     get_shapes_service,
     get_triplestore_client,
 )
+from app.sparql.builder import sparql_escape_string
 from app.sparql.query_service import QueryService
 from app.triplestore.client import TriplestoreClient
 from app.services.icons import IconService
@@ -844,7 +845,7 @@ async def tag_children(
 
     # ── Prefix mode: sub-folder expansion ──
     if prefix is not None:
-        escaped_prefix = _sparql_escape(prefix)
+        escaped_prefix = sparql_escape_string(prefix)
 
         # Query all tags that start with "prefix/" (descendants)
         # PLUS the exact prefix value (for direct_count objects)
@@ -889,7 +890,7 @@ async def tag_children(
 
         if prefix_has_direct:
             # Fetch actual objects tagged with exactly this prefix value
-            escaped_tag = _sparql_escape(prefix)
+            escaped_tag = sparql_escape_string(prefix)
             obj_sparql = f"""
             SELECT ?iri ?label ?typeIri
             FROM <urn:sempkm:current>
@@ -929,7 +930,7 @@ async def tag_children(
         )
 
     # ── Tag mode: exact-match object expansion (existing behavior) ──
-    escaped_tag = _sparql_escape(tag)
+    escaped_tag = sparql_escape_string(tag)
     sparql = f"""
     SELECT ?iri ?label ?typeIri
     FROM <urn:sempkm:current>
@@ -1269,7 +1270,7 @@ async def migrate_tags(
             delete_sparql = f"""
             DELETE DATA {{
                 GRAPH <{graph_iri}> {{
-                    <{subject}> <{tags_predicate}> "{_sparql_escape(old_value)}" .
+                    <{subject}> <{tags_predicate}> "{sparql_escape_string(old_value)}" .
                 }}
             }}
             """
@@ -1279,13 +1280,13 @@ async def migrate_tags(
 
         # Build delete + insert in one update
         insert_triples = "\n".join(
-            f'        <{subject}> <{tags_predicate}> "{_sparql_escape(tag)}" .'
+            f'        <{subject}> <{tags_predicate}> "{sparql_escape_string(tag)}" .'
             for tag in new_tags
         )
         update_sparql = f"""
         DELETE DATA {{
             GRAPH <{graph_iri}> {{
-                <{subject}> <{tags_predicate}> "{_sparql_escape(old_value)}" .
+                <{subject}> <{tags_predicate}> "{sparql_escape_string(old_value)}" .
             }}
         }} ;
         INSERT DATA {{
@@ -1312,11 +1313,6 @@ async def migrate_tags(
 
     logger.info("Tag migration: migrated %d comma-separated tag values", migrated_count)
     return JSONResponse({"migrated": migrated_count})
-
-
-def _sparql_escape(value: str) -> str:
-    """Escape special characters for SPARQL string literals."""
-    return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
 
 
 @workspace_router.post("/admin/migrate-queries")

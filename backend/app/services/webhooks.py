@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 import httpx
 from rdflib.namespace import XSD
 
+from app.sparql.builder import sparql_escape_string
 from app.triplestore.client import TriplestoreClient
 
 logger = logging.getLogger(__name__)
@@ -82,18 +83,18 @@ class WebhookService:
         # Build triples
         triple_lines = [
             f'    <{webhook_iri}> a <{SEMPKM_NS}Webhook> .',
-            f'    <{webhook_iri}> <{SEMPKM_NS}targetUrl> "{_escape_sparql(target_url)}" .',
+            f'    <{webhook_iri}> <{SEMPKM_NS}targetUrl> "{sparql_escape_string(target_url)}" .',
             f'    <{webhook_iri}> <{SEMPKM_NS}enabled> "true"^^<{XSD.boolean}> .',
         ]
 
         for event in events:
             triple_lines.append(
-                f'    <{webhook_iri}> <{SEMPKM_NS}event> "{_escape_sparql(event)}" .'
+                f'    <{webhook_iri}> <{SEMPKM_NS}event> "{sparql_escape_string(event)}" .'
             )
 
         for f in actual_filters:
             triple_lines.append(
-                f'    <{webhook_iri}> <{SEMPKM_NS}filter> "{_escape_sparql(f)}" .'
+                f'    <{webhook_iri}> <{SEMPKM_NS}filter> "{sparql_escape_string(f)}" .'
             )
 
         triples_str = "\n".join(triple_lines)
@@ -240,18 +241,18 @@ class WebhookService:
         enabled_str = "true" if new_enabled else "false"
         triple_lines = [
             f'    <{webhook_iri}> a <{SEMPKM_NS}Webhook> .',
-            f'    <{webhook_iri}> <{SEMPKM_NS}targetUrl> "{_escape_sparql(new_target_url)}" .',
+            f'    <{webhook_iri}> <{SEMPKM_NS}targetUrl> "{sparql_escape_string(new_target_url)}" .',
             f'    <{webhook_iri}> <{SEMPKM_NS}enabled> "{enabled_str}"^^<{XSD.boolean}> .',
         ]
 
         for event in new_events:
             triple_lines.append(
-                f'    <{webhook_iri}> <{SEMPKM_NS}event> "{_escape_sparql(event)}" .'
+                f'    <{webhook_iri}> <{SEMPKM_NS}event> "{sparql_escape_string(event)}" .'
             )
 
         for f in new_filters:
             triple_lines.append(
-                f'    <{webhook_iri}> <{SEMPKM_NS}filter> "{_escape_sparql(f)}" .'
+                f'    <{webhook_iri}> <{SEMPKM_NS}filter> "{sparql_escape_string(f)}" .'
             )
 
         triples_str = "\n".join(triple_lines)
@@ -369,15 +370,3 @@ class WebhookService:
         result = await self._client.query(sparql)
         bindings = result.get("results", {}).get("bindings", [])
         return [b["value"]["value"] for b in bindings]
-
-
-def _escape_sparql(value: str) -> str:
-    """Escape a string for use in a SPARQL literal."""
-    return (
-        value
-        .replace("\\", "\\\\")
-        .replace('"', '\\"')
-        .replace("\n", "\\n")
-        .replace("\r", "\\r")
-        .replace("\t", "\\t")
-    )

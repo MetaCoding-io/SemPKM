@@ -27,6 +27,7 @@ from app.federation.schemas import (
 from app.federation.signatures import sign_request
 from app.federation.webfinger import discover_webid
 from app.rdf.namespaces import AS, DCTERMS, SEMPKM
+from app.sparql.builder import sparql_escape_string
 from app.triplestore.client import TriplestoreClient
 
 logger = logging.getLogger(__name__)
@@ -503,9 +504,9 @@ class FederationService:
         INSERT DATA {{
           GRAPH <{FEDERATION_GRAPH}> {{
             <{shared_graph_iri}> a <{SEMPKM.SharedGraph}> ;
-              <{DCTERMS.title}> "{_escape_sparql(graph_name)}" ;
+              <{DCTERMS.title}> "{sparql_escape_string(graph_name)}" ;
               <{DCTERMS.description}> "" ;
-              <{SEMPKM.requiredModel}> "{_escape_sparql(required_model)}" ;
+              <{SEMPKM.requiredModel}> "{sparql_escape_string(required_model)}" ;
               <{DCTERMS.created}> "{now}"^^<{XSD.dateTime}> ;
               <{SEMPKM.member}> <{user_webid}> ;
               <{SEMPKM.member}> <{sender_webid}> .
@@ -1046,7 +1047,7 @@ def _sparql_term(term) -> str:
     if isinstance(term, URIRef):
         return f"<{term}>"
     elif isinstance(term, Literal):
-        escaped = _escape_sparql(str(term))
+        escaped = sparql_escape_string(str(term))
         if term.language:
             return f'"{escaped}"@{term.language}'
         elif term.datatype:
@@ -1054,18 +1055,7 @@ def _sparql_term(term) -> str:
         else:
             return f'"{escaped}"'
     else:
-        return f'"{_escape_sparql(str(term))}"'
-
-
-def _escape_sparql(value: str) -> str:
-    """Escape a string for SPARQL string literals."""
-    return (
-        value.replace("\\", "\\\\")
-        .replace('"', '\\"')
-        .replace("\n", "\\n")
-        .replace("\r", "\\r")
-        .replace("\t", "\\t")
-    )
+        return f'"{sparql_escape_string(str(term))}"'
 
 
 def _binding_to_term(binding: dict) -> URIRef | Literal:

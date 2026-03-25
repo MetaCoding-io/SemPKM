@@ -27,6 +27,7 @@ from app.auth.models import User
 from app.db.session import get_db_session
 from app.services.llm import LLMConfigService
 from app.services.search import SearchService
+from app.sparql.builder import sparql_escape_string
 
 logger = logging.getLogger(__name__)
 
@@ -788,15 +789,6 @@ class SuggestRelationshipsResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# SPARQL helper (shared with router.py pattern)
-# ---------------------------------------------------------------------------
-
-def _sparql_escape_str(value: str) -> str:
-    """Escape special characters for SPARQL string literals."""
-    return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
-
-
-# ---------------------------------------------------------------------------
 # Suggest-relationships endpoint
 # ---------------------------------------------------------------------------
 
@@ -842,7 +834,7 @@ async def suggest_relationships(
 
     # Phase 1 — URL matching via SPARQL
     if has_url:
-        escaped_url = _sparql_escape_str(body.url.strip())
+        escaped_url = sparql_escape_string(body.url.strip())
         url_sparql = (
             "SELECT DISTINCT ?s WHERE { "
             "GRAPH <urn:sempkm:current> { "

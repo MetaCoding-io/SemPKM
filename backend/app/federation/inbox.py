@@ -17,6 +17,7 @@ from app.auth.models import User
 from app.dependencies import get_triplestore_client
 from app.federation.signatures import VerifyHTTPSignature
 from app.rdf.namespaces import AS, SEMPKM, XSD
+from app.sparql.builder import sparql_escape_string
 from app.triplestore.client import TriplestoreClient
 
 logger = logging.getLogger(__name__)
@@ -94,7 +95,7 @@ async def receive_notification(
     # Summary
     summary = body.get("summary", "")
     if summary:
-        escaped_summary = _escape_sparql_string(summary)
+        escaped_summary = sparql_escape_string(summary)
         sparql_triples.append(f'{notif_uri} <{AS}summary> "{escaped_summary}" .')
 
     # Object (nested)
@@ -106,13 +107,13 @@ async def receive_notification(
         sparql_triples.append(f'<{obj_id}> a <{AS}{obj_type}> .')
         obj_name = obj.get("name", "")
         if obj_name:
-            escaped_name = _escape_sparql_string(obj_name)
+            escaped_name = sparql_escape_string(obj_name)
             sparql_triples.append(f'<{obj_id}> <{AS}name> "{escaped_name}" .')
         # Store extra sempkm-prefixed fields
         for key, value in obj.items():
             if key.startswith("sempkm:") and isinstance(value, str):
                 prop = key.replace("sempkm:", str(SEMPKM))
-                escaped_val = _escape_sparql_string(value)
+                escaped_val = sparql_escape_string(value)
                 sparql_triples.append(f'<{obj_id}> <{prop}> "{escaped_val}" .')
     elif obj and isinstance(obj, str):
         sparql_triples.append(f'{notif_uri} <{AS}object> <{obj}> .')
@@ -125,11 +126,11 @@ async def receive_notification(
     # Content (for Note type)
     content = body.get("content", "")
     if content:
-        escaped_content = _escape_sparql_string(content)
+        escaped_content = sparql_escape_string(content)
         media_type = body.get("mediaType", "text/plain")
         sparql_triples.append(f'{notif_uri} <{AS}content> "{escaped_content}" .')
         sparql_triples.append(
-            f'{notif_uri} <{AS}mediaType> "{_escape_sparql_string(media_type)}" .'
+            f'{notif_uri} <{AS}mediaType> "{sparql_escape_string(media_type)}" .'
         )
 
     # SemPKM metadata
@@ -184,7 +185,7 @@ async def list_notifications(
     """
     state_filter = ""
     if state:
-        state_filter = f'FILTER(?state = "{_escape_sparql_string(state)}")'
+        state_filter = f'FILTER(?state = "{sparql_escape_string(state)}")'
 
     sparql = f"""
     SELECT ?graph ?type ?actor ?summary ?state ?receivedAt ?content ?target
@@ -264,7 +265,7 @@ async def update_notification_state(
     }}
     INSERT {{
       GRAPH <{notification_iri}> {{
-        ?notif <{SEMPKM}notificationState> "{_escape_sparql_string(new_state)}" .
+        ?notif <{SEMPKM}notificationState> "{sparql_escape_string(new_state)}" .
       }}
     }}
     WHERE {{
@@ -283,15 +284,4 @@ async def update_notification_state(
     return JSONResponse(
         content={"id": notification_id, "state": new_state},
         status_code=200,
-    )
-
-
-def _escape_sparql_string(value: str) -> str:
-    """Escape a string for use in SPARQL string literals."""
-    return (
-        value.replace("\\", "\\\\")
-        .replace('"', '\\"')
-        .replace("\n", "\\n")
-        .replace("\r", "\\r")
-        .replace("\t", "\\t")
     )

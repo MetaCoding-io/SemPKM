@@ -22,6 +22,7 @@ from app.dependencies import (
 from app.events.store import EventStore
 from app.services.labels import LabelService
 from app.services.shapes import ShapesService
+from app.sparql.builder import sparql_escape_string
 from app.triplestore.client import TriplestoreClient
 
 logger = logging.getLogger(__name__)
@@ -248,7 +249,7 @@ async def suggest_objects(
     templates = request.app.state.templates
 
     # Build SPARQL with optional text filter in IRI
-    q_escaped = q.strip().replace('"', '\\"')
+    q_escaped = sparql_escape_string(q.strip())
     filter_clause = ""
     if q_escaped:
         filter_clause = f'FILTER(CONTAINS(LCASE(STR(?iri)), LCASE("{q_escaped}")))'

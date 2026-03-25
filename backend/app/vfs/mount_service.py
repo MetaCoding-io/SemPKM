@@ -14,6 +14,8 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
+from app.sparql.builder import safe_iri, sparql_escape_string
+
 from app.triplestore.sync_client import SyncTriplestoreClient
 
 # ── RDF Vocabulary Constants ────────────────────────────────────────
@@ -390,37 +392,37 @@ class SyncMountService:
         mount_iri = f"{NS_MOUNT}{mount.id}"
         triples = [
             f'<{mount_iri}> a <{NS_SEMPKM}MountSpec>',
-            f'<{mount_iri}> <{MOUNT_NAME}> "{_escape_sparql(mount.name)}"',
-            f'<{mount_iri}> <{MOUNT_PATH}> "{_escape_sparql(mount.path)}"',
-            f'<{mount_iri}> <{DIRECTORY_STRATEGY}> "{_escape_sparql(mount.strategy)}"',
+            f'<{mount_iri}> <{MOUNT_NAME}> "{sparql_escape_string(mount.name)}"',
+            f'<{mount_iri}> <{MOUNT_PATH}> "{sparql_escape_string(mount.path)}"',
+            f'<{mount_iri}> <{DIRECTORY_STRATEGY}> "{sparql_escape_string(mount.strategy)}"',
             f'<{mount_iri}> <{CREATED_BY}> <{mount.created_by}>',
-            f'<{mount_iri}> <{VISIBILITY}> "{_escape_sparql(mount.visibility)}"',
-            f'<{mount_iri}> <{CREATED_AT}> "{_escape_sparql(mount.created_at)}"^^<http://www.w3.org/2001/XMLSchema#dateTime>',
+            f'<{mount_iri}> <{VISIBILITY}> "{sparql_escape_string(mount.visibility)}"',
+            f'<{mount_iri}> <{CREATED_AT}> "{sparql_escape_string(mount.created_at)}"^^<http://www.w3.org/2001/XMLSchema#dateTime>',
         ]
         if mount.group_by_property:
             triples.append(
-                f'<{mount_iri}> <{GROUP_BY_PROPERTY}> <{mount.group_by_property}>'
+                f'<{mount_iri}> <{GROUP_BY_PROPERTY}> {safe_iri(mount.group_by_property)}'
             )
         if mount.date_property:
             triples.append(
-                f'<{mount_iri}> <{DATE_PROPERTY}> <{mount.date_property}>'
+                f'<{mount_iri}> <{DATE_PROPERTY}> {safe_iri(mount.date_property)}'
             )
         if mount.sparql_scope and mount.sparql_scope != "all":
             triples.append(
-                f'<{mount_iri}> <{SPARQL_SCOPE}> "{_escape_sparql(mount.sparql_scope)}"'
+                f'<{mount_iri}> <{SPARQL_SCOPE}> "{sparql_escape_string(mount.sparql_scope)}"'
             )
         if mount.scope_query:
             triples.append(
-                f'<{mount_iri}> <{SCOPE_QUERY}> <{mount.scope_query}>'
+                f'<{mount_iri}> <{SCOPE_QUERY}> {safe_iri(mount.scope_query)}'
             )
         if mount.type_filter:
             for tf_iri in mount.type_filter:
                 triples.append(
-                    f'<{mount_iri}> <{TYPE_FILTER}> <{tf_iri}>'
+                    f'<{mount_iri}> <{TYPE_FILTER}> {safe_iri(tf_iri)}'
                 )
         if mount.filename_template:
             triples.append(
-                f'<{mount_iri}> <{FILENAME_TEMPLATE}> "{_escape_sparql(mount.filename_template)}"'
+                f'<{mount_iri}> <{FILENAME_TEMPLATE}> "{sparql_escape_string(mount.filename_template)}"'
             )
 
         sparql = f"""
@@ -491,37 +493,37 @@ class SyncMountService:
         # Re-insert with updated values
         triples = [
             f'<{mount_iri}> a <{NS_SEMPKM}MountSpec>',
-            f'<{mount_iri}> <{MOUNT_NAME}> "{_escape_sparql(existing.name)}"',
-            f'<{mount_iri}> <{MOUNT_PATH}> "{_escape_sparql(existing.path)}"',
-            f'<{mount_iri}> <{DIRECTORY_STRATEGY}> "{_escape_sparql(existing.strategy)}"',
+            f'<{mount_iri}> <{MOUNT_NAME}> "{sparql_escape_string(existing.name)}"',
+            f'<{mount_iri}> <{MOUNT_PATH}> "{sparql_escape_string(existing.path)}"',
+            f'<{mount_iri}> <{DIRECTORY_STRATEGY}> "{sparql_escape_string(existing.strategy)}"',
             f'<{mount_iri}> <{CREATED_BY}> <{existing.created_by}>',
-            f'<{mount_iri}> <{VISIBILITY}> "{_escape_sparql(existing.visibility)}"',
-            f'<{mount_iri}> <{CREATED_AT}> "{_escape_sparql(existing.created_at)}"^^<http://www.w3.org/2001/XMLSchema#dateTime>',
+            f'<{mount_iri}> <{VISIBILITY}> "{sparql_escape_string(existing.visibility)}"',
+            f'<{mount_iri}> <{CREATED_AT}> "{sparql_escape_string(existing.created_at)}"^^<http://www.w3.org/2001/XMLSchema#dateTime>',
         ]
         if existing.group_by_property:
             triples.append(
-                f'<{mount_iri}> <{GROUP_BY_PROPERTY}> <{existing.group_by_property}>'
+                f'<{mount_iri}> <{GROUP_BY_PROPERTY}> {safe_iri(existing.group_by_property)}'
             )
         if existing.date_property:
             triples.append(
-                f'<{mount_iri}> <{DATE_PROPERTY}> <{existing.date_property}>'
+                f'<{mount_iri}> <{DATE_PROPERTY}> {safe_iri(existing.date_property)}'
             )
         if existing.sparql_scope and existing.sparql_scope != "all":
             triples.append(
-                f'<{mount_iri}> <{SPARQL_SCOPE}> "{_escape_sparql(existing.sparql_scope)}"'
+                f'<{mount_iri}> <{SPARQL_SCOPE}> "{sparql_escape_string(existing.sparql_scope)}"'
             )
         if existing.scope_query:
             triples.append(
-                f'<{mount_iri}> <{SCOPE_QUERY}> <{existing.scope_query}>'
+                f'<{mount_iri}> <{SCOPE_QUERY}> {safe_iri(existing.scope_query)}'
             )
         if existing.type_filter:
             for tf_iri in existing.type_filter:
                 triples.append(
-                    f'<{mount_iri}> <{TYPE_FILTER}> <{tf_iri}>'
+                    f'<{mount_iri}> <{TYPE_FILTER}> {safe_iri(tf_iri)}'
                 )
         if existing.filename_template:
             triples.append(
-                f'<{mount_iri}> <{FILENAME_TEMPLATE}> "{_escape_sparql(existing.filename_template)}"'
+                f'<{mount_iri}> <{FILENAME_TEMPLATE}> "{sparql_escape_string(existing.filename_template)}"'
             )
 
         insert_sparql = f"""
@@ -585,13 +587,3 @@ class SyncMountService:
             visibility=b["visibility"]["value"],
             created_at=b.get("createdAt", {}).get("value", ""),
         )
-
-
-def _escape_sparql(value: str) -> str:
-    """Escape special characters for SPARQL string literals."""
-    return (
-        value.replace("\\", "\\\\")
-        .replace('"', '\\"')
-        .replace("\n", "\\n")
-        .replace("\r", "\\r")
-    )

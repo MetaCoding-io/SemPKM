@@ -29,6 +29,9 @@
 - [ ] **S04: Rate Limits, Warnings & Documentation** `risk:low` `depends:[S02]`
   > After this: SPARQL endpoint returns 429 after 60 requests/minute. Startup log shows warning when demo_mode=true with non-localhost URL. ARCHITECTURE.md documents shared-data model.
 
+- [ ] **S05: E2E Regression Suite** `risk:low` `depends:[S01,S02,S03,S04]`
+  > After this: Full Playwright E2E test suite passes against the Docker test stack with all M043 security changes applied — confirming zero functional regressions from injection fixes, auth hardening, CORS migration, and rate limiting.
+
 ## Boundary Map
 
 ```

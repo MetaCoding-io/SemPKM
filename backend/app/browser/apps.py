@@ -24,6 +24,7 @@ from fastapi.responses import HTMLResponse
 from app.apps.manifest import AppManifestSchema, parse_app_manifest
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
+from app.sparql.builder import safe_iri
 
 logger = logging.getLogger(__name__)
 
@@ -139,11 +140,18 @@ async def right_pane_sections(
 
     encoded_iri = quote(iri, safe="")
 
+    # Validate IRI before SPARQL interpolation
+    try:
+        safe = safe_iri(iri)
+    except ValueError:
+        logger.warning("right_pane_sections: rejected invalid IRI: %s", iri)
+        return HTMLResponse(content="<p>Invalid IRI</p>", status_code=400)
+
     # --- Resolve object types from triplestore ---
     type_iris: list[str] = []
     try:
         ts_client = request.app.state.triplestore_client
-        sparql = f"SELECT ?type WHERE {{ <{iri}> a ?type }}"
+        sparql = f"SELECT ?type WHERE {{ {safe} a ?type }}"
         result = await ts_client.query(sparql)
         type_iris = [
             row["type"]["value"]

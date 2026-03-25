@@ -11,10 +11,10 @@ Validates:
 import pytest
 
 from app.browser.search import (
-    _sparql_escape,
     build_tag_suggestions_sparql,
     parse_tag_bindings,
 )
+from app.sparql.builder import sparql_escape_string
 
 
 # ---------------------------------------------------------------------------
@@ -74,32 +74,32 @@ class TestBuildTagSuggestionsSparql:
 
 
 class TestSparqlEscape:
-    """Unit tests for _sparql_escape()."""
+    """Unit tests for sparql_escape_string() from centralized builder."""
 
     def test_plain_text_unchanged(self):
         """Plain ASCII text passes through unchanged."""
-        assert _sparql_escape("architecture") == "architecture"
+        assert sparql_escape_string("architecture") == "architecture"
 
     def test_double_quote_escaped(self):
         """Double quotes are backslash-escaped."""
-        assert _sparql_escape('say "hello"') == 'say \\"hello\\"'
+        assert sparql_escape_string('say "hello"') == 'say \\"hello\\"'
 
     def test_backslash_escaped(self):
         """Backslashes are doubled."""
-        assert _sparql_escape("a\\b") == "a\\\\b"
+        assert sparql_escape_string("a\\b") == "a\\\\b"
 
     def test_newline_escaped(self):
         """Newlines become literal \\n."""
-        assert _sparql_escape("line1\nline2") == "line1\\nline2"
+        assert sparql_escape_string("line1\nline2") == "line1\\nline2"
 
     def test_combined_escaping(self):
         """Multiple special chars in one string are all escaped."""
-        result = _sparql_escape('a\\b"c\nd')
+        result = sparql_escape_string('a\\b"c\nd')
         assert result == 'a\\\\b\\"c\\nd'
 
     def test_empty_string(self):
         """Empty string passes through."""
-        assert _sparql_escape("") == ""
+        assert sparql_escape_string("") == ""
 
 
 # ---------------------------------------------------------------------------

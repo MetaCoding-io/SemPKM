@@ -1479,25 +1479,25 @@ class TestContextQueryEndpoint:
 
 
 class TestSparqlEscapeStr:
-    """Test the _sparql_escape_str helper used in context-query SPARQL building."""
+    """Test the sparql_escape_string helper used in context-query SPARQL building."""
 
     def test_plain_string(self):
-        from app.api.router import _sparql_escape_str
-        assert _sparql_escape_str("hello") == "hello"
+        from app.sparql.builder import sparql_escape_string
+        assert sparql_escape_string("hello") == "hello"
 
     def test_escapes_double_quotes(self):
-        from app.api.router import _sparql_escape_str
-        assert _sparql_escape_str('say "hi"') == 'say \\"hi\\"'
+        from app.sparql.builder import sparql_escape_string
+        assert sparql_escape_string('say "hi"') == 'say \\"hi\\"'
 
     def test_escapes_backslash(self):
-        from app.api.router import _sparql_escape_str
-        assert _sparql_escape_str("path\\to") == "path\\\\to"
+        from app.sparql.builder import sparql_escape_string
+        assert sparql_escape_string("path\\to") == "path\\\\to"
 
     def test_escapes_newline(self):
-        from app.api.router import _sparql_escape_str
-        assert _sparql_escape_str("line\nbreak") == "line\\nbreak"
+        from app.sparql.builder import sparql_escape_string
+        assert sparql_escape_string("line\nbreak") == "line\\nbreak"
 
     def test_combined_special_chars(self):
-        from app.api.router import _sparql_escape_str
-        result = _sparql_escape_str('a\\b"c\nd')
+        from app.sparql.builder import sparql_escape_string
+        result = sparql_escape_string('a\\b"c\nd')
         assert result == 'a\\\\b\\"c\\nd'

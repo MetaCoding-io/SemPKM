@@ -10,6 +10,7 @@ from app.auth.dependencies import get_current_user
 from app.auth.models import User
 from app.dependencies import get_label_service, get_triplestore_client
 from app.services.labels import LabelService
+from app.sparql.builder import sparql_escape_string
 from app.triplestore.client import TriplestoreClient
 
 from ._helpers import _validate_iri
@@ -24,11 +25,6 @@ search_router = APIRouter(tags=["search"])
 # ---------------------------------------------------------------------------
 
 
-def _sparql_escape(value: str) -> str:
-    """Escape special characters for SPARQL string literals."""
-    return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
-
-
 def build_tag_suggestions_sparql(q: str) -> str:
     """Build a SPARQL query to find tag values matching *q*.
 
@@ -40,7 +36,7 @@ def build_tag_suggestions_sparql(q: str) -> str:
     """
     filter_clause = ""
     if q:
-        escaped_q = _sparql_escape(q)
+        escaped_q = sparql_escape_string(q)
         filter_clause = (
             f'  FILTER(CONTAINS(LCASE(?tagValue), LCASE("{escaped_q}")))\n'
         )
@@ -234,7 +230,7 @@ async def object_search(
     if not q.strip():
         return JSONResponse(content=[], status_code=200)
 
-    escaped = _sparql_escape(q.strip())
+    escaped = sparql_escape_string(q.strip())
     sparql = f"""PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX dcterms: <http://purl.org/dc/terms/>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>

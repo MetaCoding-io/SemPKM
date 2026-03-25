@@ -16,9 +16,9 @@ import pytest
 from app.browser.workspace import (
     EXPLORER_MODES,
     _handle_by_tag,
-    _sparql_escape,
     tag_children,
 )
+from app.sparql.builder import sparql_escape_string
 
 
 class TestExplorerModeRegistration:
@@ -109,25 +109,25 @@ class TestTagValueEscaping:
     """Verify SPARQL injection protection in tag value escaping."""
 
     def test_escape_double_quotes(self):
-        assert _sparql_escape('tag"value') == 'tag\\"value'
+        assert sparql_escape_string('tag"value') == 'tag\\"value'
 
     def test_escape_backslash(self):
-        assert _sparql_escape("tag\\value") == "tag\\\\value"
+        assert sparql_escape_string("tag\\value") == "tag\\\\value"
 
     def test_escape_newline(self):
-        assert _sparql_escape("tag\nvalue") == "tag\\nvalue"
+        assert sparql_escape_string("tag\nvalue") == "tag\\nvalue"
 
     def test_escape_combined(self):
-        result = _sparql_escape('a"b\\c\nd')
+        result = sparql_escape_string('a"b\\c\nd')
         assert result == 'a\\"b\\\\c\\nd'
 
     def test_escape_clean_string(self):
-        assert _sparql_escape("clean-tag") == "clean-tag"
+        assert sparql_escape_string("clean-tag") == "clean-tag"
 
     def test_tag_children_query_uses_escape(self):
-        """The tag_children endpoint must use _sparql_escape on the tag parameter."""
+        """The tag_children endpoint must use sparql_escape_string on the tag parameter."""
         source = inspect.getsource(tag_children)
-        assert "_sparql_escape" in source
+        assert "sparql_escape_string" in source
 
 
 class TestTagChildrenQueryStructure:

@@ -11,6 +11,7 @@
 - Zero namespace() hacks or .append() side-effects in templates — computation in Python views
 - Notion/Obsidian importer templates deduplicated into shared bases
 - htmx conventions documented, breakpoints standardized, console.log cleaned
+- Full Playwright E2E test suite passes against Docker test stack — zero functional regressions
 
 ## Slices
 
@@ -31,6 +32,9 @@
 
 - [ ] **S06: Console Cleanup & Convention Documentation** `risk:low` `depends:[]`
   > After this: After this: browser console is clean in production; htmx conventions are documented; debug logging available via flag
+
+- [ ] **S07: E2E Regression Suite** `risk:low` `depends:[S01,S02,S03,S04,S05,S06]`
+  > After this: Full Playwright E2E test suite passes against the Docker test stack with all M044 frontend changes applied — confirming zero functional regressions from fetch wrapper migration, event listener cleanup, namespace consolidation, CSS variable changes, and template refactoring.
 
 ## Boundary Map
 

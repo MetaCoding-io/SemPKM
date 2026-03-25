@@ -12,6 +12,7 @@ import logging
 import uuid
 from datetime import datetime, timezone
 
+from app.sparql.builder import sparql_escape_string
 from app.triplestore.client import TriplestoreClient
 
 logger = logging.getLogger(__name__)
@@ -26,16 +27,6 @@ PREFIX sempkm:  <urn:sempkm:>
 PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
 """
 
-
-def _escape_sparql_string(value: str) -> str:
-    """Escape a value for safe embedding in a SPARQL string literal."""
-    return (
-        value
-        .replace("\\", "\\\\")
-        .replace('"', '\\"')
-        .replace("\n", "\\n")
-        .replace("\r", "\\r")
-    )
 
 
 class TaskTemplateService:
@@ -77,10 +68,10 @@ class TaskTemplateService:
         sparql = f"""{_PREFIXES}
 INSERT DATA {{
     GRAPH <{TEMPLATE_GRAPH}> {{
-        <{template_id}> dcterms:title "{_escape_sparql_string(title)}" ;
+        <{template_id}> dcterms:title "{sparql_escape_string(title)}" ;
             sempkm:targetClass <{target_class}> ;
-            sempkm:defaultProperties "{_escape_sparql_string(props_json)}" ;
-            sempkm:subtaskDefinitions "{_escape_sparql_string(subtasks_json)}" ;
+            sempkm:defaultProperties "{sparql_escape_string(props_json)}" ;
+            sempkm:subtaskDefinitions "{sparql_escape_string(subtasks_json)}" ;
             dcterms:created "{now}"^^xsd:dateTime .
     }}
 }}"""
@@ -177,8 +168,8 @@ SELECT ?title ?target_class ?props ?subtasks ?created WHERE {{
         field_map: dict[str, tuple[str, str]] = {}
         if "title" in updates:
             field_map["dcterms:title"] = (
-                f'"{_escape_sparql_string(existing["title"])}"',
-                f'"{_escape_sparql_string(updates["title"])}"',
+                f'"{sparql_escape_string(existing["title"])}"',
+                f'"{sparql_escape_string(updates["title"])}"',
             )
             existing["title"] = updates["title"]
         if "target_class" in updates:
@@ -191,16 +182,16 @@ SELECT ?title ?target_class ?props ?subtasks ?created WHERE {{
             old_json = json.dumps(existing["default_properties"])
             new_json = json.dumps(updates["default_properties"])
             field_map["sempkm:defaultProperties"] = (
-                f'"{_escape_sparql_string(old_json)}"',
-                f'"{_escape_sparql_string(new_json)}"',
+                f'"{sparql_escape_string(old_json)}"',
+                f'"{sparql_escape_string(new_json)}"',
             )
             existing["default_properties"] = updates["default_properties"]
         if "subtask_definitions" in updates:
             old_json = json.dumps(existing["subtask_definitions"])
             new_json = json.dumps(updates["subtask_definitions"])
             field_map["sempkm:subtaskDefinitions"] = (
-                f'"{_escape_sparql_string(old_json)}"',
-                f'"{_escape_sparql_string(new_json)}"',
+                f'"{sparql_escape_string(old_json)}"',
+                f'"{sparql_escape_string(new_json)}"',
             )
             existing["subtask_definitions"] = updates["subtask_definitions"]
 

@@ -69,6 +69,8 @@
   > After this: security events (login, failed auth, token create/revoke, role changes, model install, federation sync) logged in RDF event stream; magic link tokens single-use; token logging redacted; failed auth logged with IP; session management improvements
 - [ ] **S06: Federation Integrity & Remaining Fixes** `risk:low` `depends:[S01]`
   > After this: federation patches have SHA-256 content hashes; namespace filtering rejects system predicates; triple count limits; app platform trust boundary documented; per-app JWT key derivation; cookie secure warning; remaining Info-level findings addressed or documented
+- [ ] **S07: E2E Regression Suite** `risk:low` `depends:[S01,S02,S03,S04,S05,S06]`
+  > After this: Full Playwright E2E test suite passes against the Docker test stack with all M045 security hardening applied — confirming zero functional regressions from SPARQL injection fixes, CSP headers, vendored assets, Docker non-root, audit trail, and federation integrity changes.
 
 ## Boundary Map
 

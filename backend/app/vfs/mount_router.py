@@ -40,9 +40,9 @@ from app.vfs.mount_service import (
     VALID_STRATEGIES,
     VISIBILITY,
     MountDefinition,
-    _escape_sparql,
     _validate_strategy_chain,
 )
+from app.sparql.builder import safe_iri, sparql_escape_string
 from app.vfs.strategies import (
     QUERIES_GRAPH,
     PRED_QUERY_TEXT,
@@ -385,38 +385,38 @@ async def create_mount(
 
     triples = [
         f'<{mount_iri}> a <{NS_SEMPKM}MountSpec>',
-        f'<{mount_iri}> <{MOUNT_NAME}> "{_escape_sparql(body.name)}"',
-        f'<{mount_iri}> <{MOUNT_PATH}> "{_escape_sparql(body.path)}"',
-        f'<{mount_iri}> <{DIRECTORY_STRATEGY}> "{_escape_sparql(body.strategy)}"',
+        f'<{mount_iri}> <{MOUNT_NAME}> "{sparql_escape_string(body.name)}"',
+        f'<{mount_iri}> <{MOUNT_PATH}> "{sparql_escape_string(body.path)}"',
+        f'<{mount_iri}> <{DIRECTORY_STRATEGY}> "{sparql_escape_string(body.strategy)}"',
         f'<{mount_iri}> <{CREATED_BY}> <{user_iri}>',
-        f'<{mount_iri}> <{VISIBILITY}> "{_escape_sparql(visibility)}"',
-        f'<{mount_iri}> <{CREATED_AT}> "{_escape_sparql(created_at)}"^^<http://www.w3.org/2001/XMLSchema#dateTime>',
+        f'<{mount_iri}> <{VISIBILITY}> "{sparql_escape_string(visibility)}"',
+        f'<{mount_iri}> <{CREATED_AT}> "{sparql_escape_string(created_at)}"^^<http://www.w3.org/2001/XMLSchema#dateTime>',
     ]
     if body.group_by_property:
         triples.append(
-            f'<{mount_iri}> <{GROUP_BY_PROPERTY}> <{body.group_by_property}>'
+            f'<{mount_iri}> <{GROUP_BY_PROPERTY}> {safe_iri(body.group_by_property)}'
         )
     if body.date_property:
         triples.append(
-            f'<{mount_iri}> <{DATE_PROPERTY}> <{body.date_property}>'
+            f'<{mount_iri}> <{DATE_PROPERTY}> {safe_iri(body.date_property)}'
         )
     scope = body.sparql_scope or "all"
     if scope != "all":
         triples.append(
-            f'<{mount_iri}> <{SPARQL_SCOPE}> "{_escape_sparql(scope)}"'
+            f'<{mount_iri}> <{SPARQL_SCOPE}> "{sparql_escape_string(scope)}"'
         )
     if body.scope_query:
         triples.append(
-            f'<{mount_iri}> <{SCOPE_QUERY}> <{body.scope_query}>'
+            f'<{mount_iri}> <{SCOPE_QUERY}> {safe_iri(body.scope_query)}'
         )
     if body.type_filter:
         for type_iri in body.type_filter:
             triples.append(
-                f'<{mount_iri}> <{TYPE_FILTER}> <{type_iri}>'
+                f'<{mount_iri}> <{TYPE_FILTER}> {safe_iri(type_iri)}'
             )
     if body.filename_template:
         triples.append(
-            f'<{mount_iri}> <{FILENAME_TEMPLATE}> "{_escape_sparql(body.filename_template)}"'
+            f'<{mount_iri}> <{FILENAME_TEMPLATE}> "{sparql_escape_string(body.filename_template)}"'
         )
 
     sparql = f"""
@@ -498,37 +498,37 @@ async def update_mount(
     # Re-insert with updated values
     triples = [
         f'<{mount_iri}> a <{NS_SEMPKM}MountSpec>',
-        f'<{mount_iri}> <{MOUNT_NAME}> "{_escape_sparql(existing.name)}"',
-        f'<{mount_iri}> <{MOUNT_PATH}> "{_escape_sparql(existing.path)}"',
-        f'<{mount_iri}> <{DIRECTORY_STRATEGY}> "{_escape_sparql(existing.strategy)}"',
+        f'<{mount_iri}> <{MOUNT_NAME}> "{sparql_escape_string(existing.name)}"',
+        f'<{mount_iri}> <{MOUNT_PATH}> "{sparql_escape_string(existing.path)}"',
+        f'<{mount_iri}> <{DIRECTORY_STRATEGY}> "{sparql_escape_string(existing.strategy)}"',
         f'<{mount_iri}> <{CREATED_BY}> <{existing.created_by}>',
-        f'<{mount_iri}> <{VISIBILITY}> "{_escape_sparql(existing.visibility)}"',
-        f'<{mount_iri}> <{CREATED_AT}> "{_escape_sparql(existing.created_at)}"^^<http://www.w3.org/2001/XMLSchema#dateTime>',
+        f'<{mount_iri}> <{VISIBILITY}> "{sparql_escape_string(existing.visibility)}"',
+        f'<{mount_iri}> <{CREATED_AT}> "{sparql_escape_string(existing.created_at)}"^^<http://www.w3.org/2001/XMLSchema#dateTime>',
     ]
     if existing.group_by_property:
         triples.append(
-            f'<{mount_iri}> <{GROUP_BY_PROPERTY}> <{existing.group_by_property}>'
+            f'<{mount_iri}> <{GROUP_BY_PROPERTY}> {safe_iri(existing.group_by_property)}'
         )
     if existing.date_property:
         triples.append(
-            f'<{mount_iri}> <{DATE_PROPERTY}> <{existing.date_property}>'
+            f'<{mount_iri}> <{DATE_PROPERTY}> {safe_iri(existing.date_property)}'
         )
     if existing.sparql_scope and existing.sparql_scope != "all":
         triples.append(
-            f'<{mount_iri}> <{SPARQL_SCOPE}> "{_escape_sparql(existing.sparql_scope)}"'
+            f'<{mount_iri}> <{SPARQL_SCOPE}> "{sparql_escape_string(existing.sparql_scope)}"'
         )
     if existing.scope_query:
         triples.append(
-            f'<{mount_iri}> <{SCOPE_QUERY}> <{existing.scope_query}>'
+            f'<{mount_iri}> <{SCOPE_QUERY}> {safe_iri(existing.scope_query)}'
         )
     if existing.type_filter:
         for tf_iri in existing.type_filter:
             triples.append(
-                f'<{mount_iri}> <{TYPE_FILTER}> <{tf_iri}>'
+                f'<{mount_iri}> <{TYPE_FILTER}> {safe_iri(tf_iri)}'
             )
     if existing.filename_template:
         triples.append(
-            f'<{mount_iri}> <{FILENAME_TEMPLATE}> "{_escape_sparql(existing.filename_template)}"'
+            f'<{mount_iri}> <{FILENAME_TEMPLATE}> "{sparql_escape_string(existing.filename_template)}"'
         )
 
     await client.update(
@@ -681,9 +681,10 @@ async def preview_mount(
     if body.scope_query:
         # Resolve saved query IRI to its SPARQL text via async client
         logger.debug("Preview: resolving scope_query %s", body.scope_query)
+        safe_scope = safe_iri(body.scope_query)
         q_result = await client.query(
             f"SELECT ?text FROM <{QUERIES_GRAPH}> WHERE {{\n"
-            f"  <{body.scope_query}> <{PRED_QUERY_TEXT}> ?text\n"
+            f"  {safe_scope} <{PRED_QUERY_TEXT}> ?text\n"
             f"}}"
         )
         q_bindings = q_result.get("results", {}).get("bindings", [])
@@ -785,12 +786,12 @@ async def preview_mount(
     elif body.strategy == "by-tag":
         if not body.group_by_property:
             raise HTTPException(400, "by-tag strategy requires group_by_property.")
-        prop = body.group_by_property
+        safe_prop = safe_iri(body.group_by_property)
         result = await client.query(
             f"""
             SELECT ?tagValue (COUNT(DISTINCT ?iri) AS ?count) FROM <urn:sempkm:current>
             WHERE {{
-              ?iri <{prop}> ?tagValue .
+              ?iri {safe_prop} ?tagValue .
               {scope_filter}
             }}
             GROUP BY ?tagValue
@@ -810,7 +811,7 @@ async def preview_mount(
             WHERE {{
               ?iri a ?type .
               {scope_filter}
-              FILTER NOT EXISTS {{ ?iri <{prop}> ?val }}
+              FILTER NOT EXISTS {{ ?iri {safe_prop} ?val }}
             }}
             """
         )
@@ -824,12 +825,12 @@ async def preview_mount(
     elif body.strategy == "by-date":
         if not body.date_property:
             raise HTTPException(400, "by-date strategy requires date_property.")
-        prop = body.date_property
+        safe_date_prop = safe_iri(body.date_property)
         result = await client.query(
             f"""
             SELECT ?year ?month (COUNT(DISTINCT ?iri) AS ?count) FROM <urn:sempkm:current>
             WHERE {{
-              ?iri <{prop}> ?date .
+              ?iri {safe_date_prop} ?date .
               {scope_filter}
               BIND(YEAR(xsd:dateTime(?date)) AS ?year)
               BIND(MONTH(xsd:dateTime(?date)) AS ?month)
@@ -855,13 +856,13 @@ async def preview_mount(
     elif body.strategy == "by-property":
         if not body.group_by_property:
             raise HTTPException(400, "by-property strategy requires group_by_property.")
-        prop = body.group_by_property
+        safe_grp_prop = safe_iri(body.group_by_property)
         result = await client.query(
             f"""
             SELECT ?groupValue ?groupLabel (COUNT(DISTINCT ?iri) AS ?count)
             FROM <urn:sempkm:current>
             WHERE {{
-              ?iri <{prop}> ?groupValue .
+              ?iri {safe_grp_prop} ?groupValue .
               {scope_filter}
               OPTIONAL {{ ?groupValue <http://purl.org/dc/terms/title> ?t }}
               OPTIONAL {{ ?groupValue <http://www.w3.org/2000/01/rdf-schema#label> ?r }}

@@ -34,7 +34,7 @@ Unit tests in backend/tests/test_sparql_builder.py covering: valid IRIs, malicio
   - Files: `backend/app/sparql/builder.py`, `backend/tests/test_sparql_builder.py`
   - Verify: cd backend && .venv/bin/python -m pytest tests/test_sparql_builder.py -v
 
-- [ ] **T02: Migrate confirmed-exploitable modules to SPARQLBuilder** `est:4h`
+- [x] **T02: Migrate confirmed-exploitable modules to SPARQLBuilder** `est:4h`
   Replace all f-string SPARQL IRI interpolation in the 4 confirmed-exploitable modules with SPARQLBuilder calls:
 
 1. views/service.py (~45 <{iri}> patterns): Replace type_iri interpolation in build_dynamic_query(), _build_default_select(), execute_graph_query(), etc. with safe_iri(). Replace VALUES clause construction with values_clause().
@@ -46,7 +46,7 @@ For each module: remove the local escape function, import from sparql.builder, v
   - Files: `backend/app/views/service.py`, `backend/app/views/router.py`, `backend/app/browser/apps.py`, `backend/app/vfs/mount_router.py`, `backend/app/vfs/mount_service.py`
   - Verify: cd backend && .venv/bin/python -m pytest tests/ -v -x --timeout=60
 
-- [ ] **T03: Migrate likely-exploitable modules and remove all legacy escape functions** `est:3h`
+- [x] **T03: Migrate likely-exploitable modules and remove all legacy escape functions** `est:3h`
   1. Migrate likely-exploitable modules:
    - browser/events.py: Replace bare replace('"', '\\"') with safe_literal() from builder
    - browser/favorites.py: Add safe_iri() validation on object_iri in toggle_favorite() before SQL storage

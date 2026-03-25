@@ -14,6 +14,7 @@ from app.dependencies import get_label_service
 from app.favorites.models import UserFavorite
 from app.services.icons import IconService
 from app.services.labels import LabelService
+from app.sparql.builder import safe_iri, values_clause as sparql_values_clause
 
 from ._helpers import get_icon_service
 
@@ -36,6 +37,17 @@ async def toggle_favorite(
     Returns an updated star button HTML snippet and sets HX-Trigger
     so the FAVORITES section auto-refreshes.
     """
+    # Validate IRI before SQL storage (defence-in-depth against injection)
+    try:
+        safe_iri(object_iri)
+    except ValueError:
+        logger.warning(
+            "Rejected invalid IRI in toggle_favorite: %r (user=%s)",
+            object_iri,
+            user.id,
+        )
+        return HTMLResponse(content="Invalid IRI", status_code=400)
+
     result = await db.execute(
         select(UserFavorite).where(
             UserFavorite.user_id == user.id,
@@ -130,13 +142,13 @@ async def list_favorites(
     labels = await label_service.resolve_batch(object_iris)
 
     # Batch-resolve types via SPARQL
-    values_clause = " ".join(f"(<{iri}>)" for iri in object_iris)
+    iri_values = sparql_values_clause("iri", object_iris)
     sparql = f"""
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     SELECT ?iri ?typeIri
     FROM <urn:sempkm:current>
     WHERE {{
-      VALUES (?iri) {{ {values_clause} }}
+      {iri_values}
       ?iri rdf:type ?typeIri .
       FILTER(?typeIri != <http://www.w3.org/2000/01/rdf-schema#Resource>)
     }}

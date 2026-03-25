@@ -22,10 +22,10 @@ import rdflib
 from dateutil.rrule import rruleset, rrulestr
 from rdflib import RDF, URIRef
 
-from app.browser._helpers import _validate_iri
 from app.models.registry import MODELS_GRAPH, SEMPKM_NS
 from app.services.labels import LabelService
 from app.services.shapes import NodeShapeForm, PropertyShape, ShapesService
+from app.sparql.builder import safe_iri
 from app.sparql.client import scope_to_current_graph
 from app.sparql.query_service import QueryService
 from app.sparql.utils import escape_sparql_regex
@@ -154,7 +154,7 @@ class ViewSpecService:
             graph_to_model[views_iri] = model_id
 
         # VALUES clause constrains ?g to only model view graphs
-        values_entries = " ".join(f"<{iri}>" for iri in graph_to_model)
+        values_entries = " ".join(safe_iri(iri) for iri in graph_to_model)
 
         # 3. Query view spec properties using GRAPH ?g pattern
         specs_sparql = f"""SELECT ?g ?spec ?label ?targetClass ?renderer ?query ?columns ?sortDefault ?cardTitle ?cardSubtitle
@@ -339,7 +339,7 @@ WHERE {{
         """Build a SELECT query using the 4 default columns."""
         type_filter = ""
         if type_iri:
-            type_filter = f"  ?s rdf:type <{type_iri}> .\n"
+            type_filter = f"  ?s rdf:type {safe_iri(type_iri)} .\n"
 
         scope_clause = ""
         if scope_filter:
@@ -373,7 +373,7 @@ WHERE {{
 
         type_filter = ""
         if type_iri:
-            type_filter = f"  ?s rdf:type <{type_iri}> .\n"
+            type_filter = f"  ?s rdf:type {safe_iri(type_iri)} .\n"
 
         scope_clause = ""
         if scope_filter:
@@ -381,7 +381,7 @@ WHERE {{
 
         optionals: list[str] = []
         for shape, col in zip(shapes, columns):
-            optionals.append(f"  OPTIONAL {{ ?s <{shape.path}> ?{col} }}")
+            optionals.append(f"  OPTIONAL {{ ?s {safe_iri(shape.path)} ?{col} }}")
 
         return (
             "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
@@ -402,7 +402,7 @@ WHERE {{
         """Build a CONSTRUCT query for the graph renderer."""
         type_filter = ""
         if type_iri:
-            type_filter = f"  ?s rdf:type <{type_iri}> .\n"
+            type_filter = f"  ?s rdf:type {safe_iri(type_iri)} .\n"
 
         scope_clause = ""
         if scope_filter:
@@ -802,7 +802,7 @@ OFFSET {offset}"""
             }
 
         # Fetch all properties for these subjects
-        values_clause = " ".join(f"<{iri}>" for iri in subject_iris)
+        values_clause = " ".join(safe_iri(iri) for iri in subject_iris)
         props_query = f"""SELECT ?s ?p ?o
 FROM <urn:sempkm:current>
 WHERE {{
@@ -1094,14 +1094,15 @@ WHERE {
         Returns:
             Dict with keys: nodes, edges, type_colors.
         """
+        safe_node = safe_iri(node_iri)
         construct_query = f"""CONSTRUCT {{ ?s ?p ?o }}
 FROM <urn:sempkm:current>
 FROM <urn:sempkm:inferred>
 FROM <urn:sempkm:mirrored>
 WHERE {{
-  {{ <{node_iri}> ?p ?o . BIND(<{node_iri}> AS ?s) . FILTER(isIRI(?o)) }}
+  {{ {safe_node} ?p ?o . BIND({safe_node} AS ?s) . FILTER(isIRI(?o)) }}
   UNION
-  {{ ?s ?p <{node_iri}> . BIND(<{node_iri}> AS ?o) . FILTER(isIRI(?s)) }}
+  {{ ?s ?p {safe_node} . BIND({safe_node} AS ?o) . FILTER(isIRI(?s)) }}
 }}"""
 
         try:
@@ -1113,9 +1114,9 @@ WHERE {{
         # Identify which edges come from the inferred graph
         inferred_edges_query = f"""SELECT ?s ?p ?o WHERE {{
   GRAPH <urn:sempkm:inferred> {{
-    {{ <{node_iri}> ?p ?o . BIND(<{node_iri}> AS ?s) . FILTER(isIRI(?o)) }}
+    {{ {safe_node} ?p ?o . BIND({safe_node} AS ?s) . FILTER(isIRI(?o)) }}
     UNION
-    {{ ?s ?p <{node_iri}> . BIND(<{node_iri}> AS ?o) . FILTER(isIRI(?s)) }}
+    {{ ?s ?p {safe_node} . BIND({safe_node} AS ?o) . FILTER(isIRI(?s)) }}
   }}
 }}"""
         inferred_edge_set: set[tuple[str, str, str]] = set()
@@ -1131,9 +1132,9 @@ WHERE {{
         # Identify which edges come from the mirrored graph
         mirrored_edges_query = f"""SELECT ?s ?p ?o WHERE {{
   GRAPH <urn:sempkm:mirrored> {{
-    {{ <{node_iri}> ?p ?o . BIND(<{node_iri}> AS ?s) . FILTER(isIRI(?o)) }}
+    {{ {safe_node} ?p ?o . BIND({safe_node} AS ?s) . FILTER(isIRI(?o)) }}
     UNION
-    {{ ?s ?p <{node_iri}> . BIND(<{node_iri}> AS ?o) . FILTER(isIRI(?s)) }}
+    {{ ?s ?p {safe_node} . BIND({safe_node} AS ?o) . FILTER(isIRI(?s)) }}
   }}
 }}"""
         mirrored_edge_set: set[tuple[str, str, str]] = set()
@@ -1323,7 +1324,7 @@ WHERE {{
         end_var = ""
         if end_path:
             end_var = " ?endDate"
-            end_clause = f"  OPTIONAL {{ ?s <{end_path}> ?endDate }}\n"
+            end_clause = f"  OPTIONAL {{ ?s {safe_iri(end_path)} ?endDate }}\n"
 
         return (
             "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
@@ -1332,8 +1333,8 @@ WHERE {{
             "\n"
             f"SELECT ?s ?label ?startDate{end_var} ?recurrenceRule ?exceptionDates\n"
             "WHERE {\n"
-            f"  ?s rdf:type <{type_iri}> .\n"
-            f"  ?s <{start_path}> ?startDate .\n"
+            f"  ?s rdf:type {safe_iri(type_iri)} .\n"
+            f"  ?s {safe_iri(start_path)} ?startDate .\n"
             f"{end_clause}"
             f"{scope_clause}"
             "  OPTIONAL { ?s rdfs:label|dcterms:title ?label }\n"
@@ -1714,9 +1715,9 @@ WHERE {{
             "\n"
             "SELECT ?s ?label ?lat ?lng\n"
             "WHERE {\n"
-            f"  ?s rdf:type <{type_iri}> .\n"
-            f"  ?s <{lat_path}> ?lat .\n"
-            f"  ?s <{lng_path}> ?lng .\n"
+            f"  ?s rdf:type {safe_iri(type_iri)} .\n"
+            f"  ?s {safe_iri(lat_path)} ?lat .\n"
+            f"  ?s {safe_iri(lng_path)} ?lng .\n"
             f"{scope_clause}"
             "  OPTIONAL { ?s rdfs:label|dcterms:title ?label }\n"
             "}"
@@ -1887,8 +1888,8 @@ WHERE {{
             "\n"
             "SELECT ?s ?label ?statusValue\n"
             "WHERE {\n"
-            f"  ?s rdf:type <{type_iri}> .\n"
-            f"  ?s <{status_path}> ?statusValue .\n"
+            f"  ?s rdf:type {safe_iri(type_iri)} .\n"
+            f"  ?s {safe_iri(status_path)} ?statusValue .\n"
             f"{scope_clause}"
             "  OPTIONAL { ?s rdfs:label|dcterms:title ?label }\n"
             "}"
@@ -2146,9 +2147,9 @@ WHERE {{
             "\n"
             "SELECT ?s ?label ?xValue ?yValue\n"
             "WHERE {\n"
-            f"  ?s rdf:type <{type_iri}> .\n"
-            f"  ?s <{x_path}> ?xValue .\n"
-            f"  ?s <{y_path}> ?yValue .\n"
+            f"  ?s rdf:type {safe_iri(type_iri)} .\n"
+            f"  ?s {safe_iri(x_path)} ?xValue .\n"
+            f"  ?s {safe_iri(y_path)} ?yValue .\n"
             f"{scope_clause}"
             "  OPTIONAL { ?s rdfs:label|dcterms:title ?label }\n"
             "}"
@@ -2400,7 +2401,7 @@ WHERE {{
 
         canvas_clause = ""
         if canvas_path:
-            canvas_clause = f"  OPTIONAL {{ ?s <{canvas_path}> ?canvas }}\n"
+            canvas_clause = f"  OPTIONAL {{ ?s {safe_iri(canvas_path)} ?canvas }}\n"
 
         return (
             "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
@@ -2409,8 +2410,8 @@ WHERE {{
             "\n"
             "SELECT ?s ?label ?sectionType ?sectionContent ?canvas\n"
             "WHERE {\n"
-            f"  ?s rdf:type <{type_iri}> .\n"
-            f"  ?s <{section_path}> ?sectionType .\n"
+            f"  ?s rdf:type {safe_iri(type_iri)} .\n"
+            f"  ?s {safe_iri(section_path)} ?sectionType .\n"
             f"{scope_clause}"
             "  OPTIONAL { ?s rdfs:label|dcterms:title ?label }\n"
             "  OPTIONAL { ?s <urn:sempkm:model:business-planning:sectionContent> ?sectionContent }\n"
@@ -2616,13 +2617,13 @@ WHERE {{
 
         unit_clause = ""
         if unit_path:
-            unit_clause = f"  OPTIONAL {{ ?s <{unit_path}> ?unit }}\n"
+            unit_clause = f"  OPTIONAL {{ ?s {safe_iri(unit_path)} ?unit }}\n"
 
         objective_clause = ""
         if objective_path:
             objective_clause = (
                 f"  OPTIONAL {{\n"
-                f"    ?s <{objective_path}> ?objective .\n"
+                f"    ?s {safe_iri(objective_path)} ?objective .\n"
                 f"    OPTIONAL {{ ?objective rdfs:label|dcterms:title ?objTitle }}\n"
                 f"  }}\n"
             )
@@ -2634,11 +2635,11 @@ WHERE {{
             "\n"
             "SELECT ?s ?title ?currentValue ?targetValue ?unit ?objective ?objTitle\n"
             "WHERE {\n"
-            f"  ?s rdf:type <{type_iri}> .\n"
+            f"  ?s rdf:type {safe_iri(type_iri)} .\n"
             f"{scope_clause}"
             "  OPTIONAL { ?s rdfs:label|dcterms:title ?title }\n"
-            f"  OPTIONAL {{ ?s <{current_path}> ?currentValue }}\n"
-            f"  OPTIONAL {{ ?s <{target_path}> ?targetValue }}\n"
+            f"  OPTIONAL {{ ?s {safe_iri(current_path)} ?currentValue }}\n"
+            f"  OPTIONAL {{ ?s {safe_iri(target_path)} ?targetValue }}\n"
             f"{unit_clause}"
             f"{objective_clause}"
             "}"
@@ -2890,14 +2891,14 @@ WHERE {{
             "\n"
             "SELECT ?score ?alt ?altTitle ?crit ?critTitle ?critWeight ?scoreValue\n"
             "WHERE {\n"
-            f"  ?score rdf:type <{type_iri}> .\n"
-            f"  ?score <{value_path}> ?scoreValue .\n"
-            f"  ?score <{alt_path}> ?alt .\n"
-            f"  ?score <{crit_path}> ?crit .\n"
+            f"  ?score rdf:type {safe_iri(type_iri)} .\n"
+            f"  ?score {safe_iri(value_path)} ?scoreValue .\n"
+            f"  ?score {safe_iri(alt_path)} ?alt .\n"
+            f"  ?score {safe_iri(crit_path)} ?crit .\n"
             f"{scope_clause}"
             "  OPTIONAL { ?alt rdfs:label|dcterms:title ?altTitle }\n"
             "  OPTIONAL { ?crit rdfs:label|dcterms:title ?critTitle }\n"
-            f"  OPTIONAL {{ ?crit <{weight_path}> ?critWeight }}\n"
+            f"  OPTIONAL {{ ?crit {safe_iri(weight_path)} ?critWeight }}\n"
             "}"
         )
 
@@ -3064,7 +3065,7 @@ WHERE {{
 
         end_clause = ""
         if end_path:
-            end_clause = f"  OPTIONAL {{ ?s <{end_path}> ?endDate }}\n"
+            end_clause = f"  OPTIONAL {{ ?s {safe_iri(end_path)} ?endDate }}\n"
 
         return (
             "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
@@ -3073,8 +3074,8 @@ WHERE {{
             "\n"
             "SELECT ?s ?label ?startDate ?endDate ?dep ?priority ?status\n"
             "WHERE {\n"
-            f"  ?s rdf:type <{type_iri}> .\n"
-            f"  ?s <{start_path}> ?startDate .\n"
+            f"  ?s rdf:type {safe_iri(type_iri)} .\n"
+            f"  ?s {safe_iri(start_path)} ?startDate .\n"
             f"{end_clause}"
             f"{scope_clause}"
             "  OPTIONAL { ?s rdfs:label|dcterms:title ?label }\n"
@@ -3324,7 +3325,7 @@ WHERE {{
         # (CONSTRUCT results often only contain relationships + labels)
         all_node_iris = list(nodes_dict.keys())
         if all_node_iris:
-            values_clause = " ".join(f"<{iri}>" for iri in all_node_iris)
+            values_clause = " ".join(safe_iri(iri) for iri in all_node_iris)
             sup_query = f"""SELECT ?s ?p ?o
 FROM <urn:sempkm:current>
 FROM <urn:sempkm:inferred>
@@ -3476,7 +3477,7 @@ WHERE {{
 
         from_str = "\n".join(from_clauses)
 
-        values = " ".join(f"(<{iri}>)" for iri in type_iris)
+        values = " ".join(f"({safe_iri(iri)})" for iri in type_iris)
         color_sparql = f"""SELECT ?type ?color
 {from_str}
 WHERE {{
@@ -3612,7 +3613,7 @@ def inject_values_binding(query: str, var_name: str, iri: str) -> str:
     Args:
         query: The SPARQL query string.
         var_name: Variable name (without ?) — must be alphanumeric + underscore.
-        iri: The IRI to bind — validated via _validate_iri().
+        iri: The IRI to bind — validated via safe_iri().
 
     Returns:
         Modified query with VALUES clause injected, or original query unchanged
@@ -3626,7 +3627,9 @@ def inject_values_binding(query: str, var_name: str, iri: str) -> str:
         logger.warning("inject_values_binding: rejected invalid var_name: %s", var_name)
         return query
 
-    if not _validate_iri(iri):
+    try:
+        safe = safe_iri(iri)
+    except ValueError:
         logger.warning("inject_values_binding: rejected invalid IRI: %s", iri)
         return query
 
@@ -3635,7 +3638,7 @@ def inject_values_binding(query: str, var_name: str, iri: str) -> str:
         logger.warning("inject_values_binding: could not extract WHERE body")
         return query
 
-    values_clause = f"VALUES ?{var_name} {{ <{iri}> }}"
+    values_clause = f"VALUES ?{var_name} {{ {safe} }}"
     new_where_body = f"{values_clause}\n  {where_body}"
 
     # Reassemble: replace old WHERE { body } with new WHERE { values_clause + body }

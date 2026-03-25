@@ -23,7 +23,8 @@ from app.dependencies import get_triplestore_client, get_validation_queue, get_w
 from app.services.labels import LabelService
 from app.services.shapes import ShapesService
 from app.sparql.query_service import QueryService
-from app.browser._helpers import get_hidden_types, _validate_iri
+from app.browser._helpers import get_hidden_types
+from app.sparql.builder import safe_iri
 from app.views.service import ViewSpec, ViewSpecService, extract_scope_where_body, inject_values_binding
 from app.triplestore.client import TriplestoreClient
 from app.validation.queue import AsyncValidationQueue
@@ -1411,7 +1412,9 @@ async def calendar_patch(
     based on the object's RDF type (Event → schema:startDate/endDate,
     Task → bpkm:scheduledStart/scheduledEnd).
     """
-    if not _validate_iri(body.iri):
+    try:
+        safe_body_iri = safe_iri(body.iri)
+    except ValueError:
         return JSONResponse(
             content={"error": "Invalid IRI"},
             status_code=400,
@@ -1426,7 +1429,7 @@ async def calendar_patch(
     # Detect the object's type to determine the right predicates
     type_query = f"""SELECT ?type WHERE {{
   GRAPH <urn:sempkm:current> {{
-    <{body.iri}> a ?type .
+    {safe_body_iri} a ?type .
   }}
 }}"""
     try:
