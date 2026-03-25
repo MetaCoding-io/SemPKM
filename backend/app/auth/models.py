@@ -87,6 +87,21 @@ class InstanceConfig(Base):
     )
 
 
+# --- API token scope constants (F-016) ---
+
+VALID_SCOPES = frozenset({
+    "*",               # Full access (wildcard)
+    "sparql:read",     # Read-only SPARQL queries
+    "sparql:write",    # SPARQL update operations
+    "objects:read",    # Read objects and views
+    "objects:write",   # Create/update/delete objects
+    "models:admin",    # Model install/uninstall
+    "users:admin",     # User and invitation management
+    "commands:execute", # Execute commands (object.create, edge.create, etc.)
+    "copilot:use",     # Use AI copilot features
+})
+
+
 class ApiToken(Base):
     """Long-lived API token for non-browser clients (e.g., WebDAV)."""
 
@@ -98,6 +113,7 @@ class ApiToken(Base):
     )
     name: Mapped[str] = mapped_column(String(255))
     token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    scope: Mapped[str] = mapped_column(String(1024), default="*")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -105,6 +121,11 @@ class ApiToken(Base):
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     user: Mapped["User"] = relationship(back_populates="api_tokens")
+
+    @property
+    def scopes(self) -> set[str]:
+        """Return the set of scopes for this token."""
+        return set(s.strip() for s in (self.scope or "*").split(",") if s.strip())
 
 
 class UsedMagicToken(Base):

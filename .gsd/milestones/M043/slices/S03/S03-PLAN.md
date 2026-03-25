@@ -45,7 +45,7 @@ Unit tests: verify token replay returns 401, verify unknown email without SMTP r
   - Files: `backend/app/auth/models.py`, `backend/app/auth/tokens.py`, `backend/app/auth/router.py`
   - Verify: cd backend && .venv/bin/python -m pytest tests/ -v -x -k 'magic or auth' --timeout=60
 
-- [ ] **T02: Fine-grained API token scopes with enforcement middleware** `est:4h`
+- [x] **T02: Fine-grained API token scopes with enforcement middleware** `est:4h`
   1. Add scope field to ApiToken model in backend/app/auth/models.py:
    - scope: str (comma-separated, default='*' for full access)
    - Define scope constants: 'sparql:read', 'sparql:write', 'objects:read', 'objects:write', 'models:admin', 'users:admin', 'commands:execute', 'copilot:use', '*'

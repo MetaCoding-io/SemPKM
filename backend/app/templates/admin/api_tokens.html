@@ -17,6 +17,38 @@
                 <input type="text" id="token-name" name="name"
                        placeholder="e.g. Browser Extension, CI Pipeline" required>
             </div>
+            <div class="form-group">
+                <label>Scopes</label>
+                <p style="font-size: 0.85rem; color: var(--color-text-muted); margin: 0 0 0.5rem 0;">
+                    Leave all unchecked for full access (wildcard). Check specific scopes to restrict what this key can do.
+                </p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem 1rem;">
+                    <label style="font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" name="scopes" value="sparql:read"> sparql:read
+                    </label>
+                    <label style="font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" name="scopes" value="sparql:write"> sparql:write
+                    </label>
+                    <label style="font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" name="scopes" value="objects:read"> objects:read
+                    </label>
+                    <label style="font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" name="scopes" value="objects:write"> objects:write
+                    </label>
+                    <label style="font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" name="scopes" value="commands:execute"> commands:execute
+                    </label>
+                    <label style="font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" name="scopes" value="copilot:use"> copilot:use
+                    </label>
+                    <label style="font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" name="scopes" value="models:admin"> models:admin
+                    </label>
+                    <label style="font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" name="scopes" value="users:admin"> users:admin
+                    </label>
+                </div>
+            </div>
             <div>
                 <button type="submit" class="btn btn-primary">Create Key</button>
                 <span id="apikey-spinner" class="htmx-indicator loading">Creating...</span>
@@ -35,6 +67,11 @@
         {% if new_token is defined and new_token %}
         <div class="success-box" style="margin-bottom: 1rem;">
             <p style="margin: 0 0 0.5rem 0;"><strong>✅ API key "{{ new_token_name }}" created.</strong></p>
+            {% if new_token_scope and new_token_scope != '*' %}
+            <p style="margin: 0 0 0.5rem 0; font-size: 0.85rem;">Scopes: <code>{{ new_token_scope }}</code></p>
+            {% else %}
+            <p style="margin: 0 0 0.5rem 0; font-size: 0.85rem;">Scopes: <code>* (full access)</code></p>
+            {% endif %}
             <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
                 <code id="new-token-value" style="background: var(--color-bg-elevated, #1a1a2e); padding: 0.4rem 0.75rem; border-radius: 4px; font-size: 0.85rem; word-break: break-all; flex: 1;">{{ new_token }}</code>
                 <button type="button" class="btn btn-secondary btn-sm" onclick="copyToken()" id="copy-token-btn">Copy</button>
@@ -60,6 +97,7 @@
             <thead>
                 <tr>
                     <th>Name</th>
+                    <th>Scopes</th>
                     <th>Created</th>
                     <th>Actions</th>
                 </tr>
@@ -68,6 +106,7 @@
                 {% for token in tokens %}
                 <tr>
                     <td>{{ token.name }}</td>
+                    <td><code style="font-size: 0.8rem;">{{ token.scope or '*' }}</code></td>
                     <td>{{ token.created_at.strftime('%Y-%m-%d %H:%M') if token.created_at else '—' }}</td>
                     <td>
                         <button class="btn btn-secondary btn-sm"

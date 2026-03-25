@@ -21,7 +21,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth.dependencies import get_current_user_or_api
+from app.auth.dependencies import get_current_user_or_api, scope_required
 from app.auth.models import User
 from app.copilot.context import GraphContextService
 from app.copilot.conversation import ConversationService
@@ -37,7 +37,11 @@ from app.services.llm import LLMConfigService
 
 logger = logging.getLogger(__name__)
 
-copilot_router = APIRouter(prefix="/api/copilot", tags=["copilot"])
+copilot_router = APIRouter(
+    prefix="/api/copilot",
+    tags=["copilot"],
+    dependencies=[Depends(scope_required("copilot:use"))],
+)
 
 conversation_svc = ConversationService()
 persona_svc = AIPersonaService()

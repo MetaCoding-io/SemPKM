@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, TypeAdapter, field_validator
 from rdflib import URIRef
 
-from app.auth.dependencies import require_role_or_api
+from app.auth.dependencies import require_role_or_api, scope_required
 from app.auth.models import User
 from app.commands.dispatcher import dispatch
 from app.commands.exceptions import CommandError
@@ -95,7 +95,7 @@ def _parse_commands(body: Any) -> list[Command]:
         raise CommandError("Request body must be a JSON object or array")
 
 
-@router.post("/commands")
+@router.post("/commands", dependencies=[Depends(scope_required("commands:execute"))])
 async def execute_commands(
     request: Request,
     user: User = Depends(require_role_or_api("owner", "member")),
@@ -241,7 +241,7 @@ async def execute_commands(
         )
 
 
-@router.post("/commands/bulk")
+@router.post("/commands/bulk", dependencies=[Depends(scope_required("commands:execute"))])
 async def execute_bulk_commands(
     request_body: BulkCommandRequest,
     user: User = Depends(require_role_or_api("owner", "member")),

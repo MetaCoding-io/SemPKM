@@ -264,15 +264,21 @@ async def get_current_user_or_api(
             user = user_result.scalar_one_or_none()
             if user is not None:
                 logger.debug("dual-auth resolved via session cookie for user=%s", user.email)
+                # Mark auth method as session — scope enforcement is bypassed
+                request.state.auth_method = "session"
                 return user
 
     # --- Path 2: Bearer API token ---
     bearer_token = _extract_bearer_token(authorization)
     if bearer_token is not None:
         auth_service = request.app.state.auth_service
-        user = await auth_service.verify_api_token(bearer_token)
+        user, token_row = await auth_service.verify_api_token(bearer_token)
         if user is not None:
             logger.debug("dual-auth resolved via Bearer token for user=%s", user.email)
+            # Store token metadata on request.state for scope enforcement
+            request.state.api_token_scopes = token_row.scopes
+            request.state.api_token_id = str(token_row.id)
+            request.state.auth_method = "bearer"
             return user
         # Token was provided but invalid — give a specific message
         raise HTTPException(
@@ -285,3 +291,54 @@ async def get_current_user_or_api(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Not authenticated",
     )
+
+
+def scope_required(*required_scopes: str):
+    """Factory returning a dependency that enforces API token scopes.
+
+    For session-authenticated requests (cookie), scope check is bypassed —
+    sessions inherit full permissions from the user's role.
+
+    For Bearer-token requests, the token must have at least one of the
+    required scopes (or the wildcard '*').
+
+    Usage:
+        @router.get("/sparql", dependencies=[Depends(scope_required("sparql:read"))])
+
+    Or stacked with role check:
+        user: User = Depends(require_role_or_api("owner", "member"))
+        # + dependencies=[Depends(scope_required("commands:execute"))]
+    """
+
+    async def _check_scope(
+        request: Request,
+        user: User = Depends(get_current_user_or_api),
+    ) -> User:
+        # Session auth bypasses scope check
+        auth_method = getattr(request.state, "auth_method", "session")
+        if auth_method != "bearer":
+            return user
+
+        token_scopes: set[str] = getattr(request.state, "api_token_scopes", set())
+        token_id: str = getattr(request.state, "api_token_id", "unknown")
+
+        # Wildcard grants everything
+        if "*" in token_scopes:
+            return user
+
+        # Check if any required scope is present
+        if not token_scopes.intersection(required_scopes):
+            logger.warning(
+                "Scope enforcement denied: token=%s scopes=%s required=%s endpoint=%s",
+                token_id,
+                ",".join(sorted(token_scopes)),
+                ",".join(sorted(required_scopes)),
+                request.url.path,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Token lacks required scope: {', '.join(required_scopes)}",
+            )
+        return user
+
+    return _check_scope

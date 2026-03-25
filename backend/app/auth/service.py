@@ -187,7 +187,7 @@ class AuthService:
             return invitation
 
     async def create_api_token(
-        self, user_id: uuid.UUID, name: str
+        self, user_id: uuid.UUID, name: str, scope: str = "*"
     ) -> tuple[str, ApiToken]:
         """Create a new API token. Returns (plaintext_token, ApiToken).
 
@@ -199,7 +199,7 @@ class AuthService:
         plaintext = secrets.token_hex(32)  # 64-char hex string
         token_hash = hashlib.sha256(plaintext.encode()).hexdigest()
         async with self._session_factory() as session:
-            token = ApiToken(user_id=user_id, name=name, token_hash=token_hash)
+            token = ApiToken(user_id=user_id, name=name, token_hash=token_hash, scope=scope)
             session.add(token)
             await session.commit()
             await session.refresh(token)
@@ -229,8 +229,11 @@ class AuthService:
             await session.commit()
             return result.rowcount > 0
 
-    async def verify_api_token(self, plaintext: str) -> User | None:
-        """Verify a plaintext API token, return its User or None if invalid/revoked."""
+    async def verify_api_token(self, plaintext: str) -> tuple[User, ApiToken] | tuple[None, None]:
+        """Verify a plaintext API token, return (User, ApiToken) or (None, None).
+
+        Returns both the user and the token row so callers can inspect scope.
+        """
         import hashlib
 
         token_hash = hashlib.sha256(plaintext.encode()).hexdigest()
@@ -243,7 +246,7 @@ class AuthService:
             )
             token_row = result.scalar_one_or_none()
             if not token_row:
-                return None
+                return None, None
             # Update last_used_at
             token_row.last_used_at = _utcnow()
             await session.commit()
@@ -251,7 +254,10 @@ class AuthService:
             user_result = await session.execute(
                 select(User).where(User.id == token_row.user_id)
             )
-            return user_result.scalar_one_or_none()
+            user = user_result.scalar_one_or_none()
+            if not user:
+                return None, None
+            return user, token_row
 
     def verify_api_token_sync(
         self, plaintext: str, db_url: str

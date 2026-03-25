@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T01",
+  "unitId": "M043/S03/T01",
+  "timestamp": 1774430292770,
+  "passed": false,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "cd backend",
+      "exitCode": 0,
+      "durationMs": 15,
+      "verdict": "pass"
+    },
+    {
+      "command": ".venv/bin/python -m pytest tests/ -v -x -k 'magic or auth' --timeout=60",
+      "exitCode": 127,
+      "durationMs": 16,
+      "verdict": "fail"
+    }
+  ],
+  "retryAttempt": 1,
+  "maxRetries": 2
+}

@@ -1101,23 +1101,44 @@ async def admin_api_keys_create(
     request: Request,
     user: User = Depends(require_role("owner")),
     name: str = Form(...),
+    scopes: list[str] = Form(default=[]),
 ):
-    """Create a new API token.
+    """Create a new API token with optional scope restriction.
 
     Returns the updated token list partial with the plaintext token displayed
     once in a success banner. The plaintext is never stored — this is the only
     time it's visible.
     """
+    from app.auth.models import VALID_SCOPES
+
+    # Build scope string from checkbox selections
+    if scopes:
+        invalid = set(scopes) - VALID_SCOPES
+        if invalid:
+            auth_service = _get_auth_service(request)
+            tokens = await auth_service.list_api_tokens(user.id)
+            context = {
+                "request": request,
+                "user": user,
+                "tokens": tokens,
+                "error": f"Invalid scope(s): {', '.join(sorted(invalid))}",
+            }
+            return templates_response(request, "admin/api_tokens.html", context, block_name="token_list")
+        scope = ",".join(sorted(scopes))
+    else:
+        scope = "*"
+
     auth_service = _get_auth_service(request)
     context: dict = {"request": request, "user": user}
 
     try:
         plaintext, token_obj = await auth_service.create_api_token(
-            user_id=user.id, name=name
+            user_id=user.id, name=name, scope=scope,
         )
         context["new_token"] = plaintext
         context["new_token_name"] = token_obj.name
-        logger.info("API token '%s' created via admin UI for user %s", name, user.id)
+        context["new_token_scope"] = token_obj.scope
+        logger.info("API token '%s' created via admin UI for user %s (scope=%s)", name, user.id, scope)
     except Exception as e:
         context["error"] = f"Failed to create API key: {e}"
         logger.warning("API token creation failed: %s", e)

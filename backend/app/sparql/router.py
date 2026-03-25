@@ -19,7 +19,7 @@ from fastapi.responses import JSONResponse, Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth.dependencies import get_current_user
+from app.auth.dependencies import get_current_user, get_current_user_or_api, scope_required
 from app.auth.models import User
 from app.config import settings
 from app.db.session import get_db_session
@@ -299,11 +299,11 @@ async def _enrich_sparql_results(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/sparql")
+@router.get("/sparql", dependencies=[Depends(scope_required("sparql:read"))])
 async def sparql_get(
     query: str = Query(..., description="SPARQL query string"),
     all_graphs: bool = Query(False, description="Skip current graph scoping"),
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user_or_api),
     client: TriplestoreClient = Depends(get_triplestore_client),
 ) -> Response:
     """Execute a SPARQL query via GET (query as URL parameter).
@@ -351,10 +351,10 @@ async def sparql_get(
         )
 
 
-@router.post("/sparql")
+@router.post("/sparql", dependencies=[Depends(scope_required("sparql:read"))])
 async def sparql_post(
     request: Request,
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user_or_api),
     client: TriplestoreClient = Depends(get_triplestore_client),
     query_service: QueryService = Depends(get_query_service),
     label_service: LabelService = Depends(get_label_service),
@@ -906,12 +906,12 @@ async def get_sparql_vocabulary(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/search")
+@router.get("/search", dependencies=[Depends(scope_required("sparql:read"))])
 async def search_knowledge_base(
     q: str = Query(..., min_length=2, description="Search query (minimum 2 characters)"),
     limit: int = Query(20, ge=1, le=100, description="Maximum results to return"),
     fuzzy: bool = Query(False, description="Enable fuzzy (typo-tolerant) matching for tokens >=5 chars"),
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user_or_api),
     search_service: SearchService = Depends(get_search_service),
 ) -> JSONResponse:
     """Full-text keyword search across the current knowledge base.

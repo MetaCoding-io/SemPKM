@@ -293,7 +293,22 @@ async def create_api_token(
 
     The plaintext token is returned exactly once in the response.
     Only the SHA-256 hash is stored in the database.
+    Optionally accepts a comma-separated scope string (defaults to '*').
     """
+    from app.auth.models import VALID_SCOPES
+
+    # Validate and normalize scope
+    scope = (body.scope or "*").strip()
+    if scope != "*":
+        requested = {s.strip() for s in scope.split(",") if s.strip()}
+        invalid = requested - VALID_SCOPES
+        if invalid:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid scope(s): {', '.join(sorted(invalid))}",
+            )
+        scope = ",".join(sorted(requested))
+
     auth_service = _get_auth_service(request)
     if not hasattr(auth_service, "create_api_token"):
         logger.warning("AuthService does not support create_api_token")
@@ -304,11 +319,13 @@ async def create_api_token(
     plaintext, token_obj = await auth_service.create_api_token(
         user_id=current_user.id,
         name=body.name,
+        scope=scope,
     )
     return CreateTokenResponse(
         token=plaintext,
         id=str(token_obj.id),
         name=token_obj.name,
+        scope=token_obj.scope,
         created_at=token_obj.created_at.isoformat(),
     )
 
@@ -325,6 +342,7 @@ async def list_api_tokens(
         TokenListItem(
             id=str(t.id),
             name=t.name,
+            scope=t.scope or "*",
             created_at=t.created_at.isoformat(),
         )
         for t in tokens

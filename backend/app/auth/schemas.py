@@ -104,6 +104,7 @@ class CreateTokenRequest(BaseModel):
     """Request to create a new API token."""
 
     name: str
+    scope: str | None = None  # Comma-separated scopes; defaults to '*' (full access)
 
 
 class CreateTokenResponse(BaseModel):
@@ -112,6 +113,7 @@ class CreateTokenResponse(BaseModel):
     token: str
     id: str
     name: str
+    scope: str
     created_at: str
 
 
@@ -120,4 +122,5 @@ class TokenListItem(BaseModel):
 
     id: str
     name: str
+    scope: str
     created_at: str
