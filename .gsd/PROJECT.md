@@ -742,6 +742,16 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - Prioritized Top 10 remediation list with effort estimates (19–35h total)
 - Deliverable: `.gsd/milestones/M042/M042-SECURITY-FINDINGS.md` — ready for user review and remediation scoping
 
+**Security Hardening — Injection, Auth & Access Control Fixes** — complete (M043, 2026-03-25)
+- Closed all actionable findings from the M042 security audit across 4 slices (S05 E2E regression suite not executed)
+- SPARQL injection: centralized SPARQLBuilder module (safe_iri, safe_literal, sparql_escape_string, values_clause, triple_pattern), all 17 modules migrated from 9 scattered escape functions, 18 exploit regression tests using exact M042 audit payloads
+- Access control: authentication added to 6 unprotected app endpoints, setup endpoint guarded, CORS consolidated to FastAPI only (nginx/Caddy CORS removed), HTTP security headers (CSP, X-Frame-Options, etc.) on all proxy layers
+- Auth hardening: single-use magic links (UsedMagicToken model), fine-grained API token scopes with scope_required() enforced on SPARQL/commands/copilot, session management (revoke-all, 10-session cap, daily cleanup), no-SMTP restriction
+- Rate limiting: 6 endpoint groups (SPARQL 60/min, copilot 20/min, token creation 5/min, commands 20/min, magic-link 5/min, verify 10/min), custom handler with WARNING logging
+- SecurityAuditLog table with log_security_event() helper wired to 6 auth operations, global error disclosure protection
+- Startup misconfiguration warnings (demo_mode on non-localhost, cookie_secure mismatch)
+- 3 Alembic migrations (022–024), docs/security-model.md (123 lines), 227 M043-specific tests, 52 files changed (+3977/-373 lines)
+
 ### Out of Scope
 
 - Read/write filesystem projections full sync — v2.3+ (VFS write MVP is v2.2)
@@ -759,7 +769,24 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Latest shipped: M038 Personal Media Scheduler App (2026-03-23) — 7 slices, 414 unit tests, daily media queue with podcast/YouTube/Spotify sources, context-driven plan adaptation, mobile Now Playing card**
+**Latest shipped: M043 Security Hardening (2026-03-25) — 4 slices, 227 new tests, SPARQL injection fixes, auth hardening (single-use magic links, scoped API tokens, session management), CORS consolidation, rate limiting, security audit logging**
+
+**What shipped in M043:**
+- Centralized SPARQLBuilder module: safe_iri(), safe_literal(), sparql_escape_string(), values_clause(), triple_pattern() — all 17 modules migrated from 9 scattered escape functions
+- 18 exploit regression tests using exact payloads from M042 audit findings (F-006 through F-010)
+- Authentication added to 6 unprotected app endpoints, setup endpoint guarded with setup_mode check
+- CORS consolidated to FastAPI CORSMiddleware — all nginx/Caddy CORS directives removed
+- HTTP security headers (CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy) on nginx.conf, nginx.demo.conf, Caddyfile.cloud
+- Single-use magic links via UsedMagicToken model with SHA-256 hash storage
+- Fine-grained API token scopes: scope_required() dependency factory enforced on SPARQL, commands, copilot endpoints
+- Session management: POST /api/auth/sessions/revoke-all, 10-session cap with oldest eviction, daily async cleanup
+- No-SMTP magic links restricted to existing/invited users
+- Rate limits on 6 endpoint groups via slowapi decorators with custom WARNING logging handler
+- SecurityAuditLog table with log_security_event() helper wired to 6 auth operations
+- Global exception handler eliminating error disclosure (generic 500 responses, full traceback logged)
+- Startup warnings for demo_mode + non-localhost, cookie_secure mismatches
+- docs/security-model.md (123 lines) documenting shared-data model, auth flows, scopes, rate limits
+- 3 Alembic migrations (022–024), 52 source files changed, +3977/-373 lines
 
 **What shipped in M037:**
 - Backend Context API: POST /api/context/update, GET /api/context/current, GET /api/context/stream (SSE). ContextService with TTL-based staleness (15 min default). ContextBroadcast SSE fan-out.
