@@ -92,8 +92,8 @@ export function initEditor(containerId, initialContent, objectIri) {
           if (update.docChanged) {
             var currentContent = update.state.doc.toString();
             if (currentContent !== savedContent) {
-              if (typeof window.markDirty === 'function') {
-                window.markDirty(objectIri);
+              if (typeof window.SemPKM.markDirty === 'function') {
+                window.SemPKM.markDirty(objectIri);
               }
             }
           }
@@ -106,8 +106,8 @@ export function initEditor(containerId, initialContent, objectIri) {
   editors[objectIri] = view;
 
   // Register cleanup for htmx:beforeCleanupElement
-  if (typeof window.registerCleanup === 'function') {
-    window.registerCleanup(containerId, function() {
+  if (typeof window.SemPKM.registerCleanup === 'function') {
+    window.SemPKM.registerCleanup(containerId, function() {
       if (editors[objectIri]) {
         editors[objectIri].destroy();
         delete editors[objectIri];
@@ -150,8 +150,8 @@ async function saveBody(objectIri, view) {
     // apiFetch only returns on 2xx — success path
     view._sempkmSavedContent = content;
 
-    if (typeof window.markClean === 'function') {
-      window.markClean(objectIri);
+    if (typeof window.SemPKM.markClean === 'function') {
+      window.SemPKM.markClean(objectIri);
     }
 
     if (statusEl) {
@@ -241,7 +241,7 @@ export function destroyEditor(objectIri) {
  *
  * @param {boolean} isDark - true for dark theme, false for light
  */
-window.switchEditorThemes = function(isDark) {
+window.SemPKM.switchEditorThemes = function(isDark) {
   var theme = isDark ? darkEditorTheme : lightEditorTheme;
   var iris = Object.keys(editors);
   for (var i = 0; i < iris.length; i++) {
@@ -255,7 +255,13 @@ window.switchEditorThemes = function(isDark) {
 };
 
 // Expose functions globally for use from non-module scripts and onclick handlers
-window.initEditor = initEditor;
-window.editorAction = editorAction;
-window.getEditor = getEditor;
-window.destroyEditor = destroyEditor;
+window.SemPKM.initEditor = initEditor;
+window.SemPKM.editorAction = editorAction;
+window.SemPKM.getEditor = getEditor;
+window.SemPKM.destroyEditor = destroyEditor;
+// ── backward-compat shims (remove in T03) ──
+window.switchEditorThemes = window.SemPKM.switchEditorThemes;
+window.initEditor = window.SemPKM.initEditor;
+window.editorAction = window.SemPKM.editorAction;
+window.getEditor = window.SemPKM.getEditor;
+window.destroyEditor = window.SemPKM.destroyEditor;

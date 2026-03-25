@@ -127,7 +127,7 @@
    * Finds the custom tab renderer element by walking dockview's panel → tab structure.
    */
   function rerenderTabIcon(panelId) {
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return;
     var panel = dv.getGroupPanel(panelId);
     if (!panel || !panel.group) return;
@@ -176,18 +176,18 @@
           // Visibility handler: re-measure CodeMirror when panel re-shown
           params.api.onDidVisibilityChange(function (event) {
             if (!event.isVisible) return;
-            if (window._editorInstances && window._editorInstances[iri]) {
-              var cm = window._editorInstances[iri];
+            if (window.SemPKM._editorInstances && window.SemPKM._editorInstances[iri]) {
+              var cm = window.SemPKM._editorInstances[iri];
               if (cm.requestMeasure) cm.requestMeasure();
               else if (cm.refresh) cm.refresh();
             }
           });
         },
         dispose: function () {
-          if (el.id) window.runCleanup(el.id);
+          if (el.id) window.SemPKM.runCleanup(el.id);
           var children = el.querySelectorAll('[id]');
           for (var i = 0; i < children.length; i++) {
-            window.runCleanup(children[i].id);
+            window.SemPKM.runCleanup(children[i].id);
           }
         }
       };
@@ -202,10 +202,10 @@
           htmx.ajax('GET', url, { target: el, swap: 'innerHTML' });
         },
         dispose: function () {
-          if (el.id) window.runCleanup(el.id);
+          if (el.id) window.SemPKM.runCleanup(el.id);
           var children = el.querySelectorAll('[id]');
           for (var i = 0; i < children.length; i++) {
-            window.runCleanup(children[i].id);
+            window.SemPKM.runCleanup(children[i].id);
           }
         }
       };
@@ -269,10 +269,10 @@
           htmx.ajax('GET', url, { target: el, swap: 'innerHTML' });
         },
         dispose: function () {
-          if (el.id) window.runCleanup(el.id);
+          if (el.id) window.SemPKM.runCleanup(el.id);
           var children = el.querySelectorAll('[id]');
           for (var i = 0; i < children.length; i++) {
-            window.runCleanup(children[i].id);
+            window.SemPKM.runCleanup(children[i].id);
           }
         }
       };
@@ -332,7 +332,7 @@
     // Wire layout change: save to localStorage + re-process htmx on reparented panels
     dv.onDidLayoutChange(function () {
       // Guard: skip localStorage save during persona switch to prevent overwrite
-      if (window._switchingPersona) return;
+      if (window.SemPKM._switchingPersona) return;
       try {
         // Filter out ephemeral create-form panels — they can't be restored after reload
         var layout = dv.toJSON();
@@ -431,9 +431,13 @@
     });
 
     // Export
-    window._dockview = dv;
+    window.SemPKM._dockview = dv;
     layout = new WorkspaceLayout();
     layout._dv = dv;
+    window.SemPKM._workspaceLayout = layout;
+    window.SemPKM._tabMeta = _tabMeta;
+    // Keep backward-compat shims in sync (templates still write to window._tabMeta etc.)
+    window._dockview = dv;
     window._workspaceLayout = layout;
     window._tabMeta = _tabMeta;
   }
@@ -447,7 +451,7 @@
    * Replaces all hard-coded document.getElementById('editor-area') calls.
    */
   function getActiveEditorArea() {
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (dv && dv.activePanel && dv.activePanel.view && dv.activePanel.view.content) {
       return dv.activePanel.view.content.element;
     }
@@ -458,7 +462,7 @@
    * Split the editor to the right, duplicating the active panel's content.
    */
   function splitRight(groupId) {
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return;
     var activePanel = dv.activePanel;
     if (!activePanel) {
@@ -489,7 +493,7 @@
    * Switch to a tab (panel) within a group.
    */
   function switchTabInGroup(tabId, groupId) {
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return;
     var panel = dv.getGroupPanel(tabId);
     if (panel) panel.api.setActive();
@@ -499,7 +503,7 @@
    * Close a tab (panel).
    */
   function closeTabInGroup(tabId, groupId) {
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return;
     var panel = dv.getGroupPanel(tabId);
     if (panel) panel.api.close();
@@ -525,7 +529,7 @@
    * Close all other tabs in a group, keeping only keepTabId.
    */
   function closeOtherTabsInGroup(keepTabId, groupId) {
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return;
     var toClose = dv.panels.filter(function (p) { return p.id !== keepTabId; });
     toClose.forEach(function (p) {
@@ -625,16 +629,29 @@
   // Window exports
   // -----------------------------------------------------------------------
 
-  window._workspaceLayout = null;  // set by initWorkspaceLayout()
-  window._dockview = null;          // set by initWorkspaceLayout()
-  window._tabMeta = {};             // set by initWorkspaceLayout()
-  window.getActiveEditorArea = getActiveEditorArea;
-  window.splitRight = splitRight;
-  window.setActiveGroup = setActiveGroup;
-  window.initWorkspaceLayout = initWorkspaceLayout;
-  window.switchTabInGroup = switchTabInGroup;
-  window.closeTabInGroup = closeTabInGroup;
-  window.renderGroupTabBar = renderGroupTabBar;
-  window.loadTabInGroup = loadTabInGroup;
+  window.SemPKM._workspaceLayout = null;  // set by initWorkspaceLayout()
+  window.SemPKM._dockview = null;          // set by initWorkspaceLayout()
+  window.SemPKM._tabMeta = {};             // set by initWorkspaceLayout()
+  window.SemPKM.getActiveEditorArea = getActiveEditorArea;
+  window.SemPKM.splitRight = splitRight;
+  window.SemPKM.setActiveGroup = setActiveGroup;
+  window.SemPKM.initWorkspaceLayout = initWorkspaceLayout;
+  window.SemPKM.switchTabInGroup = switchTabInGroup;
+  window.SemPKM.closeTabInGroup = closeTabInGroup;
+  window.SemPKM.renderGroupTabBar = renderGroupTabBar;
+  window.SemPKM.loadTabInGroup = loadTabInGroup;
 
+
+  // ── backward-compat shims (remove in T03) ──
+  window._dockview = window.SemPKM._dockview;
+  window._workspaceLayout = window.SemPKM._workspaceLayout;
+  window._tabMeta = window.SemPKM._tabMeta;
+  window.getActiveEditorArea = window.SemPKM.getActiveEditorArea;
+  window.splitRight = window.SemPKM.splitRight;
+  window.setActiveGroup = window.SemPKM.setActiveGroup;
+  window.initWorkspaceLayout = window.SemPKM.initWorkspaceLayout;
+  window.switchTabInGroup = window.SemPKM.switchTabInGroup;
+  window.closeTabInGroup = window.SemPKM.closeTabInGroup;
+  window.renderGroupTabBar = window.SemPKM.renderGroupTabBar;
+  window.loadTabInGroup = window.SemPKM.loadTabInGroup;
 })();

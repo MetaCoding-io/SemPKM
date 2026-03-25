@@ -122,7 +122,7 @@
   }
 
   /* ── Export ── */
-  window.initBMC = initBMC;
+  window.SemPKM.initBMC = initBMC;
 
   /* ── Scope sync: re-fetch when a sibling view changes scope ── */
   document.addEventListener('sempkm:scope-changed', function (e) {
@@ -155,4 +155,7 @@
       htmx.ajax('GET', url, { target: target, swap: 'innerHTML' });
     }
   });
+
+  // ── backward-compat shims (remove in T03) ──
+  window.initBMC = window.SemPKM.initBMC;
 })();

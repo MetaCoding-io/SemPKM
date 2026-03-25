@@ -223,11 +223,11 @@
                 var personaName = data.persona_name || 'Unknown';
                 var ruleName = data.rule_name || '';
 
-                if (typeof window.switchPersona === 'function') {
-                    window.switchPersona(personaId);
+                if (typeof window.SemPKM.switchPersona === 'function') {
+                    window.SemPKM.switchPersona(personaId);
                     _showAutoSwitchNotice(personaName, ruleName);
                 } else {
-                    console.warn('[context-indicator] window.switchPersona not available');
+                    console.warn('[context-indicator] window.SemPKM.switchPersona not available');
                 }
             } catch (err) {
                 console.error('[context-indicator] persona_switched parse error:', err);

@@ -61,13 +61,13 @@
     });
 
     // Switch CodeMirror editors via Compartment reconfigure
-    if (typeof window.switchEditorThemes === 'function') {
-      window.switchEditorThemes(resolved === 'dark');
+    if (typeof window.SemPKM.switchEditorThemes === 'function') {
+      window.SemPKM.switchEditorThemes(resolved === 'dark');
     }
 
     // Switch Cytoscape graph styles
-    if (typeof window.switchGraphTheme === 'function') {
-      window.switchGraphTheme(resolved === 'dark');
+    if (typeof window.SemPKM.switchGraphTheme === 'function') {
+      window.SemPKM.switchGraphTheme(resolved === 'dark');
     }
 
     // Dispatch event for any other listeners
@@ -76,7 +76,7 @@
     }));
   }
 
-  window.setTheme = function (preference) {
+  window.SemPKM.setTheme = function (preference) {
     localStorage.setItem(THEME_KEY, preference);
     applyTheme(resolveTheme(preference));
     // Persist to server settings so refresh survives.
@@ -124,11 +124,14 @@
       if (serverTheme) {
         var localTheme;
         try { localTheme = localStorage.getItem('sempkm_theme'); } catch (_) { localTheme = null; }
-        if (serverTheme !== localTheme && typeof window.setTheme === 'function') {
-          window.setTheme(serverTheme);
+        if (serverTheme !== localTheme && typeof window.SemPKM.setTheme === 'function') {
+          window.SemPKM.setTheme(serverTheme);
           try { localStorage.setItem('sempkm_theme', serverTheme); } catch (_) {}
         }
       }
     }, 300);
   });
+
+  // ── backward-compat shims (remove in T03) ──
+  window.setTheme = window.SemPKM.setTheme;
 })();

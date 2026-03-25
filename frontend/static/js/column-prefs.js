@@ -181,6 +181,9 @@
     }
   };
 
-  window.ColumnPrefs = ColumnPrefs;
+  window.SemPKM.ColumnPrefs = ColumnPrefs;
 
+
+  // ── backward-compat shims (remove in T03) ──
+  window.ColumnPrefs = window.SemPKM.ColumnPrefs;
 })();

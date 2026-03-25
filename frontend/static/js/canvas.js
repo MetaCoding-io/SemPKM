@@ -198,8 +198,8 @@
     state.mounted = true;
 
     // Register cleanup so dockview panel disposal tears down listeners
-    if (typeof window.registerCleanup === 'function') {
-      window.registerCleanup('spatial-canvas-root', function () {
+    if (typeof window.SemPKM.registerCleanup === 'function') {
+      window.SemPKM.registerCleanup('spatial-canvas-root', function () {
         unbindEvents();
         state.mounted = false;
         state.viewport = null;
@@ -282,7 +282,7 @@
     if (!iri) return;
     if (findNode(iri)) {
       setStatus('Already on canvas');
-      if (window.showToast) window.showToast('Already on canvas');
+      if (window.SemPKM.showToast) window.SemPKM.showToast('Already on canvas');
       return;
     }
     var world = screenToWorld(clientX, clientY);
@@ -310,7 +310,7 @@
       if (state.nodes[i].nodeType === 'embed') embedCount++;
     }
     if (embedCount >= MAX_EMBEDS) {
-      if (window.showToast) window.showToast('Maximum of ' + MAX_EMBEDS + ' embeds reached');
+      if (window.SemPKM.showToast) window.SemPKM.showToast('Maximum of ' + MAX_EMBEDS + ' embeds reached');
       return;
     }
     var world = screenToWorld(clientX, clientY);
@@ -740,12 +740,12 @@
         .catch(function () { return null; })
         .then(function (data) {
           if (!data || !data.resolved) {
-            if (window.showToast) window.showToast('Object not found: ' + ghostTitle);
+            if (window.SemPKM.showToast) window.SemPKM.showToast('Object not found: ' + ghostTitle);
             return;
           }
           var iri = data.resolved[ghostTitle];
           if (!iri) {
-            if (window.showToast) window.showToast('Object not found: ' + ghostTitle);
+            if (window.SemPKM.showToast) window.SemPKM.showToast('Object not found: ' + ghostTitle);
             return;
           }
           if (findNode(iri)) {
@@ -767,7 +767,7 @@
           fetchNodeBody(iri);
         })
         .catch(function () {
-          if (window.showToast) window.showToast('Object not found: ' + ghostTitle);
+          if (window.SemPKM.showToast) window.SemPKM.showToast('Object not found: ' + ghostTitle);
         });
       return;
     }
@@ -1512,7 +1512,7 @@
 
   async function saveSessionAs() {
     if (state.isSaving) return;
-    var name = window.prompt('Session name:', '');
+    var name = window.SemPKM.prompt('Session name:', '');
     if (!name) return;
     state.isSaving = true;
     try {
@@ -1528,10 +1528,10 @@
       state.canvasId = data.session_id;
       await loadSessionList();
       setStatus('Saved as "' + name + '"');
-      if (window.showToast) window.showToast('Saved as "' + name + '"');
+      if (window.SemPKM.showToast) window.SemPKM.showToast('Saved as "' + name + '"');
     } catch (error) {
       setStatus('Save as failed', true);
-      if (window.showToast) window.showToast('Save as failed');
+      if (window.SemPKM.showToast) window.SemPKM.showToast('Save as failed');
     } finally {
       state.isSaving = false;
     }
@@ -1553,10 +1553,10 @@
       });
       var data = await response.json();
       setStatus('Saved ' + (data.updated_at || ''));
-      if (window.showToast) window.showToast('Canvas saved');
+      if (window.SemPKM.showToast) window.SemPKM.showToast('Canvas saved');
     } catch (error) {
       setStatus('Save failed', true);
-      if (window.showToast) window.showToast('Canvas save failed');
+      if (window.SemPKM.showToast) window.SemPKM.showToast('Canvas save failed');
     } finally {
       state.isSaving = false;
     }
@@ -1572,7 +1572,7 @@
           applyDocument(data.document);
           if (!silent) {
             setStatus('Loaded ' + (data.updated_at || ''));
-            if (window.showToast) window.showToast('Canvas loaded');
+            if (window.SemPKM.showToast) window.SemPKM.showToast('Canvas loaded');
           }
         }
         // Empty canvas: hint text handles the empty state, no toast needed
@@ -1580,7 +1580,7 @@
     } catch (error) {
       if (!silent) {
         setStatus('Load failed', true);
-        if (window.showToast) window.showToast('Canvas load failed');
+        if (window.SemPKM.showToast) window.SemPKM.showToast('Canvas load failed');
       }
     }
   }
@@ -1655,7 +1655,7 @@
       if (state.nodes[i].nodeType === 'embed') embedCount++;
     }
     if (embedCount >= MAX_EMBEDS) {
-      if (window.showToast) window.showToast('Maximum of ' + MAX_EMBEDS + ' embeds reached');
+      if (window.SemPKM.showToast) window.SemPKM.showToast('Maximum of ' + MAX_EMBEDS + ' embeds reached');
       return;
     }
     // Create picker DOM if first open

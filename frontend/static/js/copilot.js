@@ -745,7 +745,7 @@ function _convertIriPills(html) {
   // Pattern 1: [[iri|label]] markers from CopilotService.execute_and_format()
   html = html.replace(/\[\[([^|]+)\|([^\]]+)\]\]/g, function (match, iri, label) {
     return '<a class="copilot-iri-pill" href="#" title="' + _escapeAttr(iri) + '" ' +
-      'onclick="event.preventDefault();if(window.openTab){window.openTab(\'' +
+      'onclick="event.preventDefault();if(window.SemPKM.openTab){window.SemPKM.openTab(\'' +
       _escapeJs(iri) + '\',\'' + _escapeJs(label) + '\')}">' +
       _escapeHtml(label) + '</a>';
   });
@@ -754,7 +754,7 @@ function _convertIriPills(html) {
   // The markdown renderer may have already converted these to <a> tags
   html = html.replace(/<a\s+href="iri:([^"]+)"[^>]*>([^<]+)<\/a>/g, function (match, iri, label) {
     return '<a class="copilot-iri-pill" href="#" title="' + _escapeAttr(iri) + '" ' +
-      'onclick="event.preventDefault();if(window.openTab){window.openTab(\'' +
+      'onclick="event.preventDefault();if(window.SemPKM.openTab){window.SemPKM.openTab(\'' +
       _escapeJs(iri) + '\',\'' + _escapeJs(label) + '\')}">' +
       _escapeHtml(label) + '</a>';
   });
@@ -1701,7 +1701,7 @@ function _handleCreateObject(card, data) {
             '<i data-lucide="check-circle"></i> Created ' +
             (createdIri
               ? '<a class="copilot-iri-pill" href="#" title="' + _escapeAttr(createdIri) + '" ' +
-                'onclick="event.preventDefault();if(window.openTab){window.openTab(\'' +
+                'onclick="event.preventDefault();if(window.SemPKM.openTab){window.SemPKM.openTab(\'' +
                 _escapeJs(createdIri) + '\',\'' + _escapeJs(displayLabel) + '\')}">' +
                 _escapeHtml(displayLabel) + '</a>'
               : _escapeHtml(displayLabel)) +

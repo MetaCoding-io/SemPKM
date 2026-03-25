@@ -1015,7 +1015,7 @@ function renderIriPill(uri, enr) {
 
   return '<span class="sparql-iri-pill" title="' + escapeAttr(uri) + '" ' +
     'data-iri="' + escapeAttr(uri) + '" data-label="' + escapeAttr(label) + '" ' +
-    'onclick="if(window.openTab){window.openTab(\'' + escapeJs(uri) + '\',\'' + escapeJs(label) + '\')}">' +
+    'onclick="if(window.SemPKM.openTab){window.SemPKM.openTab(\'' + escapeJs(uri) + '\',\'' + escapeJs(label) + '\')}">' +
     '<span class="sparql-pill-icon" style="color:' + escapeAttr(iconColor) + '">' +
     '<i data-lucide="' + escapeAttr(iconName) + '"></i></span>' +
     '<span class="sparql-pill-label">' + escapeHtml(label) + '</span></span>';

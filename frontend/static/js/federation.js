@@ -32,7 +32,7 @@
         }, duration);
     }
 
-    window.showFederationToast = showToast;
+    window.SemPKM.showFederationToast = showToast;
 
     // -----------------------------------------------------------------------
     // Inbox badge polling
@@ -69,7 +69,7 @@
     // Sync Now handler
     // -----------------------------------------------------------------------
 
-    window.syncSharedGraph = async function (graphId) {
+    window.SemPKM.syncSharedGraph = async function (graphId) {
         // Find the sync button for loading state
         var card = document.querySelector('[data-graph-iri*="' + graphId + '"]');
         var btn = card ? card.querySelector('.shared-graph-actions .primary') : null;
@@ -110,10 +110,10 @@
     };
 
     // Sync triggered from a notification
-    window.syncFromNotification = async function (notifId, targetGraphIri) {
+    window.SemPKM.syncFromNotification = async function (notifId, targetGraphIri) {
         if (targetGraphIri) {
             var graphId = targetGraphIri.replace('urn:sempkm:shared:', '');
-            await window.syncSharedGraph(graphId);
+            await window.SemPKM.syncSharedGraph(graphId);
         }
         await dismissNotification(notifId, 'acted');
     };
@@ -122,17 +122,17 @@
     // Create shared graph
     // -----------------------------------------------------------------------
 
-    window.showCreateSharedGraph = function () {
+    window.SemPKM.showCreateSharedGraph = function () {
         var form = document.getElementById('create-shared-graph-form');
         if (form) form.style.display = '';
     };
 
-    window.hideCreateSharedGraph = function () {
+    window.SemPKM.hideCreateSharedGraph = function () {
         var form = document.getElementById('create-shared-graph-form');
         if (form) form.style.display = 'none';
     };
 
-    window.submitCreateSharedGraph = async function () {
+    window.SemPKM.submitCreateSharedGraph = async function () {
         var nameEl = document.getElementById('new-graph-name');
         var descEl = document.getElementById('new-graph-desc');
         var name = nameEl ? nameEl.value.trim() : '';
@@ -170,13 +170,13 @@
     // Invitation form
     // -----------------------------------------------------------------------
 
-    window.showInviteForm = function (graphIri) {
+    window.SemPKM.showInviteForm = function (graphIri) {
         var graphId = graphIri.replace('urn:sempkm:shared:', '');
         var form = document.getElementById('invite-form-' + graphId);
         if (form) form.style.display = '';
     };
 
-    window.submitInvite = async function (graphIri, graphId) {
+    window.SemPKM.submitInvite = async function (graphIri, graphId) {
         var input = document.getElementById('invite-handle-' + graphId);
         var handle = input ? input.value.trim() : '';
 
@@ -208,7 +208,7 @@
     // Notification actions
     // -----------------------------------------------------------------------
 
-    window.acceptInvitation = async function (notifId) {
+    window.SemPKM.acceptInvitation = async function (notifId) {
         try {
             var res = await apiFetch('/api/federation/invitations/' + notifId + '/accept', {
                 method: 'POST',
@@ -226,7 +226,7 @@
         }
     };
 
-    window.declineInvitation = async function (notifId) {
+    window.SemPKM.declineInvitation = async function (notifId) {
         try {
             await apiFetch('/api/federation/invitations/' + notifId + '/decline', {
                 method: 'POST',
@@ -239,7 +239,7 @@
         }
     };
 
-    window.markNotificationRead = async function (notifId) {
+    window.SemPKM.markNotificationRead = async function (notifId) {
         try {
             await apiFetch('/api/inbox/' + notifId, {
                 method: 'PATCH',
@@ -254,7 +254,7 @@
         }
     };
 
-    window.dismissNotification = async function (notifId, newState) {
+    window.SemPKM.dismissNotification = async function (notifId, newState) {
         newState = newState || 'dismissed';
         try {
             await apiFetch('/api/inbox/' + notifId, {
@@ -319,12 +319,26 @@
 
     document.addEventListener('click', function (e) {
         var leaf = e.target.closest('.shared-object[data-iri]');
-        if (leaf && typeof window.openTab === 'function') {
+        if (leaf && typeof window.SemPKM.openTab === 'function') {
             var iri = leaf.getAttribute('data-iri');
             var label = leaf.querySelector('span');
             var labelText = label ? label.textContent.trim() : iri;
-            window.openTab(iri, labelText);
+            window.SemPKM.openTab(iri, labelText);
         }
     });
 
+
+  // ── backward-compat shims (remove in T03) ──
+  window.showFederationToast = window.SemPKM.showFederationToast;
+  window.syncSharedGraph = window.SemPKM.syncSharedGraph;
+  window.syncFromNotification = window.SemPKM.syncFromNotification;
+  window.showCreateSharedGraph = window.SemPKM.showCreateSharedGraph;
+  window.hideCreateSharedGraph = window.SemPKM.hideCreateSharedGraph;
+  window.submitCreateSharedGraph = window.SemPKM.submitCreateSharedGraph;
+  window.showInviteForm = window.SemPKM.showInviteForm;
+  window.submitInvite = window.SemPKM.submitInvite;
+  window.acceptInvitation = window.SemPKM.acceptInvitation;
+  window.declineInvitation = window.SemPKM.declineInvitation;
+  window.markNotificationRead = window.SemPKM.markNotificationRead;
+  window.dismissNotification = window.SemPKM.dismissNotification;
 })();

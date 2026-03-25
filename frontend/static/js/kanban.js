@@ -151,7 +151,7 @@
   }
 
   /* ── Export ── */
-  window.initKanban = initKanban;
+  window.SemPKM.initKanban = initKanban;
 
   /* ── Scope sync: re-fetch when a sibling view changes scope ── */
   document.addEventListener('sempkm:scope-changed', function (e) {
@@ -186,4 +186,7 @@
       htmx.ajax('GET', url, { target: target, swap: 'innerHTML' });
     }
   });
+
+  // ── backward-compat shims (remove in T03) ──
+  window.initKanban = window.SemPKM.initKanban;
 })();

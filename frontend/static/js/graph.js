@@ -206,8 +206,8 @@
       'user': 'ellipse',
     };
 
-    if (window._sempkmIcons && window._sempkmIcons.graph) {
-      var graphIcons = window._sempkmIcons.graph;
+    if (window.SemPKM._sempkmIcons && window.SemPKM._sempkmIcons.graph) {
+      var graphIcons = window.SemPKM._sempkmIcons.graph;
       var typeIris = Object.keys(graphIcons);
       for (var k = 0; k < typeIris.length; k++) {
         var iri = typeIris[k];
@@ -389,17 +389,17 @@
     });
 
     // Store the cy instance globally
-    window._sempkmGraph = cy;
-    window._sempkmTypeColors = typeColors;
+    window.SemPKM._sempkmGraph = cy;
+    window.SemPKM._sempkmTypeColors = typeColors;
 
     // Update icon toggle button to reflect loaded preference
     _updateIconToggleButton();
 
     // Register cleanup for htmx:beforeCleanupElement
-    if (typeof window.registerCleanup === 'function' && container.id) {
-      window.registerCleanup(container.id, function() {
-        if (window._sempkmGraph === cy) {
-          window._sempkmGraph = null;
+    if (typeof window.SemPKM.registerCleanup === 'function' && container.id) {
+      window.SemPKM.registerCleanup(container.id, function() {
+        if (window.SemPKM._sempkmGraph === cy) {
+          window.SemPKM._sempkmGraph = null;
         }
         // Remove body-appended popovers
         if (popover.parentNode) popover.parentNode.removeChild(popover);
@@ -413,9 +413,9 @@
     // Click to select -- load details in right pane
     cy.on('tap', 'node', function (evt) {
       var nodeId = evt.target.id();
-      if (typeof window.loadRightPaneSection === 'function') {
-        window.loadRightPaneSection(nodeId, 'relations');
-        window.loadRightPaneSection(nodeId, 'lint');
+      if (typeof window.SemPKM.loadRightPaneSection === 'function') {
+        window.SemPKM.loadRightPaneSection(nodeId, 'relations');
+        window.SemPKM.loadRightPaneSection(nodeId, 'lint');
       }
     });
 
@@ -455,8 +455,8 @@
       if (!btn) return;
       var iri = btn.getAttribute('data-node-iri');
       var label = btn.getAttribute('data-node-label');
-      if (iri && typeof window.openTab === 'function') {
-        window.openTab(iri, label || undefined);
+      if (iri && typeof window.SemPKM.openTab === 'function') {
+        window.SemPKM.openTab(iri, label || undefined);
       }
       popover.style.display = 'none';
     });
@@ -688,9 +688,9 @@
 
         // Merge new type colors
         var newTypeColors = data.type_colors || {};
-        var currentColors = window._sempkmTypeColors || {};
+        var currentColors = window.SemPKM._sempkmTypeColors || {};
         Object.assign(currentColors, newTypeColors);
-        window._sempkmTypeColors = currentColors;
+        window.SemPKM._sempkmTypeColors = currentColors;
 
         // Build new elements, skipping duplicates
         var newElements = [];
@@ -866,7 +866,7 @@
   // --- Layout Switching ---
 
   function changeLayout(layoutName) {
-    var cy = window._sempkmGraph;
+    var cy = window.SemPKM._sempkmGraph;
     if (!cy) return;
 
     var container = cy.container();
@@ -901,7 +901,7 @@
   // --- Client-side Filter ---
 
   function filterGraph(text) {
-    var cy = window._sempkmGraph;
+    var cy = window.SemPKM._sempkmGraph;
     if (!cy) return;
 
     if (!text || !text.trim()) {
@@ -939,13 +939,13 @@
    * @param {boolean} isDark - true for dark theme, false for light
    */
   function switchGraphTheme(isDark) {
-    var cy = window._sempkmGraph;
+    var cy = window.SemPKM._sempkmGraph;
     if (!cy) return;
 
     // Clear SVG URI cache since stroke color changes with theme
     _svgUriCache = {};
 
-    var styles = buildSemanticStyle(window._sempkmTypeColors || {}, isDark, _currentIconMode);
+    var styles = buildSemanticStyle(window.SemPKM._sempkmTypeColors || {}, isDark, _currentIconMode);
     cy.style().fromJson(styles).update();
   }
 
@@ -961,7 +961,7 @@
    * @param {string} mode - 'icon' or 'shape'
    */
   function _setIconMode(mode) {
-    var cy = window._sempkmGraph;
+    var cy = window.SemPKM._sempkmGraph;
     if (!cy) return;
 
     _currentIconMode = (mode === 'icon');
@@ -971,7 +971,7 @@
     _svgUriCache = {};
 
     var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    cy.style().fromJson(buildSemanticStyle(window._sempkmTypeColors || {}, isDark, _currentIconMode)).update();
+    cy.style().fromJson(buildSemanticStyle(window.SemPKM._sempkmTypeColors || {}, isDark, _currentIconMode)).update();
 
     _updateIconToggleButton();
   }
@@ -1009,12 +1009,23 @@
   });
 
   // --- Export Globally ---
-  window.initGraph = initGraph;
-  window.changeLayout = changeLayout;
-  window.registerLayout = registerLayout;
-  window.filterGraph = filterGraph;
-  window.switchGraphTheme = switchGraphTheme;
-  window._toggleGraphIcons = _toggleGraphIcons;
-  window._setIconMode = _setIconMode;
+  window.SemPKM.initGraph = initGraph;
+  window.SemPKM.changeLayout = changeLayout;
+  window.SemPKM.registerLayout = registerLayout;
+  window.SemPKM.filterGraph = filterGraph;
+  window.SemPKM.switchGraphTheme = switchGraphTheme;
+  window.SemPKM._toggleGraphIcons = _toggleGraphIcons;
+  window.SemPKM._setIconMode = _setIconMode;
 
+
+  // ── backward-compat shims (remove in T03) ──
+  window._sempkmGraph = window.SemPKM._sempkmGraph;
+  window._sempkmTypeColors = window.SemPKM._sempkmTypeColors;
+  window.initGraph = window.SemPKM.initGraph;
+  window.changeLayout = window.SemPKM.changeLayout;
+  window.registerLayout = window.SemPKM.registerLayout;
+  window.filterGraph = window.SemPKM.filterGraph;
+  window.switchGraphTheme = window.SemPKM.switchGraphTheme;
+  window._toggleGraphIcons = window.SemPKM._toggleGraphIcons;
+  window._setIconMode = window.SemPKM._setIconMode;
 })();

@@ -7,7 +7,7 @@
   var SECTION_KEY = 'sempkm_sidebar_sections';
 
   /** Toggle sidebar collapse state */
-  window.toggleSidebar = function() {
+  window.SemPKM.toggleSidebar = function() {
     var layout = document.querySelector('.dashboard-layout, .workspace-layout');
     if (!layout) return;
     var isCollapsed = layout.classList.toggle('sidebar-collapsed');
@@ -21,7 +21,7 @@
   };
 
   /** Toggle a sidebar group's collapsed state */
-  window.toggleSidebarGroup = function(headerEl) {
+  window.SemPKM.toggleSidebarGroup = function(headerEl) {
     var group = headerEl.closest('.sidebar-group');
     if (!group) return;
     group.classList.toggle('collapsed');
@@ -117,8 +117,8 @@
   }
 
   // Expose avatar helpers for potential reuse
-  window.getAvatarColor = _getAvatarColor;
-  window.getInitials = _getInitials;
+  window.SemPKM.getAvatarColor = _getAvatarColor;
+  window.SemPKM.getInitials = _getInitials;
 
   /** Initialize on DOM ready */
   function init() {
@@ -141,4 +141,10 @@
   } else {
     init();
   }
+
+  // ── backward-compat shims (remove in T03) ──
+  window.toggleSidebar = window.SemPKM.toggleSidebar;
+  window.toggleSidebarGroup = window.SemPKM.toggleSidebarGroup;
+  window.getAvatarColor = window.SemPKM.getAvatarColor;
+  window.getInitials = window.SemPKM.getInitials;
 })();

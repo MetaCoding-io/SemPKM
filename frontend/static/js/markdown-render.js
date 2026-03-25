@@ -47,7 +47,7 @@
    *                            (e.g., a <script type="text/plain"> or <template>)
    * @param {string} targetId - ID of the element to receive rendered HTML
    */
-  window.renderMarkdownBody = function (sourceId, targetId) {
+  window.SemPKM.renderMarkdownBody = function (sourceId, targetId) {
     var source = document.getElementById(sourceId);
     var target = document.getElementById(targetId);
     if (!source || !target) return;
@@ -81,7 +81,7 @@
    * @param {string} url      - URL to fetch raw Markdown from (e.g. '/docs/guide/01-what-is-sempkm.md')
    * @param {string} targetId - ID of the element to receive rendered HTML
    */
-  window.renderMarkdownFromUrl = function (url, targetId) {
+  window.SemPKM.renderMarkdownFromUrl = function (url, targetId) {
     var target = document.getElementById(targetId);
     if (!target) return;
 
@@ -130,4 +130,8 @@
         target.innerHTML = '<p class="docs-error">Failed to load document.</p>';
       });
   };
+
+  // ── backward-compat shims (remove in T03) ──
+  window.renderMarkdownBody = window.SemPKM.renderMarkdownBody;
+  window.renderMarkdownFromUrl = window.SemPKM.renderMarkdownFromUrl;
 })();

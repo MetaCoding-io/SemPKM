@@ -51,7 +51,7 @@
    * @returns {boolean} true on success
    */
   function save(name) {
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return false;
     try {
       var layouts = _readLayouts();
@@ -73,7 +73,7 @@
    * @returns {{ success: boolean, skipped: string[] }}
    */
   function restore(name) {
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return { success: false, skipped: [] };
 
     var layouts = _readLayouts();
@@ -142,7 +142,7 @@
    * Called by workspace-layout.js onDidLayoutChange.
    */
   function autoSave() {
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return;
     try {
       localStorage.setItem(CURRENT_KEY, JSON.stringify(dv.toJSON()));

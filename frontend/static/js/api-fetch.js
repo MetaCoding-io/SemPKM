@@ -14,6 +14,8 @@
 (function () {
   'use strict';
 
+  window.SemPKM = window.SemPKM || {};
+
   var AUTH_PAGES = ['/login.html', '/setup.html', '/invite.html'];
 
   function _isAuthPage() {
@@ -26,8 +28,8 @@
    * (base.html inline), then falls back to console.warn.
    */
   function _toast(message, type) {
-    if (typeof window.showToast === 'function') {
-      window.showToast(message, type === 'error' ? 5000 : 4000);
+    if (typeof window.SemPKM.showToast === 'function') {
+      window.SemPKM.showToast(message, type === 'error' ? 5000 : 4000);
     } else if (typeof _showGlobalToast === 'function') {
       _showGlobalToast(message, type || 'warning');
     } else {
@@ -101,5 +103,8 @@
     return response;
   }
 
-  window.apiFetch = apiFetch;
+  window.SemPKM.apiFetch = apiFetch;
+
+  // ── backward-compat shims (remove in T03) ──
+  window.apiFetch = window.SemPKM.apiFetch;
 })();

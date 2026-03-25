@@ -472,8 +472,8 @@
         var row = fileNode.querySelector('.vfs-tree-row');
         row.addEventListener('click', function () {
           // Open the object in the workspace via openTab (if available)
-          if (typeof window.openTab === 'function') {
-            window.openTab(iri, label);
+          if (typeof window.SemPKM.openTab === 'function') {
+            window.SemPKM.openTab(iri, label);
           } else {
             window.location.href = '/browser/object/' + encodeURIComponent(iri);
           }
@@ -499,7 +499,7 @@
 
 
   // Expose for the + button onclick
-  window.openMountSettings = openMountSettings;
+  window.SemPKM.openMountSettings = openMountSettings;
 
   // ── File opening ───────────────────────────────────────────────────
 
@@ -1072,4 +1072,7 @@
     }
   });
 
+
+  // ── backward-compat shims (remove in T03) ──
+  window.openMountSettings = window.SemPKM.openMountSettings;
 })();

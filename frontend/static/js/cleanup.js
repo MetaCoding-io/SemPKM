@@ -12,24 +12,24 @@
   'use strict';
 
   // Registry: elementId -> [cleanupFn, cleanupFn, ...]
-  window._sempkmCleanup = {};
+  window.SemPKM._sempkmCleanup = {};
 
   function registerCleanup(elementId, cleanupFn) {
-    if (!window._sempkmCleanup[elementId]) {
-      window._sempkmCleanup[elementId] = [];
+    if (!window.SemPKM._sempkmCleanup[elementId]) {
+      window.SemPKM._sempkmCleanup[elementId] = [];
     }
-    window._sempkmCleanup[elementId].push(cleanupFn);
+    window.SemPKM._sempkmCleanup[elementId].push(cleanupFn);
   }
 
   function runCleanup(elementId) {
-    var fns = window._sempkmCleanup[elementId];
+    var fns = window.SemPKM._sempkmCleanup[elementId];
     if (fns) {
       fns.forEach(function(fn) {
         try { fn(); } catch (e) {
           console.warn('Cleanup error for', elementId, ':', e);
         }
       });
-      delete window._sempkmCleanup[elementId];
+      delete window.SemPKM._sempkmCleanup[elementId];
     }
   }
 
@@ -53,6 +53,11 @@
     }
   });
 
-  window.registerCleanup = registerCleanup;
-  window.runCleanup = runCleanup;
+  window.SemPKM.registerCleanup = registerCleanup;
+  window.SemPKM.runCleanup = runCleanup;
+
+  // ── backward-compat shims (remove in T03) ──
+  window._sempkmCleanup = window.SemPKM._sempkmCleanup;
+  window.registerCleanup = window.SemPKM.registerCleanup;
+  window.runCleanup = window.SemPKM.runCleanup;
 })();

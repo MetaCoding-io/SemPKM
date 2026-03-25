@@ -54,7 +54,7 @@
   //   9. save shortcut       — centered, no element, explains Ctrl+S
   //  10. closing card        — centered, done button only
 
-  window.startWelcomeTour = function () {
+  window.SemPKM.startWelcomeTour = function () {
     var driver = getDriver();
     if (!driver) {
       console.warn('[SemPKM] Driver.js not loaded — cannot start Welcome tour');
@@ -184,7 +184,7 @@
   //   3. Object form (#object-form) → "fill in the fields"
   //   4. Save button (#object-form button[type=submit]) → "save your object"
 
-  window.startCreateObjectTour = function () {
+  window.SemPKM.startCreateObjectTour = function () {
     var driver = getDriver();
     if (!driver) {
       console.warn('[SemPKM] Driver.js not loaded — cannot start Create Object tour');
@@ -205,13 +205,13 @@
             align: 'start',
             onNextClick: function () {
               // Get the active editor area (the htmx swap target for showTypePicker)
-              var editorArea = typeof window.getActiveEditorArea === 'function'
-                ? window.getActiveEditorArea()
+              var editorArea = typeof window.SemPKM.getActiveEditorArea === 'function'
+                ? window.SemPKM.getActiveEditorArea()
                 : document.getElementById('editor-area-group-1');
 
               // Trigger the type picker load via the global showTypePicker function
-              if (typeof window.showTypePicker === 'function') {
-                window.showTypePicker();
+              if (typeof window.SemPKM.showTypePicker === 'function') {
+                window.SemPKM.showTypePicker();
               }
 
               // Wait for the htmx swap that populates the editor area with the
@@ -297,7 +297,7 @@
   var DEMO_DASHBOARD_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
   var DEMO_DASHBOARD_NAME = 'Demo Dashboard';
 
-  window.startDemoTour = function () {
+  window.SemPKM.startDemoTour = function () {
     var driver = getDriver();
     if (!driver) {
       console.warn('[SemPKM] Driver.js not loaded — cannot start Demo tour');
@@ -328,8 +328,8 @@
             side: 'right',
             align: 'start',
             onNextClick: function () {
-              if (typeof window.openGenericViewTab === 'function') {
-                window.openGenericViewTab('graph');
+              if (typeof window.SemPKM.openGenericViewTab === 'function') {
+                window.SemPKM.openGenericViewTab('graph');
               }
               setTimeout(function () {
                 driverObj.moveNext();
@@ -352,8 +352,8 @@
               driverObj.movePrevious();
             },
             onNextClick: function () {
-              if (typeof window.openTab === 'function') {
-                window.openTab('urn:sempkm:model:basic-pkm:seed-note-architecture', 'Architecture Decision Records');
+              if (typeof window.SemPKM.openTab === 'function') {
+                window.SemPKM.openTab('urn:sempkm:model:basic-pkm:seed-note-architecture', 'Architecture Decision Records');
               }
               setTimeout(function () {
                 driverObj.moveNext();
@@ -376,8 +376,8 @@
               driverObj.movePrevious();
             },
             onNextClick: function () {
-              if (typeof window.toggleBottomPanel === 'function') {
-                window.toggleBottomPanel();
+              if (typeof window.SemPKM.toggleBottomPanel === 'function') {
+                window.SemPKM.toggleBottomPanel();
               }
               setTimeout(function () {
                 driverObj.moveNext();
@@ -400,8 +400,8 @@
               driverObj.movePrevious();
             },
             onNextClick: function () {
-              if (typeof window.openCanvasTab === 'function') {
-                window.openCanvasTab();
+              if (typeof window.SemPKM.openCanvasTab === 'function') {
+                window.SemPKM.openCanvasTab();
               }
               setTimeout(function () {
                 driverObj.moveNext();
@@ -424,8 +424,8 @@
               driverObj.movePrevious();
             },
             onNextClick: function () {
-              if (typeof window.openDashboardTab === 'function') {
-                window.openDashboardTab(DEMO_DASHBOARD_ID, DEMO_DASHBOARD_NAME);
+              if (typeof window.SemPKM.openDashboardTab === 'function') {
+                window.SemPKM.openDashboardTab(DEMO_DASHBOARD_ID, DEMO_DASHBOARD_NAME);
               }
               setTimeout(function () {
                 driverObj.moveNext();
@@ -459,4 +459,9 @@
     driverObj.drive();
   };
 
+
+  // ── backward-compat shims (remove in T03) ──
+  window.startWelcomeTour = window.SemPKM.startWelcomeTour;
+  window.startCreateObjectTour = window.SemPKM.startCreateObjectTour;
+  window.startDemoTour = window.SemPKM.startDemoTour;
 })();

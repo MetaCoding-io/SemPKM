@@ -82,7 +82,7 @@
   // --- Tab Management (delegates to dockview) ---
 
   function openTab(objectIri, label, mode) {
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) {
       loadObjectContent(objectIri, mode);
       return;
@@ -96,8 +96,8 @@
     }
 
     // Register tab metadata before addPanel (so createComponent can read it if needed)
-    if (!window._tabMeta) window._tabMeta = {};
-    window._tabMeta[objectIri] = { label: label || objectIri, dirty: false };
+    if (!window.SemPKM._tabMeta) window.SemPKM._tabMeta = {};
+    window.SemPKM._tabMeta[objectIri] = { label: label || objectIri, dirty: false };
 
     dv.api.addPanel({
       id: objectIri,
@@ -115,7 +115,7 @@
 
   function openViewTab(viewId, viewLabel, viewType) {
     var tabKey = 'view:' + viewId;
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) {
       loadViewContent(viewId, viewType);
       return;
@@ -127,8 +127,8 @@
       return;
     }
 
-    if (!window._tabMeta) window._tabMeta = {};
-    window._tabMeta[tabKey] = { label: viewLabel, dirty: false };
+    if (!window.SemPKM._tabMeta) window.SemPKM._tabMeta = {};
+    window.SemPKM._tabMeta[tabKey] = { label: viewLabel, dirty: false };
 
     dv.api.addPanel({
       id: tabKey,
@@ -139,7 +139,7 @@
   }
 
   function loadViewContent(viewId, viewType) {
-    var editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : document.getElementById('editor-area-group-1');
+    var editorArea = window.SemPKM.getActiveEditorArea ? window.SemPKM.getActiveEditorArea() : document.getElementById('editor-area-group-1');
     if (!editorArea) return;
 
     var url;
@@ -174,17 +174,17 @@
   }
 
   function closeTab(objectIri) {
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return;
     var panel = dv.panels.find(function(p) { return p.id === objectIri; });
     if (panel) {
       panel.api.close();
-      if (window._tabMeta) delete window._tabMeta[objectIri];
+      if (window.SemPKM._tabMeta) delete window.SemPKM._tabMeta[objectIri];
     }
   }
 
   function switchTab(objectIri) {
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return;
     var panel = dv.panels.find(function(p) { return p.id === objectIri; });
     if (panel) {
@@ -195,38 +195,38 @@
   // Internal: switch tab in a specific group (also exposed as window.switchTabInGroup
   // by workspace-layout.js, but we define a local alias for internal use)
   function switchTabInGroup(tabId, groupId) {
-    if (window.switchTabInGroup) {
-      window.switchTabInGroup(tabId, groupId);
+    if (window.SemPKM.switchTabInGroup) {
+      window.SemPKM.switchTabInGroup(tabId, groupId);
     }
   }
 
   function markDirty(objectIri) {
-    if (!window._tabMeta) return;
-    if (window._tabMeta[objectIri]) {
-      window._tabMeta[objectIri].dirty = true;
+    if (!window.SemPKM._tabMeta) return;
+    if (window.SemPKM._tabMeta[objectIri]) {
+      window.SemPKM._tabMeta[objectIri].dirty = true;
     }
   }
 
   function markClean(objectIri) {
-    if (!window._tabMeta) return;
-    if (window._tabMeta[objectIri]) {
-      window._tabMeta[objectIri].dirty = false;
+    if (!window.SemPKM._tabMeta) return;
+    if (window.SemPKM._tabMeta[objectIri]) {
+      window.SemPKM._tabMeta[objectIri].dirty = false;
     }
   }
 
   function getActiveTabIri() {
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv || !dv.activePanel) return null;
     return dv.activePanel.id;
   }
 
   function loadObjectContent(objectIri, mode) {
-    var editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : document.getElementById('editor-area-group-1');
+    var editorArea = window.SemPKM.getActiveEditorArea ? window.SemPKM.getActiveEditorArea() : document.getElementById('editor-area-group-1');
     if (!editorArea) return;
 
     // If IRI starts with 'view:', load as view tab
     if (objectIri && objectIri.indexOf('view:') === 0) {
-      var dv = window._dockview;
+      var dv = window.SemPKM._dockview;
       var viewType = 'table';
       if (dv) {
         var panel = dv.panels.find(function(p) { return p.id === objectIri; });
@@ -263,11 +263,11 @@
 
   function loadRightPane(objectIri) {
     // Cancel any in-flight right-pane request
-    if (window._rightPaneAbort) {
-      window._rightPaneAbort.abort();
+    if (window.SemPKM._rightPaneAbort) {
+      window.SemPKM._rightPaneAbort.abort();
     }
     var controller = new AbortController();
-    window._rightPaneAbort = controller;
+    window.SemPKM._rightPaneAbort = controller;
 
     var container = document.getElementById('right-pane-dynamic');
     if (!container) return;
@@ -329,7 +329,7 @@
   }
 
   function showEditorEmpty() {
-    var editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : document.getElementById('editor-area-group-1');
+    var editorArea = window.SemPKM.getActiveEditorArea ? window.SemPKM.getActiveEditorArea() : document.getElementById('editor-area-group-1');
     if (editorArea) {
       editorArea.innerHTML = '<div class="editor-empty">' +
         '<p>Select an object from the Explorer to open it here.</p>' +
@@ -417,26 +417,26 @@
 
     // Lazy-load SPARQL console on first activation
     if (panelState.open && panelState.activeTab === 'sparql') {
-      if (!window._sparqlConsoleInit) {
-        window._sparqlConsoleInit = true;
+      if (!window.SemPKM._sparqlConsoleInit) {
+        window.SemPKM._sparqlConsoleInit = true;
         import('/js/sparql-console.js').then(function(mod) {
           mod.initSparqlConsole();
         }).catch(function(err) {
           console.error('Failed to load SPARQL console:', err);
-          window._sparqlConsoleInit = false;
+          window.SemPKM._sparqlConsoleInit = false;
         });
       }
     }
 
     // Lazy-load Copilot chat on first activation
     if (panelState.open && panelState.activeTab === 'ai-copilot') {
-      if (!window._copilotInit) {
-        window._copilotInit = true;
+      if (!window.SemPKM._copilotInit) {
+        window.SemPKM._copilotInit = true;
         import('/js/copilot.js').then(function(mod) {
           mod.initCopilotChat();
         }).catch(function(err) {
           console.error('Failed to load copilot:', err);
-          window._copilotInit = false;
+          window.SemPKM._copilotInit = false;
         });
       }
     }
@@ -511,7 +511,7 @@
         }
 
         // Focus copilot input when switching to ai-copilot tab
-        if (btn.dataset.panel === 'ai-copilot' && window._copilotInit) {
+        if (btn.dataset.panel === 'ai-copilot' && window.SemPKM._copilotInit) {
           var copilotInput = document.getElementById('copilot-input');
           if (copilotInput && !copilotInput.disabled) {
             copilotInput.focus();
@@ -653,8 +653,8 @@
     if (isFlipped) {
       // Switching from edit to read: check for unsaved changes
       var isDirty = false;
-      if (window._tabMeta && window._tabMeta[objectIri]) {
-        isDirty = window._tabMeta[objectIri].dirty;
+      if (window.SemPKM._tabMeta && window.SemPKM._tabMeta[objectIri]) {
+        isDirty = window.SemPKM._tabMeta[objectIri].dirty;
       }
 
       if (isDirty) {
@@ -681,17 +681,17 @@
             mdSources.forEach(function (src) {
               var renderedId = src.id.replace('md-source-', 'md-rendered-');
               var tgt = document.getElementById(renderedId);
-              if (src && tgt && typeof window.renderMarkdownBody === 'function') {
-                window.renderMarkdownBody(src.id, renderedId);
+              if (src && tgt && typeof window.SemPKM.renderMarkdownBody === 'function') {
+                window.SemPKM.renderMarkdownBody(src.id, renderedId);
               } else if (src && tgt) {
                 tgt.textContent = src.textContent;
               }
             });
-            if (typeof window.initPropertiesState === 'function') {
+            if (typeof window.SemPKM.initPropertiesState === 'function') {
               var badge = readFace.closest('.object-tab');
               var badgeBtn = badge ? badge.querySelector('.properties-toggle-badge') : null;
               var hasBody = badgeBtn ? badgeBtn.dataset.hasBody === 'true' : true;
-              window.initPropertiesState(safeId, objectIri, hasBody);
+              window.SemPKM.initPropertiesState(safeId, objectIri, hasBody);
             }
           }
         }).catch(function () { /* keep stale content on error */ });
@@ -722,7 +722,7 @@
     if (hash) url += '#' + hash;
     window.location.href = url;
   }
-  window.openSettingsTab = openSettingsTab;
+  window.SemPKM.openSettingsTab = openSettingsTab;
 
   // --- Docs Tab ---
   // Docs tab investigation (phase 19-02):
@@ -734,14 +734,14 @@
 
   function openDocsTab() {
     var tabKey = 'special:docs';
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return;
 
     var existing = dv.panels.find(function(p) { return p.id === tabKey; });
     if (existing) { existing.api.setActive(); return; }
 
-    if (!window._tabMeta) window._tabMeta = {};
-    window._tabMeta[tabKey] = { label: 'Docs & Tutorials', dirty: false };
+    if (!window.SemPKM._tabMeta) window.SemPKM._tabMeta = {};
+    window.SemPKM._tabMeta[tabKey] = { label: 'Docs & Tutorials', dirty: false };
 
     dv.api.addPanel({
       id: tabKey,
@@ -750,19 +750,19 @@
       title: 'Docs & Tutorials'
     });
   }
-  window.openDocsTab = openDocsTab;
+  window.SemPKM.openDocsTab = openDocsTab;
 
 
   function openCanvasTab() {
     var tabKey = 'special:canvas';
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return;
 
     var existing = dv.panels.find(function(p) { return p.id === tabKey; });
     if (existing) { existing.api.setActive(); return; }
 
-    if (!window._tabMeta) window._tabMeta = {};
-    window._tabMeta[tabKey] = { label: 'Spatial Canvas', dirty: false };
+    if (!window.SemPKM._tabMeta) window.SemPKM._tabMeta = {};
+    window.SemPKM._tabMeta[tabKey] = { label: 'Spatial Canvas', dirty: false };
 
     dv.api.addPanel({
       id: tabKey,
@@ -771,19 +771,19 @@
       title: 'Spatial Canvas'
     });
   }
-  window.openCanvasTab = openCanvasTab;
+  window.SemPKM.openCanvasTab = openCanvasTab;
 
 
   function openDashboardTab(dashboardId, dashboardName) {
     var tabKey = 'dashboard:' + dashboardId;
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return;
 
     var existing = dv.panels.find(function(p) { return p.id === tabKey; });
     if (existing) { existing.api.setActive(); return; }
 
-    if (!window._tabMeta) window._tabMeta = {};
-    window._tabMeta[tabKey] = { label: dashboardName || 'Dashboard', dirty: false };
+    if (!window.SemPKM._tabMeta) window.SemPKM._tabMeta = {};
+    window.SemPKM._tabMeta[tabKey] = { label: dashboardName || 'Dashboard', dirty: false };
 
     dv.api.addPanel({
       id: tabKey,
@@ -792,19 +792,19 @@
       title: dashboardName || 'Dashboard'
     });
   }
-  window.openDashboardTab = openDashboardTab;
+  window.SemPKM.openDashboardTab = openDashboardTab;
 
 
   function openAppPageTab(appId, pageId, label) {
     var tabKey = 'app-page:' + appId + ':' + pageId;
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return;
 
     var existing = dv.panels.find(function(p) { return p.id === tabKey; });
     if (existing) { existing.api.setActive(); return; }
 
-    if (!window._tabMeta) window._tabMeta = {};
-    window._tabMeta[tabKey] = { label: label || 'App Page', dirty: false };
+    if (!window.SemPKM._tabMeta) window.SemPKM._tabMeta = {};
+    window.SemPKM._tabMeta[tabKey] = { label: label || 'App Page', dirty: false };
 
     dv.api.addPanel({
       id: tabKey,
@@ -813,19 +813,19 @@
       title: label || 'App Page'
     });
   }
-  window.openAppPageTab = openAppPageTab;
+  window.SemPKM.openAppPageTab = openAppPageTab;
 
 
   function openAppViewTab(appId, viewId, label) {
     var tabKey = 'app-view:' + appId + ':' + viewId;
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return;
 
     var existing = dv.panels.find(function(p) { return p.id === tabKey; });
     if (existing) { existing.api.setActive(); return; }
 
-    if (!window._tabMeta) window._tabMeta = {};
-    window._tabMeta[tabKey] = { label: label || 'App View', dirty: false };
+    if (!window.SemPKM._tabMeta) window.SemPKM._tabMeta = {};
+    window.SemPKM._tabMeta[tabKey] = { label: label || 'App View', dirty: false };
 
     dv.api.addPanel({
       id: tabKey,
@@ -834,19 +834,19 @@
       title: label || 'App View'
     });
   }
-  window.openAppViewTab = openAppViewTab;
+  window.SemPKM.openAppViewTab = openAppViewTab;
 
 
   function openCatalogTab() {
     var tabKey = 'catalog:list';
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return;
 
     var existing = dv.panels.find(function(p) { return p.id === tabKey; });
     if (existing) { existing.api.setActive(); return; }
 
-    if (!window._tabMeta) window._tabMeta = {};
-    window._tabMeta[tabKey] = { label: 'App Catalog', dirty: false };
+    if (!window.SemPKM._tabMeta) window.SemPKM._tabMeta = {};
+    window.SemPKM._tabMeta[tabKey] = { label: 'App Catalog', dirty: false };
 
     dv.api.addPanel({
       id: tabKey,
@@ -855,20 +855,20 @@
       title: 'App Catalog'
     });
   }
-  window.openCatalogTab = openCatalogTab;
+  window.SemPKM.openCatalogTab = openCatalogTab;
 
 
   function openCatalogDetailTab(appId, appName) {
     var tabKey = 'catalog:' + appId;
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return;
 
     var existing = dv.panels.find(function(p) { return p.id === tabKey; });
     if (existing) { existing.api.setActive(); return; }
 
-    if (!window._tabMeta) window._tabMeta = {};
+    if (!window.SemPKM._tabMeta) window.SemPKM._tabMeta = {};
     var label = appName || appId;
-    window._tabMeta[tabKey] = { label: label, dirty: false };
+    window.SemPKM._tabMeta[tabKey] = { label: label, dirty: false };
 
     dv.api.addPanel({
       id: tabKey,
@@ -877,22 +877,22 @@
       title: label
     });
   }
-  window.openCatalogDetailTab = openCatalogDetailTab;
+  window.SemPKM.openCatalogDetailTab = openCatalogDetailTab;
 
 
   function openDashboardBuilderTab(dashboardId) {
     var tabKey = dashboardId
       ? 'dashboard-builder:' + dashboardId
       : 'dashboard-builder:new';
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return;
 
     var existing = dv.panels.find(function(p) { return p.id === tabKey; });
     if (existing) { existing.api.setActive(); return; }
 
-    if (!window._tabMeta) window._tabMeta = {};
+    if (!window.SemPKM._tabMeta) window.SemPKM._tabMeta = {};
     var label = dashboardId ? 'Edit Dashboard' : 'New Dashboard';
-    window._tabMeta[tabKey] = { label: label, dirty: false };
+    window.SemPKM._tabMeta[tabKey] = { label: label, dirty: false };
 
     dv.api.addPanel({
       id: tabKey,
@@ -906,19 +906,19 @@
       title: label
     });
   }
-  window.openDashboardBuilderTab = openDashboardBuilderTab;
+  window.SemPKM.openDashboardBuilderTab = openDashboardBuilderTab;
 
 
   function openWorkflowTab(workflowId, workflowName) {
     var tabKey = 'workflow:' + workflowId;
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return;
 
     var existing = dv.panels.find(function(p) { return p.id === tabKey; });
     if (existing) { existing.api.setActive(); return; }
 
-    if (!window._tabMeta) window._tabMeta = {};
-    window._tabMeta[tabKey] = { label: workflowName || 'Workflow', dirty: false };
+    if (!window.SemPKM._tabMeta) window.SemPKM._tabMeta = {};
+    window.SemPKM._tabMeta[tabKey] = { label: workflowName || 'Workflow', dirty: false };
 
     dv.api.addPanel({
       id: tabKey,
@@ -927,22 +927,22 @@
       title: workflowName || 'Workflow'
     });
   }
-  window.openWorkflowTab = openWorkflowTab;
+  window.SemPKM.openWorkflowTab = openWorkflowTab;
 
 
   function openWorkflowBuilderTab(workflowId) {
     var tabKey = workflowId
       ? 'workflow-builder:' + workflowId
       : 'workflow-builder:new';
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return;
 
     var existing = dv.panels.find(function(p) { return p.id === tabKey; });
     if (existing) { existing.api.setActive(); return; }
 
-    if (!window._tabMeta) window._tabMeta = {};
+    if (!window.SemPKM._tabMeta) window.SemPKM._tabMeta = {};
     var label = workflowId ? 'Edit Workflow' : 'New Workflow';
-    window._tabMeta[tabKey] = { label: label, dirty: false };
+    window.SemPKM._tabMeta[tabKey] = { label: label, dirty: false };
 
     dv.api.addPanel({
       id: tabKey,
@@ -956,19 +956,19 @@
       title: label
     });
   }
-  window.openWorkflowBuilderTab = openWorkflowBuilderTab;
+  window.SemPKM.openWorkflowBuilderTab = openWorkflowBuilderTab;
 
 
   function openVfsTab() {
     var tabKey = 'special:vfs';
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return;
 
     var existing = dv.panels.find(function(p) { return p.id === tabKey; });
     if (existing) { existing.api.setActive(); return; }
 
-    if (!window._tabMeta) window._tabMeta = {};
-    window._tabMeta[tabKey] = { label: 'VFS Browser', dirty: false };
+    if (!window.SemPKM._tabMeta) window.SemPKM._tabMeta = {};
+    window.SemPKM._tabMeta[tabKey] = { label: 'VFS Browser', dirty: false };
 
     dv.api.addPanel({
       id: tabKey,
@@ -978,20 +978,20 @@
     });
   }
   
-  window.openVfsTab = openVfsTab;
+  window.SemPKM.openVfsTab = openVfsTab;
 
   // --- Import Vault Tab ---
 
   function openImportTab() {
     var tabKey = 'special:import';
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return;
 
     var existing = dv.panels.find(function(p) { return p.id === tabKey; });
     if (existing) { existing.api.setActive(); return; }
 
-    if (!window._tabMeta) window._tabMeta = {};
-    window._tabMeta[tabKey] = { label: 'Import Vault', dirty: false };
+    if (!window.SemPKM._tabMeta) window.SemPKM._tabMeta = {};
+    window.SemPKM._tabMeta[tabKey] = { label: 'Import Vault', dirty: false };
 
     dv.api.addPanel({
       id: tabKey,
@@ -1000,20 +1000,20 @@
       title: 'Import Vault'
     });
   }
-  window.openImportTab = openImportTab;
+  window.SemPKM.openImportTab = openImportTab;
 
   // --- Import RDF Tab ---
 
   function openRdfImportTab() {
     var tabKey = 'special:rdf-import';
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return;
 
     var existing = dv.panels.find(function(p) { return p.id === tabKey; });
     if (existing) { existing.api.setActive(); return; }
 
-    if (!window._tabMeta) window._tabMeta = {};
-    window._tabMeta[tabKey] = { label: 'Import RDF', dirty: false };
+    if (!window.SemPKM._tabMeta) window.SemPKM._tabMeta = {};
+    window.SemPKM._tabMeta[tabKey] = { label: 'Import RDF', dirty: false };
 
     dv.api.addPanel({
       id: tabKey,
@@ -1022,20 +1022,20 @@
       title: 'Import RDF'
     });
   }
-  window.openRdfImportTab = openRdfImportTab;
+  window.SemPKM.openRdfImportTab = openRdfImportTab;
 
   // --- Ontology Viewer Tab ---
 
   function openOntologyTab() {
     var tabKey = 'special:ontology';
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return;
 
     var existing = dv.panels.find(function(p) { return p.id === tabKey; });
     if (existing) { existing.api.setActive(); return; }
 
-    if (!window._tabMeta) window._tabMeta = {};
-    window._tabMeta[tabKey] = { label: '◆ Ontology Viewer', dirty: false };
+    if (!window.SemPKM._tabMeta) window.SemPKM._tabMeta = {};
+    window.SemPKM._tabMeta[tabKey] = { label: '◆ Ontology Viewer', dirty: false };
 
     dv.api.addPanel({
       id: tabKey,
@@ -1044,7 +1044,7 @@
       title: '◆ Ontology Viewer'
     });
   }
-  window.openOntologyTab = openOntologyTab;
+  window.SemPKM.openOntologyTab = openOntologyTab;
 
   // --- Keyboard Shortcuts ---
 
@@ -1076,8 +1076,8 @@
       // Alt+\: Split Right
       if (alt && e.key === '\\') {
         e.preventDefault();
-        if (typeof window.splitRight === 'function') {
-          window.splitRight();
+        if (typeof window.SemPKM.splitRight === 'function') {
+          window.SemPKM.splitRight();
         }
       }
 
@@ -1096,7 +1096,7 @@
       // Alt+E: Toggle read/edit mode
       if (alt && e.key === 'e') {
         e.preventDefault();
-        var editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : null;
+        var editorArea = window.SemPKM.getActiveEditorArea ? window.SemPKM.getActiveEditorArea() : null;
         if (editorArea) {
           var objectTab = editorArea.querySelector('.object-tab');
           if (objectTab) {
@@ -1139,7 +1139,7 @@
       if (alt && ['1', '2', '3', '4'].indexOf(e.key) !== -1) {
         e.preventDefault();
         var idx = parseInt(e.key) - 1;
-        var dv2 = window._dockview;
+        var dv2 = window.SemPKM._dockview;
         if (dv2 && dv2.groups && dv2.groups[idx]) {
           dv2.groups[idx].focus();
         }
@@ -1152,7 +1152,7 @@
     var activeIri = getActiveTabIri();
     if (!activeIri) return;
 
-    var editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : document.getElementById('editor-area-group-1');
+    var editorArea = window.SemPKM.getActiveEditorArea ? window.SemPKM.getActiveEditorArea() : document.getElementById('editor-area-group-1');
     var activeTab = editorArea ? editorArea.querySelector('.object-tab') : null;
 
     // Save form properties via htmx form submission
@@ -1164,8 +1164,8 @@
     }
 
     // Save body via editor.js (CodeMirror)
-    if (typeof window.getEditor === 'function') {
-      var editor = window.getEditor(activeIri);
+    if (typeof window.SemPKM.getEditor === 'function') {
+      var editor = window.SemPKM.getEditor(activeIri);
       if (editor) {
         var content = editor.state.doc.toString();
         var bodyContainer = activeTab ? activeTab.querySelector('.codemirror-container') : null;
@@ -1249,10 +1249,10 @@
   }
 
   function initLintDashboardSSE() {
-    if (!window._lintSSE) {
-      window._lintSSE = new EventSource('/api/lint/stream');
+    if (!window.SemPKM._lintSSE) {
+      window.SemPKM._lintSSE = new EventSource('/api/lint/stream');
     }
-    window._lintSSE.addEventListener('validation_complete', function(e) {
+    window.SemPKM._lintSSE.addEventListener('validation_complete', function(e) {
       var data = JSON.parse(e.data);
       // Update the health badge
       updateLintBadge(data);
@@ -1476,7 +1476,7 @@
           section: 'View',
           hotkey: 'alt+\\',
           handler: function () {
-            if (typeof window.splitRight === 'function') window.splitRight();
+            if (typeof window.SemPKM.splitRight === 'function') window.SemPKM.splitRight();
           }
         },
         {
@@ -1484,7 +1484,7 @@
           title: 'Close Group',
           section: 'View',
           handler: function () {
-            var dv = window._dockview;
+            var dv = window.SemPKM._dockview;
             if (dv && dv.activeGroup) {
               dv.activeGroup.api.close();
             }
@@ -1583,7 +1583,7 @@
           section: 'Objects',
           hotkey: 'alt+e',
           handler: function () {
-            var editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : null;
+            var editorArea = window.SemPKM.getActiveEditorArea ? window.SemPKM.getActiveEditorArea() : null;
             if (editorArea) {
               var activeTab = editorArea.querySelector('.object-tab');
               if (activeTab) {
@@ -1745,7 +1745,7 @@
   }
 
   function openViewMenu() {
-    var editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : document.getElementById('editor-area-group-1');
+    var editorArea = window.SemPKM.getActiveEditorArea ? window.SemPKM.getActiveEditorArea() : document.getElementById('editor-area-group-1');
     if (typeof htmx !== 'undefined') {
       htmx.ajax('GET', '/browser/views/menu', {
         target: editorArea,
@@ -2051,11 +2051,11 @@
 
     // Always create a fresh dockview panel so the type picker never
     // overwrites the content of an existing tab.
-    if (window._dockview) {
+    if (window.SemPKM._dockview) {
       var panelId = '__new-object-' + Date.now();
-      if (!window._tabMeta) window._tabMeta = {};
-      window._tabMeta[panelId] = { label: tabTitle, dirty: false };
-      window._dockview.api.addPanel({
+      if (!window.SemPKM._tabMeta) window.SemPKM._tabMeta = {};
+      window.SemPKM._tabMeta[panelId] = { label: tabTitle, dirty: false };
+      window.SemPKM._dockview.api.addPanel({
         id: panelId,
         component: 'empty',
         params: { isView: false, isSpecial: false },
@@ -2063,7 +2063,7 @@
       });
       _newObjectPanelId = panelId;
       console.debug('[workspace] showCreateFormForType: created temp panel', panelId);
-      editorArea = window.getActiveEditorArea ? window.getActiveEditorArea() : null;
+      editorArea = window.SemPKM.getActiveEditorArea ? window.SemPKM.getActiveEditorArea() : null;
     }
 
     // Fallback for non-dockview environments
@@ -2487,7 +2487,7 @@
       .then(function (personas) {
         if (personas.length === 0) {
           // Auto-create "Default" persona with current workspace state
-          var layoutJson = window._dockview ? JSON.stringify(window._dockview.toJSON()) : '{}';
+          var layoutJson = window.SemPKM._dockview ? JSON.stringify(window.SemPKM._dockview.toJSON()) : '{}';
           var sidebarJson = localStorage.getItem(PANEL_POSITIONS_KEY) || '{}';
           var explorerMode = localStorage.getItem(EXPLORER_MODE_KEY) || 'by-type';
 
@@ -2536,7 +2536,7 @@
       return Promise.resolve();
     }
 
-    var layoutJson = window._dockview ? JSON.stringify(window._dockview.toJSON()) : null;
+    var layoutJson = window.SemPKM._dockview ? JSON.stringify(window.SemPKM._dockview.toJSON()) : null;
     var sidebarJson = localStorage.getItem(PANEL_POSITIONS_KEY);
     var explorerMode = localStorage.getItem(EXPLORER_MODE_KEY);
 
@@ -2568,7 +2568,7 @@
     if (id === _activePersonaId) return;
 
     _switchingPersona = true;
-    window._switchingPersona = true; // expose for workspace-layout.js guard
+    window.SemPKM._switchingPersona = true; // expose for workspace-layout.js guard
 
     saveCurrentPersonaState()
       .then(function () {
@@ -2590,10 +2590,10 @@
       })
       .then(function (persona) {
         // Apply dockview layout
-        if (window._dockview && persona.layout_json) {
+        if (window.SemPKM._dockview && persona.layout_json) {
           try {
             var layoutData = JSON.parse(persona.layout_json);
-            window._dockview.fromJSON(layoutData);
+            window.SemPKM._dockview.fromJSON(layoutData);
           } catch (e) {
             console.warn('SemPKM: persona layout restore failed:', e.message || e);
             showToast("Layout couldn't be fully restored", 3000);
@@ -2623,7 +2623,7 @@
 
         // Clear guard flag
         _switchingPersona = false;
-        window._switchingPersona = false;
+        window.SemPKM._switchingPersona = false;
 
         showToast('Switched to persona: ' + persona.name);
         console.log('SemPKM: switched to persona: ' + persona.name + ' (' + id + ')');
@@ -2647,7 +2647,7 @@
       })
       .finally(function () {
         _switchingPersona = false;
-        window._switchingPersona = false;
+        window.SemPKM._switchingPersona = false;
       });
   }
 
@@ -2658,7 +2658,7 @@
    */
   function createNewPersona(name) {
     if (!name) {
-      name = window.prompt('New persona name:');
+      name = window.SemPKM.prompt('New persona name:');
     }
     if (!name || !name.trim()) return;
     name = name.trim();
@@ -2666,7 +2666,7 @@
     // Save current persona state first so it doesn't lose unsaved changes
     saveCurrentPersonaState()
       .then(function () {
-        var layoutJson = window._dockview ? JSON.stringify(window._dockview.toJSON()) : '{}';
+        var layoutJson = window.SemPKM._dockview ? JSON.stringify(window.SemPKM._dockview.toJSON()) : '{}';
         var sidebarJson = localStorage.getItem(PANEL_POSITIONS_KEY) || '{}';
         var explorerMode = localStorage.getItem(EXPLORER_MODE_KEY) || 'by-type';
 
@@ -2854,7 +2854,7 @@
   // --- beforeunload: save persona state via sendBeacon ---
   window.addEventListener('beforeunload', function () {
     if (_activePersonaId && !_switchingPersona) {
-      var layoutJson = window._dockview ? JSON.stringify(window._dockview.toJSON()) : null;
+      var layoutJson = window.SemPKM._dockview ? JSON.stringify(window.SemPKM._dockview.toJSON()) : null;
       var sidebarJson = localStorage.getItem(PANEL_POSITIONS_KEY);
       var explorerMode = localStorage.getItem(EXPLORER_MODE_KEY);
       var payload = JSON.stringify({
@@ -2980,13 +2980,13 @@
     restorePanelPositions();
 
     // Initialize workspace layout (dockview)
-    if (typeof window.initWorkspaceLayout === 'function') {
-      window.initWorkspaceLayout();
+    if (typeof window.SemPKM.initWorkspaceLayout === 'function') {
+      window.SemPKM.initWorkspaceLayout();
       // Restore accent bar based on the currently active dockview panel.
       // Accent = focused tab is an object tab; settings/views = off.
       // Must run immediately after initWorkspaceLayout so _dockview is set.
       (function restoreAccentBar() {
-        var dv = window._dockview;
+        var dv = window.SemPKM._dockview;
         if (!dv || !dv.activePanel) return;
         var panelId = dv.activePanel.id;
         var isObjectTab = panelId && !panelId.startsWith('view:') && !panelId.startsWith('special:');
@@ -3025,10 +3025,10 @@
     apiFetch('/browser/icons', { credentials: 'include', silent: true })
       .then(function (r) { return r.json(); })
       .then(function (data) {
-        window._sempkmIcons = data;  // { tree: {...}, tab: {...}, graph: {...} }
+        window.SemPKM._sempkmIcons = data;  // { tree: {...}, tab: {...}, graph: {...} }
       })
       .catch(function () {
-        window._sempkmIcons = { tree: {}, tab: {}, graph: {} };
+        window.SemPKM._sempkmIcons = { tree: {}, tab: {}, graph: {} };
       });
   }
 
@@ -3042,10 +3042,10 @@
     history.replaceState(null, '', url.pathname + (url.search || ''));
     // Brief delay to let the workspace fully render before the tour overlay
     setTimeout(function () {
-      if (tour === 'welcome' && typeof window.startWelcomeTour === 'function') {
-        window.startWelcomeTour();
-      } else if (tour === 'create-object' && typeof window.startCreateObjectTour === 'function') {
-        window.startCreateObjectTour();
+      if (tour === 'welcome' && typeof window.SemPKM.startWelcomeTour === 'function') {
+        window.SemPKM.startWelcomeTour();
+      } else if (tour === 'create-object' && typeof window.SemPKM.startCreateObjectTour === 'function') {
+        window.SemPKM.startCreateObjectTour();
       }
     }, 600);
   }
@@ -3131,10 +3131,10 @@
     }
 
     // Update tab label in the _tabMeta sidecar and dockview panel title
-    if (window._tabMeta && window._tabMeta[iri]) {
-      window._tabMeta[iri].label = newLabel;
+    if (window.SemPKM._tabMeta && window.SemPKM._tabMeta[iri]) {
+      window.SemPKM._tabMeta[iri].label = newLabel;
     }
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (dv) {
       var panel = dv.panels.find(function(p) { return p.id === iri; });
       if (panel) {
@@ -3153,7 +3153,7 @@
    * @param {string} eventIri - The IRI of the event to undo.
    * @param {HTMLElement} btn - The Undo button element (disabled during request).
    */
-  window.sempkmUndoEvent = function(eventIri, btn) {
+  window.SemPKM.sempkmUndoEvent = function(eventIri, btn) {
     if (!window.confirm('Undo this event? This will create a new compensating event.\n\nNote: Any changes made to the same fields after this event will also be reverted.')) {
       return;
     }
@@ -3691,7 +3691,7 @@
   // --- Generic View Tab Support ---
 
   function openGenericViewTab(renderer, scopeQuery, scopeLabel) {
-    var dv = window._dockview;
+    var dv = window.SemPKM._dockview;
     if (!dv) return;
 
     var tabKey;
@@ -3722,8 +3722,8 @@
       }
     }
 
-    if (!window._tabMeta) window._tabMeta = {};
-    window._tabMeta[tabKey] = { label: label, dirty: false };
+    if (!window.SemPKM._tabMeta) window.SemPKM._tabMeta = {};
+    window.SemPKM._tabMeta[tabKey] = { label: label, dirty: false };
 
     var selectedType = localStorage.getItem('sempkm_generic_type_' + renderer) || '';
 
@@ -3743,49 +3743,49 @@
   }
 
   // --- Export functions globally for htmx onclick handlers ---
-  window.openTab = openTab;
-  window.closeTab = closeTab;
-  window.switchTab = switchTab;
-  window.markDirty = markDirty;
-  window.markClean = markClean;
-  window.togglePane = togglePane;
-  window.showTypePicker = showTypePicker;
-  window.refreshNavTree = refreshNavTree;
-  window.jumpToField = jumpToField;
-  window.triggerValidation = triggerValidation;
-  window.loadRightPane = loadRightPane;
-  window.refreshRightPaneSection = refreshRightPaneSection;
-  window.toggleReplyForm = toggleReplyForm;
-  window.openViewTab = openViewTab;
-  window.openGenericViewTab = openGenericViewTab;
-  window.applyScopeQuery = applyScopeQuery;
-  window.openViewMenu = openViewMenu;
-  window.toggleObjectMode = toggleObjectMode;
-  window.saveCurrentObject = saveCurrentObject;
-  window.toggleBottomPanel = toggleBottomPanel;
-  window.maximizeBottomPanel = maximizeBottomPanel;
-  window.movePanel = movePanel;
-  window.showToast = showToast;
-  window.showCreateFormForType = showCreateFormForType;
-  window.handleTreeLeafClick = handleTreeLeafClick;
-  window.clearSelection = clearSelection;
-  window.getSelectedIris = function() {
+  window.SemPKM.openTab = openTab;
+  window.SemPKM.closeTab = closeTab;
+  window.SemPKM.switchTab = switchTab;
+  window.SemPKM.markDirty = markDirty;
+  window.SemPKM.markClean = markClean;
+  window.SemPKM.togglePane = togglePane;
+  window.SemPKM.showTypePicker = showTypePicker;
+  window.SemPKM.refreshNavTree = refreshNavTree;
+  window.SemPKM.jumpToField = jumpToField;
+  window.SemPKM.triggerValidation = triggerValidation;
+  window.SemPKM.loadRightPane = loadRightPane;
+  window.SemPKM.refreshRightPaneSection = refreshRightPaneSection;
+  window.SemPKM.toggleReplyForm = toggleReplyForm;
+  window.SemPKM.openViewTab = openViewTab;
+  window.SemPKM.openGenericViewTab = openGenericViewTab;
+  window.SemPKM.applyScopeQuery = applyScopeQuery;
+  window.SemPKM.openViewMenu = openViewMenu;
+  window.SemPKM.toggleObjectMode = toggleObjectMode;
+  window.SemPKM.saveCurrentObject = saveCurrentObject;
+  window.SemPKM.toggleBottomPanel = toggleBottomPanel;
+  window.SemPKM.maximizeBottomPanel = maximizeBottomPanel;
+  window.SemPKM.movePanel = movePanel;
+  window.SemPKM.showToast = showToast;
+  window.SemPKM.showCreateFormForType = showCreateFormForType;
+  window.SemPKM.handleTreeLeafClick = handleTreeLeafClick;
+  window.SemPKM.clearSelection = clearSelection;
+  window.SemPKM.getSelectedIris = function() {
     return Array.from(selectedIris).map(function(iri) {
       var leafEl = document.querySelector('.tree-leaf[data-iri="' + CSS.escape(iri) + '"]');
       var label = leafEl ? (leafEl.querySelector('.tree-leaf-label')?.textContent || 'Resource') : 'Resource';
       return { iri: iri, label: label };
     });
   };
-  window.bulkDeleteSelected = bulkDeleteSelected;
-  window.toggleEdgeDetail = toggleEdgeDetail;
-  window.showEventInLog = showEventInLog;
-  window.showConfirmDialog = showConfirmDialog;
-  window.deleteEdge = deleteEdge;
+  window.SemPKM.bulkDeleteSelected = bulkDeleteSelected;
+  window.SemPKM.toggleEdgeDetail = toggleEdgeDetail;
+  window.SemPKM.showEventInLog = showEventInLog;
+  window.SemPKM.showConfirmDialog = showConfirmDialog;
+  window.SemPKM.deleteEdge = deleteEdge;
 
   // --- Persona functions (exposed for sidebar template onclick handlers) ---
-  window.switchPersona = switchPersona;
-  window.saveCurrentPersonaState = saveCurrentPersonaState;
-  window.createNewPersona = createNewPersona;
+  window.SemPKM.switchPersona = switchPersona;
+  window.SemPKM.saveCurrentPersonaState = saveCurrentPersonaState;
+  window.SemPKM.createNewPersona = createNewPersona;
 
   // -----------------------------------------------------------------------
   // Favorites: star toggle
@@ -3839,10 +3839,10 @@
       console.error('toggleFavorite: fetch failed', err);
     });
   }
-  window.toggleFavorite = toggleFavorite;
+  window.SemPKM.toggleFavorite = toggleFavorite;
 
   // Backward-compat shim — callers can still pass (name, 'left'/'right')
-  window.swapPanel = function(panelName, zone) { movePanel(panelName, null, null, zone); };
+  window.SemPKM.swapPanel = function(panelName, zone) { movePanel(panelName, null, null, zone); };
 
   // -----------------------------------------------------------------------
   // Phase 28: Object-contextual panel indicator (POLSH-03)
@@ -3882,7 +3882,7 @@
     setContextualPanelActive(false);
   });
 
-  window.setContextualPanelActive = setContextualPanelActive;
+  window.SemPKM.setContextualPanelActive = setContextualPanelActive;
 
 })();
 
@@ -4691,19 +4691,19 @@
   }
 
   // Expose functions globally for inline event handlers
-  window.initMountForm = initMountForm;
-  window.mountStrategyChanged = mountStrategyChanged;
-  window.mountScopeChanged = mountScopeChanged;
-  window.mountSubmitForm = mountSubmitForm;
-  window.mountPreview = mountPreview;
-  window.mountEdit = mountEdit;
-  window.mountCancelEdit = mountCancelEdit;
-  window.mountDelete = mountDelete;
-  window.loadMountList = loadMountList;
-  window.renderMountList = renderMountList;
-  window.addChainLevel = addChainLevel;
-  window.removeChainLevel = removeChainLevel;
-  window.applyChainPreset = applyChainPreset;
+  window.SemPKM.initMountForm = initMountForm;
+  window.SemPKM.mountStrategyChanged = mountStrategyChanged;
+  window.SemPKM.mountScopeChanged = mountScopeChanged;
+  window.SemPKM.mountSubmitForm = mountSubmitForm;
+  window.SemPKM.mountPreview = mountPreview;
+  window.SemPKM.mountEdit = mountEdit;
+  window.SemPKM.mountCancelEdit = mountCancelEdit;
+  window.SemPKM.mountDelete = mountDelete;
+  window.SemPKM.loadMountList = loadMountList;
+  window.SemPKM.renderMountList = renderMountList;
+  window.SemPKM.addChainLevel = addChainLevel;
+  window.SemPKM.removeChainLevel = removeChainLevel;
+  window.SemPKM.applyChainPreset = applyChainPreset;
 
   // Auto-initialize: if VFS mount section already exists in DOM, init immediately.
   // Also listen for htmx swaps that may load the VFS settings partial.
@@ -4759,7 +4759,7 @@
 
   // --- Icon Picker ---
 
-  window.selectIcon = function(cell, iconName) {
+  window.SemPKM.selectIcon = function(cell, iconName) {
     // Deselect all cells
     var grid = cell.closest('.icon-picker-grid');
     var cells = grid.querySelectorAll('.icon-picker-cell');
@@ -4773,7 +4773,7 @@
     if (hidden) hidden.value = iconName;
   };
 
-  window.filterIconPicker = function(query) {
+  window.SemPKM.filterIconPicker = function(query) {
     var grid = document.getElementById('icon-picker-grid');
     if (!grid) return;
     var cells = grid.querySelectorAll('.icon-picker-cell');
@@ -4786,7 +4786,7 @@
 
   // --- Color Picker ---
 
-  window.selectIconColor = function(swatch, color) {
+  window.SemPKM.selectIconColor = function(swatch, color) {
     var row = swatch.closest('.color-picker-row');
     var swatches = row.querySelectorAll('.color-swatch');
     for (var i = 0; i < swatches.length; i++) {
@@ -4799,7 +4799,7 @@
 
   // --- Parent Class Picker ---
 
-  window.selectParentClass = function(option, iri, label) {
+  window.SemPKM.selectParentClass = function(option, iri, label) {
     // Store the IRI
     var hidden = document.getElementById('ccf-parent-iri');
     if (hidden) hidden.value = iri;
@@ -4816,7 +4816,7 @@
     if (results) results.innerHTML = '';
   };
 
-  window.clearParentClass = function() {
+  window.SemPKM.clearParentClass = function() {
     var hidden = document.getElementById('ccf-parent-iri');
     if (hidden) hidden.value = 'http://www.w3.org/2002/07/owl#Thing';
     var labelEl = document.getElementById('ccf-parent-label');
@@ -4846,7 +4846,7 @@
     return html;
   }
 
-  window.addPropertyRow = function() {
+  window.SemPKM.addPropertyRow = function() {
     var container = document.getElementById('property-rows');
     if (!container) return;
 
@@ -4887,12 +4887,12 @@
     }
   };
 
-  window.removePropertyRow = function(rowId) {
+  window.SemPKM.removePropertyRow = function(rowId) {
     var row = document.getElementById(rowId);
     if (row) row.remove();
   };
 
-  window.handlePredicateChange = function(select) {
+  window.SemPKM.handlePredicateChange = function(select) {
     var customInput = select.parentElement.querySelector('.prop-custom-iri');
     if (!customInput) return;
     customInput.style.display = (select.value === '__custom__') ? 'block' : 'none';
@@ -4903,7 +4903,7 @@
 
   // --- Serialize properties to JSON hidden input ---
 
-  window.serializeProperties = function() {
+  window.SemPKM.serializeProperties = function() {
     var rows = document.querySelectorAll('.property-row');
     var props = [];
     for (var i = 0; i < rows.length; i++) {
@@ -5197,16 +5197,16 @@
   }
 
   // Expose to global scope for onclick handlers in templates
-  window.dismissLintResult = dismissLintResult;
-  window.suppressLintRule = suppressLintRule;
-  window.applyLintPreset = applyLintPreset;
-  window.saveLintPreset = saveLintPreset;
-  window.removeSuppression = removeSuppression;
-  window.clearAllSuppressions = clearAllSuppressions;
-  window.removeDismissal = removeDismissal;
-  window.clearAllDismissals = clearAllDismissals;
-  window.deleteLintPreset = deleteLintPreset;
-  window.renameLintPreset = renameLintPreset;
+  window.SemPKM.dismissLintResult = dismissLintResult;
+  window.SemPKM.suppressLintRule = suppressLintRule;
+  window.SemPKM.applyLintPreset = applyLintPreset;
+  window.SemPKM.saveLintPreset = saveLintPreset;
+  window.SemPKM.removeSuppression = removeSuppression;
+  window.SemPKM.clearAllSuppressions = clearAllSuppressions;
+  window.SemPKM.removeDismissal = removeDismissal;
+  window.SemPKM.clearAllDismissals = clearAllDismissals;
+  window.SemPKM.deleteLintPreset = deleteLintPreset;
+  window.SemPKM.renameLintPreset = renameLintPreset;
 
 })();
 
@@ -5380,7 +5380,103 @@
   }
 
   // Expose to global scope for onclick handler in template
-  window._submitFormGroup = _submitFormGroup;
+  window.SemPKM._submitFormGroup = _submitFormGroup;
 
+
+  // ── backward-compat shims (remove in T03) ──
+  window._tabMeta = window.SemPKM._tabMeta;
+  window._rightPaneAbort = window.SemPKM._rightPaneAbort;
+  window._sparqlConsoleInit = window.SemPKM._sparqlConsoleInit;
+  window._copilotInit = window.SemPKM._copilotInit;
+  window.openSettingsTab = window.SemPKM.openSettingsTab;
+  window.openDocsTab = window.SemPKM.openDocsTab;
+  window.openCanvasTab = window.SemPKM.openCanvasTab;
+  window.openDashboardTab = window.SemPKM.openDashboardTab;
+  window.openAppPageTab = window.SemPKM.openAppPageTab;
+  window.openAppViewTab = window.SemPKM.openAppViewTab;
+  window.openCatalogTab = window.SemPKM.openCatalogTab;
+  window.openCatalogDetailTab = window.SemPKM.openCatalogDetailTab;
+  window.openDashboardBuilderTab = window.SemPKM.openDashboardBuilderTab;
+  window.openWorkflowTab = window.SemPKM.openWorkflowTab;
+  window.openWorkflowBuilderTab = window.SemPKM.openWorkflowBuilderTab;
+  window.openVfsTab = window.SemPKM.openVfsTab;
+  window.openImportTab = window.SemPKM.openImportTab;
+  window.openRdfImportTab = window.SemPKM.openRdfImportTab;
+  window.openOntologyTab = window.SemPKM.openOntologyTab;
+  window._lintSSE = window.SemPKM._lintSSE;
+  window._switchingPersona = window.SemPKM._switchingPersona;
+  window._sempkmIcons = window.SemPKM._sempkmIcons;
+  window.sempkmUndoEvent = window.SemPKM.sempkmUndoEvent;
+  window.openTab = window.SemPKM.openTab;
+  window.closeTab = window.SemPKM.closeTab;
+  window.switchTab = window.SemPKM.switchTab;
+  window.markDirty = window.SemPKM.markDirty;
+  window.markClean = window.SemPKM.markClean;
+  window.togglePane = window.SemPKM.togglePane;
+  window.showTypePicker = window.SemPKM.showTypePicker;
+  window.refreshNavTree = window.SemPKM.refreshNavTree;
+  window.jumpToField = window.SemPKM.jumpToField;
+  window.triggerValidation = window.SemPKM.triggerValidation;
+  window.loadRightPane = window.SemPKM.loadRightPane;
+  window.refreshRightPaneSection = window.SemPKM.refreshRightPaneSection;
+  window.toggleReplyForm = window.SemPKM.toggleReplyForm;
+  window.openViewTab = window.SemPKM.openViewTab;
+  window.openGenericViewTab = window.SemPKM.openGenericViewTab;
+  window.applyScopeQuery = window.SemPKM.applyScopeQuery;
+  window.openViewMenu = window.SemPKM.openViewMenu;
+  window.toggleObjectMode = window.SemPKM.toggleObjectMode;
+  window.saveCurrentObject = window.SemPKM.saveCurrentObject;
+  window.toggleBottomPanel = window.SemPKM.toggleBottomPanel;
+  window.maximizeBottomPanel = window.SemPKM.maximizeBottomPanel;
+  window.movePanel = window.SemPKM.movePanel;
+  window.showToast = window.SemPKM.showToast;
+  window.showCreateFormForType = window.SemPKM.showCreateFormForType;
+  window.handleTreeLeafClick = window.SemPKM.handleTreeLeafClick;
+  window.clearSelection = window.SemPKM.clearSelection;
+  window.getSelectedIris = window.SemPKM.getSelectedIris;
+  window.bulkDeleteSelected = window.SemPKM.bulkDeleteSelected;
+  window.toggleEdgeDetail = window.SemPKM.toggleEdgeDetail;
+  window.showEventInLog = window.SemPKM.showEventInLog;
+  window.showConfirmDialog = window.SemPKM.showConfirmDialog;
+  window.deleteEdge = window.SemPKM.deleteEdge;
+  window.switchPersona = window.SemPKM.switchPersona;
+  window.saveCurrentPersonaState = window.SemPKM.saveCurrentPersonaState;
+  window.createNewPersona = window.SemPKM.createNewPersona;
+  window.toggleFavorite = window.SemPKM.toggleFavorite;
+  window.swapPanel = window.SemPKM.swapPanel;
+  window.setContextualPanelActive = window.SemPKM.setContextualPanelActive;
+  window.initMountForm = window.SemPKM.initMountForm;
+  window.mountStrategyChanged = window.SemPKM.mountStrategyChanged;
+  window.mountScopeChanged = window.SemPKM.mountScopeChanged;
+  window.mountSubmitForm = window.SemPKM.mountSubmitForm;
+  window.mountPreview = window.SemPKM.mountPreview;
+  window.mountEdit = window.SemPKM.mountEdit;
+  window.mountCancelEdit = window.SemPKM.mountCancelEdit;
+  window.mountDelete = window.SemPKM.mountDelete;
+  window.loadMountList = window.SemPKM.loadMountList;
+  window.renderMountList = window.SemPKM.renderMountList;
+  window.addChainLevel = window.SemPKM.addChainLevel;
+  window.removeChainLevel = window.SemPKM.removeChainLevel;
+  window.applyChainPreset = window.SemPKM.applyChainPreset;
+  window.selectIcon = window.SemPKM.selectIcon;
+  window.filterIconPicker = window.SemPKM.filterIconPicker;
+  window.selectIconColor = window.SemPKM.selectIconColor;
+  window.selectParentClass = window.SemPKM.selectParentClass;
+  window.clearParentClass = window.SemPKM.clearParentClass;
+  window.addPropertyRow = window.SemPKM.addPropertyRow;
+  window.removePropertyRow = window.SemPKM.removePropertyRow;
+  window.handlePredicateChange = window.SemPKM.handlePredicateChange;
+  window.serializeProperties = window.SemPKM.serializeProperties;
+  window.dismissLintResult = window.SemPKM.dismissLintResult;
+  window.suppressLintRule = window.SemPKM.suppressLintRule;
+  window.applyLintPreset = window.SemPKM.applyLintPreset;
+  window.saveLintPreset = window.SemPKM.saveLintPreset;
+  window.removeSuppression = window.SemPKM.removeSuppression;
+  window.clearAllSuppressions = window.SemPKM.clearAllSuppressions;
+  window.removeDismissal = window.SemPKM.removeDismissal;
+  window.clearAllDismissals = window.SemPKM.clearAllDismissals;
+  window.deleteLintPreset = window.SemPKM.deleteLintPreset;
+  window.renameLintPreset = window.SemPKM.renameLintPreset;
+  window._submitFormGroup = window.SemPKM._submitFormGroup;
 })();
 

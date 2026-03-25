@@ -110,9 +110,9 @@
    */
   function _initCalendar(containerId, dataUrl) {
     // Destroy any previous instance (handles reinit without panel close)
-    if (window._sempkmCalendar) {
-      try { window._sempkmCalendar.destroy(); } catch (e) { /* already destroyed */ }
-      window._sempkmCalendar = null;
+    if (window.SemPKM._sempkmCalendar) {
+      try { window.SemPKM._sempkmCalendar.destroy(); } catch (e) { /* already destroyed */ }
+      window.SemPKM._sempkmCalendar = null;
     }
     // Remove stale document-level listeners from a previous init
     if (_commandHandler) {
@@ -187,12 +187,12 @@
             console.log('[calendar] select range:',
               info.startStr, '→', info.endStr);
             /* Stash selected dates for future form pre-fill */
-            window._calendarSelectedDates = {
+            window.SemPKM._calendarSelectedDates = {
               scheduledStart: info.startStr,
               scheduledEnd: info.endStr
             };
-            if (typeof window.showCreateFormForType === 'function') {
-              window.showCreateFormForType(
+            if (typeof window.SemPKM.showCreateFormForType === 'function') {
+              window.SemPKM.showCreateFormForType(
                 'urn:sempkm:model:basic-pkm:Task', 'Task'
               );
             }
@@ -200,7 +200,7 @@
         });
 
         cal.render();
-        window._sempkmCalendar = cal;
+        window.SemPKM._sempkmCalendar = cal;
 
         console.log('[calendar] rendered with',
           (data.events || []).length, 'events, editable=true, droppable=true');
@@ -223,8 +223,8 @@
 
         /* ── Auto-refresh on external mutations ── */
         _commandHandler = function () {
-          if (window._sempkmCalendar) {
-            window._sempkmCalendar.refetchEvents();
+          if (window.SemPKM._sempkmCalendar) {
+            window.SemPKM._sempkmCalendar.refetchEvents();
           }
         };
         document.addEventListener('sempkm:command-executed', _commandHandler);
@@ -267,11 +267,11 @@
         document.addEventListener('sempkm:scope-changed', _scopeHandler);
 
         /* ── Register cleanup for panel disposal ── */
-        if (typeof window.registerCleanup === 'function') {
-          window.registerCleanup(containerId, function () {
-            if (window._sempkmCalendar) {
-              try { window._sempkmCalendar.destroy(); } catch (e) { /* ignore */ }
-              window._sempkmCalendar = null;
+        if (typeof window.SemPKM.registerCleanup === 'function') {
+          window.SemPKM.registerCleanup(containerId, function () {
+            if (window.SemPKM._sempkmCalendar) {
+              try { window.SemPKM._sempkmCalendar.destroy(); } catch (e) { /* ignore */ }
+              window.SemPKM._sempkmCalendar = null;
             }
             if (_commandHandler) {
               document.removeEventListener('sempkm:command-executed', _commandHandler);
@@ -296,7 +296,7 @@
   /**
    * Public entry point — lazy-loads FullCalendar CDN if needed, then initializes.
    */
-  window.initCalendar = function (containerId, dataUrl) {
+  window.SemPKM.initCalendar = function (containerId, dataUrl) {
     if (typeof FullCalendar !== 'undefined') {
       _initCalendar(containerId, dataUrl);
     } else {
@@ -313,4 +313,9 @@
       document.head.appendChild(script);
     }
   };
+
+  // ── backward-compat shims (remove in T03) ──
+  window._sempkmCalendar = window.SemPKM._sempkmCalendar;
+  window._calendarSelectedDates = window.SemPKM._calendarSelectedDates;
+  window.initCalendar = window.SemPKM.initCalendar;
 })();

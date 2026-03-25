@@ -179,7 +179,7 @@
   // ═══════════════════════════════════════════════════════════════════
   //  initRecurrenceEditor
   // ═══════════════════════════════════════════════════════════════════
-  window.initRecurrenceEditor = function (inputEl) {
+  window.SemPKM.initRecurrenceEditor = function (inputEl) {
     if (!inputEl || inputEl.dataset.rruleInit) return;
     inputEl.dataset.rruleInit = '1';
 
@@ -478,7 +478,7 @@
   // ═══════════════════════════════════════════════════════════════════
   //  initExdateEditor
   // ═══════════════════════════════════════════════════════════════════
-  window.initExdateEditor = function (inputEl) {
+  window.SemPKM.initExdateEditor = function (inputEl) {
     if (!inputEl || inputEl.dataset.exdateInit) return;
     inputEl.dataset.exdateInit = '1';
 
@@ -637,4 +637,8 @@
   };
 
   console.log('[recurrence-editor] loaded');
+
+  // ── backward-compat shims (remove in T03) ──
+  window.initRecurrenceEditor = window.SemPKM.initRecurrenceEditor;
+  window.initExdateEditor = window.SemPKM.initExdateEditor;
 })();
