@@ -72,38 +72,38 @@
 /* Quadrant color coding — soft tinted backgrounds */
 /* Q1: high urgency + high importance = Do First (green) */
 .quadrant-cell[data-x-value="high"][data-y-value="high"] {
-    background: rgba(42, 138, 74, 0.07);
-    border-color: rgba(42, 138, 74, 0.2);
+    background: color-mix(in srgb, var(--_color-green-500) 7%, transparent);
+    border-color: color-mix(in srgb, var(--_color-green-500) 20%, transparent);
 }
 .quadrant-cell[data-x-value="high"][data-y-value="high"] .quadrant-cell-header {
-    border-bottom-color: rgba(42, 138, 74, 0.15);
+    border-bottom-color: color-mix(in srgb, var(--_color-green-500) 15%, transparent);
 }
 
 /* Q2: low urgency + high importance = Schedule (blue) */
 .quadrant-cell[data-x-value="low"][data-y-value="high"] {
-    background: rgba(45, 90, 158, 0.07);
-    border-color: rgba(45, 90, 158, 0.2);
+    background: color-mix(in srgb, var(--_color-blue-500) 7%, transparent);
+    border-color: color-mix(in srgb, var(--_color-blue-500) 20%, transparent);
 }
 .quadrant-cell[data-x-value="low"][data-y-value="high"] .quadrant-cell-header {
-    border-bottom-color: rgba(45, 90, 158, 0.15);
+    border-bottom-color: color-mix(in srgb, var(--_color-blue-500) 15%, transparent);
 }
 
 /* Q3: high urgency + low importance = Delegate (amber/orange) */
 .quadrant-cell[data-x-value="high"][data-y-value="low"] {
-    background: rgba(242, 142, 43, 0.07);
-    border-color: rgba(242, 142, 43, 0.2);
+    background: color-mix(in srgb, var(--_color-amber-500) 7%, transparent);
+    border-color: color-mix(in srgb, var(--_color-amber-500) 20%, transparent);
 }
 .quadrant-cell[data-x-value="high"][data-y-value="low"] .quadrant-cell-header {
-    border-bottom-color: rgba(242, 142, 43, 0.15);
+    border-bottom-color: color-mix(in srgb, var(--_color-amber-500) 15%, transparent);
 }
 
 /* Q4: low urgency + low importance = Eliminate (red) */
 .quadrant-cell[data-x-value="low"][data-y-value="low"] {
-    background: rgba(225, 87, 89, 0.07);
-    border-color: rgba(225, 87, 89, 0.2);
+    background: color-mix(in srgb, var(--_color-red-500) 7%, transparent);
+    border-color: color-mix(in srgb, var(--_color-red-500) 20%, transparent);
 }
 .quadrant-cell[data-x-value="low"][data-y-value="low"] .quadrant-cell-header {
-    border-bottom-color: rgba(225, 87, 89, 0.15);
+    border-bottom-color: color-mix(in srgb, var(--_color-red-500) 15%, transparent);
 }
 
 /* --- Cell Header --- */
@@ -163,7 +163,7 @@
 
 .quadrant-card:hover {
     border-color: var(--color-border-strong, var(--color-border));
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 4px color-mix(in srgb, var(--color-text) 6%, transparent);
 }
 
 .quadrant-card.dragging {
@@ -235,52 +235,4 @@
     font-style: italic;
 }
 
-/* ============================================
-   Dark Mode
-   ============================================ */
-
-html[data-theme="dark"] .quadrant-cell {
-    border-color: rgba(255, 255, 255, 0.08);
-}
-
-html[data-theme="dark"] .quadrant-cell[data-x-value="high"][data-y-value="high"] {
-    background: rgba(42, 138, 74, 0.1);
-    border-color: rgba(42, 138, 74, 0.25);
-}
-
-html[data-theme="dark"] .quadrant-cell[data-x-value="low"][data-y-value="high"] {
-    background: rgba(78, 121, 167, 0.1);
-    border-color: rgba(78, 121, 167, 0.25);
-}
-
-html[data-theme="dark"] .quadrant-cell[data-x-value="high"][data-y-value="low"] {
-    background: rgba(242, 142, 43, 0.1);
-    border-color: rgba(242, 142, 43, 0.25);
-}
-
-html[data-theme="dark"] .quadrant-cell[data-x-value="low"][data-y-value="low"] {
-    background: rgba(225, 87, 89, 0.1);
-    border-color: rgba(225, 87, 89, 0.25);
-}
-
-html[data-theme="dark"] .quadrant-card {
-    background: var(--color-surface, #1e1e1e);
-    border-color: var(--color-border, #333);
-}
-
-html[data-theme="dark"] .quadrant-card:hover {
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-html[data-theme="dark"] .quadrant-cell-count {
-    background: var(--color-surface-recessed, #252525);
-}
-
-html[data-theme="dark"] .quadrant-unclassified {
-    background: var(--color-surface-recessed, #1a1a1a);
-}
-
-html[data-theme="dark"] .quadrant-cell.drag-over {
-    border-color: var(--color-accent, #0d9488);
-    box-shadow: inset 0 0 0 1px rgba(13, 148, 136, 0.15);
-}
+/* Dark Mode: eliminated — all values now use theme tokens that auto-switch */

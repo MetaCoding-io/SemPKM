@@ -427,7 +427,7 @@
 
 .btn-danger-sm:hover {
   background: var(--color-danger, #ef4444);
-  color: #fff;
+  color: var(--color-on-accent);
 }
 
 /* WebID Profile settings */
@@ -529,7 +529,7 @@
 
 .btn-danger-sm:hover {
   background: var(--color-danger, #ef4444);
-  color: #fff;
+  color: var(--color-on-accent);
 }
 
 /* VFS copy button icon sizing — CSS-only per CLAUDE.md (no inline styles) */

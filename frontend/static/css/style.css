@@ -1292,7 +1292,7 @@ kbd {
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 600px) {
   .form-row {
     grid-template-columns: 1fr;
   }
@@ -1992,7 +1992,7 @@ kbd {
   text-decoration: underline;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 600px) {
   .stats-bar {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -2545,7 +2545,7 @@ kbd {
 
 .catalog-card:hover {
   border-color: var(--color-primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--color-text) 8%, transparent);
 }
 
 .catalog-card-header {

@@ -34,7 +34,7 @@
 .import-upload-zone:hover,
 .import-upload-zone.drag-over {
     border-color: var(--color-primary, #4a90d9);
-    background-color: rgba(74, 144, 217, 0.15);
+    background-color: color-mix(in srgb, var(--color-primary) 15%, transparent);
     box-shadow: inset 0 0 0 2px var(--color-primary, #4a90d9);
 }
 
@@ -237,8 +237,8 @@
 }
 
 .import-type-group.uncategorized {
-    border-left: 4px solid #f0ad4e;
-    background: rgba(240, 173, 78, 0.06);
+    border-left: 4px solid var(--_color-import-warning);
+    background: color-mix(in srgb, var(--_color-import-warning) 6%, transparent);
 }
 
 .type-group-header {
@@ -399,15 +399,15 @@
 }
 
 .import-warning.severity-warning {
-    border-left-color: #f0ad4e;
+    border-left-color: var(--_color-import-warning);
 }
 
 .import-warning.severity-error {
-    border-left-color: #e74c3c;
+    border-left-color: var(--_color-import-error);
 }
 
 .import-warning.severity-info {
-    border-left-color: #5bc0de;
+    border-left-color: var(--_color-import-info);
 }
 
 .warning-badge {
@@ -420,18 +420,18 @@
 }
 
 .warning-badge.warning {
-    background: rgba(240, 173, 78, 0.15);
-    color: #c87f0a;
+    background: color-mix(in srgb, var(--_color-import-warning) 15%, transparent);
+    color: color-mix(in srgb, var(--_color-import-warning) 80%, black);
 }
 
 .warning-badge.error {
-    background: rgba(231, 76, 60, 0.15);
-    color: #c0392b;
+    background: color-mix(in srgb, var(--_color-import-error) 15%, transparent);
+    color: var(--color-danger);
 }
 
 .warning-badge.info {
-    background: rgba(91, 192, 222, 0.15);
-    color: #31b0d5;
+    background: color-mix(in srgb, var(--_color-import-info) 15%, transparent);
+    color: color-mix(in srgb, var(--_color-import-info) 85%, black);
 }
 
 .warning-file {
@@ -498,8 +498,8 @@
 }
 
 .import-actions .btn-primary {
-    background: var(--color-primary, #4a90d9);
-    color: #fff;
+    background: var(--color-primary);
+    color: var(--color-on-accent);
     border: none;
     padding: 0.5rem 1rem;
     border-radius: var(--border-radius, 6px);
@@ -555,15 +555,15 @@
 }
 
 .step-active .step-circle {
-    background: var(--color-primary, #4a90d9);
-    border-color: var(--color-primary, #4a90d9);
-    color: #fff;
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-on-accent);
 }
 
 .step-complete .step-circle {
-    background: var(--color-success, #27ae60);
-    border-color: var(--color-success, #27ae60);
-    color: #fff;
+    background: var(--color-success);
+    border-color: var(--color-success);
+    color: var(--color-on-accent);
 }
 
 .step-label {
@@ -656,8 +656,8 @@
 
 .mapping-select:focus {
     outline: none;
-    border-color: var(--color-primary, #4a90d9);
-    box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.2);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 /* ==========================================================================
@@ -713,8 +713,8 @@
 
 .custom-iri-input:focus {
     outline: none;
-    border-color: var(--color-primary, #4a90d9);
-    box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.2);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 .body-mapping-note {
@@ -773,8 +773,8 @@
 }
 
 .mapping-nav .btn-primary {
-    background: var(--color-primary, #4a90d9);
-    color: #fff;
+    background: var(--color-primary);
+    color: var(--color-on-accent);
     border: none;
 }
 
@@ -819,7 +819,7 @@
     padding: 0.75rem 1rem;
     margin-bottom: 0.5rem;
     background: var(--color-surface);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--color-text) 4%, transparent);
 }
 
 .preview-card-title {

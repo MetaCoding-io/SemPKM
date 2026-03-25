@@ -28,7 +28,7 @@
 
 .okr-objective-card:hover {
     border-color: var(--color-border-strong, var(--color-border));
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--color-text) 4%, transparent);
 }
 
 /* --- Objective Header --- */
@@ -99,15 +99,15 @@
 /* --- Progress Color Classes --- */
 
 .okr-progress--green {
-    background: #22c55e;
+    background: var(--color-success-text);
 }
 
 .okr-progress--amber {
-    background: #f59e0b;
+    background: var(--color-warning-text);
 }
 
 .okr-progress--red {
-    background: #ef4444;
+    background: var(--color-error-text);
 }
 
 /* --- Key Results Container --- */
@@ -130,7 +130,7 @@
 }
 
 .okr-kr-row:hover {
-    background: rgba(0, 0, 0, 0.02);
+    background: color-mix(in srgb, var(--color-text) 2%, transparent);
 }
 
 .okr-kr-title {
@@ -177,30 +177,30 @@
 
 .okr-current-value:hover {
     border-color: var(--color-primary);
-    background: rgba(59, 130, 246, 0.05);
+    background: color-mix(in srgb, var(--color-primary) 5%, transparent);
 }
 
 .okr-edit-input {
     width: 52px;
     padding: 1px 4px;
-    border: 1px solid var(--color-primary, #3b82f6);
+    border: 1px solid var(--color-primary);
     border-radius: 3px;
     font-size: inherit;
     font-family: inherit;
     color: var(--color-text);
-    background: var(--color-surface, #fff);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+    background: var(--color-surface);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 15%, transparent);
     outline: none;
 }
 
 /* --- Save feedback --- */
 
 .okr-kr-row.okr-save-ok {
-    background: rgba(34, 197, 94, 0.08);
+    background: color-mix(in srgb, var(--color-success) 8%, transparent);
 }
 
 .okr-kr-row.okr-save-error {
-    background: rgba(239, 68, 68, 0.08);
+    background: color-mix(in srgb, var(--color-error) 8%, transparent);
 }
 
 /* --- Ungrouped Section --- */
@@ -240,63 +240,6 @@
 .okr-board.scope-syncing {
     opacity: 0.6;
     transition: opacity 0.15s;
-}
-
-/* ============================================
-   Dark Mode
-   ============================================ */
-
-html[data-theme="dark"] .okr-objective-card {
-    background: var(--color-surface, #1e1e1e);
-    border-color: rgba(255, 255, 255, 0.08);
-}
-
-html[data-theme="dark"] .okr-objective-card:hover {
-    border-color: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-html[data-theme="dark"] .okr-progress-bar {
-    background: rgba(255, 255, 255, 0.08);
-}
-
-html[data-theme="dark"] .okr-progress--green {
-    background: #16a34a;
-}
-
-html[data-theme="dark"] .okr-progress--amber {
-    background: #d97706;
-}
-
-html[data-theme="dark"] .okr-progress--red {
-    background: #dc2626;
-}
-
-html[data-theme="dark"] .okr-kr-row:hover {
-    background: rgba(255, 255, 255, 0.03);
-}
-
-html[data-theme="dark"] .okr-current-value:hover {
-    background: rgba(59, 130, 246, 0.1);
-}
-
-html[data-theme="dark"] .okr-edit-input {
-    background: var(--color-surface, #1e1e1e);
-    border-color: var(--color-primary, #3b82f6);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-}
-
-html[data-theme="dark"] .okr-kr-row.okr-save-ok {
-    background: rgba(34, 197, 94, 0.12);
-}
-
-html[data-theme="dark"] .okr-kr-row.okr-save-error {
-    background: rgba(239, 68, 68, 0.12);
-}
-
-html[data-theme="dark"] .okr-ungrouped {
-    background: var(--color-surface-recessed, #1a1a1a);
-    border-color: rgba(255, 255, 255, 0.08);
 }
 
 /* ============================================

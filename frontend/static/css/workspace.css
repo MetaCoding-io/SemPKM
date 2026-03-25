@@ -369,18 +369,18 @@
 }
 
 .badge-bpkm {
-    background: rgba(16, 185, 129, 0.15);
-    color: #10b981;
+    background: color-mix(in srgb, var(--_color-emerald-500) 15%, transparent);
+    color: var(--_color-emerald-500);
 }
 
 .badge-ppv {
-    background: rgba(245, 158, 11, 0.15);
-    color: #f59e0b;
+    background: color-mix(in srgb, var(--_color-amber-400) 15%, transparent);
+    color: var(--_color-amber-400);
 }
 
 .badge-user {
-    background: rgba(139, 92, 246, 0.15);
-    color: #8b5cf6;
+    background: color-mix(in srgb, var(--_color-violet-500) 15%, transparent);
+    color: var(--_color-violet-500);
 }
 
 /* Delete button on user-type TBox nodes — hover-reveal */
@@ -402,12 +402,12 @@
     margin-left: auto;
 }
 .tbox-edit-btn:hover {
-    color: var(--color-primary, #3b82f6);
-    background: rgba(59, 130, 246, 0.1);
+    color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 .tbox-delete-btn:hover {
-    color: var(--color-danger, #ef4444);
-    background: rgba(239, 68, 68, 0.1);
+    color: var(--color-danger);
+    background: color-mix(in srgb, var(--color-danger) 10%, transparent);
 }
 .tbox-edit-btn svg,
 .tbox-delete-btn svg {
@@ -443,8 +443,8 @@
     line-height: 1;
 }
 .rbox-delete-btn:hover {
-    color: var(--color-danger, #ef4444);
-    background: rgba(239, 68, 68, 0.1);
+    color: var(--color-danger);
+    background: color-mix(in srgb, var(--color-danger) 10%, transparent);
 }
 .rbox-delete-btn svg {
     width: 14px;
@@ -471,8 +471,8 @@ tr:hover .rbox-edit-btn {
     margin-right: 4px;
 }
 .rbox-edit-btn:hover {
-    color: var(--color-primary, #3b82f6);
-    background: rgba(59, 130, 246, 0.1);
+    color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 .rbox-edit-btn svg {
     width: 14px;
@@ -502,14 +502,14 @@ tr:hover .rbox-edit-btn {
     font-size: 0.9rem;
 }
 .delete-confirm-warning--red {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--color-danger, #ef4444);
-    border: 1px solid rgba(239, 68, 68, 0.25);
+    background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+    color: var(--color-danger);
+    border: 1px solid color-mix(in srgb, var(--color-danger) 25%, transparent);
 }
 .delete-confirm-warning--amber {
-    background: rgba(245, 158, 11, 0.1);
-    color: #d97706;
-    border: 1px solid rgba(245, 158, 11, 0.25);
+    background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+    color: var(--color-warning-text);
+    border: 1px solid color-mix(in srgb, var(--color-warning) 25%, transparent);
 }
 .delete-confirm-safe {
     color: var(--color-text-muted);
@@ -530,13 +530,13 @@ tr:hover .rbox-edit-btn {
     background: var(--color-surface-hover);
 }
 .delete-confirm-actions .btn-danger {
-    background: var(--color-danger, #ef4444);
-    border: 1px solid var(--color-danger, #ef4444);
-    color: #fff;
+    background: var(--color-danger);
+    border: 1px solid var(--color-danger);
+    color: var(--color-on-accent);
 }
 .delete-confirm-actions .btn-danger:hover {
-    background: #dc2626;
-    border-color: #dc2626;
+    background: var(--color-danger-hover);
+    border-color: var(--color-danger-hover);
 }
 
 .tree-toggle-leaf {
@@ -942,7 +942,7 @@ tr:hover .rbox-edit-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.35);
+    background: var(--color-overlay);
     backdrop-filter: blur(2px);
 }
 
@@ -951,10 +951,10 @@ tr:hover .rbox-edit-btn {
     max-width: calc(100vw - 64px);
     max-height: calc(100vh - 80px);
     overflow-y: auto;
-    background: var(--color-surface, #fff);
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 10px;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-elevated);
 }
 
 .class-creation-form,
@@ -1369,7 +1369,7 @@ tr:hover .rbox-edit-btn {
     background: var(--color-surface-raised, var(--color-surface));
     border: 1px solid var(--color-border);
     border-radius: 4px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-elevated);
     margin-top: 2px;
 }
 
@@ -1760,8 +1760,8 @@ tr:hover .rbox-edit-btn {
 }
 
 .rbox-group-badge--basic-pkm {
-    background: rgba(234, 88, 12, 0.12);
-    color: #ea580c;
+    background: color-mix(in srgb, var(--_color-orange-600) 12%, transparent);
+    color: var(--_color-orange-600);
 }
 
 .rbox-group-badge--other,
@@ -3042,15 +3042,15 @@ details.form-group[open] > .form-group-summary::before {
 .relation-detail .btn-danger-sm {
     font-size: 11px;
     padding: 2px 8px;
-    background: var(--color-danger, #dc2626);
-    color: white;
+    background: var(--color-danger);
+    color: var(--color-on-accent);
     border: none;
     border-radius: 3px;
     cursor: pointer;
     margin-top: 4px;
 }
 .relation-detail .btn-danger-sm:hover {
-    background: #b91c1c;
+    background: var(--color-danger-hover);
 }
 
 /* ============================================
@@ -3067,7 +3067,7 @@ details.form-group[open] > .form-group-summary::before {
     font-family: inherit;
 }
 .confirm-dialog::backdrop {
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--color-overlay-heavy);
 }
 .confirm-dialog-title {
     font-size: 14px;
@@ -3093,8 +3093,8 @@ details.form-group[open] > .form-group-summary::before {
     margin-top: 16px;
 }
 .confirm-dialog .btn-danger {
-    background: var(--color-danger, #dc2626);
-    color: white;
+    background: var(--color-danger);
+    color: var(--color-on-accent);
     border: none;
     border-radius: 4px;
     padding: 6px 16px;
@@ -3102,7 +3102,7 @@ details.form-group[open] > .form-group-summary::before {
     font-size: 13px;
 }
 .confirm-dialog .btn-danger:hover {
-    background: #b91c1c;
+    background: var(--color-danger-hover);
 }
 .confirm-dialog .btn-cancel {
     background: transparent;
@@ -3172,9 +3172,9 @@ details.form-group[open] > .form-group-summary::before {
     line-height: 1;
     padding: 2px 6px;
     border-radius: 8px;
-    background: rgba(20, 184, 166, 0.1);
-    color: #0d9488;
-    border: 1px solid rgba(20, 184, 166, 0.3);
+    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+    color: var(--color-accent);
+    border: 1px solid color-mix(in srgb, var(--color-accent) 30%, transparent);
     vertical-align: middle;
     margin-left: 4px;
     white-space: nowrap;
@@ -3185,13 +3185,6 @@ details.form-group[open] > .form-group-summary::before {
 /* Mirrored badge inside flex containers (relation-item) */
 .relation-item .mirrored-badge {
     margin-left: auto;
-}
-
-/* Dark theme overrides for mirrored badge */
-[data-theme="dark"] .mirrored-badge {
-    background: rgba(20, 184, 166, 0.15);
-    color: #5eead4;
-    border-color: rgba(20, 184, 166, 0.35);
 }
 
 /* ============================================
@@ -4097,7 +4090,7 @@ details.form-group[open] > .form-group-summary::before {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 4px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-elevated);
   max-height: 220px;
   overflow-y: auto;
 }
@@ -4880,7 +4873,7 @@ details.form-group[open] > .form-group-summary::before {
   background: var(--color-bg-elevated, #fff);
   border: 1px solid var(--color-border-default, #d1d5db);
   border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-md);
   z-index: 200;
   display: flex;
   flex-direction: column;
@@ -4945,7 +4938,7 @@ details.form-group[open] > .form-group-summary::before {
 [data-theme="dark"] .canvas-embed-picker {
   background: var(--color-bg-elevated, #1e293b);
   border-color: var(--color-border-default, #334155);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 [data-theme="dark"] .canvas-embed-picker-item:hover {
@@ -4988,8 +4981,8 @@ details.form-group[open] > .form-group-summary::before {
 .spatial-canvas-viewport {
   cursor: grab;
   background-image:
-    linear-gradient(to right, rgba(127, 127, 127, 0.12) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(127, 127, 127, 0.12) 1px, transparent 1px);
+    linear-gradient(to right, var(--_color-canvas-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--_color-canvas-grid) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
@@ -5080,7 +5073,7 @@ details.form-group[open] > .form-group-summary::before {
 .spatial-node-selected {
   outline: 2px solid var(--color-accent, #2563eb);
   outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+  box-shadow: 0 0 0 4px var(--_color-canvas-select);
   z-index: 10;
 }
 
@@ -5274,7 +5267,7 @@ details.form-group[open] > .form-group-summary::before {
 }
 
 .spatial-canvas-viewport.canvas-drop-active {
-  background-color: rgba(37, 99, 235, 0.06);
+  background-color: var(--_color-canvas-drop);
   outline: 2px dashed var(--color-accent, #2563eb);
   outline-offset: -2px;
   cursor: copy;
@@ -5371,13 +5364,13 @@ details.form-group[open] > .form-group-summary::before {
 }
 
 [data-theme="dark"] .spatial-edge-line-markdown {
-  stroke: #4ade80;
+  stroke: var(--_color-spatial-link);
 }
 [data-theme="dark"] .spatial-anchor-dot-wikilink {
-  fill: #4ade80;
+  fill: var(--_color-spatial-link);
 }
 [data-theme="dark"] .spatial-ghost-node {
-  border-color: #4ade80;
+  border-color: var(--_color-spatial-link);
 }
 
 
@@ -6348,8 +6341,8 @@ details.form-group[open] > .form-group-summary::before {
 }
 
 .lint-settings-clear-btn:hover {
-    background: var(--color-danger, #dc2626);
-    color: #fff;
+    background: var(--color-danger);
+    color: var(--color-on-accent);
 }
 
 .lint-manage-filters-link {
@@ -6521,10 +6514,10 @@ details.form-group[open] > .form-group-summary::before {
 }
 .sparql-run-btn:hover {
     background: var(--color-primary);
-    color: #fff;
+    color: var(--color-on-accent);
 }
 .sparql-run-btn:hover svg {
-    stroke: #fff;
+    stroke: var(--color-on-accent);
 }
 
 .sparql-toolbar-spacer {
@@ -6556,7 +6549,7 @@ details.form-group[open] > .form-group-summary::before {
     background: var(--color-surface-raised, var(--color-surface));
     border: 1px solid var(--color-border);
     border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: var(--shadow-elevated);
     max-height: 300px;
     overflow-y: auto;
     min-width: 320px;
@@ -6981,7 +6974,7 @@ details.form-group[open] > .form-group-summary::before {
 }
 .sparql-panel .cm-tooltip-autocomplete > ul > li[aria-selected] {
     background: var(--color-primary);
-    color: #fff;
+    color: var(--color-on-accent);
 }
 
 /* --- Sharing UI --- */
@@ -7406,7 +7399,7 @@ details.form-group[open] > .form-group-summary::before {
 }
 
 #promote-dialog::backdrop {
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--color-overlay-heavy);
 }
 
 #promote-dialog h3 {
@@ -7502,10 +7495,10 @@ details.form-group[open] > .form-group-summary::before {
     margin-left: 12px;
     padding: 2px 8px;
     font-size: 12px;
-    border: 1px solid rgba(20, 184, 166, 0.4);
+    border: 1px solid color-mix(in srgb, var(--color-accent) 40%, transparent);
     border-radius: 4px;
-    background: rgba(20, 184, 166, 0.08);
-    color: #0d9488;
+    background: var(--color-accent-subtle);
+    color: var(--color-accent);
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s;
 }
@@ -7518,8 +7511,8 @@ details.form-group[open] > .form-group-summary::before {
 }
 
 .sparql-mirror-btn:hover {
-    background: rgba(20, 184, 166, 0.15);
-    border-color: rgba(20, 184, 166, 0.6);
+    background: var(--color-accent-muted);
+    border-color: color-mix(in srgb, var(--color-accent) 60%, transparent);
 }
 
 .sparql-mirror-btn:disabled {
@@ -7530,20 +7523,20 @@ details.form-group[open] > .form-group-summary::before {
 
 /* Warning state — endpoint not in allowlist */
 .sparql-mirror-btn.mirror-warning {
-    border-color: rgba(245, 158, 11, 0.5);
-    background: rgba(245, 158, 11, 0.08);
-    color: #d97706;
+    border-color: color-mix(in srgb, var(--color-warning) 50%, transparent);
+    background: color-mix(in srgb, var(--color-warning) 8%, transparent);
+    color: var(--color-warning-text);
 }
 
 .sparql-mirror-btn.mirror-warning:hover {
-    background: rgba(245, 158, 11, 0.15);
+    background: color-mix(in srgb, var(--color-warning) 15%, transparent);
 }
 
 /* Success state — mirroring complete */
 .sparql-mirror-btn.mirror-success {
-    border-color: rgba(20, 184, 166, 0.5);
-    background: rgba(20, 184, 166, 0.1);
-    color: #0d9488;
+    border-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
+    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+    color: var(--color-accent);
 }
 
 .sparql-mirror-success {
@@ -7552,37 +7545,9 @@ details.form-group[open] > .form-group-summary::before {
 
 /* Error state */
 .sparql-mirror-btn.mirror-error {
-    border-color: rgba(239, 68, 68, 0.4);
-    background: rgba(239, 68, 68, 0.08);
-    color: #dc2626;
-}
-
-/* Dark theme overrides */
-[data-theme="dark"] .sparql-mirror-btn {
-    background: rgba(20, 184, 166, 0.1);
-    color: #5eead4;
-    border-color: rgba(20, 184, 166, 0.3);
-}
-
-[data-theme="dark"] .sparql-mirror-btn:hover {
-    background: rgba(20, 184, 166, 0.2);
-    border-color: rgba(20, 184, 166, 0.5);
-}
-
-[data-theme="dark"] .sparql-mirror-btn.mirror-warning {
-    background: rgba(245, 158, 11, 0.1);
-    color: #fbbf24;
-    border-color: rgba(245, 158, 11, 0.4);
-}
-
-[data-theme="dark"] .sparql-mirror-btn.mirror-success {
-    color: #5eead4;
-}
-
-[data-theme="dark"] .sparql-mirror-btn.mirror-error {
-    background: rgba(239, 68, 68, 0.1);
-    color: #fca5a5;
-    border-color: rgba(239, 68, 68, 0.3);
+    border-color: color-mix(in srgb, var(--color-error) 40%, transparent);
+    background: color-mix(in srgb, var(--color-error) 8%, transparent);
+    color: var(--color-error);
 }
 
 /* ── SERVICE info banner ──────────────────────────────────────────── */
@@ -7628,28 +7593,18 @@ details.form-group[open] > .form-group-summary::before {
 }
 
 .sparql-service-info .endpoint-allowed {
-    background: rgba(20, 184, 166, 0.08);
-    color: #0d9488;
+    background: var(--color-accent-subtle);
+    color: var(--color-accent);
 }
 
 .sparql-service-info .endpoint-blocked {
-    background: rgba(245, 158, 11, 0.08);
-    color: #d97706;
+    background: color-mix(in srgb, var(--color-warning) 8%, transparent);
+    color: var(--color-warning-text);
 }
 
 /* Dark theme */
 [data-theme="dark"] .sparql-service-info {
-    background: var(--color-surface-recessed, #1e1e2e);
-}
-
-[data-theme="dark"] .sparql-service-info .endpoint-allowed {
-    background: rgba(20, 184, 166, 0.12);
-    color: #5eead4;
-}
-
-[data-theme="dark"] .sparql-service-info .endpoint-blocked {
-    background: rgba(245, 158, 11, 0.12);
-    color: #fbbf24;
+    background: var(--color-surface-recessed);
 }
 
 
@@ -7933,7 +7888,7 @@ details.form-group[open] > .form-group-summary::before {
 
 .workflow-step-indicator.active .workflow-step-number,
 .workflow-step-indicator.completed .workflow-step-number {
-    background: rgba(0, 0, 0, 0.2);
+    background: color-mix(in srgb, var(--color-text) 20%, transparent);
     color: inherit;
 }
 
@@ -8155,18 +8110,18 @@ details.form-group[open] > .form-group-summary::before {
 }
 
 .form-group-success {
-    color: var(--color-success, #4ec9b0);
+    color: var(--color-success);
     padding: 8px 12px;
     border-radius: 4px;
-    background: rgba(78, 201, 176, 0.1);
+    background: color-mix(in srgb, var(--_color-form-success) 10%, transparent);
     font-size: 0.9em;
 }
 
 .form-group-error {
-    color: var(--color-error, #f14c4c);
+    color: var(--color-error);
     padding: 8px 12px;
     border-radius: 4px;
-    background: rgba(241, 76, 76, 0.1);
+    background: color-mix(in srgb, var(--_color-form-error) 10%, transparent);
     font-size: 0.9em;
 }
 

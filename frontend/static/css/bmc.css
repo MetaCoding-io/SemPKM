@@ -88,48 +88,48 @@
 /* --- Section Color Tints (light mode) --- */
 
 .bmc-section[data-section-type="key-partners"] {
-    background: rgba(70, 130, 180, 0.07);
-    border-color: rgba(70, 130, 180, 0.2);
+    background: color-mix(in srgb, var(--_color-bmc-key-partners) 7%, transparent);
+    border-color: color-mix(in srgb, var(--_color-bmc-key-partners) 20%, transparent);
 }
 
 .bmc-section[data-section-type="key-activities"] {
-    background: rgba(16, 185, 129, 0.07);
-    border-color: rgba(16, 185, 129, 0.2);
+    background: color-mix(in srgb, var(--_color-bmc-key-activities) 7%, transparent);
+    border-color: color-mix(in srgb, var(--_color-bmc-key-activities) 20%, transparent);
 }
 
 .bmc-section[data-section-type="key-resources"] {
-    background: rgba(20, 184, 166, 0.07);
-    border-color: rgba(20, 184, 166, 0.2);
+    background: color-mix(in srgb, var(--_color-bmc-key-resources) 7%, transparent);
+    border-color: color-mix(in srgb, var(--_color-bmc-key-resources) 20%, transparent);
 }
 
 .bmc-section[data-section-type="value-propositions"] {
-    background: rgba(59, 130, 246, 0.07);
-    border-color: rgba(59, 130, 246, 0.2);
+    background: color-mix(in srgb, var(--_color-bmc-value-prop) 7%, transparent);
+    border-color: color-mix(in srgb, var(--_color-bmc-value-prop) 20%, transparent);
 }
 
 .bmc-section[data-section-type="customer-relationships"] {
-    background: rgba(244, 63, 94, 0.07);
-    border-color: rgba(244, 63, 94, 0.2);
+    background: color-mix(in srgb, var(--_color-bmc-customer-rel) 7%, transparent);
+    border-color: color-mix(in srgb, var(--_color-bmc-customer-rel) 20%, transparent);
 }
 
 .bmc-section[data-section-type="channels"] {
-    background: rgba(249, 115, 22, 0.07);
-    border-color: rgba(249, 115, 22, 0.2);
+    background: color-mix(in srgb, var(--_color-bmc-channels) 7%, transparent);
+    border-color: color-mix(in srgb, var(--_color-bmc-channels) 20%, transparent);
 }
 
 .bmc-section[data-section-type="customer-segments"] {
-    background: rgba(168, 85, 247, 0.07);
-    border-color: rgba(168, 85, 247, 0.2);
+    background: color-mix(in srgb, var(--_color-bmc-customer-seg) 7%, transparent);
+    border-color: color-mix(in srgb, var(--_color-bmc-customer-seg) 20%, transparent);
 }
 
 .bmc-section[data-section-type="cost-structure"] {
-    background: rgba(100, 116, 139, 0.07);
-    border-color: rgba(100, 116, 139, 0.2);
+    background: color-mix(in srgb, var(--_color-bmc-cost-structure) 7%, transparent);
+    border-color: color-mix(in srgb, var(--_color-bmc-cost-structure) 20%, transparent);
 }
 
 .bmc-section[data-section-type="revenue-streams"] {
-    background: rgba(245, 158, 11, 0.07);
-    border-color: rgba(245, 158, 11, 0.2);
+    background: color-mix(in srgb, var(--_color-bmc-revenue) 7%, transparent);
+    border-color: color-mix(in srgb, var(--_color-bmc-revenue) 20%, transparent);
 }
 
 /* --- Section Header --- */
@@ -164,39 +164,39 @@
 /* --- Section Header Color Accents (bottom border) --- */
 
 .bmc-section[data-section-type="key-partners"] .bmc-section-header {
-    border-bottom-color: rgba(70, 130, 180, 0.25);
+    border-bottom-color: color-mix(in srgb, var(--_color-bmc-key-partners) 25%, transparent);
 }
 
 .bmc-section[data-section-type="key-activities"] .bmc-section-header {
-    border-bottom-color: rgba(16, 185, 129, 0.25);
+    border-bottom-color: color-mix(in srgb, var(--_color-bmc-key-activities) 25%, transparent);
 }
 
 .bmc-section[data-section-type="key-resources"] .bmc-section-header {
-    border-bottom-color: rgba(20, 184, 166, 0.25);
+    border-bottom-color: color-mix(in srgb, var(--_color-bmc-key-resources) 25%, transparent);
 }
 
 .bmc-section[data-section-type="value-propositions"] .bmc-section-header {
-    border-bottom-color: rgba(59, 130, 246, 0.25);
+    border-bottom-color: color-mix(in srgb, var(--_color-bmc-value-prop) 25%, transparent);
 }
 
 .bmc-section[data-section-type="customer-relationships"] .bmc-section-header {
-    border-bottom-color: rgba(244, 63, 94, 0.25);
+    border-bottom-color: color-mix(in srgb, var(--_color-bmc-customer-rel) 25%, transparent);
 }
 
 .bmc-section[data-section-type="channels"] .bmc-section-header {
-    border-bottom-color: rgba(249, 115, 22, 0.25);
+    border-bottom-color: color-mix(in srgb, var(--_color-bmc-channels) 25%, transparent);
 }
 
 .bmc-section[data-section-type="customer-segments"] .bmc-section-header {
-    border-bottom-color: rgba(168, 85, 247, 0.25);
+    border-bottom-color: color-mix(in srgb, var(--_color-bmc-customer-seg) 25%, transparent);
 }
 
 .bmc-section[data-section-type="cost-structure"] .bmc-section-header {
-    border-bottom-color: rgba(100, 116, 139, 0.25);
+    border-bottom-color: color-mix(in srgb, var(--_color-bmc-cost-structure) 25%, transparent);
 }
 
 .bmc-section[data-section-type="revenue-streams"] .bmc-section-header {
-    border-bottom-color: rgba(245, 158, 11, 0.25);
+    border-bottom-color: color-mix(in srgb, var(--_color-bmc-revenue) 25%, transparent);
 }
 
 /* --- Section Content --- */
@@ -239,14 +239,14 @@
 
 .bmc-item-textarea:hover {
     border-color: var(--color-border-subtle);
-    background: rgba(255, 255, 255, 0.4);
+    background: color-mix(in srgb, var(--color-surface) 40%, transparent);
 }
 
 .bmc-item-textarea:focus {
     outline: none;
-    border-color: var(--color-primary, #3b82f6);
-    background: var(--color-surface, #fff);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+    border-color: var(--color-primary);
+    background: var(--color-surface);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 15%, transparent);
 }
 
 .bmc-item-textarea::placeholder {
@@ -256,14 +256,14 @@
 
 /* Save error flash */
 .bmc-item-textarea.bmc-save-error {
-    border-color: var(--color-danger, #ef4444);
-    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+    border-color: var(--color-danger);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-danger) 15%, transparent);
 }
 
 /* Save success flash */
 .bmc-item-textarea.bmc-save-ok {
-    border-color: var(--color-success, #22c55e);
-    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.15);
+    border-color: var(--color-success);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-success) 15%, transparent);
 }
 
 /* --- Item Label (clickable link to object) --- */
@@ -302,121 +302,13 @@
     stroke: currentColor;
 }
 
-/* ============================================
-   Dark Mode
-   ============================================ */
-
-html[data-theme="dark"] .bmc-section {
-    border-color: rgba(255, 255, 255, 0.08);
-}
-
-/* Dark mode section tints (deeper, more saturated) */
-
-html[data-theme="dark"] .bmc-section[data-section-type="key-partners"] {
-    background: rgba(70, 130, 180, 0.12);
-    border-color: rgba(70, 130, 180, 0.25);
-}
-
-html[data-theme="dark"] .bmc-section[data-section-type="key-activities"] {
-    background: rgba(16, 185, 129, 0.12);
-    border-color: rgba(16, 185, 129, 0.25);
-}
-
-html[data-theme="dark"] .bmc-section[data-section-type="key-resources"] {
-    background: rgba(20, 184, 166, 0.12);
-    border-color: rgba(20, 184, 166, 0.25);
-}
-
-html[data-theme="dark"] .bmc-section[data-section-type="value-propositions"] {
-    background: rgba(59, 130, 246, 0.12);
-    border-color: rgba(59, 130, 246, 0.25);
-}
-
-html[data-theme="dark"] .bmc-section[data-section-type="customer-relationships"] {
-    background: rgba(244, 63, 94, 0.12);
-    border-color: rgba(244, 63, 94, 0.25);
-}
-
-html[data-theme="dark"] .bmc-section[data-section-type="channels"] {
-    background: rgba(249, 115, 22, 0.12);
-    border-color: rgba(249, 115, 22, 0.25);
-}
-
-html[data-theme="dark"] .bmc-section[data-section-type="customer-segments"] {
-    background: rgba(168, 85, 247, 0.12);
-    border-color: rgba(168, 85, 247, 0.25);
-}
-
-html[data-theme="dark"] .bmc-section[data-section-type="cost-structure"] {
-    background: rgba(100, 116, 139, 0.12);
-    border-color: rgba(100, 116, 139, 0.25);
-}
-
-html[data-theme="dark"] .bmc-section[data-section-type="revenue-streams"] {
-    background: rgba(245, 158, 11, 0.12);
-    border-color: rgba(245, 158, 11, 0.25);
-}
-
-/* Dark mode header accents */
-
-html[data-theme="dark"] .bmc-section[data-section-type="key-partners"] .bmc-section-header {
-    border-bottom-color: rgba(70, 130, 180, 0.3);
-}
-
-html[data-theme="dark"] .bmc-section[data-section-type="key-activities"] .bmc-section-header {
-    border-bottom-color: rgba(16, 185, 129, 0.3);
-}
-
-html[data-theme="dark"] .bmc-section[data-section-type="key-resources"] .bmc-section-header {
-    border-bottom-color: rgba(20, 184, 166, 0.3);
-}
-
-html[data-theme="dark"] .bmc-section[data-section-type="value-propositions"] .bmc-section-header {
-    border-bottom-color: rgba(59, 130, 246, 0.3);
-}
-
-html[data-theme="dark"] .bmc-section[data-section-type="customer-relationships"] .bmc-section-header {
-    border-bottom-color: rgba(244, 63, 94, 0.3);
-}
-
-html[data-theme="dark"] .bmc-section[data-section-type="channels"] .bmc-section-header {
-    border-bottom-color: rgba(249, 115, 22, 0.3);
-}
-
-html[data-theme="dark"] .bmc-section[data-section-type="customer-segments"] .bmc-section-header {
-    border-bottom-color: rgba(168, 85, 247, 0.3);
-}
-
-html[data-theme="dark"] .bmc-section[data-section-type="cost-structure"] .bmc-section-header {
-    border-bottom-color: rgba(100, 116, 139, 0.3);
-}
-
-html[data-theme="dark"] .bmc-section[data-section-type="revenue-streams"] .bmc-section-header {
-    border-bottom-color: rgba(245, 158, 11, 0.3);
-}
-
-/* Dark mode textarea */
-
-html[data-theme="dark"] .bmc-item-textarea:hover {
-    background: rgba(255, 255, 255, 0.04);
-}
-
-html[data-theme="dark"] .bmc-item-textarea:focus {
-    background: var(--color-surface, #1e1e1e);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-}
-
-/* Dark mode count badge */
-
-html[data-theme="dark"] .bmc-section-count {
-    background: var(--color-surface-recessed, #252525);
-}
+/* Dark Mode: eliminated — all values now use theme tokens that auto-switch via primitives */
 
 /* ============================================
    Responsive — Single Column at Narrow Widths
    ============================================ */
 
-@media (max-width: 800px) {
+@media (max-width: 768px) {
     .bmc-grid {
         grid-template-columns: 1fr;
         grid-template-rows: auto;

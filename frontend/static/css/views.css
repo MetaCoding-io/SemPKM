@@ -113,9 +113,9 @@
 }
 
 .type-pill.active {
-    background: var(--color-primary, #0078d4);
-    color: #fff;
-    border-color: var(--color-primary, #0078d4);
+    background: var(--color-primary);
+    color: var(--color-on-accent);
+    border-color: var(--color-primary);
 }
 
 /* --- View Variant Dropdown --- */
@@ -786,7 +786,7 @@
     padding: 16px;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 600px) {
     .card-grid {
         grid-template-columns: 1fr;
     }
@@ -1193,7 +1193,7 @@ select.cards-group-select {
 
 .kanban-card:hover {
     border-color: var(--color-border-strong);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 4px color-mix(in srgb, var(--color-text) 8%, transparent);
 }
 
 .kanban-card.dragging {
@@ -1341,10 +1341,10 @@ select.cards-group-select {
 
 /* Visual feedback when an external item is dragged over the calendar */
 .calendar-container.calendar-drop-active {
-    border-color: var(--color-accent, #0078d4);
-    box-shadow: inset 0 0 0 1px var(--color-accent, #0078d4),
-                0 0 12px rgba(0, 120, 212, 0.15);
-    background: var(--color-primary-subtle, rgba(0, 120, 212, 0.04));
+    border-color: var(--color-accent);
+    box-shadow: inset 0 0 0 1px var(--color-accent),
+                0 0 12px color-mix(in srgb, var(--color-accent) 15%, transparent);
+    background: var(--color-primary-subtle);
 }
 
 /* ── Scope sync visual feedback ── */
@@ -1360,23 +1360,23 @@ select.cards-group-select {
 
 /* Calendar event type color coding */
 .fc-event-task {
-    background-color: #10b981 !important;
-    border-color: #059669 !important;
-    color: #fff !important;
+    background-color: var(--_color-emerald-500) !important;
+    border-color: var(--color-success) !important;
+    color: var(--color-on-accent) !important;
 }
 
 .fc-event-task:hover {
-    background-color: #059669 !important;
+    background-color: var(--color-success) !important;
 }
 
 .fc-event-event {
-    background-color: #8b5cf6 !important;
-    border-color: #7c3aed !important;
-    color: #fff !important;
+    background-color: var(--_color-violet-500) !important;
+    border-color: color-mix(in srgb, var(--_color-violet-500) 85%, black) !important;
+    color: var(--color-on-accent) !important;
 }
 
 .fc-event-event:hover {
-    background-color: #7c3aed !important;
+    background-color: color-mix(in srgb, var(--_color-violet-500) 85%, black) !important;
 }
 
 /* Ensure resize cursor appears on editable events */
@@ -1401,7 +1401,7 @@ select.cards-group-select {
 .fc {
     --fc-event-bg-color: var(--color-accent);
     --fc-event-border-color: var(--color-accent);
-    --fc-event-text-color: #fff;
+    --fc-event-text-color: var(--color-on-accent);
 }
 
 /* Dark mode FullCalendar overrides */
@@ -1413,7 +1413,7 @@ select.cards-group-select {
     --fc-today-bg-color: var(--color-accent-subtle);
     --fc-event-bg-color: var(--color-accent);
     --fc-event-border-color: var(--color-accent);
-    --fc-event-text-color: #fff;
+    --fc-event-text-color: var(--color-on-accent);
     color: var(--color-text);
 }
 
@@ -1430,7 +1430,7 @@ select.cards-group-select {
 [data-theme="dark"] .fc .fc-button-active {
     background: var(--color-accent);
     border-color: var(--color-accent);
-    color: #fff;
+    color: var(--color-on-accent);
 }
 
 [data-theme="dark"] .fc .fc-col-header-cell,

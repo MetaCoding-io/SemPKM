@@ -187,7 +187,7 @@
 
 /* Folder icon color */
 .vfs-tree-icon--folder {
-    color: #E8A838;
+    color: var(--_color-vfs-warning);
 }
 
 /* File icon color */
@@ -409,7 +409,7 @@
 /* Dirty indicator */
 .vfs-tab.dirty .vfs-tab-label::after {
     content: " \2022";
-    color: var(--color-primary, #4A90D9);
+    color: var(--color-primary);
 }
 
 /* ── Editor content area ─────────────────────── */
@@ -483,9 +483,9 @@
 }
 
 .vfs-editor-toolbar .btn-sm.btn-primary {
-    background: var(--color-primary, #4A90D9);
-    color: #fff;
-    border-color: var(--color-primary, #4A90D9);
+    background: var(--color-primary);
+    color: var(--color-on-accent);
+    border-color: var(--color-primary);
 }
 
 .vfs-editor-toolbar .btn-sm.btn-primary:hover {
@@ -502,11 +502,11 @@
 }
 
 .vfs-editor-status.saved {
-    color: #27AE60;
+    color: var(--_color-vfs-success);
 }
 
 .vfs-editor-status.error {
-    color: #E74C3C;
+    color: var(--_color-vfs-error);
 }
 
 /* ── Side-by-side split layout ──────────────── */
@@ -657,7 +657,7 @@
 .vfs-saved-flash {
     display: inline-block;
     font-size: 0.75rem;
-    color: #27AE60;
+    color: var(--_color-vfs-success);
     font-weight: 600;
     animation: vfs-flash-fade 1.8s ease forwards;
     pointer-events: none;
@@ -684,7 +684,7 @@
     transform: translateY(-8px);
     transition: opacity 0.25s ease, transform 0.25s ease;
     pointer-events: none;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-elevated);
 }
 
 .vfs-toast--visible {
@@ -693,13 +693,13 @@
 }
 
 .vfs-toast--success {
-    background: #27AE60;
-    color: #fff;
+    background: var(--_color-vfs-success);
+    color: var(--color-on-accent);
 }
 
 .vfs-toast--error {
-    background: #E74C3C;
-    color: #fff;
+    background: var(--_color-vfs-error);
+    color: var(--color-on-accent);
 }
 
 .vfs-toast--info {
