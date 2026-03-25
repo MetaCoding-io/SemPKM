@@ -41,7 +41,7 @@ Unit tests: verify unauthenticated requests to /browser/apps/explorer return 401
   - Files: `backend/app/browser/apps.py`, `backend/app/api/setup_routes.py`, `backend/app/main.py`
   - Verify: cd backend && .venv/bin/python -m pytest tests/ -v -x --timeout=60
 
-- [ ] **T02: CORS consolidation to backend + HTTP security headers in nginx** `est:2h`
+- [x] **T02: CORS consolidation to backend + HTTP security headers in nginx** `est:2h`
   1. Remove all CORS add_header directives from frontend/nginx.conf (lines 74-77, 96-98, 116-118, 122-125) and frontend/nginx.demo.conf equivalent sections.
 
 2. Configure FastAPI CORSMiddleware in backend/app/main.py:

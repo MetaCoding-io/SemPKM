@@ -445,6 +445,114 @@ class TestWellKnownEndpoint:
         assert capabilities == expected
 
 
+class TestCORSMiddleware:
+    """Test CORS configuration and the well-known wildcard override."""
+
+    def _build_cors_app(self, db_session_factory, cors_origins: str = ""):
+        """Build a test app with CORSMiddleware + WellKnownCORSMiddleware."""
+        from app.api.router import well_known_router, api_surface_router
+        from app.auth.service import AuthService
+        from fastapi.middleware.cors import CORSMiddleware
+        from app.main import _WellKnownCORSMiddleware
+
+        test_app = FastAPI()
+        auth_service = AuthService(db_session_factory)
+        test_app.state.auth_service = auth_service
+        test_app.include_router(well_known_router)
+        test_app.include_router(api_surface_router)
+
+        # Mimic the CORS setup from main.py
+        origins_list = [o.strip() for o in cors_origins.split(",") if o.strip()]
+        if origins_list:
+            test_app.add_middleware(
+                CORSMiddleware,
+                allow_origins=origins_list,
+                allow_credentials=True,
+                allow_methods=["*"],
+                allow_headers=["*"],
+            )
+        else:
+            test_app.add_middleware(
+                CORSMiddleware,
+                allow_origins=["*"],
+                allow_credentials=False,
+                allow_methods=["*"],
+                allow_headers=["*"],
+            )
+        test_app.add_middleware(_WellKnownCORSMiddleware)
+        return test_app
+
+    async def test_well_known_always_returns_wildcard_cors(
+        self, db_session_factory, db_session, valid_session,
+    ):
+        """/.well-known/sempkm returns Access-Control-Allow-Origin: * even with restricted CORS_ORIGINS."""
+        from app.db.session import get_db_session
+
+        test_app = self._build_cors_app(db_session_factory, cors_origins="https://example.com")
+
+        async def override_db():
+            yield db_session
+
+        test_app.dependency_overrides[get_db_session] = override_db
+
+        transport = ASGITransport(app=test_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/.well-known/sempkm",
+                cookies={"sempkm_session": valid_session.token},
+                headers={"Origin": "chrome-extension://abcdef"},
+            )
+        assert resp.status_code == 200
+        assert resp.headers.get("access-control-allow-origin") == "*"
+        # credentials must not be set with wildcard origin
+        assert "access-control-allow-credentials" not in resp.headers
+
+    async def test_api_route_uses_configured_cors_origins(
+        self, db_session_factory, db_session, valid_session,
+    ):
+        """API routes use the configured CORS_ORIGINS, not wildcard, when set."""
+        from app.db.session import get_db_session
+
+        test_app = self._build_cors_app(db_session_factory, cors_origins="https://example.com")
+
+        async def override_db():
+            yield db_session
+
+        test_app.dependency_overrides[get_db_session] = override_db
+
+        transport = ASGITransport(app=test_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/api/surface",
+                cookies={"sempkm_session": valid_session.token},
+                headers={"Origin": "https://example.com"},
+            )
+        # Should reflect the configured origin, not wildcard
+        assert resp.headers.get("access-control-allow-origin") == "https://example.com"
+
+    async def test_wildcard_cors_when_no_origins_configured(
+        self, db_session_factory, db_session, valid_session,
+    ):
+        """Without CORS_ORIGINS, all routes get Access-Control-Allow-Origin: *."""
+        from app.db.session import get_db_session
+
+        test_app = self._build_cors_app(db_session_factory, cors_origins="")
+
+        async def override_db():
+            yield db_session
+
+        test_app.dependency_overrides[get_db_session] = override_db
+
+        transport = ASGITransport(app=test_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            resp = await client.get(
+                "/.well-known/sempkm",
+                cookies={"sempkm_session": valid_session.token},
+                headers={"Origin": "http://localhost:3000"},
+            )
+        assert resp.headers.get("access-control-allow-origin") == "*"
+
+
 # ---------------------------------------------------------------------------
 # /api/types endpoint tests
 # ---------------------------------------------------------------------------

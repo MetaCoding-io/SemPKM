@@ -11,6 +11,16 @@
 # Usage: docker compose -f docker-compose.yml -f docker-compose.cloud.yml up
 
 {$SEMPKM_DOMAIN:localhost} {
+	# ── HTTP Security Headers ──
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Content-Security-Policy "default-src 'self'; script-src 'self' https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'"
+		-Server
+	}
+
 	# ── Compression ──
 	encode gzip
 

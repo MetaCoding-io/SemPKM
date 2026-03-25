@@ -675,6 +675,25 @@ else:
         allow_headers=["*"],
     )
 
+
+# Well-known discovery endpoint must always return Access-Control-Allow-Origin: *
+# regardless of CORS_ORIGINS setting, because browser extensions on any origin
+# need to reach it. This middleware overrides the CORSMiddleware header for that
+# single path.
+from starlette.middleware.base import BaseHTTPMiddleware
+
+class _WellKnownCORSMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        if request.url.path == "/.well-known/sempkm":
+            response.headers["access-control-allow-origin"] = "*"
+            # Remove credentials header if present — can't combine with wildcard origin
+            if "access-control-allow-credentials" in response.headers:
+                del response.headers["access-control-allow-credentials"]
+        return response
+
+app.add_middleware(_WellKnownCORSMiddleware)
+
 # ETag conditional GET middleware — added before TimingMiddleware so timing
 # wraps ETag processing and captures total time including 304 responses.
 app.add_middleware(ConditionalGetMiddleware)
