@@ -182,6 +182,13 @@
               else if (cm.refresh) cm.refresh();
             }
           });
+        },
+        dispose: function () {
+          if (el.id) window.runCleanup(el.id);
+          var children = el.querySelectorAll('[id]');
+          for (var i = 0; i < children.length; i++) {
+            window.runCleanup(children[i].id);
+          }
         }
       };
     }
@@ -193,13 +200,13 @@
           var vid = params.params.viewId;
           var url = '/browser/views/' + vt + '/' + encodeURIComponent(vid);
           htmx.ajax('GET', url, { target: el, swap: 'innerHTML' });
-          params.api.onDidVisibilityChange(function (event) {
-            if (!event.isVisible) return;
-            if (window._cytoscapeInstances && window._cytoscapeInstances[vid]) {
-              var cy = window._cytoscapeInstances[vid];
-              cy.resize(); cy.fit();
-            }
-          });
+        },
+        dispose: function () {
+          if (el.id) window.runCleanup(el.id);
+          var children = el.querySelectorAll('[id]');
+          for (var i = 0; i < children.length; i++) {
+            window.runCleanup(children[i].id);
+          }
         }
       };
     }
@@ -260,6 +267,13 @@
             url = '/browser/apps/catalog/' + params.params.appId;
           }
           htmx.ajax('GET', url, { target: el, swap: 'innerHTML' });
+        },
+        dispose: function () {
+          if (el.id) window.runCleanup(el.id);
+          var children = el.querySelectorAll('[id]');
+          for (var i = 0; i < children.length; i++) {
+            window.runCleanup(children[i].id);
+          }
         }
       };
     }

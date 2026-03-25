@@ -29,7 +29,7 @@
 
 ## Tasks
 
-- [ ] **T01: Wire dockview panel dispose() to cleanup registry** `est:45m`
+- [x] **T01: Wire dockview panel dispose() to cleanup registry** `est:45m`
   Export runCleanup() from cleanup.js so it's callable outside the IIFE. Add dispose() methods to all three dockview content renderers (object-editor, view-panel, special-panel) in workspace-layout.js that fire cleanup on the panel's element tree. Remove dead _cytoscapeInstances code.
   - Files: `frontend/static/js/cleanup.js`, `frontend/static/js/workspace-layout.js`
   - Verify: rg 'dispose' frontend/static/js/workspace-layout.js shows dispose functions on all 3 content renderers; rg 'runCleanup' frontend/static/js/cleanup.js shows window.runCleanup export; rg '_cytoscapeInstances' frontend/static/js/ returns zero results

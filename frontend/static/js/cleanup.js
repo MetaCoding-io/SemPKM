@@ -54,4 +54,5 @@
   });
 
   window.registerCleanup = registerCleanup;
+  window.runCleanup = runCleanup;
 })();
