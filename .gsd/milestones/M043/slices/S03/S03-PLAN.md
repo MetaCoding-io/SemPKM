@@ -69,7 +69,7 @@ Unit tests: verify scoped token gets 403 on out-of-scope endpoint, verify wildca
   - Files: `backend/app/auth/models.py`, `backend/app/auth/dependencies.py`, `backend/app/auth/router.py`, `backend/app/sparql/router.py`, `backend/app/api/router.py`, `backend/app/copilot/router.py`
   - Verify: cd backend && .venv/bin/python -m pytest tests/ -v -x -k 'token or scope or auth' --timeout=60
 
-- [ ] **T03: Session management: revoke-all, cap at 10, periodic cleanup, file permissions** `est:3h`
+- [x] **T03: Session management: revoke-all, cap at 10, periodic cleanup, file permissions** `est:3h`
   1. Wire revoke_all_sessions to a Settings endpoint:
    - Add POST /api/auth/sessions/revoke-all endpoint in backend/app/auth/router.py
    - Calls existing revoke_all_sessions(user_id) method

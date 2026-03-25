@@ -516,7 +516,34 @@ async def lifespan(app: FastAPI):
         )
 
     logger.info("SemPKM API started successfully")
+
+    # --- Periodic session/token cleanup (daily) ---
+    async def _periodic_cleanup():
+        """Run session and magic-token cleanup once every 24 hours."""
+        while True:
+            await asyncio.sleep(86400)  # 24 hours
+            try:
+                purged_sessions = await auth_service.cleanup_expired_sessions()
+                purged_magic = await auth_service.cleanup_expired_magic_tokens()
+                if purged_sessions or purged_magic:
+                    logger.info(
+                        "Periodic cleanup: %d expired sessions, %d expired magic tokens",
+                        purged_sessions,
+                        purged_magic,
+                    )
+            except Exception:
+                logger.warning("Periodic session cleanup failed (non-fatal)", exc_info=True)
+
+    _cleanup_task = asyncio.create_task(_periodic_cleanup())
+
     yield
+
+    # Cancel periodic cleanup task
+    _cleanup_task.cancel()
+    try:
+        await _cleanup_task
+    except asyncio.CancelledError:
+        pass
 
     # Shutdown: signal SSE generators first so they exit before we tear down
     # the services they depend on, then stop validation queue, dispose SQL

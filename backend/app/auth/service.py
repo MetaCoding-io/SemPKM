@@ -5,12 +5,15 @@ It takes an async_session_factory as constructor arg and manages its own
 database sessions internally.
 """
 
+import logging
 import secrets
 import uuid
 from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+logger = logging.getLogger(__name__)
 
 
 def _utcnow() -> datetime:
@@ -88,15 +91,49 @@ class AuthService:
             result = await session.execute(select(User).where(User.id == user_id))
             return result.scalar_one_or_none()
 
-    async def create_session(self, user: User) -> UserSession:
+    async def create_session(self, user: User, max_sessions: int = 10) -> UserSession:
         """Create a new session for a user.
 
         Generates a random token and sets expiry based on settings.session_duration_days.
+        Enforces a per-user session cap (default 10) — evicts the oldest sessions
+        when the limit would be exceeded.
         """
         token = secrets.token_urlsafe(32)
         expires_at = _utcnow() + timedelta(days=settings.session_duration_days)
 
         async with self._session_factory() as session:
+            # Enforce session cap: count existing sessions and evict oldest if needed
+            count_result = await session.execute(
+                select(func.count(UserSession.id)).where(
+                    UserSession.user_id == user.id
+                )
+            )
+            active_count = count_result.scalar_one()
+
+            if active_count >= max_sessions:
+                # Keep the newest (max_sessions - 1) sessions, delete the rest
+                keep_limit = max_sessions - 1
+                keep_subq = (
+                    select(UserSession.id)
+                    .where(UserSession.user_id == user.id)
+                    .order_by(UserSession.created_at.desc())
+                    .limit(keep_limit)
+                    .subquery()
+                )
+                evicted = await session.execute(
+                    delete(UserSession).where(
+                        UserSession.user_id == user.id,
+                        UserSession.id.not_in(select(keep_subq.c.id)),
+                    )
+                )
+                evicted_count = evicted.rowcount
+                if evicted_count:
+                    logger.info(
+                        "Session cap: evicted %d oldest session(s) for user %s",
+                        evicted_count,
+                        user.id,
+                    )
+
             user_session = UserSession(
                 token=token,
                 user_id=user.id,

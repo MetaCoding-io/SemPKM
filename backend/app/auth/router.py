@@ -25,6 +25,7 @@ from app.auth.schemas import (
     LogoutResponse,
     MagicLinkRequest,
     MagicLinkResponse,
+    RevokeAllSessionsResponse,
     SetupRequest,
     SetupResponse,
     StatusResponse,
@@ -247,6 +248,34 @@ async def logout(
     await auth_service.revoke_session(token)
     response.delete_cookie(key="sempkm_session")
     return LogoutResponse(message="Logged out successfully")
+
+
+@router.post("/sessions/revoke-all", response_model=RevokeAllSessionsResponse)
+async def revoke_all_sessions(
+    request: Request,
+    response: Response,
+    current_user: User = Depends(get_current_user),
+):
+    """Revoke all sessions for the current user, then create a fresh one.
+
+    The caller stays logged in via a new session cookie.
+    """
+    auth_service = _get_auth_service(request)
+    revoked = await auth_service.revoke_all_sessions(current_user.id)
+    logger.info(
+        "Revoked %d session(s) for user %s (revoke-all)",
+        revoked,
+        current_user.id,
+    )
+
+    # Create a fresh session so the caller stays logged in
+    new_session = await auth_service.create_session(current_user)
+    _set_session_cookie(response, new_session.token)
+
+    return RevokeAllSessionsResponse(
+        revoked_count=revoked,
+        message=f"Revoked {revoked} session(s). New session created.",
+    )
 
 
 @router.get("/me", response_model=AuthResponse)

@@ -9,6 +9,7 @@ a key via secrets.token_urlsafe(64), writes to file, and uses it.
 """
 
 import json
+import os
 import secrets
 from pathlib import Path
 
@@ -38,6 +39,7 @@ def _get_secret_key() -> str:
     key = secrets.token_urlsafe(64)
     key_path.parent.mkdir(parents=True, exist_ok=True)
     key_path.write_text(key)
+    os.chmod(key_path, 0o600)
     return key
 
 
@@ -73,6 +75,7 @@ def load_or_create_setup_token(path: str | None = None) -> str:
     token = create_setup_token()
     token_path.parent.mkdir(parents=True, exist_ok=True)
     token_path.write_text(token)
+    os.chmod(token_path, 0o600)
     return token
 
 

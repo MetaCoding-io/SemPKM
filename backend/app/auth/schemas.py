@@ -124,3 +124,10 @@ class TokenListItem(BaseModel):
     name: str
     scope: str
     created_at: str
+
+
+class RevokeAllSessionsResponse(BaseModel):
+    """Response after revoking all sessions."""
+
+    revoked_count: int
+    message: str

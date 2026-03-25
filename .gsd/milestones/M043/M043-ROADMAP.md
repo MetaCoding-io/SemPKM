@@ -23,7 +23,7 @@
 - [x] **S02: Access Control & CORS Fixes** `risk:medium` `depends:[]`
   > After this: Unauthenticated GET to /browser/apps/explorer returns 401. CORS preflight handled by FastAPI only — no duplicate headers from nginx.
 
-- [ ] **S03: Auth Hardening — Magic Links, Token Scopes, Sessions** `risk:high` `depends:[]`
+- [x] **S03: Auth Hardening — Magic Links, Token Scopes, Sessions** `risk:high` `depends:[]`
   > After this: Magic link replay returns 401. New API token creation UI shows scope checkboxes. Settings page has 'Log out all devices' button. Token created with sparql:read scope gets 403 on object mutation.
 
 - [ ] **S04: Rate Limits, Warnings & Documentation** `risk:low` `depends:[S02]`
