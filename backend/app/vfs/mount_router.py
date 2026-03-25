@@ -392,28 +392,32 @@ async def create_mount(
         f'<{mount_iri}> <{VISIBILITY}> "{sparql_escape_string(visibility)}"',
         f'<{mount_iri}> <{CREATED_AT}> "{sparql_escape_string(created_at)}"^^<http://www.w3.org/2001/XMLSchema#dateTime>',
     ]
-    if body.group_by_property:
-        triples.append(
-            f'<{mount_iri}> <{GROUP_BY_PROPERTY}> {safe_iri(body.group_by_property)}'
-        )
-    if body.date_property:
-        triples.append(
-            f'<{mount_iri}> <{DATE_PROPERTY}> {safe_iri(body.date_property)}'
-        )
+    try:
+        if body.group_by_property:
+            triples.append(
+                f'<{mount_iri}> <{GROUP_BY_PROPERTY}> {safe_iri(body.group_by_property)}'
+            )
+        if body.date_property:
+            triples.append(
+                f'<{mount_iri}> <{DATE_PROPERTY}> {safe_iri(body.date_property)}'
+            )
+        if body.scope_query:
+            triples.append(
+                f'<{mount_iri}> <{SCOPE_QUERY}> {safe_iri(body.scope_query)}'
+            )
+        if body.type_filter:
+            for type_iri in body.type_filter:
+                triples.append(
+                    f'<{mount_iri}> <{TYPE_FILTER}> {safe_iri(type_iri)}'
+                )
+    except ValueError as exc:
+        logger.warning("create_mount: rejected invalid IRI in mount definition: %s", exc)
+        raise HTTPException(400, f"Invalid IRI in mount definition: {exc}")
     scope = body.sparql_scope or "all"
     if scope != "all":
         triples.append(
             f'<{mount_iri}> <{SPARQL_SCOPE}> "{sparql_escape_string(scope)}"'
         )
-    if body.scope_query:
-        triples.append(
-            f'<{mount_iri}> <{SCOPE_QUERY}> {safe_iri(body.scope_query)}'
-        )
-    if body.type_filter:
-        for type_iri in body.type_filter:
-            triples.append(
-                f'<{mount_iri}> <{TYPE_FILTER}> {safe_iri(type_iri)}'
-            )
     if body.filename_template:
         triples.append(
             f'<{mount_iri}> <{FILENAME_TEMPLATE}> "{sparql_escape_string(body.filename_template)}"'

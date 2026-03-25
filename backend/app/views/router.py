@@ -249,6 +249,17 @@ async def generic_view(
     templates = request.app.state.templates
     type_iri = type if type else None
 
+    # Validate type IRI early to reject injection payloads with 400
+    if type_iri:
+        try:
+            safe_iri(type_iri)
+        except ValueError:
+            logger.warning("generic_view: rejected invalid type IRI: %s", type_iri)
+            return HTMLResponse(
+                content='<div class="editor-empty"><p>Invalid type IRI</p></div>',
+                status_code=400,
+            )
+
     # Resolve scope_query to a WHERE body filter if set
     scope_filter_text: str | None = None
     if scope_query:
@@ -1255,6 +1266,14 @@ async def generic_view_data(
         return JSONResponse(content={"error": "Invalid renderer for data endpoint"}, status_code=404)
 
     type_iri = type if type else None
+
+    # Validate type IRI early to reject injection payloads with 400
+    if type_iri:
+        try:
+            safe_iri(type_iri)
+        except ValueError:
+            logger.warning("generic_view_data: rejected invalid type IRI: %s", type_iri)
+            return JSONResponse(content={"error": "Invalid type IRI"}, status_code=400)
 
     # Resolve scope filter if scope_query is set
     scope_filter_text: str | None = None

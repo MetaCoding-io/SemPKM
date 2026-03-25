@@ -66,7 +66,7 @@ For each module: remove the local escape function, import from sparql.builder, v
   - Files: `backend/app/browser/events.py`, `backend/app/browser/favorites.py`, `backend/app/api/ai.py`, `backend/app/api/router.py`, `backend/app/browser/search.py`, `backend/app/browser/workspace.py`, `backend/app/federation/inbox.py`, `backend/app/federation/service.py`, `backend/app/services/webhooks.py`, `backend/app/task_templates/service.py`
   - Verify: cd backend && .venv/bin/python -m pytest tests/ -v -x --timeout=60 && rg 'def _sparql_escape|def _escape_sparql' app/ -g '*.py' | grep -v builder.py | wc -l | xargs test 0 -eq
 
-- [ ] **T04: Exploit regression tests — verify audit payloads are blocked** `est:2h`
+- [x] **T04: Exploit regression tests — verify audit payloads are blocked** `est:2h`
   Create backend/tests/test_sparql_injection_regression.py with exact exploit payloads from the M042 audit:
 
 1. F-006: GET /browser/views/generic/table?type=x>%20.%20?s%20?p%20?o%20}%20%23 → must return 400 or sanitized result (no data leak)
