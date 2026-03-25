@@ -431,6 +431,11 @@ async def lifespan(app: FastAPI):
     if purged:
         logger.info("Purged %d expired sessions", purged)
 
+    # Purge expired used-magic-token records on startup
+    purged_magic = await auth_service.cleanup_expired_magic_tokens()
+    if purged_magic:
+        logger.info("Purged %d expired magic token records", purged_magic)
+
     # --- Namespace Validation ---
     # Warn if base_namespace is still the dangerous default and no instance
     # config exists — means the user hasn't gone through the setup wizard.

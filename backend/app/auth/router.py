@@ -139,10 +139,25 @@ async def request_magic_link(body: MagicLinkRequest, request: Request):
 
     When SMTP is configured, sends the token via email and returns a
     generic message. When SMTP is not configured (local instances),
-    returns the token directly in the response and logs it to the terminal.
+    returns the token directly in the response — but only if the email
+    belongs to an existing user or has a pending invitation (F-018).
     """
-    token = create_magic_link_token(body.email)
     smtp_configured = bool(settings.smtp_host)
+
+    # F-018: When SMTP is not configured, only generate tokens for known users
+    # or pending invitations. Return generic message for unknowns.
+    if not smtp_configured:
+        auth_service = _get_auth_service(request)
+        user = await auth_service.get_user_by_email(body.email)
+        has_invitation = await auth_service.has_pending_invitation(body.email)
+        if user is None and not has_invitation:
+            # Don't reveal whether the email exists — return generic response
+            logger.info("Magic link requested for unknown email (no-SMTP mode)")
+            return MagicLinkResponse(
+                message="If this email is registered, a login link has been sent."
+            )
+
+    token = create_magic_link_token(body.email)
 
     if smtp_configured:
         from app.services.email import send_magic_link_email
@@ -152,15 +167,17 @@ async def request_magic_link(body: MagicLinkRequest, request: Request):
         if not sent:
             # SMTP delivery failed -- fall through to console fallback
             logger.warning("SMTP delivery failed for %s, falling back to console", body.email)
-            logger.info("Magic link token for %s: %s", body.email, token)
+            # F-028: Log only first 8 chars of token
+            logger.info("Magic link token for %s: %s...", body.email, token[:8])
         else:
             return MagicLinkResponse(
                 message="If this email is registered, a login link has been sent."
             )
 
-    # No SMTP — log token and return it directly for local instances
+    # No SMTP — log truncated token and return it directly for local instances
     if not smtp_configured:
-        logger.info("Magic link token for %s: %s", body.email, token)
+        # F-028: Log only first 8 chars of token
+        logger.info("Magic link token for %s: %s...", body.email, token[:8])
     return MagicLinkResponse(
         message="No email configured. Use the token below to log in.",
         token=token,
@@ -176,6 +193,7 @@ async def verify_token(
 ):
     """Verify a magic link token and create a session.
 
+    Enforces single-use: a token that has already been consumed returns 401.
     If the user doesn't exist yet (first magic link login), creates them
     as a member.
     """
@@ -187,6 +205,18 @@ async def verify_token(
         )
 
     auth_service = _get_auth_service(request)
+
+    # F-012: Single-use enforcement — check and consume atomically
+    from datetime import datetime, timedelta, timezone
+    # The token has max_age=600s by default; store that as the expiry for cleanup
+    expires_at = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(seconds=600)
+    consumed = await auth_service.check_and_consume_magic_token(body.token, expires_at)
+    if not consumed:
+        logger.warning("Magic link replay attempt for %s", email)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has already been used",
+        )
 
     # Get or create user
     user = await auth_service.get_user_by_email(email)

@@ -107,6 +107,23 @@ class ApiToken(Base):
     user: Mapped["User"] = relationship(back_populates="api_tokens")
 
 
+class UsedMagicToken(Base):
+    """Tracks consumed magic link tokens to enforce single-use (F-012).
+
+    Stores the SHA-256 hash of the token, not the plaintext.
+    Expired rows are periodically cleaned up alongside session cleanup.
+    """
+
+    __tablename__ = "used_magic_tokens"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    used_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
 class UserSetting(Base):
     """Per-user setting overrides. Key format: '{category}.{name}'."""
 

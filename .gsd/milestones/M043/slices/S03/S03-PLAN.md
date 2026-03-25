@@ -21,7 +21,7 @@ API token scope field is backward-compatible — existing tokens get wildcard sc
 
 ## Tasks
 
-- [ ] **T01: Single-use magic links + no-SMTP restriction + stop token logging** `est:3h`
+- [x] **T01: Single-use magic links + no-SMTP restriction + stop token logging** `est:3h`
   1. Create UsedMagicToken model in backend/app/auth/models.py:
    - token_hash: str (SHA-256 of the token, indexed)
    - used_at: datetime

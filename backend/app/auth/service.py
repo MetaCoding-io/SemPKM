@@ -17,7 +17,7 @@ def _utcnow() -> datetime:
     """Return current UTC time as a naive datetime for SQLite compatibility."""
     return datetime.now(UTC).replace(tzinfo=None)
 
-from app.auth.models import ApiToken, Invitation, User, UserSession
+from app.auth.models import ApiToken, Invitation, UsedMagicToken, User, UserSession
 from app.auth.tokens import create_invitation_token, verify_invitation_token
 from app.config import settings
 
@@ -331,3 +331,59 @@ class AuthService:
         # Create session for the user
         user_session = await self.create_session(user)
         return user, user_session
+
+    # --- Single-use magic link enforcement (F-012) ---
+
+    async def check_and_consume_magic_token(
+        self, token: str, expires_at: datetime
+    ) -> bool:
+        """Mark a magic link token as used. Returns True if consumed, False if already used.
+
+        Computes the SHA-256 hash of the token and inserts into used_magic_tokens.
+        If the hash already exists (replay), returns False.
+        """
+        import hashlib
+
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        async with self._session_factory() as session:
+            # Check if already used
+            result = await session.execute(
+                select(UsedMagicToken.id).where(
+                    UsedMagicToken.token_hash == token_hash
+                )
+            )
+            if result.first() is not None:
+                return False  # Already used — replay attempt
+
+            # Mark as used
+            used = UsedMagicToken(
+                token_hash=token_hash,
+                used_at=_utcnow(),
+                expires_at=expires_at,
+            )
+            session.add(used)
+            await session.commit()
+            return True
+
+    async def cleanup_expired_magic_tokens(self) -> int:
+        """Delete used magic tokens whose original link has expired."""
+        now = _utcnow()
+        async with self._session_factory() as session:
+            result = await session.execute(
+                delete(UsedMagicToken).where(UsedMagicToken.expires_at <= now)
+            )
+            await session.commit()
+            return result.rowcount
+
+    async def has_pending_invitation(self, email: str) -> bool:
+        """Check if a pending (unaccepted) invitation exists for this email."""
+        now = _utcnow()
+        async with self._session_factory() as session:
+            result = await session.execute(
+                select(Invitation.id).where(
+                    Invitation.email == email,
+                    Invitation.accepted_at.is_(None),
+                    Invitation.expires_at > now,
+                )
+            )
+            return result.first() is not None
