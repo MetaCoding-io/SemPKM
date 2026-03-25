@@ -483,6 +483,33 @@ async def lifespan(app: FastAPI):
         except Exception:
             logger.warning("Seed sample data failed (non-fatal)", exc_info=True)
 
+    # --- Security Startup Warnings ---
+    _is_localhost = (
+        not settings.app_base_url
+        or "localhost" in settings.app_base_url
+        or "127.0.0.1" in settings.app_base_url
+    )
+    if settings.demo_mode and not _is_localhost:
+        logger.warning(
+            "demo_mode=True with non-localhost APP_BASE_URL (%s). "
+            "Demo mode disables authentication — this is dangerous on a "
+            "public-facing instance.",
+            settings.app_base_url,
+        )
+    if not settings.cookie_secure and not _is_localhost:
+        logger.warning(
+            "cookie_secure=False with non-localhost APP_BASE_URL (%s). "
+            "Session cookies will be sent over plain HTTP, making them "
+            "vulnerable to interception.",
+            settings.app_base_url,
+        )
+    if not settings.cookie_secure and settings.app_base_url.startswith("https://"):
+        logger.warning(
+            "cookie_secure=False but APP_BASE_URL uses HTTPS (%s). "
+            "Set COOKIE_SECURE=true for HTTPS deployments.",
+            settings.app_base_url,
+        )
+
     logger.info("SemPKM API started successfully")
     yield
 

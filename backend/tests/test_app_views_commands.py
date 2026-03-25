@@ -27,11 +27,22 @@ from app.apps.manifest import (
     AppUI,
     AppViewContribution,
 )
+from app.auth.dependencies import get_current_user
+from app.auth.models import User
+from app.db.session import get_db_session
 from app.apps.registry import AppRegistry
 from app.browser.apps import app_commands_router, apps_router
 
 
 # ── Helpers ──
+
+# Fake user for auth dependency override
+_FAKE_USER = User(id="00000000-0000-0000-0000-000000000001", email="test@example.com", role="owner")
+
+
+def _override_auth():
+    """Override get_current_user to return a fake user."""
+    return _FAKE_USER
 
 
 def _make_view(
@@ -89,6 +100,9 @@ def _create_app(
     test_app.include_router(apps_router)
     test_app.include_router(app_commands_router)
 
+    # Override auth dependency to return fake user
+    test_app.dependency_overrides[get_current_user] = _override_auth
+
     # Templates
     templates_dir = Path(__file__).parent.parent / "app" / "templates"
     templates = Jinja2Blocks(directory=templates_dir)
@@ -107,6 +121,7 @@ def _create_app(
 
     manager = AsyncMock()
     manager.get_status = _get_status
+    manager.registry = registry or AppRegistry()
     test_app.state.app_manager = manager
 
     return test_app
@@ -501,3 +516,65 @@ class TestCommandPaletteAPI:
         assert entry["actionUrl"] == "/browser/settings"
         assert "appId" not in entry
         assert "pageId" not in entry
+
+
+# ── Unauthenticated 401 Tests ──
+
+
+class TestUnauthenticatedEndpoints:
+    """Verify all app endpoints return 401 without authentication."""
+
+    def _create_app_no_auth(self) -> FastAPI:
+        """Create a FastAPI test app WITHOUT auth override — endpoints require login.
+
+        Overrides get_db_session with a dummy so the dependency chain
+        resolves without a real DB engine. get_current_user still raises
+        401 because no session cookie is present.
+        """
+        test_app = FastAPI()
+        test_app.include_router(apps_router)
+        test_app.include_router(app_commands_router)
+
+        # Provide a dummy DB session so get_current_user's Depends(get_db_session)
+        # resolves — the function body raises 401 before using the session.
+        async def _dummy_db():
+            yield None
+        test_app.dependency_overrides[get_db_session] = _dummy_db
+
+        return test_app
+
+    def test_apps_explorer_requires_auth(self):
+        app = self._create_app_no_auth()
+        client = TestClient(app, raise_server_exceptions=False)
+        resp = client.get("/apps/explorer")
+        assert resp.status_code == 401
+
+    def test_app_page_requires_auth(self):
+        app = self._create_app_no_auth()
+        client = TestClient(app, raise_server_exceptions=False)
+        resp = client.get("/apps/test-app/page/main")
+        assert resp.status_code == 401
+
+    def test_right_pane_sections_requires_auth(self):
+        app = self._create_app_no_auth()
+        client = TestClient(app, raise_server_exceptions=False)
+        resp = client.get("/apps/right-pane-sections?iri=urn:test:1")
+        assert resp.status_code == 401
+
+    def test_views_explorer_requires_auth(self):
+        app = self._create_app_no_auth()
+        client = TestClient(app, raise_server_exceptions=False)
+        resp = client.get("/apps/views/explorer")
+        assert resp.status_code == 401
+
+    def test_app_view_tab_requires_auth(self):
+        app = self._create_app_no_auth()
+        client = TestClient(app, raise_server_exceptions=False)
+        resp = client.get("/apps/test-app/view/my-view")
+        assert resp.status_code == 401
+
+    def test_commands_list_requires_auth(self):
+        app = self._create_app_no_auth()
+        client = TestClient(app, raise_server_exceptions=False)
+        resp = client.get("/api/apps/commands")
+        assert resp.status_code == 401

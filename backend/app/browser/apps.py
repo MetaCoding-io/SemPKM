@@ -32,7 +32,7 @@ apps_router = APIRouter(tags=["apps"])
 
 
 @apps_router.get("/apps/explorer", response_class=HTMLResponse)
-async def apps_explorer(request: Request):
+async def apps_explorer(request: Request, user: User = Depends(get_current_user)):
     """Return the APPS sidebar section body.
 
     Lists pages from running apps that declare ``nav: "apps"`` in their
@@ -76,7 +76,7 @@ async def apps_explorer(request: Request):
 
 
 @apps_router.get("/apps/{app_id}/page/{page_id}", response_class=HTMLResponse)
-async def app_page(request: Request, app_id: str, page_id: str):
+async def app_page(request: Request, app_id: str, page_id: str, user: User = Depends(get_current_user)):
     """Render the dockview tab content wrapper for an app page.
 
     Loads the app's fragment via htmx through the proxy chain
@@ -128,6 +128,7 @@ async def app_page(request: Request, app_id: str, page_id: str):
 async def right_pane_sections(
     request: Request,
     iri: str = Query(..., description="Object IRI to load right pane for"),
+    user: User = Depends(get_current_user),
 ):
     """Return merged platform + app right-pane sections HTML.
 
@@ -197,7 +198,7 @@ async def right_pane_sections(
 
 
 @apps_router.get("/apps/views/explorer", response_class=HTMLResponse)
-async def views_explorer_apps(request: Request):
+async def views_explorer_apps(request: Request, user: User = Depends(get_current_user)):
     """Return HTML fragment of app view entries for the Views sidebar.
 
     Queries the registry for running apps that declare ``ui.contributions.views``
@@ -244,7 +245,7 @@ async def views_explorer_apps(request: Request):
 
 
 @apps_router.get("/apps/{app_id}/view/{view_id}", response_class=HTMLResponse)
-async def app_view_tab(request: Request, app_id: str, view_id: str):
+async def app_view_tab(request: Request, app_id: str, view_id: str, user: User = Depends(get_current_user)):
     """Render the dockview tab content wrapper for an app view.
 
     Loads the app's view fragment via htmx through the proxy chain,
@@ -456,7 +457,7 @@ app_commands_router = APIRouter(prefix="/api", tags=["apps"])
 
 
 @app_commands_router.get("/apps/commands")
-async def commands_list(request: Request):
+async def commands_list(request: Request, user: User = Depends(get_current_user)):
     """Return JSON array of command palette entries from running apps.
 
     Each entry provides ``id``, ``title``, ``section``, ``actionType``, and

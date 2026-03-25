@@ -21,7 +21,7 @@ Browser extension discovery verified working with backend-only CORS. Existing E2
 
 ## Tasks
 
-- [ ] **T01: Add authentication to app endpoints + setup guard + startup warnings** `est:2h`
+- [x] **T01: Add authentication to app endpoints + setup guard + startup warnings** `est:2h`
   1. Add `user: User = Depends(get_current_user)` to all 6 unprotected endpoints in browser/apps.py:
    - GET /browser/apps/explorer
    - GET /browser/apps/{app_id}/page/{page_id}

@@ -181,10 +181,20 @@ class TestF007AppsIriInjection:
 
     @pytest.fixture
     async def client(self, mock_triplestore):
+        from app.auth.dependencies import get_current_user
+        from app.auth.models import User
         from app.browser.apps import apps_router
 
         app = FastAPI()
         app.include_router(apps_router, prefix="/browser")
+
+        # Override auth to return a fake user
+        _fake_user = User(
+            id="00000000-0000-0000-0000-000000000001",
+            email="test@example.com",
+            role="owner",
+        )
+        app.dependency_overrides[get_current_user] = lambda: _fake_user
 
         # Mock app.state for the apps router
         mock_registry = MagicMock()

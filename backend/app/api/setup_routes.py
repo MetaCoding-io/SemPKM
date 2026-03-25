@@ -120,6 +120,16 @@ async def configure_instance(
 ) -> ConfigureInstanceResponse:
     """Configure the instance deployment mode and namespace."""
 
+    # Guard: refuse if setup mode is not active (owner already exists)
+    if not getattr(request.app.state, "setup_mode", False):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "Instance configuration is only available during initial setup. "
+                "Setup mode is not active."
+            ),
+        )
+
     # Guard: refuse if user data already exists
     if await _check_user_data_exists(request):
         raise HTTPException(

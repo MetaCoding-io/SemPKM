@@ -295,6 +295,9 @@ def _make_test_app() -> FastAPI:
     mock_client.query = AsyncMock(return_value={"boolean": False})
     test_app.state.triplestore_client = mock_client
 
+    # Setup mode must be active for configure-instance to succeed
+    test_app.state.setup_mode = True
+
     return test_app
 
 
@@ -470,6 +473,31 @@ class TestConfigureInstanceEndpoint:
         )
         assert resp.status_code == 200
         assert resp.json()["base_namespace"] == "https://my.sempkm.example.com/data/"
+
+    @pytest.mark.asyncio
+    async def test_403_when_setup_mode_inactive(self, tmp_path, monkeypatch):
+        """Return 403 when setup_mode is not active (post-setup)."""
+        config_path = tmp_path / ".instance-config.json"
+        monkeypatch.setattr(
+            "app.instance_config.DEFAULT_CONFIG_PATH", config_path
+        )
+        # Create app with setup_mode OFF
+        from app.api.setup_routes import setup_router
+        test_app = FastAPI()
+        test_app.include_router(setup_router)
+        mock_client = MagicMock()
+        mock_client.query = AsyncMock(return_value={"boolean": False})
+        test_app.state.triplestore_client = mock_client
+        test_app.state.setup_mode = False
+
+        transport = ASGITransport(app=test_app)
+        async with AsyncClient(transport=transport, base_url="http://test") as ac:
+            resp = await ac.post(
+                "/api/setup/configure-instance",
+                json={"mode": "local"},
+            )
+            assert resp.status_code == 403
+            assert "setup mode" in resp.json()["detail"].lower()
 
 
 # ---------------------------------------------------------------------------
