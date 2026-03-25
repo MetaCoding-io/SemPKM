@@ -132,7 +132,7 @@ test.describe('M031 View Features', () => {
 
     // Wait for dockview to be available
     await ownerPage.waitForFunction(
-      () => (window as any)._dockview != null,
+      () => (window as any).SemPKM._dockview != null,
       { timeout: 10000 },
     );
 

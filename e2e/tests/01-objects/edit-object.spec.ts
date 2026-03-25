@@ -21,8 +21,8 @@ test.describe('Edit Object Properties', () => {
 
     // Load object in edit mode via dockview openTab API
     await ownerPage.evaluate(({ iri, mode }) => {
-      if (typeof (window as any).openTab === 'function') {
-        (window as any).openTab(iri, iri, mode || 'read');
+      if (typeof (window as any).SemPKM.openTab === 'function') {
+        (window as any).SemPKM.openTab(iri, iri, mode || 'read');
       }
     }, { iri: noteIri, mode: 'edit' });
 

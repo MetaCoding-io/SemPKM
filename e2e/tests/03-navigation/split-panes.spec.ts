@@ -9,7 +9,7 @@
  * Phase: 14 (Split Panes) + Phase 19 (bug fix for content bleed)
  *
  * DOM structure (dockview-core):
- *   Groups managed by dockview API (window._dockview.groups)
+ *   Groups managed by dockview API (window.SemPKM._dockview.groups)
  *   .dv-tabs-container — the tab container belonging to each dockview group
  *
  * Implementation notes:
@@ -29,11 +29,11 @@ test.describe('Split Panes', () => {
 
     // Wait for dockview to have initialized
     await ownerPage.waitForFunction(() => {
-      return (window as any)._dockview != null;
+      return (window as any).SemPKM._dockview != null;
     }, { timeout: 5000 });
 
     const initialCount = await ownerPage.evaluate(() => {
-      const dv = (window as any)._dockview;
+      const dv = (window as any).SemPKM._dockview;
       return dv ? dv.groups.length : 0;
     });
 
@@ -44,7 +44,7 @@ test.describe('Split Panes', () => {
 
     // After split: group count should be >= initial (groups increased OR already at max)
     const afterCount = await ownerPage.evaluate(() => {
-      const dv = (window as any)._dockview;
+      const dv = (window as any).SemPKM._dockview;
       return dv ? dv.groups.length : 0;
     });
     expect(afterCount).toBeGreaterThanOrEqual(initialCount);
@@ -59,7 +59,7 @@ test.describe('Split Panes', () => {
 
     // Wait for dockview to initialize
     await ownerPage.waitForFunction(() => {
-      return (window as any)._dockview != null;
+      return (window as any).SemPKM._dockview != null;
     }, { timeout: 5000 });
 
     // Press Ctrl+\ to ensure we have split panes
@@ -68,7 +68,7 @@ test.describe('Split Panes', () => {
 
     // Structural invariant: each dockview group has its own tab container
     const groupCount = await ownerPage.evaluate(() => {
-      const dv = (window as any)._dockview;
+      const dv = (window as any).SemPKM._dockview;
       return dv ? dv.groups.length : 0;
     });
     const tabContainers = ownerPage.locator('.dv-tabs-container');

@@ -43,8 +43,8 @@ test.describe('Edge (Relationship) Creation', () => {
 
     // Load the object to view it
     await ownerPage.evaluate((iri) => {
-      if (typeof (window as any).openTab === 'function') {
-        (window as any).openTab(iri, 'Architecture Decision');
+      if (typeof (window as any).SemPKM.openTab === 'function') {
+        (window as any).SemPKM.openTab(iri, 'Architecture Decision');
       }
     }, noteIri);
 

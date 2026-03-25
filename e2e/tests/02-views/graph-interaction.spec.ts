@@ -55,8 +55,8 @@ test.describe('Graph View Interaction', () => {
 
     // Use the application's openViewTab function to open the graph properly
     await ownerPage.evaluate(({ specIri, label }) => {
-      if (typeof (window as any).openViewTab === 'function') {
-        (window as any).openViewTab(specIri, label, 'graph');
+      if (typeof (window as any).SemPKM.openViewTab === 'function') {
+        (window as any).SemPKM.openViewTab(specIri, label, 'graph');
       }
     }, { specIri: graphSpec.spec_iri, label: graphSpec.label });
 
@@ -66,7 +66,7 @@ test.describe('Graph View Interaction', () => {
     // Wait for Cytoscape to initialize with data (async fetch)
     await ownerPage.waitForFunction(
       () => {
-        const cy = (window as any)._sempkmGraph;
+        const cy = (window as any).SemPKM._sempkmGraph;
         return cy && cy.nodes().length > 0;
       },
       { timeout: 15000 },
@@ -74,14 +74,14 @@ test.describe('Graph View Interaction', () => {
 
     // 5. Verify Cytoscape has nodes matching the API data
     const nodeCount = await ownerPage.evaluate(() => {
-      const cy = (window as any)._sempkmGraph;
+      const cy = (window as any).SemPKM._sempkmGraph;
       return cy ? cy.nodes().length : 0;
     });
     expect(nodeCount).toBeGreaterThan(0);
 
     // 6. Simulate a node click (tap) — should trigger right pane load
     const clickResult = await ownerPage.evaluate(() => {
-      const cy = (window as any)._sempkmGraph;
+      const cy = (window as any).SemPKM._sempkmGraph;
       if (!cy || cy.nodes().length === 0) return null;
       const node = cy.nodes()[0];
       const data = node.data();
@@ -96,10 +96,10 @@ test.describe('Graph View Interaction', () => {
 
     // 7. Test the graph popover open button — simulate hover + click open
     //    The graph uses a popover that shows on node hover with an "Open" button
-    //    that calls window.openTab(iri, label). Verify openTab is callable.
+    //    that calls window.SemPKM.openTab(iri, label). Verify openTab is callable.
     const openTabResult = await ownerPage.evaluate((nodeData) => {
-      if (typeof (window as any).openTab === 'function' && nodeData) {
-        (window as any).openTab(nodeData.id, nodeData.label);
+      if (typeof (window as any).SemPKM.openTab === 'function' && nodeData) {
+        (window as any).SemPKM.openTab(nodeData.id, nodeData.label);
         return true;
       }
       return false;
@@ -112,7 +112,7 @@ test.describe('Graph View Interaction', () => {
 
       // Verify a new panel was opened in dockview
       const panelCount = await ownerPage.evaluate(() => {
-        const dv = (window as any)._dockview;
+        const dv = (window as any).SemPKM._dockview;
         return dv ? dv.panels.length : 0;
       });
       // Should have at least 2 panels: the graph view + the opened object
@@ -177,8 +177,8 @@ test.describe('Graph View Interaction', () => {
 
     // Use the application's openViewTab function to open the graph properly
     await ownerPage.evaluate(({ specIri, label }) => {
-      if (typeof (window as any).openViewTab === 'function') {
-        (window as any).openViewTab(specIri, label, 'graph');
+      if (typeof (window as any).SemPKM.openViewTab === 'function') {
+        (window as any).SemPKM.openViewTab(specIri, label, 'graph');
       }
     }, { specIri: graphSpec.spec_iri, label: graphSpec.label });
 
@@ -188,7 +188,7 @@ test.describe('Graph View Interaction', () => {
     // Wait for Cytoscape to initialize with data (async fetch)
     await ownerPage.waitForFunction(
       () => {
-        const cy = (window as any)._sempkmGraph;
+        const cy = (window as any).SemPKM._sempkmGraph;
         return cy && cy.nodes().length > 0;
       },
       { timeout: 15000 },
@@ -196,14 +196,14 @@ test.describe('Graph View Interaction', () => {
 
     // 5. Verify Cytoscape has nodes matching the API data
     const nodeCount = await ownerPage.evaluate(() => {
-      const cy = (window as any)._sempkmGraph;
+      const cy = (window as any).SemPKM._sempkmGraph;
       return cy ? cy.nodes().length : 0;
     });
     expect(nodeCount).toBeGreaterThan(0);
 
     // 6. Simulate a node click (tap) — should trigger right pane load
     const clickResult = await ownerPage.evaluate(() => {
-      const cy = (window as any)._sempkmGraph;
+      const cy = (window as any).SemPKM._sempkmGraph;
       if (!cy || cy.nodes().length === 0) return null;
       const node = cy.nodes()[0];
       const data = node.data();
@@ -218,10 +218,10 @@ test.describe('Graph View Interaction', () => {
 
     // 7. Test the graph popover open button — simulate hover + click open
     //    The graph uses a popover that shows on node hover with an "Open" button
-    //    that calls window.openTab(iri, label). Verify openTab is callable.
+    //    that calls window.SemPKM.openTab(iri, label). Verify openTab is callable.
     const openTabResult = await ownerPage.evaluate((nodeData) => {
-      if (typeof (window as any).openTab === 'function' && nodeData) {
-        (window as any).openTab(nodeData.id, nodeData.label);
+      if (typeof (window as any).SemPKM.openTab === 'function' && nodeData) {
+        (window as any).SemPKM.openTab(nodeData.id, nodeData.label);
         return true;
       }
       return false;
@@ -234,7 +234,7 @@ test.describe('Graph View Interaction', () => {
 
       // Verify a new panel was opened in dockview
       const panelCount = await ownerPage.evaluate(() => {
-        const dv = (window as any)._dockview;
+        const dv = (window as any).SemPKM._dockview;
         return dv ? dv.panels.length : 0;
       });
       // Should have at least 2 panels: the graph view + the opened object

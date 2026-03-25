@@ -217,6 +217,4 @@
     }
   });
 
-  // ── backward-compat shims (remove in T03) ──
-  window.initOKR = window.SemPKM.initOKR;
 })();

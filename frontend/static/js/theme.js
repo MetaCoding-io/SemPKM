@@ -132,6 +132,4 @@
     }, 300);
   });
 
-  // ── backward-compat shims (remove in T03) ──
-  window.setTheme = window.SemPKM.setTheme;
 })();

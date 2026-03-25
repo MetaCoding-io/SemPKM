@@ -218,8 +218,8 @@ test.describe('Mental Model Expansion', () => {
       // Open object tab via the window API
       await ownerPage.evaluate(
         ({ iri, label }) => {
-          if (typeof (window as any).openTab === 'function') {
-            (window as any).openTab(iri, label);
+          if (typeof (window as any).SemPKM.openTab === 'function') {
+            (window as any).SemPKM.openTab(iri, label);
           }
         },
         { iri: objectIri, label: `E2E Test ${typeName}` },

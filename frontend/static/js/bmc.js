@@ -156,6 +156,4 @@
     }
   });
 
-  // ── backward-compat shims (remove in T03) ──
-  window.initBMC = window.SemPKM.initBMC;
 })();

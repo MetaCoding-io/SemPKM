@@ -436,10 +436,6 @@
     layout._dv = dv;
     window.SemPKM._workspaceLayout = layout;
     window.SemPKM._tabMeta = _tabMeta;
-    // Keep backward-compat shims in sync (templates still write to window._tabMeta etc.)
-    window._dockview = dv;
-    window._workspaceLayout = layout;
-    window._tabMeta = _tabMeta;
   }
 
   // -----------------------------------------------------------------------
@@ -642,16 +638,4 @@
   window.SemPKM.loadTabInGroup = loadTabInGroup;
 
 
-  // ── backward-compat shims (remove in T03) ──
-  window._dockview = window.SemPKM._dockview;
-  window._workspaceLayout = window.SemPKM._workspaceLayout;
-  window._tabMeta = window.SemPKM._tabMeta;
-  window.getActiveEditorArea = window.SemPKM.getActiveEditorArea;
-  window.splitRight = window.SemPKM.splitRight;
-  window.setActiveGroup = window.SemPKM.setActiveGroup;
-  window.initWorkspaceLayout = window.SemPKM.initWorkspaceLayout;
-  window.switchTabInGroup = window.SemPKM.switchTabInGroup;
-  window.closeTabInGroup = window.SemPKM.closeTabInGroup;
-  window.renderGroupTabBar = window.SemPKM.renderGroupTabBar;
-  window.loadTabInGroup = window.SemPKM.loadTabInGroup;
 })();

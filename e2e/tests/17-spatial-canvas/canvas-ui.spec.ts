@@ -16,8 +16,8 @@ async function openCanvas(page: any) {
   await page.goto(`${BASE_URL}/browser/`);
   await waitForWorkspace(page);
   await page.evaluate(() => {
-    if (typeof (window as any).openCanvasTab === 'function') {
-      (window as any).openCanvasTab();
+    if (typeof (window as any).SemPKM.openCanvasTab === 'function') {
+      (window as any).SemPKM.openCanvasTab();
     }
   });
   await page.waitForSelector('#spatial-canvas-root', { timeout: 15000 });

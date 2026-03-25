@@ -50,7 +50,7 @@ test.describe('Workspace Layout', () => {
 
     // Dockview should have no panels open initially
     const panelCount = await ownerPage.evaluate(() => {
-      const dv = (window as any)._dockview;
+      const dv = (window as any).SemPKM._dockview;
       return dv ? dv.panels.length : 0;
     });
     expect(panelCount).toBe(0);
@@ -62,7 +62,7 @@ test.describe('Workspace Layout', () => {
 
     // Dockview should have no panels/tabs open initially
     const tabCount = await ownerPage.evaluate(() => {
-      const dv = (window as any)._dockview;
+      const dv = (window as any).SemPKM._dockview;
       return dv ? dv.panels.length : 0;
     });
     expect(tabCount).toBe(0);

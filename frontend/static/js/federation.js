@@ -328,17 +328,4 @@
     });
 
 
-  // ── backward-compat shims (remove in T03) ──
-  window.showFederationToast = window.SemPKM.showFederationToast;
-  window.syncSharedGraph = window.SemPKM.syncSharedGraph;
-  window.syncFromNotification = window.SemPKM.syncFromNotification;
-  window.showCreateSharedGraph = window.SemPKM.showCreateSharedGraph;
-  window.hideCreateSharedGraph = window.SemPKM.hideCreateSharedGraph;
-  window.submitCreateSharedGraph = window.SemPKM.submitCreateSharedGraph;
-  window.showInviteForm = window.SemPKM.showInviteForm;
-  window.submitInvite = window.SemPKM.submitInvite;
-  window.acceptInvitation = window.SemPKM.acceptInvitation;
-  window.declineInvitation = window.SemPKM.declineInvitation;
-  window.markNotificationRead = window.SemPKM.markNotificationRead;
-  window.dismissNotification = window.SemPKM.dismissNotification;
 })();

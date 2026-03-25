@@ -37,7 +37,7 @@
     e.dataTransfer.effectAllowed = 'move';
 
     // Side-channel for calendar / canvas external drop handlers
-    window.__calendarDragPayload = { iri: iri, title: title };
+    window.SemPKM.__calendarDragPayload = { iri: iri, title: title };
     window.SemPKM.__canvasDragPayload = { iri: iri, label: title };
 
     card.classList.add('dragging');
@@ -187,6 +187,4 @@
     }
   });
 
-  // ── backward-compat shims (remove in T03) ──
-  window.initKanban = window.SemPKM.initKanban;
 })();

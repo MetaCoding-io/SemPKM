@@ -56,8 +56,4 @@
   window.SemPKM.registerCleanup = registerCleanup;
   window.SemPKM.runCleanup = runCleanup;
 
-  // ── backward-compat shims (remove in T03) ──
-  window._sempkmCleanup = window.SemPKM._sempkmCleanup;
-  window.registerCleanup = window.SemPKM.registerCleanup;
-  window.runCleanup = window.SemPKM.runCleanup;
 })();

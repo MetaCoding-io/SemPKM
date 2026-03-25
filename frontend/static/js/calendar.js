@@ -57,8 +57,8 @@
    * the dragged element's data-iri attribute.
    */
   function handleExternalDrop(info, calendar) {
-    var payload = window.__calendarDragPayload;
-    window.__calendarDragPayload = null;
+    var payload = window.SemPKM.__calendarDragPayload;
+    window.SemPKM.__calendarDragPayload = null;
 
     var iri, title;
     if (payload && payload.iri) {
@@ -207,7 +207,7 @@
 
         /* ── External drop visual feedback ── */
         el.addEventListener('dragover', function (e) {
-          if (window.__calendarDragPayload || (e.dataTransfer && e.dataTransfer.types.indexOf('text/iri') !== -1)) {
+          if (window.SemPKM.__calendarDragPayload || (e.dataTransfer && e.dataTransfer.types.indexOf('text/iri') !== -1)) {
             e.preventDefault();
             el.classList.add('calendar-drop-active');
           }
@@ -314,8 +314,4 @@
     }
   };
 
-  // ── backward-compat shims (remove in T03) ──
-  window._sempkmCalendar = window.SemPKM._sempkmCalendar;
-  window._calendarSelectedDates = window.SemPKM._calendarSelectedDates;
-  window.initCalendar = window.SemPKM.initCalendar;
 })();

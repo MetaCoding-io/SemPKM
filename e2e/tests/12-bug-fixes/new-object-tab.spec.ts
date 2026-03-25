@@ -18,7 +18,7 @@ test.describe('New Object Tab Preservation', () => {
     // Open a seed object tab
     await ownerPage.evaluate(
       ({ iri, label }) => {
-        (window as any).openTab(iri, label);
+        (window as any).SemPKM.openTab(iri, label);
       },
       { iri: SEED.notes.architecture.iri, label: SEED.notes.architecture.title },
     );
@@ -36,7 +36,7 @@ test.describe('New Object Tab Preservation', () => {
 
     // Trigger showTypePicker — creates a temp "New Object" panel
     await ownerPage.evaluate(() => {
-      (window as any).showTypePicker();
+      (window as any).SemPKM.showTypePicker();
     });
     await waitForIdle(ownerPage);
 
@@ -64,7 +64,7 @@ test.describe('New Object Tab Preservation', () => {
     // Open a seed object tab first
     await ownerPage.evaluate(
       ({ iri, label }) => {
-        (window as any).openTab(iri, label);
+        (window as any).SemPKM.openTab(iri, label);
       },
       { iri: SEED.notes.architecture.iri, label: SEED.notes.architecture.title },
     );
@@ -72,14 +72,14 @@ test.describe('New Object Tab Preservation', () => {
 
     // Trigger showTypePicker
     await ownerPage.evaluate(() => {
-      (window as any).showTypePicker();
+      (window as any).SemPKM.showTypePicker();
     });
     await waitForIdle(ownerPage);
     await ownerPage.waitForSelector('.type-picker', { timeout: 10000 });
 
     // Assert: the temp panel has the __new-object- prefix in dockview
     const hasTempPanel = await ownerPage.evaluate(() => {
-      const dv = (window as any)._dockview;
+      const dv = (window as any).SemPKM._dockview;
       if (!dv || !dv.api) return false;
       return dv.api.panels.some(
         (p: any) => typeof p.id === 'string' && p.id.startsWith('__new-object-'),
@@ -90,14 +90,14 @@ test.describe('New Object Tab Preservation', () => {
     // Assert: the temp panel can be closed programmatically
     // (verifies closeTab integration — objectCreated handler relies on this)
     const closedOk = await ownerPage.evaluate(() => {
-      const dv = (window as any)._dockview;
+      const dv = (window as any).SemPKM._dockview;
       if (!dv || !dv.api) return false;
       const tempPanel = dv.api.panels.find(
         (p: any) => typeof p.id === 'string' && p.id.startsWith('__new-object-'),
       );
       if (!tempPanel) return false;
       try {
-        (window as any).closeTab(tempPanel.id);
+        (window as any).SemPKM.closeTab(tempPanel.id);
         return true;
       } catch { return false; }
     });

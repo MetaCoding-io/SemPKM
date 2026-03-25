@@ -188,6 +188,4 @@
     }
   });
 
-  // ── backward-compat shims (remove in T03) ──
-  window.initQuadrant = window.SemPKM.initQuadrant;
 })();

@@ -131,7 +131,4 @@
       });
   };
 
-  // ── backward-compat shims (remove in T03) ──
-  window.renderMarkdownBody = window.SemPKM.renderMarkdownBody;
-  window.renderMarkdownFromUrl = window.SemPKM.renderMarkdownFromUrl;
 })();

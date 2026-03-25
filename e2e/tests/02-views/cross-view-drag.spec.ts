@@ -95,7 +95,7 @@ test.describe('Cross-View Drag & Scope Propagation', () => {
       });
       card.dispatchEvent(evt);
 
-      return (window as any).__calendarDragPayload;
+      return (window as any).SemPKM.__calendarDragPayload;
     }, SEL.views.kanbanCard);
 
     expect(payload).toBeTruthy();
@@ -165,11 +165,11 @@ test.describe('Cross-View Drag & Scope Propagation', () => {
       );
 
       await ownerPage.evaluate(({ iri, title }) => {
-        const cal = (window as any)._sempkmCalendar;
+        const cal = (window as any).SemPKM._sempkmCalendar;
         if (!cal) throw new Error('Calendar instance not found');
 
         // Set the side-channel payload (same as kanban onDragStart)
-        (window as any).__calendarDragPayload = { iri, title };
+        (window as any).SemPKM.__calendarDragPayload = { iri, title };
 
         // Build a synthetic FullCalendar drop info object
         const dropDate = new Date();
@@ -291,11 +291,11 @@ test.describe('Cross-View Drag & Scope Propagation', () => {
         // No saved queries to pick from — trigger scope change programmatically
         // via applyScopeQuery to verify the event detail structure
         await ownerPage.evaluate(() => {
-          if (typeof (window as any).applyScopeQuery === 'function') {
+          if (typeof (window as any).SemPKM.applyScopeQuery === 'function') {
             // Create a temporary element to derive sourcePanel
             const viewContainer = document.querySelector('.kanban-board');
             const sourceEl = viewContainer || document.body;
-            (window as any).applyScopeQuery('test-query-id', 'kanban', 'urn:test:Type', sourceEl);
+            (window as any).SemPKM.applyScopeQuery('test-query-id', 'kanban', 'urn:test:Type', sourceEl);
           }
         });
 
@@ -314,9 +314,9 @@ test.describe('Cross-View Drag & Scope Propagation', () => {
       // No scope select rendered — programmatically dispatch the event
       // to verify the structure contract
       await ownerPage.evaluate(() => {
-        if (typeof (window as any).applyScopeQuery === 'function') {
+        if (typeof (window as any).SemPKM.applyScopeQuery === 'function') {
           const sourceEl = document.querySelector('.kanban-board') || document.body;
-          (window as any).applyScopeQuery('programmatic-scope', 'kanban', 'urn:test:Type', sourceEl);
+          (window as any).SemPKM.applyScopeQuery('programmatic-scope', 'kanban', 'urn:test:Type', sourceEl);
         }
       });
 

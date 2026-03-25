@@ -20,8 +20,8 @@ const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3901';
 /** Open the ontology viewer tab via the JS API. */
 async function openOntologyViewer(page: import('@playwright/test').Page) {
   await page.evaluate(() => {
-    if (typeof (window as any).openOntologyTab === 'function') {
-      (window as any).openOntologyTab();
+    if (typeof (window as any).SemPKM.openOntologyTab === 'function') {
+      (window as any).SemPKM.openOntologyTab();
     }
   });
   await page.waitForSelector(SEL.ontology.ontologyPage, { timeout: 15000 });

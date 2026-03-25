@@ -17,8 +17,8 @@ test.describe('Tab Management', () => {
 
     // Open a seed object via openTab
     await ownerPage.evaluate((iri) => {
-      if (typeof (window as any).openTab === 'function') {
-        (window as any).openTab(iri, 'Architecture Decision');
+      if (typeof (window as any).SemPKM.openTab === 'function') {
+        (window as any).SemPKM.openTab(iri, 'Architecture Decision');
       }
     }, SEED.notes.architecture.iri);
 
@@ -35,16 +35,16 @@ test.describe('Tab Management', () => {
 
     // Open two different objects
     await ownerPage.evaluate((iri) => {
-      if (typeof (window as any).openTab === 'function') {
-        (window as any).openTab(iri, 'Architecture Decision');
+      if (typeof (window as any).SemPKM.openTab === 'function') {
+        (window as any).SemPKM.openTab(iri, 'Architecture Decision');
       }
     }, SEED.notes.architecture.iri);
 
     await waitForIdle(ownerPage);
 
     await ownerPage.evaluate((iri) => {
-      if (typeof (window as any).openTab === 'function') {
-        (window as any).openTab(iri, 'Alice Chen');
+      if (typeof (window as any).SemPKM.openTab === 'function') {
+        (window as any).SemPKM.openTab(iri, 'Alice Chen');
       }
     }, SEED.people.alice.iri);
 
@@ -62,7 +62,7 @@ test.describe('Tab Management', () => {
 
     // Open two objects
     await ownerPage.evaluate(({ iri1, iri2 }) => {
-      const openTab = (window as any).openTab;
+      const openTab = (window as any).SemPKM.openTab;
       if (typeof openTab === 'function') {
         openTab(iri1, 'Architecture Decision');
         setTimeout(() => openTab(iri2, 'Alice Chen'), 500);
@@ -95,7 +95,7 @@ test.describe('Tab Management', () => {
 
     // Open same object twice
     await ownerPage.evaluate((objectIri) => {
-      const openTab = (window as any).openTab;
+      const openTab = (window as any).SemPKM.openTab;
       if (typeof openTab === 'function') {
         openTab(objectIri, 'Architecture Decision');
       }
@@ -104,7 +104,7 @@ test.describe('Tab Management', () => {
     await waitForIdle(ownerPage);
 
     await ownerPage.evaluate((objectIri) => {
-      const openTab = (window as any).openTab;
+      const openTab = (window as any).SemPKM.openTab;
       if (typeof openTab === 'function') {
         openTab(objectIri, 'Architecture Decision');
       }

@@ -29,8 +29,8 @@ async function openGraphPanel(
 
   await ownerPage.evaluate(
     ({ specIri, label }: { specIri: string; label: string }) => {
-      if (typeof (window as any).openViewTab === 'function') {
-        (window as any).openViewTab(specIri, label, 'graph');
+      if (typeof (window as any).SemPKM.openViewTab === 'function') {
+        (window as any).SemPKM.openViewTab(specIri, label, 'graph');
       }
     },
     { specIri: graphSpec.spec_iri, label: graphSpec.label },
@@ -40,7 +40,7 @@ async function openGraphPanel(
   await ownerPage.waitForSelector('#cy-container', { timeout: 15000 });
   await ownerPage.waitForFunction(
     () => {
-      const cy = (window as any)._sempkmGraph;
+      const cy = (window as any).SemPKM._sempkmGraph;
       return cy && cy.nodes().length > 0;
     },
     { timeout: 15000 },
@@ -99,7 +99,7 @@ test.describe('Graph Isometric Layout & Icon Toggle', () => {
 
     // Also verify the cy instance flag via JS
     const isActive = await ownerPage.evaluate(() => {
-      const cy = (window as any)._sempkmGraph;
+      const cy = (window as any).SemPKM._sempkmGraph;
       return cy ? cy._isometricActive === true : false;
     });
     expect(isActive).toBe(true);
@@ -157,7 +157,7 @@ test.describe('Graph Isometric Layout & Icon Toggle', () => {
 
     // Verify at least one node has a background-image set (Lucide SVG data URI)
     const hasBgImage = await ownerPage.evaluate(() => {
-      const cy = (window as any)._sempkmGraph;
+      const cy = (window as any).SemPKM._sempkmGraph;
       if (!cy || cy.nodes().length === 0) return false;
       const bgImg = cy.nodes()[0].style('background-image');
       // background-image could be a string or array depending on Cytoscape version
@@ -196,7 +196,7 @@ test.describe('Graph Isometric Layout & Icon Toggle', () => {
 
     // Verify both JS flags
     const state = await ownerPage.evaluate(() => {
-      const cy = (window as any)._sempkmGraph;
+      const cy = (window as any).SemPKM._sempkmGraph;
       return {
         isometric: cy ? cy._isometricActive === true : false,
         iconMode: localStorage.getItem('sempkm_graph_icon_mode') === 'icon',

@@ -21,8 +21,8 @@ async function openBottomPanelTab(page: Page, tabName: string) {
     if (!panel) return;
     const h = panel.style.height;
     if (!h || h === '0px' || h === '0') {
-      if (typeof (window as any).toggleBottomPanel === 'function') {
-        (window as any).toggleBottomPanel();
+      if (typeof (window as any).SemPKM.toggleBottomPanel === 'function') {
+        (window as any).SemPKM.toggleBottomPanel();
       }
     }
   });

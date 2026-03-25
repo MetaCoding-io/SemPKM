@@ -21,8 +21,8 @@ test.describe('SHACL Validation & Lint Panel', () => {
 
     // Open a seed object to trigger lint panel load
     await ownerPage.evaluate((iri) => {
-      if (typeof (window as any).openTab === 'function') {
-        (window as any).openTab(iri, 'Architecture Decision');
+      if (typeof (window as any).SemPKM.openTab === 'function') {
+        (window as any).SemPKM.openTab(iri, 'Architecture Decision');
       }
     }, noteIri);
 
@@ -44,8 +44,8 @@ test.describe('SHACL Validation & Lint Panel', () => {
 
     // Open a well-formed seed object
     await ownerPage.evaluate((iri) => {
-      if (typeof (window as any).openTab === 'function') {
-        (window as any).openTab(iri, 'Alice Chen');
+      if (typeof (window as any).SemPKM.openTab === 'function') {
+        (window as any).SemPKM.openTab(iri, 'Alice Chen');
       }
     }, SEED.people.alice.iri);
 
@@ -126,8 +126,8 @@ test.describe('SHACL Validation & Lint Panel', () => {
     await waitForWorkspace(ownerPage);
 
     await ownerPage.evaluate((iri) => {
-      if (typeof (window as any).openTab === 'function') {
-        (window as any).openTab(iri, 'Architecture Decision');
+      if (typeof (window as any).SemPKM.openTab === 'function') {
+        (window as any).SemPKM.openTab(iri, 'Architecture Decision');
       }
     }, SEED.notes.architecture.iri);
 

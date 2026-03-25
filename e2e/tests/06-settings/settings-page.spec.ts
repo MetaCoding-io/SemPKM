@@ -17,8 +17,8 @@ test.describe('Settings Page', () => {
 
     // Open settings tab via the global helper (uses dockview internally)
     await ownerPage.evaluate(() => {
-      if (typeof (window as any).openSettingsTab === 'function') {
-        (window as any).openSettingsTab();
+      if (typeof (window as any).SemPKM.openSettingsTab === 'function') {
+        (window as any).SemPKM.openSettingsTab();
       }
     });
 
@@ -40,8 +40,8 @@ test.describe('Settings Page', () => {
     await waitForWorkspace(ownerPage);
 
     await ownerPage.evaluate(() => {
-      if (typeof (window as any).openSettingsTab === 'function') {
-        (window as any).openSettingsTab();
+      if (typeof (window as any).SemPKM.openSettingsTab === 'function') {
+        (window as any).SemPKM.openSettingsTab();
       }
     });
 
@@ -65,8 +65,8 @@ test.describe('Settings Page', () => {
     await waitForWorkspace(ownerPage);
 
     await ownerPage.evaluate(() => {
-      if (typeof (window as any).openSettingsTab === 'function') {
-        (window as any).openSettingsTab();
+      if (typeof (window as any).SemPKM.openSettingsTab === 'function') {
+        (window as any).SemPKM.openSettingsTab();
       }
     });
 

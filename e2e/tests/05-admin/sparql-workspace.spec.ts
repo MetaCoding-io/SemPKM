@@ -17,7 +17,7 @@ test.describe('SPARQL Workspace Panel', () => {
 
     // --- 1. Open the bottom panel via JS (more reliable than Alt+j in headless) ---
     await ownerPage.evaluate(() => {
-      (window as any).toggleBottomPanel();
+      (window as any).SemPKM.toggleBottomPanel();
     });
     await waitForIdle(ownerPage);
 
@@ -98,7 +98,7 @@ test.describe('SPARQL Workspace Panel', () => {
 
     // --- 7. Verify the panel can be closed ---
     await ownerPage.evaluate(() => {
-      (window as any).toggleBottomPanel();
+      (window as any).SemPKM.toggleBottomPanel();
     });
     await waitForIdle(ownerPage);
 
@@ -114,7 +114,7 @@ test.describe('SPARQL Workspace Panel', () => {
 
     // --- 1. Open the bottom panel via JS (more reliable than Alt+j in headless) ---
     await ownerPage.evaluate(() => {
-      (window as any).toggleBottomPanel();
+      (window as any).SemPKM.toggleBottomPanel();
     });
     await waitForIdle(ownerPage);
 

@@ -137,8 +137,8 @@ test.describe('Recurring Tasks on Calendar', () => {
     // Intercept openTab to capture the IRI that would be opened
     await ownerPage.evaluate(() => {
       (window as any).__lastOpenTabIri = null;
-      const originalOpenTab = (window as any).openTab;
-      (window as any).openTab = function(iri: string, title: string) {
+      const originalOpenTab = (window as any).SemPKM.openTab;
+      (window as any).SemPKM.openTab = function(iri: string, title: string) {
         (window as any).__lastOpenTabIri = iri;
         if (originalOpenTab) originalOpenTab(iri, title);
       };

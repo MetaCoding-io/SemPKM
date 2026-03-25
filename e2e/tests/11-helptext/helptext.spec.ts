@@ -20,8 +20,8 @@ test.describe('Edit Form Helptext', () => {
     // Open a seed object in read mode first (edit face is hidden behind flip card)
     await ownerPage.evaluate(
       ({ iri, label }) => {
-        if (typeof (window as any).openTab === 'function') {
-          (window as any).openTab(iri, label, 'read');
+        if (typeof (window as any).SemPKM.openTab === 'function') {
+          (window as any).SemPKM.openTab(iri, label, 'read');
         }
       },
       { iri: SEED.notes.architecture.iri, label: SEED.notes.architecture.title },

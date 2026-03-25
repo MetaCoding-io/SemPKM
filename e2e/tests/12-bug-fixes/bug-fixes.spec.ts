@@ -20,7 +20,7 @@ test.describe('Bug Fix Regressions', () => {
     // Open a Note object
     await ownerPage.evaluate(
       ({ iri, label }) => {
-        (window as any).openTab(iri, label);
+        (window as any).SemPKM.openTab(iri, label);
       },
       { iri: SEED.notes.architecture.iri, label: SEED.notes.architecture.title },
     );
@@ -36,7 +36,7 @@ test.describe('Bug Fix Regressions', () => {
     // Open a Person object
     await ownerPage.evaluate(
       ({ iri, label }) => {
-        (window as any).openTab(iri, label);
+        (window as any).SemPKM.openTab(iri, label);
       },
       { iri: SEED.people.alice.iri, label: SEED.people.alice.name },
     );
@@ -73,7 +73,7 @@ test.describe('Bug Fix Regressions', () => {
 
     const encodedSpecIri = encodeURIComponent(cardSpec.spec_iri);
     await ownerPage.evaluate((iri) => {
-      const dv = (window as any)._dockview;
+      const dv = (window as any).SemPKM._dockview;
       if (dv) {
         dv.addPanel({
           id: 'view-' + Date.now(),
@@ -133,7 +133,7 @@ test.describe('Bug Fix Regressions', () => {
     // Open two objects to create multiple tabs
     await ownerPage.evaluate(
       ({ iri, label }) => {
-        (window as any).openTab(iri, label);
+        (window as any).SemPKM.openTab(iri, label);
       },
       { iri: SEED.notes.architecture.iri, label: SEED.notes.architecture.title },
     );
@@ -142,7 +142,7 @@ test.describe('Bug Fix Regressions', () => {
 
     await ownerPage.evaluate(
       ({ iri, label }) => {
-        (window as any).openTab(iri, label);
+        (window as any).SemPKM.openTab(iri, label);
       },
       { iri: SEED.people.alice.iri, label: SEED.people.alice.name },
     );
@@ -187,7 +187,7 @@ test.describe('Bug Fix Regressions', () => {
     // Open a seed object to populate the right pane sections
     await ownerPage.evaluate(
       ({ iri, label }) => {
-        (window as any).openTab(iri, label);
+        (window as any).SemPKM.openTab(iri, label);
       },
       { iri: SEED.notes.architecture.iri, label: SEED.notes.architecture.title },
     );

@@ -18,9 +18,9 @@ test.describe('Column Preferences', () => {
 
     // 1. Verify ColumnPrefs API is available on window
     const hasApi = await ownerPage.evaluate(() => {
-      return typeof (window as any).ColumnPrefs === 'object'
-        && typeof (window as any).ColumnPrefs.saveColumnPrefs === 'function'
-        && typeof (window as any).ColumnPrefs.getVisibleColumns === 'function';
+      return typeof (window as any).SemPKM.ColumnPrefs === 'object'
+        && typeof (window as any).SemPKM.ColumnPrefs.saveColumnPrefs === 'function'
+        && typeof (window as any).SemPKM.ColumnPrefs.getVisibleColumns === 'function';
     });
     expect(hasApi).toBe(true);
 
@@ -32,12 +32,12 @@ test.describe('Column Preferences', () => {
         { col: 'status', visible: false, order: 1 },
         { col: 'priority', visible: true, order: 2 },
       ];
-      (window as any).ColumnPrefs.saveColumnPrefs(typeIri, prefs);
+      (window as any).SemPKM.ColumnPrefs.saveColumnPrefs(typeIri, prefs);
     }, testTypeIri);
 
     // 3. Read back via ColumnPrefs API
     const savedPrefs = await ownerPage.evaluate((typeIri) => {
-      return (window as any).ColumnPrefs.getVisibleColumns(typeIri);
+      return (window as any).SemPKM.ColumnPrefs.getVisibleColumns(typeIri);
     }, testTypeIri);
     expect(savedPrefs).toBeDefined();
     expect(savedPrefs).toHaveLength(3);
@@ -60,7 +60,7 @@ test.describe('Column Preferences', () => {
     await waitForWorkspace(ownerPage);
 
     const afterReload = await ownerPage.evaluate((typeIri) => {
-      return (window as any).ColumnPrefs.getVisibleColumns(typeIri);
+      return (window as any).SemPKM.ColumnPrefs.getVisibleColumns(typeIri);
     }, testTypeIri);
     expect(afterReload).toBeDefined();
     expect(afterReload).toHaveLength(3);
@@ -69,13 +69,13 @@ test.describe('Column Preferences', () => {
 
     // 6. Toggle a column visible and verify update persists
     await ownerPage.evaluate((typeIri) => {
-      const prefs = (window as any).ColumnPrefs.getVisibleColumns(typeIri);
+      const prefs = (window as any).SemPKM.ColumnPrefs.getVisibleColumns(typeIri);
       prefs[1].visible = true;
-      (window as any).ColumnPrefs.saveColumnPrefs(typeIri, prefs);
+      (window as any).SemPKM.ColumnPrefs.saveColumnPrefs(typeIri, prefs);
     }, testTypeIri);
 
     const updatedPrefs = await ownerPage.evaluate((typeIri) => {
-      return (window as any).ColumnPrefs.getVisibleColumns(typeIri);
+      return (window as any).SemPKM.ColumnPrefs.getVisibleColumns(typeIri);
     }, testTypeIri);
     expect(updatedPrefs[1].visible).toBe(true);
  */
@@ -89,9 +89,9 @@ test.describe('Column Preferences', () => {
 
     // 1. Verify ColumnPrefs API is available on window
     const hasApi = await ownerPage.evaluate(() => {
-      return typeof (window as any).ColumnPrefs === 'object'
-        && typeof (window as any).ColumnPrefs.saveColumnPrefs === 'function'
-        && typeof (window as any).ColumnPrefs.getVisibleColumns === 'function';
+      return typeof (window as any).SemPKM.ColumnPrefs === 'object'
+        && typeof (window as any).SemPKM.ColumnPrefs.saveColumnPrefs === 'function'
+        && typeof (window as any).SemPKM.ColumnPrefs.getVisibleColumns === 'function';
     });
     expect(hasApi).toBe(true);
 
@@ -103,12 +103,12 @@ test.describe('Column Preferences', () => {
         { col: 'status', visible: false, order: 1 },
         { col: 'priority', visible: true, order: 2 },
       ];
-      (window as any).ColumnPrefs.saveColumnPrefs(typeIri, prefs);
+      (window as any).SemPKM.ColumnPrefs.saveColumnPrefs(typeIri, prefs);
     }, testTypeIri);
 
     // 3. Read back via ColumnPrefs API
     const savedPrefs = await ownerPage.evaluate((typeIri) => {
-      return (window as any).ColumnPrefs.getVisibleColumns(typeIri);
+      return (window as any).SemPKM.ColumnPrefs.getVisibleColumns(typeIri);
     }, testTypeIri);
     expect(savedPrefs).toBeDefined();
     expect(savedPrefs).toHaveLength(3);

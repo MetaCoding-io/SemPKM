@@ -105,6 +105,4 @@
 
   window.SemPKM.apiFetch = apiFetch;
 
-  // ── backward-compat shims (remove in T03) ──
-  window.apiFetch = window.SemPKM.apiFetch;
 })();

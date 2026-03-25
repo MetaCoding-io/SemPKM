@@ -72,7 +72,7 @@ test.describe('Named Layouts', () => {
 
     // Close all panels
     await ownerPage.evaluate(() => {
-      const dv = (window as any)._dockview;
+      const dv = (window as any).SemPKM._dockview;
       if (dv) {
         const panels = [...dv.panels];
         panels.forEach((p: any) => p.api.close());

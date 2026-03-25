@@ -29,7 +29,7 @@ test.describe('Graph View', () => {
 
     const encodedSpecIri = encodeURIComponent(graphSpec.spec_iri);
     await ownerPage.evaluate((iri) => {
-      const dv = (window as any)._dockview;
+      const dv = (window as any).SemPKM._dockview;
       if (dv) {
         dv.addPanel({
           id: 'view-' + Date.now(),
@@ -91,7 +91,7 @@ test.describe('Graph View', () => {
 
     const encodedSpecIri = encodeURIComponent(graphSpec.spec_iri);
     await ownerPage.evaluate((iri) => {
-      const dv = (window as any)._dockview;
+      const dv = (window as any).SemPKM._dockview;
       if (dv) {
         dv.addPanel({
           id: 'view-' + Date.now(),
@@ -129,7 +129,7 @@ test.describe('Graph View', () => {
 
     const encodedSpecIri = encodeURIComponent(graphSpec.spec_iri);
     await ownerPage.evaluate((iri) => {
-      const dv = (window as any)._dockview;
+      const dv = (window as any).SemPKM._dockview;
       if (dv) {
         dv.addPanel({
           id: 'view-' + Date.now(),

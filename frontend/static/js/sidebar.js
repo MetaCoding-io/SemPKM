@@ -142,9 +142,4 @@
     init();
   }
 
-  // ── backward-compat shims (remove in T03) ──
-  window.toggleSidebar = window.SemPKM.toggleSidebar;
-  window.toggleSidebarGroup = window.SemPKM.toggleSidebarGroup;
-  window.getAvatarColor = window.SemPKM.getAvatarColor;
-  window.getInitials = window.SemPKM.getInitials;
 })();

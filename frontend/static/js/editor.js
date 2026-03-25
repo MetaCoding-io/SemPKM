@@ -259,9 +259,3 @@ window.SemPKM.initEditor = initEditor;
 window.SemPKM.editorAction = editorAction;
 window.SemPKM.getEditor = getEditor;
 window.SemPKM.destroyEditor = destroyEditor;
-// ── backward-compat shims (remove in T03) ──
-window.switchEditorThemes = window.SemPKM.switchEditorThemes;
-window.initEditor = window.SemPKM.initEditor;
-window.editorAction = window.SemPKM.editorAction;
-window.getEditor = window.SemPKM.getEditor;
-window.destroyEditor = window.SemPKM.destroyEditor;

@@ -1018,14 +1018,4 @@
   window.SemPKM._setIconMode = _setIconMode;
 
 
-  // ── backward-compat shims (remove in T03) ──
-  window._sempkmGraph = window.SemPKM._sempkmGraph;
-  window._sempkmTypeColors = window.SemPKM._sempkmTypeColors;
-  window.initGraph = window.SemPKM.initGraph;
-  window.changeLayout = window.SemPKM.changeLayout;
-  window.registerLayout = window.SemPKM.registerLayout;
-  window.filterGraph = window.SemPKM.filterGraph;
-  window.switchGraphTheme = window.SemPKM.switchGraphTheme;
-  window._toggleGraphIcons = window.SemPKM._toggleGraphIcons;
-  window._setIconMode = window.SemPKM._setIconMode;
 })();

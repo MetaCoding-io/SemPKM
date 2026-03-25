@@ -1073,6 +1073,4 @@
   });
 
 
-  // ── backward-compat shims (remove in T03) ──
-  window.openMountSettings = window.SemPKM.openMountSettings;
 })();

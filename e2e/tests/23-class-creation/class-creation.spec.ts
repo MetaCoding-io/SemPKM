@@ -23,8 +23,8 @@ function uniqueClassName(base: string): string {
 /** Open the ontology viewer tab via JS API. */
 async function openOntologyViewer(page: import('@playwright/test').Page) {
   await page.evaluate(() => {
-    if (typeof (window as any).openOntologyTab === 'function') {
-      (window as any).openOntologyTab();
+    if (typeof (window as any).SemPKM.openOntologyTab === 'function') {
+      (window as any).SemPKM.openOntologyTab();
     }
   });
   await page.waitForSelector(SEL.ontology.ontologyPage, { timeout: 15000 });
@@ -136,8 +136,8 @@ test.describe('Class Creation', () => {
 
     // Navigate to "New Object" flow via JS API
     await ownerPage.evaluate(() => {
-      if (typeof (window as any).showTypePicker === 'function') {
-        (window as any).showTypePicker();
+      if (typeof (window as any).SemPKM.showTypePicker === 'function') {
+        (window as any).SemPKM.showTypePicker();
       }
     });
 
@@ -217,8 +217,8 @@ test.describe('Class Creation', () => {
 
     // Close the class creation form so only the tree is visible
     await ownerPage.evaluate(() => {
-      if (typeof (window as any).closeClassCreationForm === 'function') {
-        (window as any).closeClassCreationForm();
+      if (typeof (window as any).SemPKM.closeClassCreationForm === 'function') {
+        (window as any).SemPKM.closeClassCreationForm();
       }
     });
     await ownerPage.waitForTimeout(500);

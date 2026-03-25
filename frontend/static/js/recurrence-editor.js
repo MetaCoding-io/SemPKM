@@ -638,7 +638,4 @@
 
   console.log('[recurrence-editor] loaded');
 
-  // ── backward-compat shims (remove in T03) ──
-  window.initRecurrenceEditor = window.SemPKM.initRecurrenceEditor;
-  window.initExdateEditor = window.SemPKM.initExdateEditor;
 })();

@@ -460,8 +460,4 @@
   };
 
 
-  // ── backward-compat shims (remove in T03) ──
-  window.startWelcomeTour = window.SemPKM.startWelcomeTour;
-  window.startCreateObjectTour = window.SemPKM.startCreateObjectTour;
-  window.startDemoTour = window.SemPKM.startDemoTour;
 })();

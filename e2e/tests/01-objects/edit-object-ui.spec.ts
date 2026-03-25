@@ -24,8 +24,8 @@ const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3901';
 /** Load an object into the active editor area via dockview openTab API. */
 async function loadObjectInEditor(page: any, iri: string, mode: 'read' | 'edit' = 'read') {
   await page.evaluate(({ iri, mode }: { iri: string; mode: string }) => {
-    if (typeof (window as any).openTab === 'function') {
-      (window as any).openTab(iri, iri, mode);
+    if (typeof (window as any).SemPKM.openTab === 'function') {
+      (window as any).SemPKM.openTab(iri, iri, mode);
     }
   }, { iri, mode });
 }
@@ -34,8 +34,8 @@ async function loadObjectInEditor(page: any, iri: string, mode: 'read' | 'edit' 
 async function openTab(page: any, iri: string, label: string, mode: 'read' | 'edit' = 'read') {
   await page.evaluate(
     ({ iri, label, mode }: { iri: string; label: string; mode: string }) => {
-      if (typeof (window as any).openTab === 'function') {
-        (window as any).openTab(iri, label, mode);
+      if (typeof (window as any).SemPKM.openTab === 'function') {
+        (window as any).SemPKM.openTab(iri, label, mode);
       }
     },
     { iri, label, mode },
@@ -355,7 +355,7 @@ test.describe('Edit Mode – UI Regression Tests', () => {
     // Wait for the objectSaved event to propagate and update the dockview tab title
     await ownerPage.waitForFunction(
       (title: string) => {
-        const dv = (window as any)._dockview;
+        const dv = (window as any).SemPKM._dockview;
         if (!dv) return false;
         return dv.panels.some((p: any) => (p.title || '').includes(title));
       },

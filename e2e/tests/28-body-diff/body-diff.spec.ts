@@ -22,10 +22,10 @@ async function openEventLog(page: import('@playwright/test').Page) {
 
   // Open bottom panel via JS
   await page.waitForFunction(
-    () => typeof (window as any).toggleBottomPanel === 'function',
+    () => typeof (window as any).SemPKM.toggleBottomPanel === 'function',
     { timeout: 10000 },
   );
-  await page.evaluate(() => (window as any).toggleBottomPanel());
+  await page.evaluate(() => (window as any).SemPKM.toggleBottomPanel());
   await waitForIdle(page);
 
   // Wait for bottom panel to have a non-zero rendered height

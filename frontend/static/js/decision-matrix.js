@@ -167,6 +167,4 @@
     }
   });
 
-  // ── backward-compat shims (remove in T03) ──
-  window.initDecisionMatrix = window.SemPKM.initDecisionMatrix;
 })();

@@ -73,7 +73,7 @@ test.describe('Demo Instance — Full Demo Flow', () => {
     });
 
     // Trigger the tour programmatically
-    await sharedPage.evaluate('window.startDemoTour()');
+    await sharedPage.evaluate('window.SemPKM.startDemoTour()');
 
     // Wait for the first Driver.js popover to appear
     await sharedPage.waitForSelector('.driver-popover', { timeout: 10_000 });
@@ -139,8 +139,8 @@ test.describe('Demo Instance — Full Demo Flow', () => {
     // Open the demo dashboard tab via the workspace API
     await sharedPage.evaluate(
       (id) => {
-        if (typeof (window as any).openDashboardTab === 'function') {
-          (window as any).openDashboardTab(id, 'Demo Dashboard');
+        if (typeof (window as any).SemPKM.openDashboardTab === 'function') {
+          (window as any).SemPKM.openDashboardTab(id, 'Demo Dashboard');
         }
       },
       DEMO_DASHBOARD_ID

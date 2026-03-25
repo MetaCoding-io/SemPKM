@@ -20,7 +20,7 @@ test.describe('Object Creation via UI', () => {
 
     // Open type picker via dockview addPanel
     await ownerPage.evaluate(() => {
-      const dv = (window as any)._dockview;
+      const dv = (window as any).SemPKM._dockview;
       if (dv) {
         dv.addPanel({
           id: 'type-picker-' + Date.now(),
@@ -53,7 +53,7 @@ test.describe('Object Creation via UI', () => {
 
     // Load create form via dockview addPanel
     await ownerPage.evaluate((typeIri) => {
-      const dv = (window as any)._dockview;
+      const dv = (window as any).SemPKM._dockview;
       if (dv) {
         dv.addPanel({
           id: 'new-' + Date.now(),
@@ -87,7 +87,7 @@ test.describe('Object Creation via UI', () => {
     await ownerPage.waitForSelector(SEL.workspace.container, { timeout: 15000 });
 
     await ownerPage.evaluate((typeIri) => {
-      const dv = (window as any)._dockview;
+      const dv = (window as any).SemPKM._dockview;
       if (dv) {
         dv.addPanel({
           id: 'new-' + Date.now(),
@@ -116,7 +116,7 @@ test.describe('Object Creation via UI', () => {
     await ownerPage.waitForSelector(SEL.workspace.container, { timeout: 15000 });
 
     await ownerPage.evaluate((typeIri) => {
-      const dv = (window as any)._dockview;
+      const dv = (window as any).SemPKM._dockview;
       if (dv) {
         dv.addPanel({
           id: 'new-' + Date.now(),
@@ -143,7 +143,7 @@ test.describe('Object Creation via UI', () => {
     await ownerPage.waitForSelector(SEL.workspace.container, { timeout: 15000 });
 
     await ownerPage.evaluate((typeIri) => {
-      const dv = (window as any)._dockview;
+      const dv = (window as any).SemPKM._dockview;
       if (dv) {
         dv.addPanel({
           id: 'new-' + Date.now(),
@@ -258,8 +258,8 @@ test.describe('Object Creation via API', () => {
     await ownerPage.waitForSelector('[data-testid="workspace"]', { timeout: 15000 });
 
     await ownerPage.evaluate(({ iri }) => {
-      if (typeof (window as any).openTab === 'function') {
-        (window as any).openTab(iri, iri, 'edit');
+      if (typeof (window as any).SemPKM.openTab === 'function') {
+        (window as any).SemPKM.openTab(iri, iri, 'edit');
       }
     }, { iri: noteIri });
 

@@ -148,10 +148,10 @@ test.describe('Event Log UI', () => {
 
     // Open bottom panel — call toggleBottomPanel directly for reliability
     await ownerPage.waitForFunction(
-      () => typeof (window as any).toggleBottomPanel === 'function',
+      () => typeof (window as any).SemPKM.toggleBottomPanel === 'function',
       { timeout: 10000 },
     );
-    await ownerPage.evaluate(() => (window as any).toggleBottomPanel());
+    await ownerPage.evaluate(() => (window as any).SemPKM.toggleBottomPanel());
     await waitForIdle(ownerPage);
 
     // Wait for bottom panel to have a non-zero rendered height
@@ -265,10 +265,10 @@ test.describe('Event Log UI', () => {
 
     // Open bottom panel — call toggleBottomPanel directly for reliability
     await ownerPage.waitForFunction(
-      () => typeof (window as any).toggleBottomPanel === 'function',
+      () => typeof (window as any).SemPKM.toggleBottomPanel === 'function',
       { timeout: 10000 },
     );
-    await ownerPage.evaluate(() => (window as any).toggleBottomPanel());
+    await ownerPage.evaluate(() => (window as any).SemPKM.toggleBottomPanel());
     await waitForIdle(ownerPage);
 
     // Wait for bottom panel to have a non-zero rendered height

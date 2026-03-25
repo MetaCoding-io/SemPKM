@@ -2,7 +2,7 @@
  * Dockview integration helpers for E2E tests.
  *
  * After Phase 30 (dockview migration), the editor area is managed by
- * dockview-core. Tests must use window.openTab() and friends instead of
+ * dockview-core. Tests must use window.SemPKM.openTab() and friends instead of
  * directly targeting #editor-area-group-1 with htmx.ajax().
  *
  * These helpers wrap the browser-side API calls and provide reliable
@@ -23,8 +23,8 @@ export async function openObjectTab(
 ) {
   await page.evaluate(
     ({ iri, label, mode }) => {
-      if (typeof (window as any).openTab === 'function') {
-        (window as any).openTab(iri, label || iri, mode || 'read');
+      if (typeof (window as any).SemPKM?.openTab === 'function') {
+        (window as any).SemPKM.openTab(iri, label || iri, mode || 'read');
       }
     },
     { iri, label, mode },
@@ -46,8 +46,8 @@ export async function openViewTab(
 ) {
   await page.evaluate(
     ({ viewId, viewLabel, viewType }) => {
-      if (typeof (window as any).openViewTab === 'function') {
-        (window as any).openViewTab(viewId, viewLabel, viewType);
+      if (typeof (window as any).SemPKM?.openViewTab === 'function') {
+        (window as any).SemPKM.openViewTab(viewId, viewLabel, viewType);
       }
     },
     { viewId, viewLabel, viewType },
@@ -61,8 +61,8 @@ export async function openViewTab(
  */
 export async function openSettingsTab(page: Page, timeoutMs = 10000) {
   await page.evaluate(() => {
-    if (typeof (window as any).openSettingsTab === 'function') {
-      (window as any).openSettingsTab();
+    if (typeof (window as any).SemPKM?.openSettingsTab === 'function') {
+      (window as any).SemPKM.openSettingsTab();
     }
   });
   await page.waitForSelector('[data-testid="settings-page"]', { timeout: timeoutMs });
@@ -74,8 +74,8 @@ export async function openSettingsTab(page: Page, timeoutMs = 10000) {
  */
 export async function openDocsTab(page: Page, timeoutMs = 10000) {
   await page.evaluate(() => {
-    if (typeof (window as any).openDocsTab === 'function') {
-      (window as any).openDocsTab();
+    if (typeof (window as any).SemPKM?.openDocsTab === 'function') {
+      (window as any).SemPKM.openDocsTab();
     }
   });
   await page.waitForSelector('#docs-page', { timeout: timeoutMs });
@@ -87,7 +87,7 @@ export async function openDocsTab(page: Page, timeoutMs = 10000) {
  */
 export async function openTypePicker(page: Page, timeoutMs = 10000) {
   await page.evaluate(() => {
-    const dv = (window as any)._dockview;
+    const dv = (window as any).SemPKM?._dockview;
     if (!dv) return;
     // Create a temporary panel if none exist
     if (dv.panels.length === 0) {
@@ -99,7 +99,7 @@ export async function openTypePicker(page: Page, timeoutMs = 10000) {
       });
     } else {
       // Load types into active panel
-      const target = (window as any).getActiveEditorArea?.();
+      const target = (window as any).SemPKM?.getActiveEditorArea?.();
       if (target && (window as any).htmx) {
         (window as any).htmx.ajax('GET', '/browser/types', { target });
       }
@@ -118,7 +118,7 @@ export async function openNewObjectForm(
 ) {
   await page.evaluate(
     ({ typeIri }) => {
-      const dv = (window as any)._dockview;
+      const dv = (window as any).SemPKM?._dockview;
       if (!dv) return;
       // Create a panel for the new object form
       const panelId = 'new-' + Date.now();
@@ -139,7 +139,7 @@ export async function openNewObjectForm(
  */
 export async function getTabCount(page: Page): Promise<number> {
   return page.evaluate(() => {
-    const dv = (window as any)._dockview;
+    const dv = (window as any).SemPKM?._dockview;
     return dv ? dv.panels.length : 0;
   });
 }
@@ -149,7 +149,7 @@ export async function getTabCount(page: Page): Promise<number> {
  */
 export async function getTabTitles(page: Page): Promise<string[]> {
   return page.evaluate(() => {
-    const dv = (window as any)._dockview;
+    const dv = (window as any).SemPKM?._dockview;
     if (!dv) return [];
     return dv.panels.map((p: any) => p.title || p.id);
   });
@@ -161,7 +161,7 @@ export async function getTabTitles(page: Page): Promise<string[]> {
 export async function isPanelActive(page: Page, panelId: string): Promise<boolean> {
   return page.evaluate(
     (id) => {
-      const dv = (window as any)._dockview;
+      const dv = (window as any).SemPKM?._dockview;
       return dv?.activePanel?.id === id;
     },
     panelId,
@@ -171,7 +171,7 @@ export async function isPanelActive(page: Page, panelId: string): Promise<boolea
 /**
  * Open a generic view tab via the application's openGenericViewTab() API.
  *
- * This wraps `window.openGenericViewTab(renderer, scopeQuery, scopeLabel)`,
+ * This wraps `window.SemPKM.openGenericViewTab(renderer, scopeQuery, scopeLabel)`,
  * the M031 entry point that opens table/card/graph/kanban tabs from the
  * explorer sidebar or programmatically.
  *
@@ -191,8 +191,8 @@ export async function openGenericViewTab(
   timeoutMs = 15000,
 ) {
   await page.evaluate(({ renderer, scopeQuery, scopeLabel }) => {
-    if (typeof (window as any).openGenericViewTab === 'function') {
-      (window as any).openGenericViewTab(renderer, scopeQuery || '', scopeLabel || '');
+    if (typeof (window as any).SemPKM?.openGenericViewTab === 'function') {
+      (window as any).SemPKM.openGenericViewTab(renderer, scopeQuery || '', scopeLabel || '');
     }
   }, { renderer, scopeQuery, scopeLabel });
   await page.waitForSelector(waitSelector, { timeout: timeoutMs });
@@ -201,7 +201,7 @@ export async function openGenericViewTab(
 /**
  * Open a dashboard tab via the application's openDashboardTab() API.
  *
- * Wraps `window.openDashboardTab(id, name)` and waits for the GridStack
+ * Wraps `window.SemPKM.openDashboardTab(id, name)` and waits for the GridStack
  * container to appear, indicating the dashboard page has loaded.
  *
  * @param page           Playwright page
@@ -217,8 +217,8 @@ export async function openDashboardTab(
 ) {
   await page.evaluate(
     ({ id, name }) => {
-      if (typeof (window as any).openDashboardTab === 'function') {
-        (window as any).openDashboardTab(id, name);
+      if (typeof (window as any).SemPKM?.openDashboardTab === 'function') {
+        (window as any).SemPKM.openDashboardTab(id, name);
       }
     },
     { id: dashboardId, name: dashboardName },

@@ -16,8 +16,8 @@ async function openVfsSettings(page: import('@playwright/test').Page) {
   await waitForWorkspace(page);
 
   await page.evaluate(() => {
-    if (typeof (window as any).openSettingsTab === 'function') {
-      (window as any).openSettingsTab();
+    if (typeof (window as any).SemPKM.openSettingsTab === 'function') {
+      (window as any).SemPKM.openSettingsTab();
     }
   });
 
