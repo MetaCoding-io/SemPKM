@@ -34,7 +34,7 @@
   - Files: `frontend/static/js/cleanup.js`, `frontend/static/js/workspace-layout.js`
   - Verify: rg 'dispose' frontend/static/js/workspace-layout.js shows dispose functions on all 3 content renderers; rg 'runCleanup' frontend/static/js/cleanup.js shows window.runCleanup export; rg '_cytoscapeInstances' frontend/static/js/ returns zero results
 
-- [ ] **T02: Fix calendar, canvas, and federation event/timer leaks** `est:1h`
+- [x] **T02: Fix calendar, canvas, and federation event/timer leaks** `est:1h`
   calendar.js: refactor anonymous document event handlers to named functions stored in closure; destroy FullCalendar instance and remove handlers on cleanup; register via registerCleanup(). canvas.js: add unbindEvents() that removes all window/document listeners; call it before bindEvents() on remount and register via registerCleanup(). federation.js: store setInterval handle; add beforeunload listener to clearInterval.
   - Files: `frontend/static/js/calendar.js`, `frontend/static/js/canvas.js`, `frontend/static/js/federation.js`
   - Verify: For calendar.js: rg 'removeEventListener' frontend/static/js/calendar.js returns >= 2 matches; rg 'registerCleanup' frontend/static/js/calendar.js returns >= 1 match; rg '\.destroy()' frontend/static/js/calendar.js returns >= 1 match. For canvas.js: rg 'unbindEvents' frontend/static/js/canvas.js returns >= 2 matches; rg 'registerCleanup' frontend/static/js/canvas.js returns >= 1 match. For federation.js: rg 'clearInterval' frontend/static/js/federation.js returns >= 1 match; rg 'beforeunload' frontend/static/js/federation.js returns >= 1 match.

@@ -197,6 +197,17 @@
     bindEvents();
     state.mounted = true;
 
+    // Register cleanup so dockview panel disposal tears down listeners
+    if (typeof window.registerCleanup === 'function') {
+      window.registerCleanup('spatial-canvas-root', function () {
+        unbindEvents();
+        state.mounted = false;
+        state.viewport = null;
+        state.layer = null;
+        state.embedLayer = null;
+      });
+    }
+
     // Session switch handler
     var select = document.getElementById('canvas-session-select');
     if (select) {
@@ -225,7 +236,19 @@
     loadSessionList();
   }
 
+  function unbindEvents() {
+    window.removeEventListener('pointermove', onPointerMove);
+    window.removeEventListener('pointerup', onPointerUp);
+    document.removeEventListener('dragover', onDragOver, true);
+    document.removeEventListener('dragleave', onDragLeave, true);
+    document.removeEventListener('drop', onDrop, true);
+    document.removeEventListener('dragend', onDragEnd, true);
+    document.removeEventListener('keydown', onKeyDown);
+  }
+
   function bindEvents() {
+    // Remove any stacked listeners from a previous mount cycle
+    unbindEvents();
     state.viewport.addEventListener('wheel', onWheel, { passive: false });
     state.viewport.addEventListener('pointerdown', onPointerDown);
     state.layer.addEventListener('click', onLayerClick);
@@ -1780,6 +1803,7 @@
 
   document.body.addEventListener('htmx:afterSwap', function (event) {
     if (event && event.target && event.target.querySelector && event.target.querySelector('#spatial-canvas-root')) {
+      unbindEvents();
       state.mounted = false;
       mountCanvas();
     }

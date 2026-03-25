@@ -58,7 +58,12 @@
 
     // Poll badge on load and periodically
     updateInboxBadge();
-    setInterval(updateInboxBadge, 60000);
+    var _badgeInterval = setInterval(updateInboxBadge, 60000);
+
+    // Clean up polling on page unload
+    window.addEventListener('beforeunload', function () {
+        clearInterval(_badgeInterval);
+    });
 
     // -----------------------------------------------------------------------
     // Sync Now handler

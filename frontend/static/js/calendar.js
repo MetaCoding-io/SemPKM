@@ -12,6 +12,11 @@
 
   var CDN = 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.17/index.global.min.js';
 
+  // Named handlers for document-level events — stored here so we can
+  // removeEventListener with the same reference on cleanup / reinit.
+  var _commandHandler = null;
+  var _scopeHandler = null;
+
   /**
    * Persist a calendar drag/resize via the PATCH endpoint.
    * Calls info.revert() on failure for optimistic rollback.
@@ -104,6 +109,21 @@
    * @param {string} dataUrl       URL to fetch calendar event JSON from
    */
   function _initCalendar(containerId, dataUrl) {
+    // Destroy any previous instance (handles reinit without panel close)
+    if (window._sempkmCalendar) {
+      try { window._sempkmCalendar.destroy(); } catch (e) { /* already destroyed */ }
+      window._sempkmCalendar = null;
+    }
+    // Remove stale document-level listeners from a previous init
+    if (_commandHandler) {
+      document.removeEventListener('sempkm:command-executed', _commandHandler);
+      _commandHandler = null;
+    }
+    if (_scopeHandler) {
+      document.removeEventListener('sempkm:scope-changed', _scopeHandler);
+      _scopeHandler = null;
+    }
+
     apiFetch(dataUrl, { credentials: 'include', silent: true })
       .then(function (r) { return r.json(); })
       .then(function (data) {
@@ -202,14 +222,15 @@
         });
 
         /* ── Auto-refresh on external mutations ── */
-        document.addEventListener('sempkm:command-executed', function () {
+        _commandHandler = function () {
           if (window._sempkmCalendar) {
             window._sempkmCalendar.refetchEvents();
           }
-        });
+        };
+        document.addEventListener('sempkm:command-executed', _commandHandler);
 
         /* ── Scope sync: re-fetch when a sibling view changes scope ── */
-        document.addEventListener('sempkm:scope-changed', function (e) {
+        _scopeHandler = function (e) {
           var detail = e.detail || {};
           // Compute own panel ID to avoid self-triggered re-fetch
           var ownPanel = el.closest('.dv-panel');
@@ -242,7 +263,26 @@
             .catch(function (err) {
               console.error('[calendar] scope sync failed:', err);
             });
-        });
+        };
+        document.addEventListener('sempkm:scope-changed', _scopeHandler);
+
+        /* ── Register cleanup for panel disposal ── */
+        if (typeof window.registerCleanup === 'function') {
+          window.registerCleanup(containerId, function () {
+            if (window._sempkmCalendar) {
+              try { window._sempkmCalendar.destroy(); } catch (e) { /* ignore */ }
+              window._sempkmCalendar = null;
+            }
+            if (_commandHandler) {
+              document.removeEventListener('sempkm:command-executed', _commandHandler);
+              _commandHandler = null;
+            }
+            if (_scopeHandler) {
+              document.removeEventListener('sempkm:scope-changed', _scopeHandler);
+              _scopeHandler = null;
+            }
+          });
+        }
       })
       .catch(function (err) {
         console.error('[calendar] data fetch failed:', err);
