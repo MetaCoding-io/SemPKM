@@ -24,7 +24,7 @@
 - [x] **S03: Window Namespace Consolidation** `risk:medium` `depends:[]`
   > After this: After this: all cross-IIFE communication uses window.SemPKM.functionName instead of window.functionName — zero collision risk with third-party libraries
 
-- [ ] **S04: CSS Theme Completion & Utilities** `risk:low` `depends:[]`
+- [x] **S04: CSS Theme Completion & Utilities** `risk:low` `depends:[]`
   > After this: After this: CSS theme variable adoption is ≥98%; shared utility classes reduce workspace.css by ~500 lines; breakpoints are standardized to 600/768
 
 - [ ] **S05: Template Hygiene & Deduplication** `risk:medium` `depends:[]`
