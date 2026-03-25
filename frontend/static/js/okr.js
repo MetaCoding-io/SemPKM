@@ -102,10 +102,11 @@
     };
     payload.params.properties[CURRENT_VALUE_PREDICATE] = numericValue;
 
-    fetch('/api/commands', {
+    apiFetch('/api/commands', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      silent: true
     })
       .then(function (resp) {
         if (!resp.ok) {

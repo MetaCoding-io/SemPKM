@@ -28,16 +28,12 @@
 <script>
 async function instantiateTemplate(templateId, title) {
     try {
-        const resp = await fetch('/api/task-templates/' + encodeURIComponent(templateId) + '/instantiate', {
+        const resp = await apiFetch('/api/task-templates/' + encodeURIComponent(templateId) + '/instantiate', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({})
+            body: JSON.stringify({}),
+            silent: true
         });
-        if (!resp.ok) {
-            const err = await resp.json();
-            console.error('Template instantiation failed:', err.detail || err);
-            return;
-        }
         const data = await resp.json();
         const mainIri = data.created_iris && data.created_iris[0];
         if (mainIri && typeof openTab === 'function') {

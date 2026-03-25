@@ -4,7 +4,7 @@
   var _cache = null;  // resolved settings dict from server
 
   function fetchSettings() {
-    return fetch('/browser/settings/data', { credentials: 'include' })
+    return apiFetch('/browser/settings/data', { credentials: 'include', silent: true })
       .then(function (r) { return r.json(); })
       .then(function (data) {
         _cache = data;
@@ -21,18 +21,20 @@
     document.dispatchEvent(new CustomEvent('sempkm:setting-changed', {
       detail: { key: key, value: value }
     }));
-    return fetch('/browser/settings/' + encodeURIComponent(key), {
+    return apiFetch('/browser/settings/' + encodeURIComponent(key), {
       method: 'PUT',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ value: value })
+      body: JSON.stringify({ value: value }),
+      silent: true
     });
   }
 
   function reset(key) {
-    return fetch('/browser/settings/' + encodeURIComponent(key), {
+    return apiFetch('/browser/settings/' + encodeURIComponent(key), {
       method: 'DELETE',
-      credentials: 'include'
+      credentials: 'include',
+      silent: true
     }).then(function (r) { return r.json(); })
       .then(function (data) {
         if (_cache) _cache[key] = data.default_value;

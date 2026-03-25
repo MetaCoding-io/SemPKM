@@ -64,7 +64,7 @@
             maxZoom: 19
         }).addTo(map);
 
-        fetch(dataUrl, { credentials: 'include' })
+        apiFetch(dataUrl, { credentials: 'include', silent: true })
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 var markers = data.markers || [];

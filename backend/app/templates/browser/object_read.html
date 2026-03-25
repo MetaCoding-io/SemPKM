@@ -239,7 +239,7 @@
       } else {
         popover.innerHTML = '<div style="padding:12px;font-size:0.82rem;color:#888;">Loading...</div>';
         adjustPosition(rect);
-        fetch('/browser/tooltip/' + encodeURIComponent(iri))
+        apiFetch('/browser/tooltip/' + encodeURIComponent(iri), { silent: true })
           .then(function(r) { return r.text(); })
           .then(function(html) {
             cache[iri] = html;

@@ -44,13 +44,13 @@
             'start=' + payload.start,
             end ? 'end=' + payload.end : '(no end)');
 
-        fetch('/browser/views/calendar/patch', {
+        apiFetch('/browser/views/calendar/patch', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            silent: true
         }).then(function (r) {
-            if (!r.ok) return r.json().then(function (d) { throw new Error(d.error || 'HTTP ' + r.status); });
             return r.json();
         }).then(function (result) {
             console.log('[timeline] reschedule persisted, event_iri:', result.event_iri);
@@ -63,7 +63,7 @@
     }
 
     function initTimeline() {
-        fetch(dataUrl, { credentials: 'include' })
+        apiFetch(dataUrl, { credentials: 'include', silent: true })
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 var el = document.getElementById('timeline-container');

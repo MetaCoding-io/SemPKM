@@ -297,7 +297,7 @@
 
     // Fetch graph data from the JSON endpoint
     var dataUrl = customDataUrl || ('/browser/views/graph/' + specIri + '/data');
-    fetch(dataUrl)
+    apiFetch(dataUrl, { silent: true })
       .then(function (resp) { return resp.json(); })
       .then(function (data) {
         container.innerHTML = '';  // Clear loading state
@@ -681,7 +681,7 @@
   function _expandNode(cy, nodeIri) {
     var expandUrl = '/browser/views/graph/expand/' + encodeURIComponent(nodeIri);
 
-    fetch(expandUrl)
+    apiFetch(expandUrl, { silent: true })
       .then(function (resp) { return resp.json(); })
       .then(function (data) {
         if (!data.nodes || data.nodes.length === 0) return;

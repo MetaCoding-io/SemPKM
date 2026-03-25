@@ -29,7 +29,7 @@
     var counter = document.getElementById('scan-counter');
 
     // Start the scan
-    fetch('/browser/import/scan/' + importId, { method: 'POST', headers: { 'HX-Request': 'true' } })
+    apiFetch('/browser/import/scan/' + importId, { method: 'POST', headers: { 'HX-Request': 'true' }, silent: true })
         .then(function(resp) {
             if (resp.ok) return resp.text();
             throw new Error('Scan failed');

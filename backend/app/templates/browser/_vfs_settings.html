@@ -203,10 +203,11 @@ function vfsSubmitTokenForm(e) {
   e.preventDefault();
   var name = document.getElementById('vfs-token-name').value.trim();
   if (!name) return false;
-  fetch('/api/auth/tokens', {
+  apiFetch('/api/auth/tokens', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({name: name})
+    body: JSON.stringify({name: name}),
+    silent: true
   }).then(function(r) { return r.json(); }).then(function(data) {
     document.getElementById('vfs-token-result').innerHTML =
       '<div class="vfs-token-reveal">' +
@@ -240,7 +241,7 @@ function vfsSubmitTokenForm(e) {
 
 function vfsRevokeToken(tokenId, btn) {
   if (!confirm('Revoke this token? Any WebDAV clients using it will be disconnected immediately.')) return;
-  fetch('/api/auth/tokens/' + tokenId, {method: 'DELETE'}).then(function(r) {
+  apiFetch('/api/auth/tokens/' + tokenId, {method: 'DELETE', silent: true}).then(function(r) {
     if (r.status === 204) {
       var row = document.getElementById('vfs-token-row-' + tokenId);
       if (row) row.remove();

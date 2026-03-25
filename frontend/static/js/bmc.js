@@ -86,10 +86,11 @@
     };
     payload.params.properties[SECTION_CONTENT_PREDICATE] = content;
 
-    fetch('/api/commands', {
+    apiFetch('/api/commands', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      silent: true
     })
       .then(function (resp) {
         if (!resp.ok) {

@@ -25,11 +25,8 @@
   'use strict';
   window._deleteDashboard = function(id, name) {
     if (!window.confirm('Delete dashboard "' + name + '"? This cannot be undone.')) return;
-    fetch('/api/dashboard/' + id, { method: 'DELETE' })
-      .then(function(resp) {
-        if (!resp.ok) {
-          return resp.json().then(function(d) { throw new Error(d.detail || 'Delete failed'); });
-        }
+    apiFetch('/api/dashboard/' + id, { method: 'DELETE', silent: true })
+      .then(function() {
         if (typeof htmx !== 'undefined') {
           htmx.trigger(document.body, 'dashboardsRefreshed');
         }

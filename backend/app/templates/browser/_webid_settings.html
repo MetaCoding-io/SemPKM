@@ -113,7 +113,7 @@
   var _profileData = null;
 
   // Load profile on init
-  fetch('/api/webid/profile', { credentials: 'include' })
+  apiFetch('/api/webid/profile', { credentials: 'include', silent: true })
     .then(function (r) {
       if (!r.ok) throw new Error('Failed to load profile');
       return r.json();
@@ -183,14 +183,14 @@
       return;
     }
 
-    fetch('/api/webid/username', {
+    apiFetch('/api/webid/username', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: username })
+      body: JSON.stringify({ username: username }),
+      silent: true
     }).then(function (r) {
-      if (r.ok) return r.json();
-      return r.json().then(function (err) { throw new Error(err.detail || 'Failed'); });
+      return r.json();
     }).then(function (data) {
       _profileData = data;
       renderProfile(data);
@@ -202,7 +202,7 @@
 
   window.webidTogglePublish = function (checked) {
     var endpoint = checked ? '/api/webid/publish' : '/api/webid/unpublish';
-    fetch(endpoint, { method: 'POST', credentials: 'include' })
+    apiFetch(endpoint, { method: 'POST', credentials: 'include', silent: true })
       .then(function (r) { return r.json(); })
       .then(function (data) {
         _profileData = data;
@@ -220,7 +220,7 @@
     if (!confirm('Regenerate your key pair? The old key will be permanently discarded. Any systems relying on your current public key will need updating.')) {
       return;
     }
-    fetch('/api/webid/regenerate-key', { method: 'POST', credentials: 'include' })
+    apiFetch('/api/webid/regenerate-key', { method: 'POST', credentials: 'include', silent: true })
       .then(function (r) { return r.json(); })
       .then(function (data) {
         _profileData = data;
@@ -245,14 +245,14 @@
       var val = inp.value.trim();
       if (val) links.push(val);
     });
-    fetch('/api/webid/links', {
+    apiFetch('/api/webid/links', {
       method: 'PUT',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ links: links })
+      body: JSON.stringify({ links: links }),
+      silent: true
     }).then(function (r) {
-      if (r.ok) return r.json();
-      return r.json().then(function (err) { throw new Error(err.detail || 'Failed to save links'); });
+      return r.json();
     }).then(function (data) {
       _profileData = data;
       renderLinks(data.links || []);

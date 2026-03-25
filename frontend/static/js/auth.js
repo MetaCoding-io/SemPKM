@@ -19,9 +19,7 @@ async function checkAuthStatus() {
   var isAuthPage = authPages.indexOf(path) !== -1;
 
   try {
-    var resp = await fetch("/api/auth/status");
-    if (!resp.ok) return;
-
+    var resp = await apiFetch("/api/auth/status", { silent: true });
     var data = await resp.json();
 
     // If setup mode is active and we're not on the setup page, go there
@@ -38,7 +36,7 @@ async function checkAuthStatus() {
 
     // If setup is complete, check if user is authenticated
     if (data.setup_complete && !isAuthPage) {
-      var meResp = await fetch("/api/auth/me");
+      var meResp = await fetch("/api/auth/me"); // raw-fetch: needs custom 401 redirect with ?next=
       if (meResp.status === 401) {
         window.location.href = "/login.html?next=" + encodeURIComponent(window.location.pathname);
         return;
@@ -148,25 +146,19 @@ function initSetupWizard() {
         var payload = { mode: mode };
         if (domain) payload.domain = domain;
 
-        var resp = await fetch("/api/setup/configure-instance", {
+        var resp = await apiFetch("/api/setup/configure-instance", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
+          silent: true,
         });
-
-        var data = await resp.json();
-
-        if (!resp.ok) {
-          showAuthMessage(messageEl, data.detail || "Configuration failed.", "error");
-          nextBtn.disabled = false;
-          nextBtn.textContent = "Next";
-          return;
-        }
 
         // Success — transition to Step 2
         showStep(2);
       } catch (err) {
-        showAuthMessage(messageEl, "Network error: " + err.message, "error");
+        var detail = "Network error: " + err.message;
+        if (err.body) { try { detail = JSON.parse(err.body).detail || detail; } catch (_) {} }
+        showAuthMessage(messageEl, detail, "error");
       } finally {
         nextBtn.disabled = false;
         nextBtn.textContent = "Next";
@@ -207,19 +199,12 @@ function initSetupWizard() {
       if (submitBtn) submitBtn.disabled = true;
 
       try {
-        var resp = await fetch("/api/auth/setup", {
+        var resp = await apiFetch("/api/auth/setup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ token: token, email: email }),
+          silent: true,
         });
-
-        var data = await resp.json();
-
-        if (!resp.ok) {
-          showAuthMessage(messageEl, data.detail || "Setup failed.", "error");
-          if (submitBtn) submitBtn.disabled = false;
-          return;
-        }
 
         showAuthMessage(
           messageEl,
@@ -230,7 +215,9 @@ function initSetupWizard() {
           window.location.href = "/";
         }, 2000);
       } catch (err) {
-        showAuthMessage(messageEl, "Network error: " + err.message, "error");
+        var detail = "Network error: " + err.message;
+        if (err.body) { try { detail = JSON.parse(err.body).detail || detail; } catch (_) {} }
+        showAuthMessage(messageEl, detail, "error");
         if (submitBtn) submitBtn.disabled = false;
       }
     });
@@ -303,46 +290,35 @@ function handleLoginForm() {
     if (submitBtn) submitBtn.disabled = true;
 
     try {
-      var resp = await fetch("/api/auth/magic-link", {
+      var resp = await apiFetch("/api/auth/magic-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email }),
+        silent: true,
       });
 
       var data = await resp.json();
 
-      if (!resp.ok) {
-        showAuthMessage(
-          messageEl,
-          data.detail || "Failed to send magic link.",
-          "error"
-        );
-        if (submitBtn) submitBtn.disabled = false;
-        return;
-      }
-
       if (data.token) {
         // No SMTP configured — token returned directly, auto-verify
         showAuthMessage(messageEl, "Logging in...", "info");
-        var verifyResp = await fetch("/api/auth/verify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token: data.token }),
-        });
-        if (verifyResp.ok) {
+        try {
+          var verifyResp = await apiFetch("/api/auth/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token: data.token }),
+            silent: true,
+          });
           showAuthMessage(messageEl, "Login successful! Redirecting...", "success");
           setTimeout(function () {
             var params = new URLSearchParams(window.location.search);
             var nextUrl = params.get("next");
             window.location.href = nextUrl || "/";
           }, 1000);
-        } else {
-          var verifyData = await verifyResp.json();
-          showAuthMessage(
-            messageEl,
-            verifyData.detail || "Token verification failed.",
-            "error"
-          );
+        } catch (verifyErr) {
+          var vDetail = "Token verification failed.";
+          if (verifyErr.body) { try { vDetail = JSON.parse(verifyErr.body).detail || vDetail; } catch (_) {} }
+          showAuthMessage(messageEl, vDetail, "error");
           if (submitBtn) submitBtn.disabled = false;
         }
         return;
@@ -376,22 +352,14 @@ async function handleVerifyToken() {
   showAuthMessage(messageEl, "Verifying your login link...", "info");
 
   try {
-    var resp = await fetch("/api/auth/verify", {
+    var resp = await apiFetch("/api/auth/verify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token: token }),
+      silent: true,
     });
 
     var data = await resp.json();
-
-    if (!resp.ok) {
-      showAuthMessage(
-        messageEl,
-        data.detail || "Invalid or expired login link.",
-        "error"
-      );
-      return;
-    }
 
     showAuthMessage(
       messageEl,
@@ -404,7 +372,9 @@ async function handleVerifyToken() {
       window.location.href = nextUrl || "/";
     }, 1500);
   } catch (err) {
-    showAuthMessage(messageEl, "Network error: " + err.message, "error");
+    var detail = "Network error: " + err.message;
+    if (err.body) { try { detail = JSON.parse(err.body).detail || detail; } catch (_) {} }
+    showAuthMessage(messageEl, detail, "error");
   }
 }
 
@@ -415,8 +385,9 @@ async function handleVerifyToken() {
  */
 async function handleLogout() {
   try {
-    await fetch("/api/auth/logout", {
+    await apiFetch("/api/auth/logout", {
       method: "POST",
+      silent: true,
     });
   } catch (e) {
     // Even if logout fails, redirect to login
@@ -449,23 +420,14 @@ async function handleInviteAccept() {
   showAuthMessage(messageEl, "Verifying your invitation...", "info");
 
   try {
-    var resp = await fetch("/api/auth/verify", {
+    var resp = await apiFetch("/api/auth/verify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token: token }),
+      silent: true,
     });
 
     var data = await resp.json();
-
-    if (!resp.ok) {
-      showAuthMessage(
-        messageEl,
-        (data.detail || "Invalid or expired invitation.") +
-          ' <a href="/login.html">Go to login</a>',
-        "error"
-      );
-      return;
-    }
 
     showAuthMessage(
       messageEl,
@@ -478,7 +440,11 @@ async function handleInviteAccept() {
       window.location.href = nextUrl || "/";
     }, 2000);
   } catch (err) {
-    showAuthMessage(messageEl, "Network error: " + err.message, "error");
+    var detail = "Network error: " + err.message;
+    if (err.body) {
+      try { detail = (JSON.parse(err.body).detail || "Invalid or expired invitation.") + ' <a href="/login.html">Go to login</a>'; } catch (_) {}
+    }
+    showAuthMessage(messageEl, detail, "error");
   }
 }
 

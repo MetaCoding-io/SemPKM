@@ -142,13 +142,8 @@
 
     /** Fetch current context from the REST API */
     function _fetchCurrent() {
-        fetch('/api/context/current', { credentials: 'same-origin' })
+        apiFetch('/api/context/current', { credentials: 'same-origin', silent: true })
             .then(function (res) {
-                if (!res.ok) {
-                    // Auth failure or server error — show stale
-                    _renderContext(null);
-                    return null;
-                }
                 return res.json();
             })
             .then(function (json) {

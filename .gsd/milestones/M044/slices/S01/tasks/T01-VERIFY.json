@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T01",
+  "unitId": "M044/S01/T01",
+  "timestamp": 1774454162084,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "rg 'window.apiFetch' frontend/static/js/api-fetch.js",
+      "exitCode": 0,
+      "durationMs": 18,
+      "verdict": "pass"
+    },
+    {
+      "command": "rg 'api-fetch.js' backend/app/templates/base.html",
+      "exitCode": 0,
+      "durationMs": 18,
+      "verdict": "pass"
+    },
+    {
+      "command": "rg 'api-fetch.js' frontend/static/login.html",
+      "exitCode": 0,
+      "durationMs": 19,
+      "verdict": "pass"
+    },
+    {
+      "command": "rg 'api-fetch.js' frontend/static/setup.html",
+      "exitCode": 0,
+      "durationMs": 18,
+      "verdict": "pass"
+    },
+    {
+      "command": "rg 'api-fetch.js' frontend/static/invite.html",
+      "exitCode": 0,
+      "durationMs": 18,
+      "verdict": "pass"
+    },
+    {
+      "command": "rg 'sempkm-toast' frontend/static/css/theme.css",
+      "exitCode": 0,
+      "durationMs": 19,
+      "verdict": "pass"
+    },
+    {
+      "command": "! rg 'sempkm-toast' frontend/static/css/workspace.css",
+      "exitCode": 0,
+      "durationMs": 18,
+      "verdict": "pass"
+    }
+  ]
+}

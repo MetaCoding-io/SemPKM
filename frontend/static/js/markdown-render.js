@@ -87,7 +87,7 @@
 
     target.innerHTML = '<p class="docs-loading">Loading...</p>';
 
-    fetch(url)
+    apiFetch(url, { silent: true })
       .then(function (response) { return response.text(); })
       .then(function (rawText) {
         var md = getMarked();

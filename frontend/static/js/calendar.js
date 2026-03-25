@@ -27,13 +27,13 @@
       'start=' + info.event.startStr,
       info.event.end ? 'end=' + info.event.endStr : '(no end)');
 
-    fetch('/browser/views/calendar/patch', {
+    apiFetch('/browser/views/calendar/patch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      silent: true
     }).then(function (r) {
-      if (!r.ok) return r.json().then(function (d) { throw new Error(d.error || 'HTTP ' + r.status); });
       return r.json();
     }).then(function (result) {
       console.log('[calendar] ' + actionLabel + ' persisted, event_iri:', result.event_iri);
@@ -72,13 +72,13 @@
 
     console.log('[calendar] external drop:', iri, 'start=' + scheduledStart, 'end=' + scheduledEnd);
 
-    fetch('/browser/views/calendar/patch', {
+    apiFetch('/browser/views/calendar/patch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ iri: iri, start: scheduledStart, end: scheduledEnd })
+      body: JSON.stringify({ iri: iri, start: scheduledStart, end: scheduledEnd }),
+      silent: true
     }).then(function (r) {
-      if (!r.ok) return r.json().then(function (d) { throw new Error(d.error || 'HTTP ' + r.status); });
       return r.json();
     }).then(function () {
       calendar.addEvent({
@@ -104,7 +104,7 @@
    * @param {string} dataUrl       URL to fetch calendar event JSON from
    */
   function _initCalendar(containerId, dataUrl) {
-    fetch(dataUrl, { credentials: 'include' })
+    apiFetch(dataUrl, { credentials: 'include', silent: true })
       .then(function (r) { return r.json(); })
       .then(function (data) {
         var el = document.getElementById(containerId);
@@ -230,7 +230,7 @@
           el.classList.add('scope-syncing');
           setTimeout(function () { el.classList.remove('scope-syncing'); }, 300);
 
-          fetch(newUrl, { credentials: 'include' })
+          apiFetch(newUrl, { credentials: 'include', silent: true })
             .then(function (r) { return r.json(); })
             .then(function (data) {
               cal.removeAllEvents();

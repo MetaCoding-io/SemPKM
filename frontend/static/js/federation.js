@@ -39,9 +39,8 @@
     // -----------------------------------------------------------------------
 
     function updateInboxBadge() {
-        fetch('/api/inbox?state=unread')
+        apiFetch('/api/inbox?state=unread', { silent: true })
             .then(function (res) {
-                if (!res.ok) return;
                 return res.json();
             })
             .then(function (data) {
@@ -79,17 +78,12 @@
         }
 
         try {
-            var res = await fetch('/api/federation/shared-graphs/' + graphId + '/sync', {
+            var res = await apiFetch('/api/federation/shared-graphs/' + graphId + '/sync', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({})
+                body: JSON.stringify({}),
+                silent: true
             });
-
-            if (!res.ok) {
-                var errData = await res.json().catch(function () { return {}; });
-                showToast(errData.detail || 'Sync failed', 'error');
-                return;
-            }
 
             var result = await res.json();
             showToast('Synced: ' + result.pulled + ' pulled, ' + result.applied + ' applied', 'success');
@@ -98,7 +92,9 @@
             refreshCollabPanel();
             refreshSharedNav();
         } catch (err) {
-            showToast('Sync error: ' + err.message, 'error');
+            var detail = 'Sync error';
+            try { detail = JSON.parse(err.body || '{}').detail || err.message; } catch (_) { detail = err.message; }
+            showToast(detail, 'error');
         } finally {
             if (btn) {
                 btn.innerHTML = originalHTML;
@@ -143,17 +139,12 @@
         }
 
         try {
-            var res = await fetch('/api/federation/shared-graphs', {
+            var res = await apiFetch('/api/federation/shared-graphs', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: name, description: desc })
+                body: JSON.stringify({ name: name, description: desc }),
+                silent: true
             });
-
-            if (!res.ok) {
-                var errData = await res.json().catch(function () { return {}; });
-                showToast(errData.detail || 'Failed to create shared graph', 'error');
-                return;
-            }
 
             showToast('Shared graph "' + name + '" created', 'success');
             hideCreateSharedGraph();
@@ -164,7 +155,9 @@
             refreshCollabPanel();
             refreshSharedNav();
         } catch (err) {
-            showToast('Error: ' + err.message, 'error');
+            var detail = 'Failed to create shared graph';
+            try { detail = JSON.parse(err.body || '{}').detail || err.message; } catch (_) { detail = err.message; }
+            showToast(detail, 'error');
         }
     };
 
@@ -188,24 +181,21 @@
         }
 
         try {
-            var res = await fetch('/api/federation/invitations', {
+            var res = await apiFetch('/api/federation/invitations', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ graph_iri: graphIri, recipient_handle: handle })
+                body: JSON.stringify({ graph_iri: graphIri, recipient_handle: handle }),
+                silent: true
             });
-
-            if (!res.ok) {
-                var errData = await res.json().catch(function () { return {}; });
-                showToast(errData.detail || 'Failed to send invitation', 'error');
-                return;
-            }
 
             showToast('Invitation sent to ' + handle, 'success');
             var form = document.getElementById('invite-form-' + graphId);
             if (form) form.style.display = 'none';
             if (input) input.value = '';
         } catch (err) {
-            showToast('Error: ' + err.message, 'error');
+            var detail = 'Failed to send invitation';
+            try { detail = JSON.parse(err.body || '{}').detail || err.message; } catch (_) { detail = err.message; }
+            showToast(detail, 'error');
         }
     };
 
@@ -215,29 +205,27 @@
 
     window.acceptInvitation = async function (notifId) {
         try {
-            var res = await fetch('/api/federation/invitations/' + notifId + '/accept', {
-                method: 'POST'
+            var res = await apiFetch('/api/federation/invitations/' + notifId + '/accept', {
+                method: 'POST',
+                silent: true
             });
-
-            if (!res.ok) {
-                var errData = await res.json().catch(function () { return {}; });
-                showToast(errData.detail || 'Failed to accept invitation', 'error');
-                return;
-            }
 
             showToast('Invitation accepted', 'success');
             refreshInbox();
             refreshCollabPanel();
             refreshSharedNav();
         } catch (err) {
-            showToast('Error: ' + err.message, 'error');
+            var detail = 'Failed to accept invitation';
+            try { detail = JSON.parse(err.body || '{}').detail || err.message; } catch (_) { detail = err.message; }
+            showToast(detail, 'error');
         }
     };
 
     window.declineInvitation = async function (notifId) {
         try {
-            await fetch('/api/federation/invitations/' + notifId + '/decline', {
-                method: 'POST'
+            await apiFetch('/api/federation/invitations/' + notifId + '/decline', {
+                method: 'POST',
+                silent: true
             });
             showToast('Invitation declined', 'info');
             refreshInbox();
@@ -248,10 +236,11 @@
 
     window.markNotificationRead = async function (notifId) {
         try {
-            await fetch('/api/inbox/' + notifId, {
+            await apiFetch('/api/inbox/' + notifId, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ state: 'read' })
+                body: JSON.stringify({ state: 'read' }),
+                silent: true
             });
             refreshInbox();
             updateInboxBadge();
@@ -263,10 +252,11 @@
     window.dismissNotification = async function (notifId, newState) {
         newState = newState || 'dismissed';
         try {
-            await fetch('/api/inbox/' + notifId, {
+            await apiFetch('/api/inbox/' + notifId, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ state: newState })
+                body: JSON.stringify({ state: newState }),
+                silent: true
             });
             refreshInbox();
             updateInboxBadge();

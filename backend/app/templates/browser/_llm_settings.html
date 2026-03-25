@@ -77,11 +77,12 @@
   window.llmSettingChanged = function (field, value) {
     clearTimeout(_pending[field]);
     _pending[field] = setTimeout(function () {
-      fetch('/browser/llm/config', {
+      apiFetch('/browser/llm/config', {
         method: 'PUT',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ field: field, value: value })
+        body: JSON.stringify({ field: field, value: value }),
+        silent: true
       });
     }, 600);
   };

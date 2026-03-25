@@ -22,11 +22,8 @@
   'use strict';
   window._deleteWorkflow = function(id, name) {
     if (!window.confirm('Delete workflow "' + name + '"? This cannot be undone.')) return;
-    fetch('/api/workflow/' + id, { method: 'DELETE' })
-      .then(function(resp) {
-        if (!resp.ok) {
-          return resp.json().then(function(d) { throw new Error(d.detail || 'Delete failed'); });
-        }
+    apiFetch('/api/workflow/' + id, { method: 'DELETE', silent: true })
+      .then(function() {
         if (typeof htmx !== 'undefined') {
           htmx.trigger(document.body, 'workflowsRefreshed');
         }

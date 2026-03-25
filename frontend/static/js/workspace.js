@@ -274,9 +274,10 @@
 
     var url = '/browser/apps/right-pane-sections?iri=' + encodeURIComponent(objectIri);
 
-    fetch(url, {
+    apiFetch(url, {
       signal: controller.signal,
-      headers: { 'HX-Request': 'true' }
+      headers: { 'HX-Request': 'true' },
+      silent: true
     })
       .then(function (resp) { return resp.text(); })
       .then(function (html) {
@@ -308,7 +309,7 @@
       url = '/browser/relations/' + encodeURIComponent(objectIri);
     }
 
-    fetch(url, { headers: { 'HX-Request': 'true' } })
+    apiFetch(url, { headers: { 'HX-Request': 'true' }, silent: true })
       .then(function (resp) { return resp.text(); })
       .then(function (html) {
         var el = document.getElementById(targetId);
@@ -667,8 +668,9 @@
       if (saveBtn) saveBtn.style.display = 'none';
       // Refresh read face with fresh data from server
       if (readFace) {
-        fetch('/browser/object/' + encodeURIComponent(objectIri) + '?mode=read', {
-          headers: { 'HX-Request': 'true' }
+        apiFetch('/browser/object/' + encodeURIComponent(objectIri) + '?mode=read', {
+          headers: { 'HX-Request': 'true' },
+          silent: true
         }).then(function (resp) { return resp.text(); }).then(function (html) {
           var tmp = document.createElement('div');
           tmp.innerHTML = html;
@@ -1170,16 +1172,15 @@
         var bodyPredicate = bodyContainer && bodyContainer.dataset.bodyPredicate ? bodyContainer.dataset.bodyPredicate : '';
         var bodyUrl = '/browser/objects/' + encodeURIComponent(activeIri) + '/body';
         if (bodyPredicate) bodyUrl += '?predicate=' + encodeURIComponent(bodyPredicate);
-        fetch(bodyUrl, {
+        apiFetch(bodyUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
-          body: content
+          body: content,
+          silent: true
         }).then(function (resp) {
-          if (resp.ok) {
             editor._sempkmSavedContent = content;
             markClean(activeIri);
             refreshLintAfterSave(activeIri);
-          }
         }).catch(function (err) {
           console.error('Body save error:', err);
         });
@@ -1195,15 +1196,14 @@
         var fbPredicate = fallback.dataset.bodyPredicate || '';
         var fbUrl = '/browser/objects/' + encodeURIComponent(fallback.dataset.objectIri) + '/body';
         if (fbPredicate) fbUrl += '?predicate=' + encodeURIComponent(fbPredicate);
-        fetch(fbUrl, {
+        apiFetch(fbUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
-          body: fbContent
+          body: fbContent,
+          silent: true
         }).then(function (resp) {
-          if (resp.ok) {
             markClean(fallback.dataset.objectIri);
             refreshLintAfterSave(fallback.dataset.objectIri);
-          }
         }).catch(function (err) {
           console.error('Body save error:', err);
         });
@@ -1404,13 +1404,13 @@
       'Delete ' + count + ' object' + (count !== 1 ? 's' : '') + '? This cannot be undone.',
       labels,
       function() {
-        fetch('/browser/objects/delete', {
+        apiFetch('/browser/objects/delete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ iris: irisArray })
+          body: JSON.stringify({ iris: irisArray }),
+          silent: true
         })
         .then(function(resp) {
-          if (!resp.ok) throw new Error('Delete failed: ' + resp.status);
           return resp.json();
         })
         .then(function(data) {
@@ -1787,7 +1787,7 @@
 
   function _loadAppCommandEntries(ninja) {
     if (!ninja) return;
-    fetch('/api/apps/commands')
+    apiFetch('/api/apps/commands', { silent: true })
       .then(function (resp) { return resp.json(); })
       .then(function (commands) {
         if (!commands || commands.length === 0) return;
@@ -1818,7 +1818,7 @@
   }
 
   function _loadViewCommandPaletteEntries(ninja) {
-    fetch('/browser/views/available')
+    apiFetch('/browser/views/available', { silent: true })
       .then(function (resp) { return resp.json(); })
       .then(function (views) {
         if (!views || views.length === 0) return;
@@ -1928,11 +1928,13 @@
         var url = '/api/search?q=' + encodeURIComponent(query) + '&limit=10'
                 + (_fuzzyEnabled ? '&fuzzy=true' : '');
 
-        fetch(url, {
+        apiFetch(url, {
           signal: controller.signal,
-          credentials: 'same-origin'
+          credentials: 'same-origin',
+          silent: true
         })
-          .then(function(resp) { return resp.ok ? resp.json() : null; })
+          .then(function(resp) { return resp.json(); })
+          .catch(function() { return null; })
           .then(function(data) {
             if (!data || !data.results) return;
 
@@ -2478,9 +2480,8 @@
    * Must be called after dockview is initialized (window._dockview must exist).
    */
   function initPersonas() {
-    fetch('/api/personas', { credentials: 'same-origin' })
+    apiFetch('/api/personas', { credentials: 'same-origin', silent: true })
       .then(function (resp) {
-        if (!resp.ok) throw new Error('Persona list failed: ' + resp.status);
         return resp.json();
       })
       .then(function (personas) {
@@ -2490,10 +2491,11 @@
           var sidebarJson = localStorage.getItem(PANEL_POSITIONS_KEY) || '{}';
           var explorerMode = localStorage.getItem(EXPLORER_MODE_KEY) || 'by-type';
 
-          return fetch('/api/personas', {
+          return apiFetch('/api/personas', {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Content-Type': 'application/json' },
+            silent: true,
             body: JSON.stringify({
               name: 'Default',
               layout_json: layoutJson,
@@ -2538,7 +2540,7 @@
     var sidebarJson = localStorage.getItem(PANEL_POSITIONS_KEY);
     var explorerMode = localStorage.getItem(EXPLORER_MODE_KEY);
 
-    return fetch('/api/personas/' + _activePersonaId + '/save-state', {
+    return apiFetch('/api/personas/' + _activePersonaId + '/save-state', {
       method: 'POST',
       credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
@@ -2546,10 +2548,10 @@
         layout_json: layoutJson,
         sidebar_positions_json: sidebarJson,
         explorer_mode: explorerMode
-      })
+      }),
+      silent: true
     })
     .then(function (resp) {
-      if (!resp.ok) throw new Error('Save state failed: ' + resp.status);
       showToast('Persona saved');
     })
     .catch(function (err) {
@@ -2571,19 +2573,18 @@
     saveCurrentPersonaState()
       .then(function () {
         // Fetch full persona payload
-        return fetch('/api/personas/' + id, { credentials: 'same-origin' });
+        return apiFetch('/api/personas/' + id, { credentials: 'same-origin', silent: true });
       })
       .then(function (resp) {
-        if (!resp.ok) throw new Error('Fetch persona failed: ' + resp.status);
         return resp.json();
       })
       .then(function (persona) {
         // Activate on server
-        return fetch('/api/personas/' + id + '/activate', {
+        return apiFetch('/api/personas/' + id + '/activate', {
           method: 'POST',
-          credentials: 'same-origin'
+          credentials: 'same-origin',
+          silent: true
         }).then(function (resp) {
-          if (!resp.ok) throw new Error('Activate failed: ' + resp.status);
           return persona;
         });
       })
@@ -2669,10 +2670,11 @@
         var sidebarJson = localStorage.getItem(PANEL_POSITIONS_KEY) || '{}';
         var explorerMode = localStorage.getItem(EXPLORER_MODE_KEY) || 'by-type';
 
-        return fetch('/api/personas', {
+        return apiFetch('/api/personas', {
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
+          silent: true,
           body: JSON.stringify({
             name: name,
             layout_json: layoutJson,
@@ -2717,9 +2719,8 @@
   function _refreshPersonaPaletteItems(ninja) {
     if (!ninja) return;
 
-    fetch('/api/personas', { credentials: 'same-origin' })
+    apiFetch('/api/personas', { credentials: 'same-origin', silent: true })
       .then(function (resp) {
-        if (!resp.ok) throw new Error('Fetch personas for palette failed');
         return resp.json();
       })
       .then(function (personas) {
@@ -2765,9 +2766,8 @@
   function _refreshTemplatePaletteItems(ninja) {
     if (!ninja) return;
 
-    fetch('/api/task-templates', { credentials: 'same-origin' })
+    apiFetch('/api/task-templates', { credentials: 'same-origin', silent: true })
       .then(function (resp) {
-        if (!resp.ok) throw new Error('Fetch templates for palette failed');
         return resp.json();
       })
       .then(function (templates) {
@@ -2789,13 +2789,13 @@
             parent: 'create-from-template',
             handler: (function (templateId, templateTitle) {
               return function () {
-                fetch('/api/task-templates/' + encodeURIComponent(templateId) + '/instantiate', {
+                apiFetch('/api/task-templates/' + encodeURIComponent(templateId) + '/instantiate', {
                   method: 'POST',
                   credentials: 'same-origin',
-                  headers: { 'Content-Type': 'application/json' }
+                  headers: { 'Content-Type': 'application/json' },
+                  silent: true
                 })
                   .then(function (resp) {
-                    if (!resp.ok) throw new Error('Template instantiation failed');
                     return resp.json();
                   })
                   .then(function (result) {
@@ -2833,9 +2833,8 @@
    * the matching workflow, and opens the stepper via openWorkflowTab().
    */
   function _launchReviewWorkflow(name) {
-    fetch('/api/workflow', { credentials: 'same-origin' })
+    apiFetch('/api/workflow', { credentials: 'same-origin', silent: true })
       .then(function (resp) {
-        if (!resp.ok) throw new Error('Fetch workflows failed');
         return resp.json();
       })
       .then(function (workflows) {
@@ -2917,9 +2916,8 @@
     var dropdown = document.getElementById('explorer-mode-select');
     if (!dropdown) return;
 
-    fetch('/api/vfs/mounts', { credentials: 'include' })
+    apiFetch('/api/vfs/mounts', { credentials: 'include', silent: true })
       .then(function (r) {
-        if (!r.ok) throw new Error('Mount fetch failed: ' + r.status);
         return r.json();
       })
       .then(function (mounts) {
@@ -3018,13 +3016,13 @@
 
     // Initialize lint dashboard SSE and health badge
     initLintDashboardSSE();
-    fetch('/api/lint/status', { credentials: 'include' })
+    apiFetch('/api/lint/status', { credentials: 'include', silent: true })
       .then(function (r) { return r.json(); })
       .then(function (data) { updateLintBadge(data); })
       .catch(function () { /* no lint status available yet */ });
 
     // Fetch and cache icon map for client-side use (graph shapes, tab icons)
-    fetch('/browser/icons', { credentials: 'include' })
+    apiFetch('/browser/icons', { credentials: 'include', silent: true })
       .then(function (r) { return r.json(); })
       .then(function (data) {
         window._sempkmIcons = data;  // { tree: {...}, tab: {...}, graph: {...} }
@@ -3161,23 +3159,18 @@
     }
     btn.disabled = true;
     btn.textContent = 'Undoing\u2026';
-    fetch('/browser/events/' + encodeURIComponent(eventIri) + '/undo', {
-      method: 'POST'
+    apiFetch('/browser/events/' + encodeURIComponent(eventIri) + '/undo', {
+      method: 'POST',
+      silent: true
     }).then(function(res) {
-      if (res.ok) {
         htmx.ajax('GET', '/browser/events', {
           target: '#panel-event-log',
           swap: 'innerHTML'
         });
-      } else {
-        res.json().then(function(d) {
-          alert('Undo failed: ' + (d.error || 'Unknown error'));
-          btn.disabled = false;
-          btn.textContent = 'Undo';
-        });
-      }
-    }).catch(function() {
-      alert('Undo failed: network error');
+    }).catch(function(err) {
+      var detail = 'Undo failed: network error';
+      if (err.body) { try { detail = 'Undo failed: ' + (JSON.parse(err.body).error || err.message); } catch (_) {} }
+      alert(detail);
       btn.disabled = false;
       btn.textContent = 'Undo';
     });
@@ -3218,7 +3211,7 @@
       '&target=' + encodeURIComponent(targetIri) +
       '&source=' + encodeURIComponent(source);
 
-    fetch(url, { credentials: 'same-origin' })
+    apiFetch(url, { credentials: 'same-origin', silent: true })
       .then(function(r) { return r.json(); })
       .then(function(data) {
         var html = '';
@@ -3367,9 +3360,10 @@
       'Delete this relationship? This cannot be undone.',
       null,
       function() {
-        fetch('/browser/edge/delete', {
+        apiFetch('/browser/edge/delete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          silent: true,
           credentials: 'same-origin',
           body: JSON.stringify({
             subject: subjectIri,
@@ -3378,7 +3372,6 @@
           }),
         })
         .then(function(r) {
-          if (!r.ok) throw new Error('Delete failed');
           return r.json();
         })
         .then(function() {
@@ -3470,15 +3463,13 @@
         var query = el.dataset.sparqlQuery;
         if (!query) return;
 
-        fetch('/api/sparql', {
+        apiFetch('/api/sparql', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: query })
+          body: JSON.stringify({ query: query }),
+          silent: true
         })
         .then(function(resp) {
-          if (!resp.ok) {
-            throw new Error('Query error: ' + resp.status + ' ' + resp.statusText);
-          }
           return resp.json();
         })
         .then(function(data) {
@@ -3559,13 +3550,13 @@
         if (!query) return;
 
         _ensureChartJs(function() {
-          fetch('/api/sparql', {
+          apiFetch('/api/sparql', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: query })
+            body: JSON.stringify({ query: query }),
+            silent: true
           })
           .then(function(resp) {
-            if (!resp.ok) throw new Error('Chart query error: ' + resp.status);
             return resp.json();
           })
           .then(function(data) {
@@ -3810,16 +3801,13 @@
     var formData = new FormData();
     formData.append('object_iri', iri);
 
-    fetch('/browser/favorites/toggle', {
+    apiFetch('/browser/favorites/toggle', {
       method: 'POST',
       body: formData,
       credentials: 'same-origin',
+      silent: true
     })
     .then(function(resp) {
-      if (!resp.ok) {
-        console.error('toggleFavorite: server returned ' + resp.status);
-        return;
-      }
       // Determine new state from response — the server returns HTML with
       // class "is-favorited" when the object is now favorited.
       return resp.text().then(function(html) {
@@ -3928,8 +3916,9 @@
     }
 
     // Load properties for strategy-specific dropdowns
-    fetch('/api/vfs/mounts/properties')
-      .then(function(r) { return r.ok ? r.json() : { properties: [] }; })
+    apiFetch('/api/vfs/mounts/properties', { silent: true })
+      .then(function(r) { return r.json(); })
+      .catch(function() { return { properties: [] }; })
       .then(function(data) {
         var props = data.properties || [];
         populatePropertySelect('mount-group-property', props);
@@ -3940,8 +3929,9 @@
       });
 
     // Load saved queries for scope dropdown
-    fetch('/api/sparql/saved?include_shared=true')
-      .then(function(r) { return r.ok ? r.json() : {}; })
+    apiFetch('/api/sparql/saved?include_shared=true', { silent: true })
+      .then(function(r) { return r.json(); })
+      .catch(function() { return {}; })
       .then(function(data) {
         var scopeSelect = document.getElementById('mount-scope');
         if (!scopeSelect) return;
@@ -3983,8 +3973,9 @@
       });
 
     // Load available types for type filter checkboxes
-    fetch('/browser/views/type-pills')
-      .then(function(r) { return r.ok ? r.json() : { types: [] }; })
+    apiFetch('/browser/views/type-pills', { silent: true })
+      .then(function(r) { return r.json(); })
+      .catch(function() { return { types: [] }; })
       .then(function(data) {
         var container = document.getElementById('mount-type-filter');
         if (!container) return;
@@ -4328,16 +4319,14 @@
     var url = isEdit ? '/api/vfs/mounts/' + editId : '/api/vfs/mounts';
     var method = isEdit ? 'PUT' : 'POST';
 
-    fetch(url, {
+    apiFetch(url, {
       method: method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
+      silent: true
     })
       .then(function(r) {
-        if (r.ok) return r.json();
-        return r.json().then(function(errData) {
-          throw new Error(errData.detail || 'Failed to save mount');
-        });
+        return r.json();
       })
       .then(function() {
         // Success — clear form and reload list
@@ -4365,16 +4354,14 @@
     treeEl.innerHTML = 'Loading preview...';
     previewEl.style.display = '';
 
-    fetch('/api/vfs/mounts/preview', {
+    apiFetch('/api/vfs/mounts/preview', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
+      silent: true
     })
       .then(function(r) {
-        if (r.ok) return r.json();
-        return r.json().then(function(errData) {
-          throw new Error(errData.detail || 'Preview failed');
-        });
+        return r.json();
       })
       .then(function(result) {
         renderPreviewTree(treeEl, result.directories || []);
@@ -4423,8 +4410,9 @@
    * Load and render the list of existing mounts.
    */
   function loadMountList() {
-    fetch('/api/vfs/mounts')
-      .then(function(r) { return r.ok ? r.json() : []; })
+    apiFetch('/api/vfs/mounts', { silent: true })
+      .then(function(r) { return r.json(); })
+      .catch(function() { return []; })
       .then(function(mounts) {
         _mountsCache = mounts;
         renderMountList(mounts);
@@ -4515,8 +4503,9 @@
     var mount = _mountsCache.find(function(m) { return m.id === id; });
     if (!mount) {
       // Refetch if not cached
-      fetch('/api/vfs/mounts')
-        .then(function(r) { return r.ok ? r.json() : []; })
+      apiFetch('/api/vfs/mounts', { silent: true })
+        .then(function(r) { return r.json(); })
+        .catch(function() { return []; })
         .then(function(mounts) {
           _mountsCache = mounts;
           var m = mounts.find(function(x) { return x.id === id; });
@@ -4666,9 +4655,8 @@
     if (!confirm('Are you sure you want to delete the mount "' + name + '"? The directory will no longer appear in WebDAV.')) {
       return;
     }
-    fetch('/api/vfs/mounts/' + id, { method: 'DELETE' })
+    apiFetch('/api/vfs/mounts/' + id, { method: 'DELETE', silent: true })
       .then(function(r) {
-        if (r.status === 204 || r.ok) {
           var row = document.getElementById('mount-item-' + id);
           if (row) row.remove();
           // Check if list is now empty
@@ -4678,7 +4666,6 @@
           }
           // Update cache
           _mountsCache = _mountsCache.filter(function(m) { return m.id !== id; });
-        }
       })
       .catch(function(err) {
         showMountError('Failed to delete mount: ' + (err.message || 'Unknown error'));
@@ -4992,13 +4979,13 @@
    * Calls POST /api/lint/dismiss, then refreshes the lint panel via htmx.
    */
   function dismissLintResult(objectIri, sourceShape, btn) {
-    fetch('/api/lint/dismiss', {
+    apiFetch('/api/lint/dismiss', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ object_iri: objectIri, rule_source_iri: sourceShape })
+      body: JSON.stringify({ object_iri: objectIri, rule_source_iri: sourceShape }),
+      silent: true
     })
     .then(function(resp) {
-      if (!resp.ok) throw new Error('Dismiss failed: ' + resp.status);
       return resp.json();
     })
     .then(function() {
@@ -5021,13 +5008,13 @@
    * Calls POST /api/lint/suppress, then refreshes the dashboard.
    */
   function suppressLintRule(sourceShape) {
-    fetch('/api/lint/suppress', {
+    apiFetch('/api/lint/suppress', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rule_source_iri: sourceShape })
+      body: JSON.stringify({ rule_source_iri: sourceShape }),
+      silent: true
     })
     .then(function(resp) {
-      if (!resp.ok) throw new Error('Suppress failed: ' + resp.status);
       return resp.json();
     })
     .then(function() {
@@ -5045,14 +5032,13 @@
   function applyLintPreset(presetId) {
     if (!presetId) {
       // "No preset" selected — clear all suppressions
-      fetch('/api/lint/suppressions', { method: 'DELETE' })
+      apiFetch('/api/lint/suppressions', { method: 'DELETE', silent: true })
         .then(function() { refreshLintDashboard(); })
         .catch(function(err) { console.error('clearSuppressions error:', err); });
       return;
     }
-    fetch('/api/lint/presets/' + presetId + '/apply', { method: 'POST' })
+    apiFetch('/api/lint/presets/' + presetId + '/apply', { method: 'POST', silent: true })
       .then(function(resp) {
-        if (!resp.ok) throw new Error('Apply preset failed: ' + resp.status);
         return resp.json();
       })
       .then(function() {
@@ -5073,7 +5059,7 @@
     name = name.trim();
 
     // Fetch current suppressions to capture their rule IRIs
-    fetch('/api/lint/suppressions')
+    apiFetch('/api/lint/suppressions', { silent: true })
       .then(function(resp) { return resp.json(); })
       .then(function(suppressions) {
         var rules = suppressions.map(function(s) { return s.rule_source_iri; });
@@ -5081,15 +5067,15 @@
           alert('No active suppressions to save.');
           return;
         }
-        return fetch('/api/lint/presets', {
+        return apiFetch('/api/lint/presets', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: name, suppressed_rules: rules })
+          body: JSON.stringify({ name: name, suppressed_rules: rules }),
+          silent: true
         });
       })
       .then(function(resp) {
-        if (resp && !resp.ok) throw new Error('Save preset failed: ' + resp.status);
-        refreshLintDashboard();
+        if (resp) refreshLintDashboard();
       })
       .catch(function(err) {
         console.error('saveLintPreset error:', err);
@@ -5126,9 +5112,8 @@
    * Remove a single suppression from lint settings.
    */
   function removeSuppression(id) {
-    fetch('/api/lint/suppress/' + id, { method: 'DELETE' })
+    apiFetch('/api/lint/suppress/' + id, { method: 'DELETE', silent: true })
       .then(function(res) {
-        if (!res.ok) throw new Error('Failed to remove suppression: ' + res.status);
         refreshLintSettings();
       })
       .catch(function(err) {
@@ -5141,9 +5126,8 @@
    */
   function clearAllSuppressions() {
     if (!confirm('Remove all suppressions? Suppressed rules will appear in lint results again.')) return;
-    fetch('/api/lint/suppressions', { method: 'DELETE' })
+    apiFetch('/api/lint/suppressions', { method: 'DELETE', silent: true })
       .then(function(res) {
-        if (!res.ok) throw new Error('Failed to clear suppressions: ' + res.status);
         refreshLintSettings();
       })
       .catch(function(err) {
@@ -5155,9 +5139,8 @@
    * Remove a single dismissal from lint settings.
    */
   function removeDismissal(id) {
-    fetch('/api/lint/dismiss/' + id, { method: 'DELETE' })
+    apiFetch('/api/lint/dismiss/' + id, { method: 'DELETE', silent: true })
       .then(function(res) {
-        if (!res.ok) throw new Error('Failed to remove dismissal: ' + res.status);
         refreshLintSettings();
       })
       .catch(function(err) {
@@ -5170,9 +5153,8 @@
    */
   function clearAllDismissals() {
     if (!confirm('Remove all dismissals? Dismissed results will appear again.')) return;
-    fetch('/api/lint/dismissals', { method: 'DELETE' })
+    apiFetch('/api/lint/dismissals', { method: 'DELETE', silent: true })
       .then(function(res) {
-        if (!res.ok) throw new Error('Failed to clear dismissals: ' + res.status);
         refreshLintSettings();
       })
       .catch(function(err) {
@@ -5185,9 +5167,8 @@
    */
   function deleteLintPreset(id) {
     if (!confirm('Delete this preset?')) return;
-    fetch('/api/lint/presets/' + id, { method: 'DELETE' })
+    apiFetch('/api/lint/presets/' + id, { method: 'DELETE', silent: true })
       .then(function(res) {
-        if (!res.ok) throw new Error('Failed to delete preset: ' + res.status);
         refreshLintSettings();
       })
       .catch(function(err) {
@@ -5201,13 +5182,13 @@
   function renameLintPreset(id, currentName) {
     var newName = prompt('Rename preset:', currentName);
     if (!newName || newName === currentName) return;
-    fetch('/api/lint/presets/' + id, {
+    apiFetch('/api/lint/presets/' + id, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: newName })
+      body: JSON.stringify({ name: newName }),
+      silent: true
     })
       .then(function(res) {
-        if (!res.ok) throw new Error('Failed to rename preset: ' + res.status);
         refreshLintSettings();
       })
       .catch(function(err) {
@@ -5361,17 +5342,13 @@
       resultArea.innerHTML = '<div class="form-group-loading">Creating objects…</div>';
     }
 
-    fetch('/api/commands', {
+    apiFetch('/api/commands', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(commands)
+      body: JSON.stringify(commands),
+      silent: true
     })
     .then(function(res) {
-      if (!res.ok) {
-        return res.json().then(function(body) {
-          throw new Error(body.detail || 'Batch command failed: ' + res.status);
-        });
-      }
       return res.json();
     })
     .then(function(data) {

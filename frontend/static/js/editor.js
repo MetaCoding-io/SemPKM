@@ -140,30 +140,27 @@ async function saveBody(objectIri, view) {
   }
 
   try {
-    var response = await fetch('/browser/objects/' + encodeURIComponent(objectIri) + '/body', {
+    var response = await apiFetch('/browser/objects/' + encodeURIComponent(objectIri) + '/body', {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
-      body: content
+      body: content,
+      silent: true
     });
 
-    if (response.ok) {
-      // Update saved content reference
-      view._sempkmSavedContent = content;
+    // apiFetch only returns on 2xx — success path
+    view._sempkmSavedContent = content;
 
-      if (typeof window.markClean === 'function') {
-        window.markClean(objectIri);
-      }
+    if (typeof window.markClean === 'function') {
+      window.markClean(objectIri);
+    }
 
-      if (statusEl) {
-        statusEl.textContent = 'Saved';
-        statusEl.className = 'editor-status saved';
-        setTimeout(function () {
-          statusEl.textContent = '';
-          statusEl.className = 'editor-status';
-        }, 2000);
-      }
-    } else {
-      throw new Error('Save failed: ' + response.status);
+    if (statusEl) {
+      statusEl.textContent = 'Saved';
+      statusEl.className = 'editor-status saved';
+      setTimeout(function () {
+        statusEl.textContent = '';
+        statusEl.className = 'editor-status';
+      }, 2000);
     }
   } catch (err) {
     console.error('Body save error:', err);

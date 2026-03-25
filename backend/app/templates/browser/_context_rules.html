@@ -254,22 +254,17 @@
     var formEl = e.target;
     var payload = _buildPayload(formEl);
 
-    fetch('/api/context/rules', {
+    apiFetch('/api/context/rules', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }).then(function (resp) {
-      if (resp.ok) {
-        _reloadPanel();
-      } else {
-        resp.json().then(function (err) {
-          alert('Error creating rule: ' + (err.detail || resp.statusText));
-        }).catch(function () {
-          alert('Error creating rule: ' + resp.statusText);
-        });
-      }
+      body: JSON.stringify(payload),
+      silent: true
+    }).then(function () {
+      _reloadPanel();
     }).catch(function (err) {
-      alert('Network error: ' + err.message);
+      var detail = '';
+      try { detail = JSON.parse(err.body || '{}').detail; } catch (_) {}
+      alert('Error creating rule: ' + (detail || err.message));
     });
     return false;
   };
@@ -280,46 +275,41 @@
     var formEl = e.target;
     var payload = _buildPayload(formEl);
 
-    fetch('/api/context/rules/' + ruleId, {
+    apiFetch('/api/context/rules/' + ruleId, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }).then(function (resp) {
-      if (resp.ok) {
-        _reloadPanel();
-      } else {
-        resp.json().then(function (err) {
-          alert('Error updating rule: ' + (err.detail || resp.statusText));
-        }).catch(function () {
-          alert('Error updating rule: ' + resp.statusText);
-        });
-      }
+      body: JSON.stringify(payload),
+      silent: true
+    }).then(function () {
+      _reloadPanel();
     }).catch(function (err) {
-      alert('Network error: ' + err.message);
+      var detail = '';
+      try { detail = JSON.parse(err.body || '{}').detail; } catch (_) {}
+      alert('Error updating rule: ' + (detail || err.message));
     });
     return false;
   };
 
   /** Toggle enabled/disabled state for a rule. */
   window.contextRulesToggleEnabled = function (ruleId, enabled) {
-    fetch('/api/context/rules/' + ruleId, {
+    apiFetch('/api/context/rules/' + ruleId, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ enabled: enabled })
-    }).then(function (resp) {
-      if (resp.ok) _reloadPanel();
+      body: JSON.stringify({ enabled: enabled }),
+      silent: true
+    }).then(function () {
+      _reloadPanel();
     });
   };
 
   /** Delete a rule with confirmation. */
   window.contextRulesDelete = function (ruleId, ruleName) {
     if (!confirm("Delete rule '" + ruleName + "'?")) return;
-    fetch('/api/context/rules/' + ruleId, {
-      method: 'DELETE'
-    }).then(function (resp) {
-      if (resp.ok || resp.status === 204) {
-        _reloadPanel();
-      }
+    apiFetch('/api/context/rules/' + ruleId, {
+      method: 'DELETE',
+      silent: true
+    }).then(function () {
+      _reloadPanel();
     });
   };
 
@@ -337,9 +327,10 @@
     resultDiv.textContent = 'Evaluating…';
     resultDiv.className = 'context-rule-test-result';
 
-    fetch('/api/context/rules/test', {
+    apiFetch('/api/context/rules/test', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json' },
+      silent: true
     }).then(function (resp) { return resp.json(); })
       .then(function (data) {
         if (data.match) {

@@ -60,10 +60,11 @@ async function runSparqlQuery() {
   if (errorDiv) errorDiv.innerHTML = "";
 
   try {
-    const resp = await fetch("/api/sparql", {
+    const resp = await apiFetch("/api/sparql", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query: query }),
+      silent: true
     });
 
     const data = await resp.json();
@@ -285,19 +286,14 @@ async function executeCommand() {
   if (resultDiv) resultDiv.innerHTML = '<p class="loading">Executing command...</p>';
 
   try {
-    const resp = await fetch("/api/commands", {
+    const resp = await apiFetch("/api/commands", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+      silent: true
     });
 
     const data = await resp.json();
-
-    if (!resp.ok) {
-      if (resultDiv) resultDiv.innerHTML = "";
-      showError(errorDiv, data.error || "Command failed with status " + resp.status);
-      return;
-    }
 
     if (resultDiv) {
       resultDiv.innerHTML =
@@ -309,7 +305,9 @@ async function executeCommand() {
     document.dispatchEvent(new CustomEvent('sempkm:command-executed'));
   } catch (err) {
     if (resultDiv) resultDiv.innerHTML = "";
-    showError(errorDiv, "Network error: " + err.message);
+    var detail = "";
+    try { detail = JSON.parse(err.body || "{}").error; } catch (_) {}
+    showError(errorDiv, detail || err.message || "Command failed");
   }
 }
 
@@ -340,19 +338,14 @@ async function executeRawCommand() {
   if (resultDiv) resultDiv.innerHTML = '<p class="loading">Executing command...</p>';
 
   try {
-    const resp = await fetch("/api/commands", {
+    const resp = await apiFetch("/api/commands", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+      silent: true
     });
 
     const data = await resp.json();
-
-    if (!resp.ok) {
-      if (resultDiv) resultDiv.innerHTML = "";
-      showError(errorDiv, data.error || "Command failed with status " + resp.status);
-      return;
-    }
 
     if (resultDiv) {
       resultDiv.innerHTML =
@@ -364,7 +357,9 @@ async function executeRawCommand() {
     document.dispatchEvent(new CustomEvent('sempkm:command-executed'));
   } catch (err) {
     if (resultDiv) resultDiv.innerHTML = "";
-    showError(errorDiv, "Network error: " + err.message);
+    var detail = "";
+    try { detail = JSON.parse(err.body || "{}").error; } catch (_) {}
+    showError(errorDiv, detail || err.message || "Command failed");
   }
 }
 

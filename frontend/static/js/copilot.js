@@ -98,9 +98,8 @@ export function initCopilotChat() {
 // ---------------------------------------------------------------------------
 
 function _loadConversations() {
-  fetch('/api/copilot/conversations', { credentials: 'same-origin' })
+  apiFetch('/api/copilot/conversations', { credentials: 'same-origin', silent: true })
     .then(function (resp) {
-      if (!resp.ok) throw new Error('HTTP ' + resp.status);
       return resp.json();
     })
     .then(function (data) {
@@ -128,9 +127,8 @@ function _switchConversation(id) {
 
   console.log('copilot: switched conversation id=' + id);
 
-  fetch('/api/copilot/conversations/' + id, { credentials: 'same-origin' })
+  apiFetch('/api/copilot/conversations/' + id, { credentials: 'same-origin', silent: true })
     .then(function (resp) {
-      if (!resp.ok) throw new Error('HTTP ' + resp.status);
       return resp.json();
     })
     .then(function (data) {
@@ -160,14 +158,14 @@ function _switchConversation(id) {
 function _createNewChat() {
   if (_isStreaming) return;
 
-  fetch('/api/copilot/conversations', {
+  apiFetch('/api/copilot/conversations', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ title: null }),
-    credentials: 'same-origin'
+    credentials: 'same-origin',
+    silent: true
   })
     .then(function (resp) {
-      if (!resp.ok) throw new Error('HTTP ' + resp.status);
       return resp.json();
     })
     .then(function (data) {
@@ -186,12 +184,12 @@ function _createNewChat() {
 }
 
 function _deleteConversation(id) {
-  fetch('/api/copilot/conversations/' + id, {
+  apiFetch('/api/copilot/conversations/' + id, {
     method: 'DELETE',
-    credentials: 'same-origin'
+    credentials: 'same-origin',
+    silent: true
   })
     .then(function (resp) {
-      if (!resp.ok) throw new Error('HTTP ' + resp.status);
       return resp.json();
     })
     .then(function () {
@@ -384,7 +382,7 @@ function _relativeTime(isoStr) {
 // ---------------------------------------------------------------------------
 
 function _checkLlmStatus() {
-  fetch('/api/llm/status', { credentials: 'same-origin' })
+  apiFetch('/api/llm/status', { credentials: 'same-origin', silent: true })
     .then(function (resp) { return resp.json(); })
     .then(function (data) {
       if (!data.available) {
@@ -482,7 +480,7 @@ function _streamCopilotResponse() {
 
   _abortController = new AbortController();
 
-  fetch('/api/copilot/chat', {
+  apiFetch('/api/copilot/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -492,15 +490,15 @@ function _streamCopilotResponse() {
       persona_id: _activePersonaId
     }),
     credentials: 'same-origin',
-    signal: _abortController.signal
+    signal: _abortController.signal,
+    silent: true
   })
     .then(function (response) {
-      if (!response.ok) {
-        throw new Error('HTTP ' + response.status);
-      }
+      if (!response) return; // AbortError — apiFetch returns undefined
       return response.body.getReader();
     })
     .then(function (reader) {
+      if (!reader) return; // abort case
       var decoder = new TextDecoder();
       var buffer = '';
 
@@ -926,11 +924,12 @@ function _handleApprove(card) {
   var query = card.dataset.query;
   _setCardLoading(card, true, 'Executing query…');
 
-  fetch('/api/copilot/approve', {
+  apiFetch('/api/copilot/approve', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ query: query, action: 'approve' }),
-    credentials: 'same-origin'
+    credentials: 'same-origin',
+    silent: true
   })
     .then(function (resp) { return resp.json(); })
     .then(function (result) {
@@ -975,11 +974,12 @@ function _handleEdit(card) {
     card.dataset.query = editedQuery;
     _setCardLoading(card, true, 'Executing query…');
 
-    fetch('/api/copilot/approve', {
+    apiFetch('/api/copilot/approve', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: query, action: 'edit', edited_query: editedQuery }),
-      credentials: 'same-origin'
+      credentials: 'same-origin',
+      silent: true
     })
       .then(function (resp) { return resp.json(); })
       .then(function (result) {
@@ -1074,11 +1074,12 @@ function _handleReject(card) {
   var query = card.dataset.query;
   _disableCardButtons(card);
 
-  fetch('/api/copilot/approve', {
+  apiFetch('/api/copilot/approve', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ query: query, action: 'reject' }),
-    credentials: 'same-origin'
+    credentials: 'same-origin',
+    silent: true
   })
     .then(function () {
       card.classList.add('copilot-approval-rejected');
@@ -1210,7 +1211,7 @@ function _handleRetry(card, query, errorMsg) {
   }
   _scrollToBottom();
 
-  fetch('/api/copilot/approve', {
+  apiFetch('/api/copilot/approve', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -1219,7 +1220,8 @@ function _handleRetry(card, query, errorMsg) {
       error: errorMsg,
       retry_count: retryCount
     }),
-    credentials: 'same-origin'
+    credentials: 'same-origin',
+    silent: true
   })
     .then(function (resp) { return resp.json(); })
     .then(function (result) {
@@ -1382,9 +1384,8 @@ function _escapeJs(str) {
 // ---------------------------------------------------------------------------
 
 function _loadPersonas() {
-  fetch('/api/copilot/personas', { credentials: 'same-origin' })
+  apiFetch('/api/copilot/personas', { credentials: 'same-origin', silent: true })
     .then(function (resp) {
-      if (!resp.ok) throw new Error('HTTP ' + resp.status);
       return resp.json();
     })
     .then(function (data) {
@@ -1524,12 +1525,12 @@ function _togglePersonaDropdown() {
 }
 
 function _activatePersona(personaId) {
-  fetch('/api/copilot/personas/' + personaId + '/activate', {
+  apiFetch('/api/copilot/personas/' + personaId + '/activate', {
     method: 'POST',
-    credentials: 'same-origin'
+    credentials: 'same-origin',
+    silent: true
   })
     .then(function (resp) {
-      if (!resp.ok) throw new Error('HTTP ' + resp.status);
       return resp.json();
     })
     .then(function (data) {
@@ -1676,18 +1677,14 @@ function _handleCreateObject(card, data) {
     commandPayload.params.properties['dcterms:title'] = data.label;
   }
 
-  fetch('/api/commands', {
+  apiFetch('/api/commands', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(commandPayload),
-    credentials: 'same-origin'
+    credentials: 'same-origin',
+    silent: true
   })
     .then(function (resp) {
-      if (!resp.ok) {
-        return resp.json().then(function (errBody) {
-          throw new Error(errBody.detail || errBody.error || ('HTTP ' + resp.status));
-        });
-      }
       return resp.json();
     })
     .then(function (result) {

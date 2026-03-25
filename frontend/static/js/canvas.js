@@ -217,7 +217,7 @@
         state.canvasId = sessionId;
         state.currentSessionId = sessionId;
         // Set active on backend
-        fetch('/api/canvas/sessions/' + encodeURIComponent(sessionId) + '/activate', {method: 'PUT'});
+        apiFetch('/api/canvas/sessions/' + encodeURIComponent(sessionId) + '/activate', {method: 'PUT', silent: true});
         loadCanvas(false);
       });
     }
@@ -323,8 +323,9 @@
   }
 
   function fetchNodeBody(iri) {
-    fetch('/api/canvas/body?iri=' + encodeURIComponent(iri))
-      .then(function (r) { return r.ok ? r.json() : null; })
+    apiFetch('/api/canvas/body?iri=' + encodeURIComponent(iri), { silent: true })
+      .then(function (r) { return r.json(); })
+      .catch(function () { return null; })
       .then(function (data) {
         if (!data || !data.body) return;
         var node = findNode(iri);
@@ -337,8 +338,9 @@
   }
 
   function fetchNodeProperties(nodeId, iri) {
-    fetch('/api/canvas/properties?iri=' + encodeURIComponent(iri))
-      .then(function (r) { return r.ok ? r.json() : null; })
+    apiFetch('/api/canvas/properties?iri=' + encodeURIComponent(iri), { silent: true })
+      .then(function (r) { return r.json(); })
+      .catch(function () { return null; })
       .then(function (data) {
         if (data) {
           state.propertyCache[nodeId] = data;
@@ -438,12 +440,14 @@
   function fetchBulkEdges(newIris) {
     // Include all existing canvas node IRIs for complete edge discovery
     var allIris = state.nodes.map(function(n) { return n.id; });
-    fetch('/api/canvas/batch-edges', {
+    apiFetch('/api/canvas/batch-edges', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ iris: allIris }),
+      silent: true,
     })
-    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(r) { return r.json(); })
+    .catch(function() { return null; })
     .then(function(data) {
       if (!data || !Array.isArray(data.edges)) return;
       var existingEdgeIds = {};
@@ -703,12 +707,14 @@
       var ghostX = parseInt(ghostNode.style.left, 10) || 0;
       var ghostY = parseInt(ghostNode.style.top, 10) || 0;
       // Resolve title to IRI via backend
-      fetch('/api/canvas/resolve-wikilinks', {
+      apiFetch('/api/canvas/resolve-wikilinks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ titles: [ghostTitle] }),
+        silent: true,
       })
-        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (r) { return r.json(); })
+        .catch(function () { return null; })
         .then(function (data) {
           if (!data || !data.resolved) {
             if (window.showToast) window.showToast('Object not found: ' + ghostTitle);
@@ -838,8 +844,7 @@
     if (!model) return;
 
     try {
-      var response = await fetch('/api/canvas/subgraph?root_uri=' + encodeURIComponent(model.uri) + '&depth=1');
-      if (!response.ok) throw new Error('HTTP ' + response.status);
+      var response = await apiFetch('/api/canvas/subgraph?root_uri=' + encodeURIComponent(model.uri) + '&depth=1', { silent: true });
       var data = await response.json();
 
       if (!data || !Array.isArray(data.nodes)) return;
@@ -1446,8 +1451,7 @@
 
   async function loadSessionList() {
     try {
-      var response = await fetch('/api/canvas/sessions/list');
-      if (!response.ok) throw new Error('HTTP ' + response.status);
+      var response = await apiFetch('/api/canvas/sessions/list', { silent: true });
       var data = await response.json();
       var sessions = data.sessions || [];
       var activeId = data.active_session_id || null;
@@ -1489,12 +1493,13 @@
     if (!name) return;
     state.isSaving = true;
     try {
-      var response = await fetch('/api/canvas/sessions', {
+      var response = await apiFetch('/api/canvas/sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: name, document: getDocument() }),
+        silent: true,
       });
-      if (!response.ok) throw new Error('HTTP ' + response.status);
+      var data = await response.json();
       var data = await response.json();
       state.currentSessionId = data.session_id;
       state.canvasId = data.session_id;
@@ -1517,12 +1522,12 @@
     }
     state.isSaving = true;
     try {
-      var response = await fetch('/api/canvas/' + encodeURIComponent(state.canvasId || 'default'), {
+      var response = await apiFetch('/api/canvas/' + encodeURIComponent(state.canvasId || 'default'), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ document: getDocument() }),
+        silent: true,
       });
-      if (!response.ok) throw new Error('HTTP ' + response.status);
       var data = await response.json();
       setStatus('Saved ' + (data.updated_at || ''));
       if (window.showToast) window.showToast('Canvas saved');
@@ -1536,8 +1541,7 @@
 
   async function loadCanvas(silent) {
     try {
-      var response = await fetch('/api/canvas/' + encodeURIComponent(state.canvasId || 'default'));
-      if (!response.ok) throw new Error('HTTP ' + response.status);
+      var response = await apiFetch('/api/canvas/' + encodeURIComponent(state.canvasId || 'default'), { silent: true });
       var data = await response.json();
       if (data && data.document) {
         var hasContent = Array.isArray(data.document.nodes) && data.document.nodes.length > 0;
@@ -1709,8 +1713,8 @@
     var url = urls[tab];
     if (!url) { body.innerHTML = '<div class="canvas-embed-picker-empty">Unknown tab</div>'; return; }
 
-    fetch(url)
-      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+    apiFetch(url, { silent: true })
+      .then(function (r) { return r.json(); })
       .then(function (data) {
         // Ensure data is an array (sparql/saved may return object when include_shared=true)
         if (!Array.isArray(data)) data = [];

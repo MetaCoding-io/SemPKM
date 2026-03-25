@@ -31,9 +31,10 @@
         window.demoteView = async function(queryId) {
             if (!confirm('Remove this view? The saved query will be kept.')) return;
             try {
-                var resp = await fetch('/api/sparql/saved/' + queryId + '/promote', {
+                var resp = await apiFetch('/api/sparql/saved/' + queryId + '/promote', {
                     method: 'DELETE',
-                    credentials: 'include'
+                    credentials: 'include',
+                    silent: true
                 });
                 if (resp.ok) {
                     htmx.ajax('GET', '/browser/my-views', '#saved-views-tree');
@@ -47,9 +48,10 @@
         window.deleteSavedView = async function(viewId) {
             if (!confirm('Remove this saved view?')) return;
             try {
-                var resp = await fetch('/browser/views/saved/' + viewId, {
+                var resp = await apiFetch('/browser/views/saved/' + viewId, {
                     method: 'DELETE',
-                    credentials: 'include'
+                    credentials: 'include',
+                    silent: true
                 });
                 if (resp.ok) {
                     htmx.ajax('GET', '/browser/my-views', '#saved-views-tree');

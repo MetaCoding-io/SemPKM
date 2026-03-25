@@ -93,16 +93,13 @@
   window.notifUpdatePref = function (field, value) {
     var payload = {};
     payload[field] = value;
-    fetch('/api/notifications/preferences', {
+    apiFetch('/api/notifications/preferences', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }).then(function (resp) {
-      if (!resp.ok) {
-        resp.json().then(function (err) {
-          console.error('Notification pref update failed:', err.detail || resp.statusText);
-        });
-      }
+      body: JSON.stringify(payload),
+      silent: true
+    }).catch(function (err) {
+      console.error('Notification pref update failed:', err.message);
     });
   };
 
@@ -111,19 +108,16 @@
     var start = document.getElementById('notif-quiet-start').value;
     var end = document.getElementById('notif-quiet-end').value;
     if (!start || !end) return;
-    fetch('/api/notifications/preferences', {
+    apiFetch('/api/notifications/preferences', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         quiet_hours_start: start,
         quiet_hours_end: end
-      })
-    }).then(function (resp) {
-      if (!resp.ok) {
-        resp.json().then(function (err) {
-          console.error('Quiet hours update failed:', err.detail || resp.statusText);
-        });
-      }
+      }),
+      silent: true
+    }).catch(function (err) {
+      console.error('Quiet hours update failed:', err.message);
     });
   };
 
@@ -134,10 +128,11 @@
     checkboxes.forEach(function (cb) {
       if (cb.checked) types.push(cb.value);
     });
-    fetch('/api/notifications/preferences', {
+    apiFetch('/api/notifications/preferences', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ enabled_types: types })
+      body: JSON.stringify({ enabled_types: types }),
+      silent: true
     });
   };
 
@@ -149,9 +144,10 @@
     resultDiv.className = 'notification-test-result';
     btn.disabled = true;
 
-    fetch('/api/notifications/test', {
+    apiFetch('/api/notifications/test', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json' },
+      silent: true
     })
       .then(function (resp) { return resp.json(); })
       .then(function (data) {

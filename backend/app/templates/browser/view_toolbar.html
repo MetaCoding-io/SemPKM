@@ -94,7 +94,7 @@ if (typeof window.saveCurrentView === 'undefined') {
         if (!name || !name.trim()) return;
 
         try {
-            var resp = await fetch('/browser/views/save', {
+            var resp = await apiFetch('/browser/views/save', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 credentials: 'include',
@@ -103,16 +103,12 @@ if (typeof window.saveCurrentView === 'undefined') {
                     renderer_type: renderer,
                     type_filter: typeFilter,
                     scope_query_id: scopeQuery
-                })
+                }),
+                silent: true
             });
-            if (resp.ok) {
-                htmx.ajax('GET', '/browser/my-views', '#saved-views-tree');
-                if (typeof showToast === 'function') {
-                    showToast('View saved: ' + name.trim());
-                }
-            } else {
-                var err = await resp.json();
-                alert('Failed to save view: ' + (err.error || 'unknown error'));
+            htmx.ajax('GET', '/browser/my-views', '#saved-views-tree');
+            if (typeof showToast === 'function') {
+                showToast('View saved: ' + name.trim());
             }
         } catch (e) {
             console.error('Save view failed:', e);

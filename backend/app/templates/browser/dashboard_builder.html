@@ -345,7 +345,7 @@
     if (!q) { dropdown.innerHTML = ''; return; }
     clearTimeout(inputEl._debounceTimer);
     inputEl._debounceTimer = setTimeout(function() {
-      fetch(endpoint + '?q=' + encodeURIComponent(q))
+      apiFetch(endpoint + '?q=' + encodeURIComponent(q), { silent: true })
         .then(function(r) { return r.json(); })
         .then(function(items) {
           if (!items.length) {
@@ -392,7 +392,7 @@
 
   function populateViewSelect(selectEl, currentValue) {
     if (_cachedViews) { renderViewOptions(selectEl, currentValue); return; }
-    fetch('/browser/views/available')
+    apiFetch('/browser/views/available', { silent: true })
       .then(function(r) { return r.json(); })
       .then(function(views) {
         _cachedViews = views;
@@ -653,17 +653,13 @@
     if (savingIndicator) savingIndicator.style.display = 'inline';
     hideError();
 
-    fetch(url, {
+    apiFetch(url, {
       method: method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      silent: true
     })
     .then(function(resp) {
-      if (!resp.ok) {
-        return resp.json().then(function(data) {
-          throw new Error(data.detail || 'Save failed (HTTP ' + resp.status + ')');
-        });
-      }
       return resp.json();
     })
     .then(function(data) {

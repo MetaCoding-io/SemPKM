@@ -84,9 +84,9 @@
 
     // Fetch both model tree and user mounts in parallel
     Promise.all([
-      fetch('/api/vfs/tree').then(function (r) { return r.json(); }),
-      fetch('/api/vfs/mounts', { credentials: 'include' })
-        .then(function (r) { return r.ok ? r.json() : []; })
+      apiFetch('/api/vfs/tree', { silent: true }).then(function (r) { return r.json(); }),
+      apiFetch('/api/vfs/mounts', { credentials: 'include', silent: true })
+        .then(function (r) { return r.json(); })
         .catch(function () { return []; })
     ])
       .then(function (results) {
@@ -302,7 +302,7 @@
       '<div class="vfs-loading-spinner" style="width:12px;height:12px"></div>' +
       '<span>Loading...</span></div>';
 
-    fetch('/browser/explorer/tree?mode=mount:' + encodeURIComponent(mountId), { credentials: 'include' })
+    apiFetch('/browser/explorer/tree?mode=mount:' + encodeURIComponent(mountId), { credentials: 'include', silent: true })
       .then(function (r) { return r.text(); })
       .then(function (html) {
         // The explorer endpoint returns HTML tree nodes. We need to parse
@@ -387,7 +387,7 @@
       '<div class="vfs-loading-spinner" style="width:12px;height:12px"></div>' +
       '<span>Loading...</span></div>';
 
-    fetch(url, { credentials: 'include' })
+    apiFetch(url, { credentials: 'include', silent: true })
       .then(function (r) { return r.text(); })
       .then(function (html) {
         var tempDiv = document.createElement('div');
@@ -562,9 +562,8 @@
     switchToFile(path);
 
     // Fetch content and init editor
-    fetch('/api/vfs/file?path=' + encodeURIComponent(path))
+    apiFetch('/api/vfs/file?path=' + encodeURIComponent(path), { silent: true })
       .then(function (r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
         return r.json();
       })
       .then(function (data) {
@@ -801,13 +800,13 @@
       saveBtn.style.opacity = '0.6';
     }
 
-    fetch('/api/vfs/file?path=' + encodeURIComponent(path), {
+    apiFetch('/api/vfs/file?path=' + encodeURIComponent(path), {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: content })
+      body: JSON.stringify({ content: content }),
+      silent: true
     })
       .then(function (r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
         return r.json();
       })
       .then(function () {

@@ -13,9 +13,8 @@
   "use strict";
 
   // Fetch PostHog config from backend and initialize if enabled
-  fetch("/api/monitoring/config")
+  apiFetch("/api/monitoring/config", { silent: true })
     .then(function (res) {
-      if (!res.ok) return null;
       return res.json();
     })
     .then(function (config) {

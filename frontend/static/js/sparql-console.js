@@ -307,13 +307,9 @@ function detectServiceEndpoints(queryText) {
 async function fetchMirrorAllowlist() {
   if (mirrorAllowlistCache !== null) return mirrorAllowlistCache;
   try {
-    var resp = await fetch('/api/sparql/mirror/endpoints', { credentials: 'include' });
-    if (resp.ok) {
-      var data = await resp.json();
-      mirrorAllowlistCache = (data.endpoints || []);
-    } else {
-      mirrorAllowlistCache = [];
-    }
+    var resp = await apiFetch('/api/sparql/mirror/endpoints', { credentials: 'include', silent: true });
+    var data = await resp.json();
+    mirrorAllowlistCache = (data.endpoints || []);
   } catch (e) {
     console.warn('Failed to fetch mirror allowlist:', e);
     mirrorAllowlistCache = [];
@@ -411,31 +407,15 @@ async function executeQuery() {
   var startTime = performance.now();
 
   try {
-    var resp = await fetch('/api/sparql', {
+    var resp = await apiFetch('/api/sparql', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ query: queryText, all_graphs: allGraphs })
+      body: JSON.stringify({ query: queryText, all_graphs: allGraphs }),
+      silent: true
     });
 
     var elapsed = Math.round(performance.now() - startTime);
-
-    if (!resp.ok) {
-      var errBody = '';
-      try { errBody = await resp.text(); } catch (e) {}
-      var errMsg = 'Query failed (HTTP ' + resp.status + ')';
-      try {
-        var errJson = JSON.parse(errBody);
-        if (errJson.detail) errMsg = errJson.detail;
-      } catch (e) {
-        if (errBody) errMsg = errBody;
-      }
-      if (infoEl) infoEl.textContent = 'Error (' + elapsed + 'ms)';
-      if (tableWrap) {
-        tableWrap.innerHTML = '<div class="sparql-error">' + escapeHtml(errMsg) + '</div>';
-      }
-      return;
-    }
 
     var data = await resp.json();
     var enrichment = data._enrichment || {};
@@ -498,9 +478,12 @@ async function executeQuery() {
     addCellHistoryEntry(queryText, totalRows, elapsed, vars, bindings, enrichment);
 
   } catch (err) {
-    if (infoEl) infoEl.textContent = 'Error';
+    var elapsed = Math.round(performance.now() - startTime);
+    var errMsg = err.message;
+    if (err.body) { try { var ej = JSON.parse(err.body); if (ej.detail) errMsg = ej.detail; } catch (_) { errMsg = err.body; } }
+    if (infoEl) infoEl.textContent = 'Error (' + elapsed + 'ms)';
     if (tableWrap) {
-      tableWrap.innerHTML = '<div class="sparql-error">Network error: ' + escapeHtml(err.message) + '</div>';
+      tableWrap.innerHTML = '<div class="sparql-error">' + escapeHtml(errMsg) + '</div>';
     }
   }
 }
@@ -519,50 +502,44 @@ async function handleMirrorClick(btn, queryText, endpointUrl) {
   if (window.lucide) window.lucide.createIcons();
 
   try {
-    var resp = await fetch('/api/sparql/mirror', {
+    var resp = await apiFetch('/api/sparql/mirror', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ query: queryText, endpoint_url: endpointUrl })
+      body: JSON.stringify({ query: queryText, endpoint_url: endpointUrl }),
+      silent: true
     });
 
-    if (resp.ok) {
-      var data = await resp.json();
-      var count = data.mirrored_count || 0;
-      btn.innerHTML = '<i data-lucide="check"></i> <span class="sparql-mirror-success">Mirrored ' + count + ' triple' + (count !== 1 ? 's' : '') + '</span>';
-      btn.classList.add('mirror-success');
-      if (window.lucide) window.lucide.createIcons();
-      // Keep disabled — mirroring is done
-    } else if (resp.status === 403) {
-      var errData = {};
-      try { errData = await resp.json(); } catch (e) {}
+    var data = await resp.json();
+    var count = data.mirrored_count || 0;
+    btn.innerHTML = '<i data-lucide="check"></i> <span class="sparql-mirror-success">Mirrored ' + count + ' triple' + (count !== 1 ? 's' : '') + '</span>';
+    btn.classList.add('mirror-success');
+    if (window.lucide) window.lucide.createIcons();
+    // Keep disabled — mirroring is done
+  } catch (err) {
+    if (err.status === 403) {
+      var errDetail = '';
+      try { errDetail = JSON.parse(err.body || '{}').detail || 'Endpoint not allowed'; } catch (_) { errDetail = 'Endpoint not allowed'; }
       btn.innerHTML = '<i data-lucide="shield-alert"></i> Not allowed';
-      btn.title = (errData.detail || 'Endpoint not allowed') + '. Ask an admin to add it to the federation allowlist.';
+      btn.title = errDetail + '. Ask an admin to add it to the federation allowlist.';
       btn.classList.add('mirror-error');
       if (window.lucide) window.lucide.createIcons();
-      // Re-enable so user can retry after allowlist change
       btn.disabled = false;
-    } else {
+    } else if (err.status) {
       var errBody = '';
-      try {
-        var errJson = await resp.json();
-        errBody = errJson.detail || 'Mirror failed (HTTP ' + resp.status + ')';
-      } catch (e) {
-        errBody = 'Mirror failed (HTTP ' + resp.status + ')';
-      }
+      try { errBody = JSON.parse(err.body || '{}').detail || 'Mirror failed (HTTP ' + err.status + ')'; } catch (_) { errBody = 'Mirror failed (HTTP ' + err.status + ')'; }
       btn.innerHTML = '<i data-lucide="alert-triangle"></i> Error';
       btn.title = errBody;
       btn.classList.add('mirror-error');
       if (window.lucide) window.lucide.createIcons();
-      // Re-enable for retry
+      btn.disabled = false;
+    } else {
+      btn.innerHTML = '<i data-lucide="alert-triangle"></i> Network error';
+      btn.title = err.message;
+      btn.classList.add('mirror-error');
+      if (window.lucide) window.lucide.createIcons();
       btn.disabled = false;
     }
-  } catch (err) {
-    btn.innerHTML = '<i data-lucide="alert-triangle"></i> Network error';
-    btn.title = err.message;
-    btn.classList.add('mirror-error');
-    if (window.lucide) window.lucide.createIcons();
-    btn.disabled = false;
   }
 }
 
@@ -1169,8 +1146,7 @@ async function loadHistory() {
   container.innerHTML = '<div class="sparql-dropdown-loading">Loading...</div>';
 
   try {
-    var resp = await fetch('/api/sparql/history', { credentials: 'include' });
-    if (!resp.ok) throw new Error('Failed to load history');
+    var resp = await apiFetch('/api/sparql/history', { credentials: 'include', silent: true });
     var entries = await resp.json();
 
     if (!entries || entries.length === 0) {
@@ -1228,8 +1204,7 @@ async function loadSaved() {
   container.innerHTML = '<div class="sparql-dropdown-loading">Loading...</div>';
 
   try {
-    var resp = await fetch('/api/sparql/saved?include_shared=true', { credentials: 'include' });
-    if (!resp.ok) throw new Error('Failed to load saved queries');
+    var resp = await apiFetch('/api/sparql/saved?include_shared=true', { credentials: 'include', silent: true });
     var data = await resp.json();
 
     var myQueries = data.my_queries || [];
@@ -1332,9 +1307,10 @@ async function loadSaved() {
         var qid = item.getAttribute('data-query-id');
         setEditorContent(qt);
         // Mark as viewed to clear Updated badge
-        fetch('/api/sparql/saved/' + qid + '/mark-viewed', {
+        apiFetch('/api/sparql/saved/' + qid + '/mark-viewed', {
           method: 'POST',
-          credentials: 'include'
+          credentials: 'include',
+          silent: true
         }).catch(function() {});
         closeAllDropdowns();
       });
@@ -1375,10 +1351,9 @@ async function toggleSharePicker(itemEl, queryId) {
   try {
     // Fetch users and current shares in parallel
     var [usersResp, sharesResp] = await Promise.all([
-      fetch('/api/sparql/users', { credentials: 'include' }),
-      fetch('/api/sparql/saved/' + queryId + '/shares', { credentials: 'include' })
+      apiFetch('/api/sparql/users', { credentials: 'include', silent: true }),
+      apiFetch('/api/sparql/saved/' + queryId + '/shares', { credentials: 'include', silent: true })
     ]);
-    if (!usersResp.ok || !sharesResp.ok) throw new Error('Failed to load share data');
 
     var users = await usersResp.json();
     var sharedIds = await sharesResp.json();
@@ -1413,11 +1388,12 @@ async function toggleSharePicker(itemEl, queryId) {
         picker.querySelectorAll('input[type="checkbox"]:checked').forEach(function(c) {
           checkedIds.push(c.value);
         });
-        fetch('/api/sparql/saved/' + queryId + '/shares', {
+        apiFetch('/api/sparql/saved/' + queryId + '/shares', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ user_ids: checkedIds })
+          body: JSON.stringify({ user_ids: checkedIds }),
+          silent: true
         }).catch(function() {
           showBriefMessage('Share update failed');
         });
@@ -1432,16 +1408,13 @@ async function toggleSharePicker(itemEl, queryId) {
 
 async function forkSharedQuery(queryId) {
   try {
-    var resp = await fetch('/api/sparql/saved/' + queryId + '/fork', {
+    var resp = await apiFetch('/api/sparql/saved/' + queryId + '/fork', {
       method: 'POST',
-      credentials: 'include'
+      credentials: 'include',
+      silent: true
     });
-    if (resp.ok) {
-      showBriefMessage('Forked!');
-      loadSaved();
-    } else {
-      showBriefMessage('Fork failed');
-    }
+    showBriefMessage('Forked!');
+    loadSaved();
   } catch (err) {
     showBriefMessage('Fork failed');
   }
@@ -1455,11 +1428,12 @@ async function promptSaveQuery(queryText) {
   var description = prompt('Description (optional):') || '';
 
   try {
-    var resp = await fetch('/api/sparql/saved', {
+    var resp = await apiFetch('/api/sparql/saved', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ name: name, description: description, query_text: queryText })
+      body: JSON.stringify({ name: name, description: description, query_text: queryText }),
+      silent: true
     });
     if (resp.ok) {
       showBriefMessage('Saved!');
@@ -1474,9 +1448,10 @@ async function promptSaveQuery(queryText) {
 async function deleteSavedQuery(queryId) {
   if (!confirm('Delete this saved query?')) return;
   try {
-    await fetch('/api/sparql/saved/' + queryId, {
+    await apiFetch('/api/sparql/saved/' + queryId, {
       method: 'DELETE',
-      credentials: 'include'
+      credentials: 'include',
+      silent: true
     });
     loadSaved(); // Refresh the dropdown
   } catch (err) {
@@ -1487,9 +1462,10 @@ async function deleteSavedQuery(queryId) {
 async function clearHistory() {
   if (!confirm('Clear all query history?')) return;
   try {
-    await fetch('/api/sparql/history', {
+    await apiFetch('/api/sparql/history', {
       method: 'DELETE',
-      credentials: 'include'
+      credentials: 'include',
+      silent: true
     });
     var container = document.getElementById('sparql-history-items');
     if (container) container.innerHTML = '<div class="sparql-dropdown-empty">No history yet</div>';
@@ -1502,8 +1478,7 @@ async function clearHistory() {
 
 async function fetchVocabulary() {
   try {
-    var resp = await fetch('/api/sparql/vocabulary', { credentials: 'include' });
-    if (!resp.ok) return;
+    var resp = await apiFetch('/api/sparql/vocabulary', { credentials: 'include', silent: true });
     var data = await resp.json();
     vocabCache = data.items || [];
     prefixCache = data.prefixes || {};
@@ -1650,29 +1625,26 @@ function handlePromoteSubmit() {
       return;
     }
 
-    fetch('/api/sparql/saved/' + queryId + '/promote', {
+    apiFetch('/api/sparql/saved/' + queryId + '/promote', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ display_label: displayLabel, renderer_type: renderer })
+      body: JSON.stringify({ display_label: displayLabel, renderer_type: renderer }),
+      silent: true
     }).then(function(resp) {
-      if (resp.ok) {
-        showBriefMessage('Promoted!');
-        dialog.close();
-        // Refresh My Views in nav tree
-        refreshMyViews();
-      } else if (resp.status === 409) {
+      showBriefMessage('Promoted!');
+      dialog.close();
+      // Refresh My Views in nav tree
+      refreshMyViews();
+    }).catch(function(err) {
+      if (err.status === 409) {
         showBriefMessage('Already promoted');
         dialog.close();
       } else {
-        resp.json().then(function(data) {
-          showBriefMessage(data.detail || 'Promote failed');
-        }).catch(function() {
-          showBriefMessage('Promote failed');
-        });
+        var detail = 'Promote failed';
+        try { detail = JSON.parse(err.body || '{}').detail || detail; } catch (_) {}
+        showBriefMessage(detail);
       }
-    }).catch(function() {
-      showBriefMessage('Promote failed');
     });
   });
 }
