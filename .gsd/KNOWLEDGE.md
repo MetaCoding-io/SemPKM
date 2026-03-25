@@ -671,3 +671,11 @@ When testing cross-service integration (ContextService + RulesEngine + PersonaSe
 When testing app modules loaded via `importlib.util.spec_from_file_location()`, the app's fallback import path creates its own bound function references. Patching the original service module (`_svc_mod.fetch_feed`) has no effect because `app.py` already captured a reference to that function at import time. Patch the app module instead (`_app_mod.fetch_feed`). This applies to all App Platform apps that use the `importlib` fallback import pattern (try SDK import, except ImportError use importlib).
 
 **Reference:** `backend/tests/test_media_scheduler.py` — `TestPollSources` class patches `_app_mod.fetch_feed`, `_app_mod.parse_feed_content`, etc.
+
+### Starlette MutableHeaders: use `del`, not `pop()`, to remove headers
+
+**Discovered:** M043/S02/T02
+
+Starlette's `MutableHeaders` class does not implement `pop()`. Calling `response.headers.pop("some-header")` raises `AttributeError`. Use `del response.headers["some-header"]` instead. This applies to any custom middleware that modifies response headers (e.g., `_WellKnownCORSMiddleware` stripping `Access-Control-Allow-Credentials`).
+
+**Affected file:** `backend/app/main.py` — `_WellKnownCORSMiddleware`
