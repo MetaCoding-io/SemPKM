@@ -49,7 +49,7 @@ Upstream: window.showToast() from workspace.js, toast CSS from workspace.css. Ne
 
 ## Tasks
 
-- [ ] **T01: Create apiFetch wrapper, move toast CSS, wire script loading** `est:30m`
+- [x] **T01: Create apiFetch wrapper, move toast CSS, wire script loading** `est:30m`
   Create the centralized fetch wrapper in a new file, move toast CSS to theme.css for cross-page availability, and wire the script tag into base.html and standalone auth pages.
   - Files: `frontend/static/js/api-fetch.js`, `frontend/static/css/theme.css`, `frontend/static/css/workspace.css`, `backend/app/templates/base.html`, `frontend/static/login.html`, `frontend/static/setup.html`, `frontend/static/invite.html`
   - Verify: rg 'window.apiFetch' frontend/static/js/api-fetch.js && rg 'api-fetch.js' backend/app/templates/base.html && rg 'api-fetch.js' frontend/static/login.html && rg 'sempkm-toast' frontend/static/css/theme.css && ! rg 'sempkm-toast' frontend/static/css/workspace.css

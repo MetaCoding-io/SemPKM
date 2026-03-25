@@ -475,3 +475,36 @@ html[data-theme="dark"] .yasgui input[type="url"] {
   color: var(--color-text);
   border-color: var(--color-border);
 }
+
+/* ============================================================
+   Toast Notifications (global — available on all pages)
+   ============================================================ */
+.sempkm-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--color-bg-panel, var(--color-surface, #fff));
+    color: var(--color-text-normal, var(--color-text, #333));
+    border: 1px solid var(--color-border, #ddd);
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 13px;
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.sempkm-toast--visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+.sempkm-toast--warning {
+    border-color: var(--color-warning, #e67e22);
+    background: color-mix(in srgb, var(--color-warning, #e67e22) 12%, var(--color-bg-panel, var(--color-surface, #fff)));
+}
+.sempkm-toast--error {
+    border-color: var(--color-danger, #e74c3c);
+    background: color-mix(in srgb, var(--color-danger, #e74c3c) 12%, var(--color-bg-panel, var(--color-surface, #fff)));
+}
