@@ -1,0 +1,31 @@
+{
+  "active": true,
+  "workers": [
+    {
+      "milestoneId": "M043",
+      "title": "M043",
+      "pid": 2499469,
+      "worktreePath": "/home/james/Code/SemPKM/.gsd/worktrees/M043",
+      "startedAt": 1774422257762,
+      "state": "error",
+      "completedUnits": 7,
+      "cost": 0.524558
+    },
+    {
+      "milestoneId": "M044",
+      "title": "M044",
+      "pid": 2499479,
+      "worktreePath": "/home/james/Code/SemPKM/.gsd/worktrees/M044",
+      "startedAt": 1774422257762,
+      "state": "error",
+      "completedUnits": 0,
+      "cost": 0
+    }
+  ],
+  "totalCost": 0.524558,
+  "startedAt": 1774422257762,
+  "configSnapshot": {
+    "max_workers": 2,
+    "budget_ceiling": 50
+  }
+}
