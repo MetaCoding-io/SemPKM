@@ -21,7 +21,7 @@ No downstream dependencies — this slice only tightens existing endpoints. All 
 
 ## Tasks
 
-- [ ] **T01: Build SPARQLBuilder module with safe_iri() and safe_literal()** `est:3h`
+- [x] **T01: Build SPARQLBuilder module with safe_iri() and safe_literal()** `est:3h`
   Create backend/app/sparql/builder.py with:
 
 1. safe_iri(value: str) -> str: Validates the IRI, constructs rdflib.URIRef, calls .n3() to get properly escaped <iri> form. Raises ValueError on invalid IRIs. Subsumes _validate_iri() logic.

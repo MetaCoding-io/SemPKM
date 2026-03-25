@@ -30,6 +30,8 @@ Requires-Dist: packaging~=25.0
 Requires-Dist: mf2py~=2.0.1
 Requires-Dist: http-message-signatures~=2.0.1
 Requires-Dist: slowapi~=0.1.9
+Requires-Dist: python-dateutil~=2.9.0
+Requires-Dist: firebase-admin~=6.7
 Provides-Extra: dev
 Requires-Dist: pytest; extra == "dev"
 Requires-Dist: pytest-asyncio; extra == "dev"
