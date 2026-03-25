@@ -1,4 +1,4 @@
-# M045: Security Hardening — OWASP Remediation
+# M045: Security Hardening - OWASP Remediation
 
 **Vision:** Remediate all 44 M042 security audit findings — closing SPARQL injection vectors, adding HTTP security headers, eliminating CDN supply chain risk, hardening Docker containers, establishing a security event audit trail, and fixing authentication/federation/infrastructure gaps.
 
