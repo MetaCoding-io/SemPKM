@@ -679,3 +679,21 @@ When testing app modules loaded via `importlib.util.spec_from_file_location()`, 
 Starlette's `MutableHeaders` class does not implement `pop()`. Calling `response.headers.pop("some-header")` raises `AttributeError`. Use `del response.headers["some-header"]` instead. This applies to any custom middleware that modifies response headers (e.g., `_WellKnownCORSMiddleware` stripping `Access-Control-Allow-Credentials`).
 
 **Affected file:** `backend/app/main.py` — `_WellKnownCORSMiddleware`
+
+### slowapi headers_enabled=True crashes on Pydantic-model-returning endpoints
+
+**Discovered:** M043/S04/T01
+
+Setting `headers_enabled=True` on a `Limiter()` instance causes `response must be an instance of Response` errors when the decorated endpoint returns a Pydantic model instead of a raw `Response` object. slowapi's header injection tries to call `response.headers` on the Pydantic object, which doesn't have that attribute.
+
+**Fix:** Keep `headers_enabled=False` and set `Retry-After` explicitly in a custom rate limit handler (`_rate_limit_exceeded_handler_with_logging`). The custom handler receives a proper `Request` + `RateLimitExceeded` exception and returns a `JSONResponse` with the header manually set.
+
+**Affected file:** `backend/app/auth/rate_limit.py` — limiter instance, `backend/app/main.py` — custom handler registration
+
+### Audit logging helper must manage its own DB session
+
+**Discovered:** M043/S04/T02
+
+`log_security_event()` in `backend/app/auth/audit.py` creates its own `async_session_factory()` session rather than accepting a session parameter. This is because: (1) the helper must never fail the parent operation, so it needs its own try/catch boundary, (2) the parent's session may not exist yet (failed login = no authenticated session), and (3) the helper is called from router handlers where the session lifecycle is managed by FastAPI Depends. The `_audit()` wrapper in `router.py` uses `getattr(request.app.state, 'async_session_factory', None)` — test environments that don't set the factory silently skip audit logging.
+
+**Affected file:** `backend/app/auth/audit.py`, `backend/app/auth/router.py`

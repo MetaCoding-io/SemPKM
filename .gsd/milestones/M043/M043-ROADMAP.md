@@ -26,7 +26,7 @@
 - [x] **S03: Auth Hardening — Magic Links, Token Scopes, Sessions** `risk:high` `depends:[]`
   > After this: Magic link replay returns 401. New API token creation UI shows scope checkboxes. Settings page has 'Log out all devices' button. Token created with sparql:read scope gets 403 on object mutation.
 
-- [ ] **S04: Rate Limits, Warnings & Documentation** `risk:low` `depends:[S02]`
+- [x] **S04: Rate Limits, Warnings & Documentation** `risk:low` `depends:[S02]`
   > After this: SPARQL endpoint returns 429 after 60 requests/minute. Startup log shows warning when demo_mode=true with non-localhost URL. ARCHITECTURE.md documents shared-data model.
 
 - [ ] **S05: E2E Regression Suite** `risk:low` `depends:[S01,S02,S03,S04]`
