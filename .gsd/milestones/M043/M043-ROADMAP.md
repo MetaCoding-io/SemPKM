@@ -1,4 +1,4 @@
-# M043: Security Hardening — Injection, Auth & Access Control Fixes
+# M043: Security Hardening - Injection, Auth & Access Control Fixes
 
 **Vision:** Close all actionable findings from the M042 security audit. Fix the 3 high-severity SPARQL injection vectors, add missing authentication, harden the auth subsystem (single-use magic links, token scopes, session management), consolidate SPARQL escape functions, fix CORS ownership, add rate limits, and add safety warnings for misconfiguration.
 
