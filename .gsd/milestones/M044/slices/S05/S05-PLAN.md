@@ -52,7 +52,7 @@ cd backend && python -m pytest tests/ -x -q  # all pass
 rg 'importer/partials/' backend/app/templates/notion/ -l | wc -l  # >= 1
 rg 'importer/partials/' backend/app/templates/obsidian/ -l | wc -l  # >= 1
 
-- [ ] **T03: Replace guide.html copy-pasted buttons with data-driven chapter loop** `est:1h`
+- [x] **T03: Replace guide.html copy-pasted buttons with data-driven chapter loop** `est:1h`
   Define a `GUIDE_CHAPTERS` list-of-dicts in `backend/app/shell/router.py` containing all 55 chapter entries (section groupings, filenames, titles, icons, optional tour URLs). Pass this data structure in the template context from `guide_page()`. Replace the 55 hardcoded `<button>` blocks in `guide.html` with a Jinja2 `{% for %}` loop over the sections and chapters.
 
 The guide has three section types: Interactive Tutorials (tour links with special URL pattern), User Guide chapters (standard filename-based), and External References (different rendering with external URLs). The data structure must handle all three.

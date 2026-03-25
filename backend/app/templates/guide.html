@@ -10,561 +10,62 @@
     <p class="docs-page-subtitle">Get started with interactive guided tours or browse reference documentation.</p>
   </div>
 
-  <!-- Interactive Tutorials section -->
+  {% for section in guide_sections %}
+  {# --- Interactive Tutorials --- #}
+  {% if section.type == "tours" %}
   <section class="docs-section">
-    <h3 class="docs-section-title">Interactive Tutorials</h3>
+    <h3 class="docs-section-title">{{ section.title }}</h3>
     <div class="docs-cards">
-
+      {% for tour in section.items %}
       <div class="docs-card">
         <div class="docs-card-icon">
-          <i data-lucide="play-circle"></i>
+          <i data-lucide="{{ tour.icon }}"></i>
         </div>
         <div class="docs-card-body">
-          <h4 class="docs-card-title">Welcome to SemPKM</h4>
-          <p class="docs-card-desc">A quick tour of the workspace — sidebar, explorer, reading objects, the command palette, and saving your work.</p>
+          <h4 class="docs-card-title">{{ tour.title }}</h4>
+          <p class="docs-card-desc">{{ tour.desc }}</p>
         </div>
-        <button class="btn docs-card-btn" onclick="window.location.href='/browser/?tour=welcome'">
+        <button class="btn docs-card-btn" onclick="window.location.href='{{ tour.url }}'">
           Start Tour
         </button>
       </div>
-
-      <div class="docs-card">
-        <div class="docs-card-icon">
-          <i data-lucide="plus-circle"></i>
-        </div>
-        <div class="docs-card-body">
-          <h4 class="docs-card-title">Creating Your First Object</h4>
-          <p class="docs-card-desc">Step-by-step guide to choosing a type, filling out the form, and saving your first knowledge object.</p>
-        </div>
-        <button class="btn docs-card-btn" onclick="window.location.href='/browser/?tour=create-object'">
-          Start Tour
-        </button>
-      </div>
-
+      {% endfor %}
     </div>
   </section>
 
-  <!-- Documentation section -->
+  {# --- User Guide chapters --- #}
+  {% elif section.type == "chapters" %}
   <section class="docs-section">
-    <h3 class="docs-section-title">User Guide</h3>
+    <h3 class="docs-section-title">{{ section.title }}</h3>
     <div class="docs-chapter-list">
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/01-what-is-sempkm.md"
+      {% for ch in section.items %}
+      <button class="docs-chapter-item{% if ch.appendix is defined and ch.appendix %} docs-chapter-appendix{% endif %}"
+              hx-get="/guide/{{ ch.filename }}"
               hx-target="#app-content"
               hx-swap="innerHTML"
               hx-push-url="true">
-        <i data-lucide="info"></i>
-        <span>1. What is SemPKM?</span>
+        <i data-lucide="{{ ch.icon }}"></i>
+        <span>{{ ch.title }}</span>
       </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/02-core-concepts.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="layers"></i>
-        <span>2. Core Concepts</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/03-installation-and-setup.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="download"></i>
-        <span>3. Installation and Setup</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/04-workspace-interface.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="layout-dashboard"></i>
-        <span>4. Workspace Interface</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/05-working-with-objects.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="box"></i>
-        <span>5. Working with Objects</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/06-edges-and-relationships.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="git-branch"></i>
-        <span>6. Edges and Relationships</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/07-browsing-and-visualizing.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="eye"></i>
-        <span>7. Browsing and Visualizing</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/08-keyboard-shortcuts.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="keyboard"></i>
-        <span>8. Keyboard Shortcuts</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/09-understanding-mental-models.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="brain"></i>
-        <span>9. Understanding Mental Models</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/10-managing-mental-models.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="package"></i>
-        <span>10. Managing Mental Models</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/39-mental-model-catalog.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="library"></i>
-        <span>39. Mental Model Catalog</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/11-user-management.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="users"></i>
-        <span>11. User Management</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/12-webhooks.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="webhook"></i>
-        <span>12. Webhooks</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/13-settings.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="settings"></i>
-        <span>13. Settings</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/14-system-health-and-debugging.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="activity"></i>
-        <span>14. System Health and Debugging</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/15-event-log.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="clock"></i>
-        <span>15. Event Log</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/16-data-model.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="database"></i>
-        <span>16. Data Model</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/17-command-api.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="terminal"></i>
-        <span>17. Command API</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/18-sparql-endpoint.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="search-code"></i>
-        <span>18. SPARQL Endpoint</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/19-creating-mental-models.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="plus-square"></i>
-        <span>19. Creating Mental Models</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/20-production-deployment.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="server"></i>
-        <span>20. Production Deployment</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/21-sparql-console.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="terminal-square"></i>
-        <span>21. SPARQL Console</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/22-keyword-search.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="search"></i>
-        <span>22. Keyword Search</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/23-vfs.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="hard-drive"></i>
-        <span>23. Virtual Filesystem (WebDAV)</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/24-obsidian-onboarding.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="gem"></i>
-        <span>24. Obsidian Onboarding</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/45-notion-import.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="file-input"></i>
-        <span>45. Notion Import</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/25-webid-profiles.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="user-check"></i>
-        <span>25. WebID Profiles</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/26-indieauth.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="shield-check"></i>
-        <span>26. IndieAuth</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/27-spatial-canvas.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="move"></i>
-        <span>27. Spatial Canvas</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/28-dashboards-and-workflows.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="gauge"></i>
-        <span>28. Dashboards &amp; Workflows</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/29-app-platform.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="blocks"></i>
-        <span>29. App Platform</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/40-rss-reader.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="rss"></i>
-        <span>40. RSS Reader</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/30-personas.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="user-cog"></i>
-        <span>30. Workspace Personas</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/31-api-surface.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="plug"></i>
-        <span>31. API Surface</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/32-browser-extension.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="puzzle"></i>
-        <span>32. Browser Extension</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/33-context-overlay.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="layers"></i>
-        <span>33. Context Overlay</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/46-ai-features.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="sparkles"></i>
-        <span>46. AI Features</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/34-linear-sync.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="refresh-cw"></i>
-        <span>34. Linear Sync</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/35-github-sync.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="github"></i>
-        <span>35. GitHub Sync</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/36-jira-sync.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="ticket"></i>
-        <span>36. Jira Sync</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/37-monday-sync.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="columns-3"></i>
-        <span>37. Monday.com Sync</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/41-google-calendar-sync.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="calendar"></i>
-        <span>41. Google Calendar Sync</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/42-todoist-sync.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="check-square"></i>
-        <span>42. Todoist Sync</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/43-outlook-calendar-sync.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="mail"></i>
-        <span>43. Outlook Calendar Sync</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/44-caldav-calendar-sync.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="calendar-clock"></i>
-        <span>44. CalDAV Calendar Sync</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/47-asana-sync.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="list-checks"></i>
-        <span>47. Asana Sync</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/48-mobile-app-context.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="smartphone"></i>
-        <span>48. Mobile App & Context</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/49-media-scheduler.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="radio"></i>
-        <span>49. Media Scheduler</span>
-      </button>
-
-      <button class="docs-chapter-item"
-              hx-get="/guide/38-hosted-demo.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="globe"></i>
-        <span>38. Hosted Demo</span>
-      </button>
-
-      <button class="docs-chapter-item docs-chapter-appendix"
-              hx-get="/guide/appendix-a-environment-variables.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="file-text"></i>
-        <span>Appendix A: Environment Variables</span>
-      </button>
-
-      <button class="docs-chapter-item docs-chapter-appendix"
-              hx-get="/guide/appendix-b-keyboard-shortcuts.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="file-text"></i>
-        <span>Appendix B: Keyboard Shortcuts</span>
-      </button>
-
-      <button class="docs-chapter-item docs-chapter-appendix"
-              hx-get="/guide/appendix-c-command-api-reference.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="file-text"></i>
-        <span>Appendix C: Command API Reference</span>
-      </button>
-
-      <button class="docs-chapter-item docs-chapter-appendix"
-              hx-get="/guide/appendix-d-glossary.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="book"></i>
-        <span>Appendix D: Glossary</span>
-      </button>
-
-      <button class="docs-chapter-item docs-chapter-appendix"
-              hx-get="/guide/appendix-e-troubleshooting.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="alert-triangle"></i>
-        <span>Appendix E: Troubleshooting</span>
-      </button>
-
-      <button class="docs-chapter-item docs-chapter-appendix"
-              hx-get="/guide/appendix-f-faq.md"
-              hx-target="#app-content"
-              hx-swap="innerHTML"
-              hx-push-url="true">
-        <i data-lucide="help-circle"></i>
-        <span>Appendix F: FAQ</span>
-      </button>
-
+      {% endfor %}
     </div>
   </section>
 
-  <!-- External References section -->
+  {# --- External References --- #}
+  {% elif section.type == "links" %}
   <section class="docs-section">
-    <h3 class="docs-section-title">External References</h3>
+    <h3 class="docs-section-title">{{ section.title }}</h3>
     <div class="docs-links">
-      <a href="/redoc" target="_blank" class="docs-link-item">
-        <i data-lucide="file-text"></i>
-        <span>API Reference (ReDoc)</span>
+      {% for link in section.items %}
+      <a href="{{ link.url }}" target="_blank" class="docs-link-item">
+        <i data-lucide="{{ link.icon }}"></i>
+        <span>{{ link.title }}</span>
       </a>
-      <a href="/docs" target="_blank" class="docs-link-item">
-        <i data-lucide="file-code"></i>
-        <span>API Reference (Swagger)</span>
-      </a>
-      <a href="/health" target="_blank" class="docs-link-item">
-        <i data-lucide="activity"></i>
-        <span>Health Check</span>
-      </a>
+      {% endfor %}
     </div>
   </section>
+  {% endif %}
+  {% endfor %}
 
 </div>
 
