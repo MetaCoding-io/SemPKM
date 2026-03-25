@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T04",
+  "unitId": "M043/S01/T04",
+  "timestamp": 1774428279532,
+  "passed": false,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "cd backend",
+      "exitCode": 0,
+      "durationMs": 15,
+      "verdict": "pass"
+    },
+    {
+      "command": ".venv/bin/python -m pytest tests/test_sparql_injection_regression.py -v",
+      "exitCode": 127,
+      "durationMs": 15,
+      "verdict": "fail"
+    }
+  ],
+  "retryAttempt": 1,
+  "maxRetries": 2
+}

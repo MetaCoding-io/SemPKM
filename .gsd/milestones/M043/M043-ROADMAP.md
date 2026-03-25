@@ -17,7 +17,7 @@
 
 ## Slices
 
-- [ ] **S01: SPARQL Injection & Escape Consolidation** `risk:high` `depends:[]`
+- [x] **S01: SPARQL Injection & Escape Consolidation** `risk:high` `depends:[]`
   > After this: Crafted IRI payloads to /browser/views/generic/table?type=PAYLOAD, /browser/apps/right-pane-sections?iri=PAYLOAD, and VFS mount creation all return 400. Favorites rejects malicious IRIs at storage time.
 
 - [ ] **S02: Access Control & CORS Fixes** `risk:medium` `depends:[]`
