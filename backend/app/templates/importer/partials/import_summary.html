@@ -1,5 +1,6 @@
-{% set current_step = 7 %}
-{% include "notion/partials/step_bar.html" with context %}
+<!-- Shared Import Summary — receives url_prefix, import_id, import_result, summary_step, importer_name, steps from context -->
+{% set current_step = summary_step %}
+{% include "importer/partials/step_bar.html" with context %}
 <script>
 (function() {
     var oob = document.querySelector('#import-content > #import-step-bar');
@@ -30,8 +31,8 @@
             <span class="stat-number">{{ import_result.edges_created }}</span>
             <span class="stat-label">Edges</span>
         </div>
-        <div class="import-stat-card{% if import_result.skipped > 0 %} warning{% endif %}">
-            <span class="stat-number">{{ import_result.skipped }}</span>
+        <div class="import-stat-card{% if skipped_count > 0 %} warning{% endif %}">
+            <span class="stat-number">{{ skipped_count }}</span>
             <span class="stat-label">Skipped</span>
         </div>
         <div class="import-stat-card">
@@ -40,14 +41,14 @@
         </div>
     </div>
 
-    {% if import_result.skipped > 0 %}
+    {% if skipped_count > 0 %}
     <div class="import-info-notice">
         <i data-lucide="info"></i>
-        {{ import_result.skipped }} row{{ 's' if import_result.skipped != 1 }} skipped (empty title or unmapped)
+        {{ skipped_count }} {{ skipped_label }}
     </div>
     {% endif %}
 
-    {% if import_result.unresolved_relations %}
+    {% if import_result.unresolved_relations is defined and import_result.unresolved_relations %}
     <details class="import-collapsible">
         <summary>
             <i data-lucide="unlink"></i>
@@ -106,6 +107,38 @@
     </details>
     {% endif %}
 
+    {% if import_result.unresolved_links is defined and import_result.unresolved_links %}
+    <details class="import-collapsible">
+        <summary>
+            <i data-lucide="unlink"></i>
+            Unresolved Links ({{ import_result.unresolved_links|length }})
+        </summary>
+        <table class="import-detail-table">
+            <thead>
+                <tr>
+                    <th>Source Note</th>
+                    <th>Target (not found)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for link in import_result.unresolved_links[:50] %}
+                <tr>
+                    <td><code>{{ link.source }}</code></td>
+                    <td>{{ link.target }}</td>
+                </tr>
+                {% endfor %}
+                {% if import_result.unresolved_links|length > 50 %}
+                <tr>
+                    <td colspan="2" style="font-style: italic; color: var(--color-text-muted);">
+                        ... and {{ import_result.unresolved_links|length - 50 }} more
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </details>
+    {% endif %}
+
     <!-- Actions -->
     <div class="import-actions">
         <button class="btn btn-primary"
@@ -114,21 +147,21 @@
             Browse Imported Objects
         </button>
         <button class="btn btn-outline"
-                hx-get="/browser/notion/import"
+                hx-get="{{ import_page_url }}"
                 hx-target="#import-area"
                 hx-swap="outerHTML"
-                hx-push-url="/browser/notion/import">
+                hx-push-url="{{ import_page_url }}">
             <i data-lucide="upload"></i>
             Import More
         </button>
         {% if import_id is defined %}
         <button class="btn btn-outline btn-danger"
-                hx-post="/browser/notion/{{ import_id }}/discard"
+                hx-post="{{ url_prefix }}/{{ import_id }}/discard"
                 hx-target="#import-area"
                 hx-swap="outerHTML"
-                hx-confirm="This will remove the extracted workspace files. Imported objects will remain.">
+                hx-confirm="This will remove the extracted {{ discard_confirm_text }}. Imported objects will remain.">
             <i data-lucide="trash-2"></i>
-            Discard Files
+            Discard {{ discard_button_text }}
         </button>
         {% endif %}
     </div>

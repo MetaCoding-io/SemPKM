@@ -15,14 +15,14 @@
     {% elif has_extract %}
         {% set current_step = 2 %}
     {% endif %}
-    {% include "notion/partials/step_bar.html" %}
+    {% include "importer/partials/step_bar.html" %}
     <div id="import-content">
         {% if scan_result %}
             {% include "notion/partials/scan_results.html" %}
         {% elif has_extract %}
-            {% include "notion/partials/scan_trigger.html" %}
+            {% include "importer/partials/scan_trigger.html" %}
         {% else %}
-            {% include "notion/partials/upload_form.html" %}
+            {% include "importer/partials/upload_form.html" %}
         {% endif %}
     </div>
 </div>

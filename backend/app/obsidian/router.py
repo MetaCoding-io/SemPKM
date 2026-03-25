@@ -31,6 +31,30 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/browser/import", tags=["import"])
 
+# Shared importer context variables used by shared templates in importer/partials/
+_IMPORTER_CTX = {
+    "steps": [
+        (1, "Upload"),
+        (2, "Scan"),
+        (3, "Types"),
+        (4, "Properties"),
+        (5, "Preview"),
+        (6, "Import"),
+    ],
+    "url_prefix": "/browser/import",
+    "file_input_id": "vault-zip",
+    "upload_title": "Upload your Obsidian vault as a ZIP file",
+    "upload_hint": "Drag and drop or click to browse",
+    "importer_label": "",
+    "importer_name": "vault",
+    "progress_step": 6,
+    "summary_step": 6,
+    "edge_label": "links",
+    "import_page_url": "/browser/import",
+    "discard_button_text": "Vault",
+    "discard_confirm_text": "vault files",
+}
+
 # Active broadcast instances keyed by import_id
 _broadcasts: dict[str, ScanBroadcast] = {}
 
@@ -67,7 +91,7 @@ async def import_page(
     templates = request.app.state.templates
 
     existing = _find_existing_import(user)
-    context = {"request": request, "user": user}
+    context = {"request": request, "user": user, **_IMPORTER_CTX}
 
     if existing:
         import_id, import_path = existing
@@ -152,8 +176,8 @@ async def upload_vault(
     templates = request.app.state.templates
     return templates.TemplateResponse(
         request,
-        "obsidian/partials/scan_trigger.html",
-        {"request": request, "import_id": import_id},
+        "importer/partials/scan_trigger.html",
+        {"request": request, "import_id": import_id, **_IMPORTER_CTX},
     )
 
 
@@ -208,7 +232,7 @@ async def trigger_scan(
         return templates.TemplateResponse(
             request,
             "obsidian/partials/scan_results.html",
-            {"request": request, "scan_result": result, "import_id": import_id, "warning_categories": warning_categories},
+            {"request": request, "scan_result": result, "import_id": import_id, "warning_categories": warning_categories, **_IMPORTER_CTX},
         )
     finally:
         _broadcasts.pop(import_id, None)
@@ -269,8 +293,8 @@ async def discard_import(
     templates = request.app.state.templates
     return templates.TemplateResponse(
         request,
-        "obsidian/partials/upload_form.html",
-        {"request": request},
+        "importer/partials/upload_form.html",
+        {"request": request, **_IMPORTER_CTX},
     )
 
 
@@ -302,7 +326,7 @@ async def get_results(
     return templates.TemplateResponse(
         request,
         "obsidian/partials/scan_results.html",
-        {"request": request, "scan_result": result, "import_id": import_id, "warning_categories": warning_categories},
+        {"request": request, "scan_result": result, "import_id": import_id, "warning_categories": warning_categories, **_IMPORTER_CTX},
     )
 
 
@@ -370,6 +394,7 @@ async def type_mapping_step(
             "available_types": available_types,
             "import_id": import_id,
             "current_step": 3,
+            **_IMPORTER_CTX,
         },
     )
 
@@ -440,6 +465,7 @@ async def property_mapping_step(
             "mapping_config": mapping_config,
             "import_id": import_id,
             "current_step": 4,
+            **_IMPORTER_CTX,
         },
     )
 
@@ -525,6 +551,7 @@ async def preview_step(
             "previews": previews,
             "import_id": import_id,
             "current_step": 5,
+            **_IMPORTER_CTX,
         },
         block_name=block_name,
     )
@@ -578,8 +605,8 @@ async def import_execute(
     templates = request.app.state.templates
     return templates.TemplateResponse(
         request,
-        "obsidian/partials/import_progress.html",
-        {"request": request, "import_id": import_id, "current_step": 6},
+        "importer/partials/import_progress.html",
+        {"request": request, "import_id": import_id, "current_step": 6, **_IMPORTER_CTX},
     )
 
 
@@ -645,15 +672,27 @@ async def import_summary(
     result_data = json.loads(result_path.read_text())
     scan_result = _load_scan_result(import_dir)
 
+    # Pre-compute skipped count for the shared summary template
+    skipped_count = result_data.get("skipped_existing", 0) + result_data.get("skipped_errors", 0)
+    skipped_label_parts = []
+    if skipped_count == 1:
+        skipped_label_parts.append("object skipped (already imported or unmapped)")
+    elif skipped_count > 1:
+        skipped_label_parts.append("objects skipped (already imported or unmapped)")
+    skipped_label = " ".join(skipped_label_parts)
+
     templates = request.app.state.templates
     response = templates.TemplateResponse(
         request,
-        "obsidian/partials/import_summary.html",
+        "importer/partials/import_summary.html",
         {
             "request": request,
             "import_result": result_data,
             "scan_result": scan_result,
             "import_id": import_id,
+            "skipped_count": skipped_count,
+            "skipped_label": skipped_label,
+            **_IMPORTER_CTX,
         },
     )
     response.headers["HX-Trigger"] = "sempkm:nav-refresh"

@@ -38,7 +38,7 @@ Key constraint: `object_detail()` in browser/objects.py serves object_tab.html, 
 rg 'namespace\(' backend/app/templates/ -g '*.html' | grep -v base_namespace | grep -v info.namespace | wc -l  # must be 0
 cd backend && python -m pytest tests/ -x -q  # all pass
 
-- [ ] **T02: Deduplicate Notion/Obsidian importer templates into shared partials** `est:2h`
+- [x] **T02: Deduplicate Notion/Obsidian importer templates into shared partials** `est:2h`
   Create shared importer partials at `backend/app/templates/importer/partials/` for the near-identical templates (import.html, step_bar, upload_form, scan_trigger, import_progress, import_summary). Each shared template uses variables (`importer_name`, `url_prefix`, `steps`, `file_input_id`, etc.) passed from the importer-specific Python views. Structurally different templates (scan_results, preview, type_mapping, property_mapping) stay importer-specific. Notion's relation_mapping.html stays Notion-only.
 
 The Python view routers (notion/router.py, obsidian/router.py) need to pass the new context variables (`importer_name`, `url_prefix`, `steps` list). The importer-specific import.html files become thin wrappers that set variables and include shared partials.

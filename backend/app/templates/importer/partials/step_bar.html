@@ -1,13 +1,5 @@
-<!-- Wizard Step Bar - receives current_step (1-6) -->
+<!-- Shared Wizard Step Bar — receives `current_step` (int) and `steps` (list of (num, label) tuples) from view context -->
 <div id="import-step-bar" class="import-step-bar">
-    {% set steps = [
-        (1, "Upload"),
-        (2, "Scan"),
-        (3, "Types"),
-        (4, "Properties"),
-        (5, "Preview"),
-        (6, "Import"),
-    ] %}
     {% for num, label in steps %}
     <div class="step-item {% if num == current_step %}step-active{% elif num < current_step %}step-complete{% endif %}">
         <div class="step-circle">

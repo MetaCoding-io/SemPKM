@@ -1,5 +1,6 @@
-{% set current_step = 7 %}
-{% include "notion/partials/step_bar.html" with context %}
+<!-- Shared Import Progress — receives url_prefix, import_id, progress_step, edge_label, steps from context -->
+{% set current_step = progress_step %}
+{% include "importer/partials/step_bar.html" with context %}
 <script>
 (function() {
     var oob = document.querySelector('#import-content > #import-step-bar');
@@ -47,7 +48,7 @@
     var phaseEl = document.getElementById('import-phase-text');
     var counterEl = document.getElementById('import-progress-counter');
 
-    var source = new EventSource('/browser/notion/' + importId + '/execute/stream');
+    var source = new EventSource('{{ url_prefix }}/' + importId + '/execute/stream');
 
     source.addEventListener('import_progress', function(e) {
         var data = JSON.parse(e.data);
@@ -66,7 +67,7 @@
             }
         } else if (data.phase === 'edges') {
             phaseEl.textContent = 'Creating edges...';
-            counterEl.textContent = data.current + ' of ' + data.total + ' relations';
+            counterEl.textContent = data.current + ' of ' + data.total + ' {{ edge_label }}';
             if (data.current_link) {
                 var line = document.createElement('div');
                 line.className = 'import-log-line';
@@ -80,7 +81,7 @@
     source.addEventListener('import_complete', function(e) {
         source.close();
         // Fetch summary via htmx
-        htmx.ajax('GET', '/browser/notion/' + importId + '/summary', {
+        htmx.ajax('GET', '{{ url_prefix }}/' + importId + '/summary', {
             target: '#import-area',
             swap: 'outerHTML'
         });

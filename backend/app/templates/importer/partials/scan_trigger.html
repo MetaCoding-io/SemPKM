@@ -1,5 +1,6 @@
+<!-- Shared Scan Trigger — receives url_prefix, import_id, importer_name, steps, current_step from context -->
 {% set current_step = 2 %}
-{% include "notion/partials/step_bar.html" with context %}
+{% include "importer/partials/step_bar.html" with context %}
 <script>
 (function() {
     var oob = document.querySelector('#import-content > #import-step-bar');
@@ -12,7 +13,7 @@
 
 <div id="import-area" class="import-scanning-wrapper">
     <div class="import-progress-section">
-        <h3>Scanning Notion workspace...</h3>
+        <h3>Scanning {{ importer_name }}...</h3>
         <div class="import-progress-bar-track">
             <div class="import-progress-bar" id="scan-progress-bar" style="width: 0%"></div>
         </div>
@@ -29,7 +30,7 @@
     var counter = document.getElementById('scan-counter');
 
     // Start the scan
-    apiFetch('/browser/notion/scan/' + importId, { method: 'POST', headers: { 'HX-Request': 'true' }, silent: true })
+    apiFetch('{{ url_prefix }}/scan/' + importId, { method: 'POST', headers: { 'HX-Request': 'true' }, silent: true })
         .then(function(resp) {
             if (resp.ok) return resp.text();
             throw new Error('Scan failed');
@@ -39,12 +40,14 @@
             var target = document.getElementById('import-content');
             if (target) {
                 target.innerHTML = html;
+                {% if importer_name == 'Notion workspace' %}
                 // Execute inline scripts (innerHTML doesn't auto-execute them)
                 target.querySelectorAll('script').forEach(function(oldScript) {
                     var newScript = document.createElement('script');
                     newScript.textContent = oldScript.textContent;
                     oldScript.parentNode.replaceChild(newScript, oldScript);
                 });
+                {% endif %}
                 htmx.process(target);
                 if (typeof lucide !== 'undefined') lucide.createIcons();
             }
@@ -55,7 +58,7 @@
         });
 
     // SSE for progress
-    var evtSource = new EventSource('/browser/notion/scan/' + importId + '/stream');
+    var evtSource = new EventSource('{{ url_prefix }}/scan/' + importId + '/stream');
 
     evtSource.addEventListener('scan_progress', function(e) {
         try {

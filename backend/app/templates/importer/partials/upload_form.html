@@ -1,5 +1,6 @@
+<!-- Shared Upload Form — receives url_prefix, file_input_id, upload_title, upload_hint, import_id from context -->
 <div id="import-area" class="import-upload-wrapper">
-    <form hx-post="/browser/import/upload"
+    <form hx-post="{{ url_prefix }}/upload"
           hx-target="#import-content"
           hx-swap="innerHTML"
           hx-encoding="multipart/form-data"
@@ -7,10 +8,10 @@
 
         <div class="import-upload-zone" id="upload-drop-zone">
             <i data-lucide="upload-cloud" class="upload-zone-icon"></i>
-            <p class="upload-zone-title">Upload your Obsidian vault as a ZIP file</p>
-            <p class="upload-zone-hint">Drag and drop or click to browse</p>
-            <input type="file" id="vault-zip" name="file" accept=".zip" required class="upload-file-input">
-            <label for="vault-zip" class="btn btn-primary upload-browse-btn">
+            <p class="upload-zone-title">{{ upload_title }}</p>
+            <p class="upload-zone-hint">{{ upload_hint }}</p>
+            <input type="file" id="{{ file_input_id }}" name="file" accept=".zip" required class="upload-file-input">
+            <label for="{{ file_input_id }}" class="btn btn-primary upload-browse-btn">
                 <i data-lucide="upload"></i>
                 Choose ZIP File
             </label>
@@ -28,15 +29,15 @@
 
     {% if import_id %}
     <div class="import-existing-notice">
-        <p>A previous import was detected.</p>
+        <p>{% if importer_label %}A previous {{ importer_label }} import was detected.{% else %}A previous import was detected.{% endif %}</p>
         <div class="import-existing-actions">
-            <button hx-post="/browser/import/scan/{{ import_id }}"
+            <button hx-post="{{ url_prefix }}/scan/{{ import_id }}"
                     hx-target="#import-content"
                     hx-swap="innerHTML"
                     class="btn btn-primary">
                 Resume Previous Import
             </button>
-            <button hx-post="/browser/import/{{ import_id }}/discard"
+            <button hx-post="{{ url_prefix }}/{{ import_id }}/discard"
                     hx-target="#import-content"
                     hx-swap="innerHTML"
                     class="btn btn-outline">
@@ -50,7 +51,7 @@
 <script>
 (function() {
     var zone = document.getElementById('upload-drop-zone');
-    var input = document.getElementById('vault-zip');
+    var input = document.getElementById('{{ file_input_id }}');
     var info = document.getElementById('selected-file-info');
     var nameEl = document.getElementById('selected-file-name');
     if (!zone || !input) return;

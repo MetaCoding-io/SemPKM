@@ -30,6 +30,31 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/browser/notion", tags=["notion-import"])
 
+# Shared importer context variables used by shared templates in importer/partials/
+_IMPORTER_CTX = {
+    "steps": [
+        (1, "Upload"),
+        (2, "Scan"),
+        (3, "Types"),
+        (4, "Properties"),
+        (5, "Relations"),
+        (6, "Preview"),
+        (7, "Import"),
+    ],
+    "url_prefix": "/browser/notion",
+    "file_input_id": "notion-zip",
+    "upload_title": "Upload your Notion workspace as a ZIP file",
+    "upload_hint": "Export from Notion: Settings \u2192 Export all workspace content \u2192 Markdown &amp; CSV format",
+    "importer_label": "Notion",
+    "importer_name": "Notion workspace",
+    "progress_step": 7,
+    "summary_step": 7,
+    "edge_label": "relations",
+    "import_page_url": "/browser/notion/import",
+    "discard_button_text": "Files",
+    "discard_confirm_text": "workspace files",
+}
+
 # Active broadcast instances keyed by import_id
 _broadcasts: dict[str, ScanBroadcast] = {}
 
@@ -96,7 +121,7 @@ async def import_page(
     templates = request.app.state.templates
 
     existing = _find_existing_import(user)
-    context: dict = {"request": request, "user": user}
+    context: dict = {"request": request, "user": user, **_IMPORTER_CTX}
 
     if existing:
         import_id, import_path = existing
@@ -178,8 +203,8 @@ async def upload_notion(
     templates = request.app.state.templates
     return templates.TemplateResponse(
         request,
-        "notion/partials/scan_trigger.html",
-        {"request": request, "import_id": import_id},
+        "importer/partials/scan_trigger.html",
+        {"request": request, "import_id": import_id, **_IMPORTER_CTX},
     )
 
 
@@ -230,7 +255,7 @@ async def trigger_scan(
         return templates.TemplateResponse(
             request,
             "notion/partials/scan_results.html",
-            {"request": request, "scan_result": result, "import_id": import_id, "warning_categories": warning_categories},
+            {"request": request, "scan_result": result, "import_id": import_id, "warning_categories": warning_categories, **_IMPORTER_CTX},
         )
     finally:
         _broadcasts.pop(import_id, None)
@@ -290,8 +315,8 @@ async def discard_import(
     templates = request.app.state.templates
     return templates.TemplateResponse(
         request,
-        "notion/partials/upload_form.html",
-        {"request": request},
+        "importer/partials/upload_form.html",
+        {"request": request, **_IMPORTER_CTX},
     )
 
 
@@ -323,7 +348,7 @@ async def get_results(
     return templates.TemplateResponse(
         request,
         "notion/partials/scan_results.html",
-        {"request": request, "scan_result": result, "import_id": import_id, "warning_categories": warning_categories},
+        {"request": request, "scan_result": result, "import_id": import_id, "warning_categories": warning_categories, **_IMPORTER_CTX},
     )
 
 
@@ -356,6 +381,7 @@ async def type_mapping_step(
             "available_types": available_types,
             "import_id": import_id,
             "current_step": 3,
+            **_IMPORTER_CTX,
         },
     )
 
@@ -455,6 +481,7 @@ async def property_mapping_step(
             "import_id": import_id,
             "current_step": 4,
             "auto_matches": auto_matches,
+            **_IMPORTER_CTX,
         },
     )
 
@@ -545,6 +572,7 @@ async def relation_mapping_step(
             "mapping_config": mapping_config,
             "import_id": import_id,
             "current_step": 5,
+            **_IMPORTER_CTX,
         },
     )
 
@@ -654,6 +682,7 @@ async def preview_step(
             "standalone_preview": standalone_preview,
             "import_id": import_id,
             "current_step": 6,
+            **_IMPORTER_CTX,
         },
     )
 
