@@ -27,7 +27,7 @@
 - [x] **S04: CSS Theme Completion & Utilities** `risk:low` `depends:[]`
   > After this: After this: CSS theme variable adoption is ≥98%; shared utility classes reduce workspace.css by ~500 lines; breakpoints are standardized to 600/768
 
-- [ ] **S05: Template Hygiene & Deduplication** `risk:medium` `depends:[]`
+- [x] **S05: Template Hygiene & Deduplication** `risk:medium` `depends:[]`
   > After this: After this: template computation logic lives in Python views (testable); Notion/Obsidian importers share base templates; guide/docs pages use loops instead of 81 copy-pasted buttons
 
 - [ ] **S06: Console Cleanup & Convention Documentation** `risk:low` `depends:[]`
