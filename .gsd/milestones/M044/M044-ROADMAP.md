@@ -21,7 +21,7 @@
 - [x] **S02: Event Listener & Timer Leak Fixes** `risk:high` `depends:[]`
   > After this: After this: opening and closing dockview panels (graph, kanban, SPARQL console) no longer leaks event listeners; federation panel can be reopened without duplicate polling intervals
 
-- [ ] **S03: Window Namespace Consolidation** `risk:medium` `depends:[]`
+- [x] **S03: Window Namespace Consolidation** `risk:medium` `depends:[]`
   > After this: After this: all cross-IIFE communication uses window.SemPKM.functionName instead of window.functionName — zero collision risk with third-party libraries
 
 - [ ] **S04: CSS Theme Completion & Utilities** `risk:low` `depends:[]`
