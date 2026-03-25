@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T03",
+  "unitId": "M044/S01/T03",
+  "timestamp": 1774456736925,
+  "passed": false,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "echo \"JS: $js_count, HTML: $html_count\"",
+      "exitCode": 0,
+      "durationMs": 17,
+      "verdict": "pass"
+    },
+    {
+      "command": "test \"$js_count\" -eq 0",
+      "exitCode": 2,
+      "durationMs": 15,
+      "verdict": "fail"
+    },
+    {
+      "command": "test \"$html_count\" -eq 0",
+      "exitCode": 2,
+      "durationMs": 15,
+      "verdict": "fail"
+    }
+  ],
+  "retryAttempt": 1,
+  "maxRetries": 2
+}

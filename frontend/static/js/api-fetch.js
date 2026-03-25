@@ -1,7 +1,7 @@
 /**
- * apiFetch — Centralized fetch() wrapper for SemPKM.
+ * apiFetch — Centralized apiFetch() wrapper for SemPKM.
  *
- * Wraps native fetch() with consistent error handling:
+ * Wraps the native fetch API with consistent error handling:
  * - Network errors → toast + rethrow
  * - Non-2xx responses → toast + throw structured error (status, body)
  * - AbortError → silently suppressed (no toast, no rethrow)
@@ -47,7 +47,7 @@
 
     var response;
     try {
-      response = await fetch(resource, opts);
+      response = await fetch(resource, opts); // raw-fetch — the actual native call
     } catch (err) {
       // AbortError: caller cancelled via AbortController — swallow silently
       if (err.name === 'AbortError') {
