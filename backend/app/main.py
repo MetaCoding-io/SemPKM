@@ -72,7 +72,6 @@ from app.sparql.router import router as sparql_router
 from app.triplestore.client import TriplestoreClient
 from app.triplestore.setup import ensure_repository
 from app.monitoring.middleware import PostHogErrorMiddleware
-from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from app.auth.rate_limit import limiter
@@ -676,13 +675,50 @@ async def auth_exception_handler(request: Request, exc: HTTPException):
     )
 
 
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    """Catch unhandled exceptions and return a generic 500 response.
+
+    Logs the full traceback for debugging but returns only a generic
+    message to the client to avoid leaking internal details (F-025).
+    """
+    logger.error(
+        "Unhandled exception on %s %s",
+        request.method,
+        request.url.path,
+        exc_info=exc,
+    )
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"},
+    )
+
+
 # --- Rate limiting (slowapi) ---
 # In-memory per-IP rate limiting for auth endpoints. The Limiter instance
 # and decorators live in app.auth.rate_limit / app.auth.router; the
 # middleware, state binding, and exception handler are registered here.
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+def _rate_limit_exceeded_handler_with_logging(request: Request, exc: RateLimitExceeded) -> JSONResponse:
+    """Log rate limit events at WARNING level and return 429 with Retry-After."""
+    logger.warning(
+        "rate_limit.exceeded source_ip=%s path=%s detail=%s",
+        request.client.host if request.client else "unknown",
+        request.url.path,
+        exc.detail,
+    )
+    response = JSONResponse(
+        {"error": f"Rate limit exceeded: {exc.detail}"},
+        status_code=429,
+    )
+    response.headers["Retry-After"] = str(60)
+    return response
+
+
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler_with_logging)
 
 # PostHog error-capturing middleware (must be added before CORS so it wraps
 # the full request lifecycle and catches unhandled exceptions)

@@ -1,6 +1,6 @@
 """SQLAlchemy ORM models for authentication and authorization.
 
-Four tables: users, sessions, invitations, instance_config.
+Five tables: users, sessions, invitations, instance_config, security_audit_log.
 Uses String(20) for role fields instead of Enum to avoid SQLite/PostgreSQL
 dialect differences (Research Pitfall 1). Roles are validated at the
 application layer.
@@ -158,3 +158,37 @@ class UserSetting(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
     __table_args__ = (UniqueConstraint("user_id", "key", name="uq_user_settings"),)
+
+
+# --- Security audit event types (F-029/F-030) ---
+
+AUDIT_EVENT_TYPES = frozenset({
+    "login_success",
+    "login_failed",
+    "token_created",
+    "token_revoked",
+    "session_revoked_all",
+    "role_changed",
+    "model_installed",
+    "model_uninstalled",
+})
+
+
+class SecurityAuditLog(Base):
+    """Append-only security event audit trail (F-029).
+
+    Captures authentication events, token lifecycle, role changes,
+    and model install/uninstall for forensic analysis. No admin UI
+    yet — this milestone only creates the table and logging helper.
+    """
+
+    __tablename__ = "security_audit_log"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    event_type: Mapped[str] = mapped_column(String(50), index=True)
+    user_id: Mapped[uuid.UUID | None] = mapped_column(nullable=True, index=True)
+    source_ip: Mapped[str] = mapped_column(String(45))  # IPv6 max length
+    detail: Mapped[str] = mapped_column(Text(), default="{}")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), index=True
+    )

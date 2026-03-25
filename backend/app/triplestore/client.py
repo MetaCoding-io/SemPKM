@@ -35,6 +35,7 @@ class TriplestoreClient:
         """Execute a SPARQL SELECT/ASK query and return parsed JSON results.
 
         POST to {base_url}/repositories/{repo_id} with form-encoded query.
+        Raises httpx.TimeoutException if the query exceeds the 30s timeout.
         """
         resp = await self._client.post(
             self._repo_url,
@@ -49,6 +50,7 @@ class TriplestoreClient:
 
         POST to {base_url}/repositories/{repo_id}/statements with
         form-encoded update.
+        Raises httpx.TimeoutException if the update exceeds the 30s timeout.
         """
         resp = await self._client.post(
             f"{self._repo_url}/statements",

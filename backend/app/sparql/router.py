@@ -14,6 +14,7 @@ import hashlib
 import logging
 import uuid
 
+import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy import select
@@ -21,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user, get_current_user_or_api, scope_required
 from app.auth.models import User
+from app.auth.rate_limit import limiter
 from app.config import settings
 from app.db.session import get_db_session
 from app.dependencies import (
@@ -337,6 +339,12 @@ async def sparql_get(
             content=result,
             media_type="application/sparql-results+json",
         )
+    except httpx.TimeoutException:
+        logger.warning("SPARQL query timed out after 30s")
+        return JSONResponse(
+            status_code=504,
+            content={"error": "Query timed out after 30 seconds"},
+        )
     except Exception as e:
         error_msg = str(e)
         logger.warning("SPARQL query failed: %s", error_msg)
@@ -352,6 +360,7 @@ async def sparql_get(
 
 
 @router.post("/sparql", dependencies=[Depends(scope_required("sparql:read"))])
+@limiter.limit("60/minute")
 async def sparql_post(
     request: Request,
     user: User = Depends(get_current_user_or_api),
@@ -427,6 +436,12 @@ async def sparql_post(
             media_type="application/sparql-results+json",
         )
 
+    except httpx.TimeoutException:
+        logger.warning("SPARQL query timed out after 30s")
+        return JSONResponse(
+            status_code=504,
+            content={"error": "Query timed out after 30 seconds"},
+        )
     except Exception as e:
         error_msg = str(e)
         logger.warning("SPARQL query failed: %s", error_msg)

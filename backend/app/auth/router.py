@@ -13,6 +13,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 
+from app.auth.audit import log_security_event
 from app.auth.dependencies import get_current_user, get_session_token, require_role
 from app.auth.models import User
 from app.auth.rate_limit import limiter
@@ -58,6 +59,19 @@ def _set_session_cookie(response: Response, token: str) -> None:
 def _get_auth_service(request: Request) -> AuthService:
     """Get AuthService from app state."""
     return request.app.state.auth_service
+
+
+def _client_ip(request: Request) -> str:
+    """Extract client IP from request."""
+    return request.client.host if request.client else "unknown"
+
+
+async def _audit(request: Request, event_type: str, **kwargs) -> None:
+    """Fire-and-forget audit log entry. Silent no-op if session factory unavailable."""
+    factory = getattr(request.app.state, "async_session_factory", None)
+    if factory is None:
+        return
+    await log_security_event(factory, event_type, _client_ip(request), **kwargs)
 
 
 @router.get("/status", response_model=StatusResponse)
@@ -115,9 +129,10 @@ async def setup(
     try:
         user = await auth_service.create_owner(email)
     except ValueError as e:
+        logger.warning("Setup create_owner failed: %s", e)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
+            detail="Setup failed — invalid request",
         ) from e
 
     # Create session
@@ -200,6 +215,16 @@ async def verify_token(
     """
     email = verify_magic_link_token(body.token)
     if email is None:
+        ip = _client_ip(request)
+        logger.warning(
+            "auth.verify_failed source_ip=%s reason=invalid_or_expired_token",
+            ip,
+        )
+        await _audit(
+            request,
+            "login_failed",
+            detail={"reason": "invalid_or_expired_token"},
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid or expired token",
@@ -213,7 +238,17 @@ async def verify_token(
     expires_at = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(seconds=600)
     consumed = await auth_service.check_and_consume_magic_token(body.token, expires_at)
     if not consumed:
-        logger.warning("Magic link replay attempt for %s", email)
+        ip = _client_ip(request)
+        logger.warning(
+            "auth.verify_failed source_ip=%s reason=token_replay email=%s",
+            ip,
+            email,
+        )
+        await _audit(
+            request,
+            "login_failed",
+            detail={"reason": "token_replay", "email": email},
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token has already been used",
@@ -227,6 +262,13 @@ async def verify_token(
     # Create session
     session = await auth_service.create_session(user)
     _set_session_cookie(response, session.token)
+
+    await _audit(
+        request,
+        "login_success",
+        user_id=user.id,
+        detail={"email": user.email},
+    )
 
     return AuthResponse(
         user_id=str(user.id),
@@ -266,6 +308,13 @@ async def revoke_all_sessions(
         "Revoked %d session(s) for user %s (revoke-all)",
         revoked,
         current_user.id,
+    )
+
+    await _audit(
+        request,
+        "session_revoked_all",
+        user_id=current_user.id,
+        detail={"revoked_count": revoked},
     )
 
     # Create a fresh session so the caller stays logged in
@@ -313,6 +362,7 @@ async def invite_user(
     response_model=CreateTokenResponse,
     status_code=status.HTTP_201_CREATED,
 )
+@limiter.limit("5/minute")
 async def create_api_token(
     body: CreateTokenRequest,
     request: Request,
@@ -350,6 +400,14 @@ async def create_api_token(
         name=body.name,
         scope=scope,
     )
+
+    await _audit(
+        request,
+        "token_created",
+        user_id=current_user.id,
+        detail={"token_name": body.name, "scope": scope},
+    )
+
     return CreateTokenResponse(
         token=plaintext,
         id=str(token_obj.id),
@@ -395,3 +453,10 @@ async def revoke_api_token(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Token not found",
         )
+
+    await _audit(
+        request,
+        "token_revoked",
+        user_id=current_user.id,
+        detail={"token_id": str(token_id)},
+    )

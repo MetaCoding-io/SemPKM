@@ -23,6 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user_or_api, scope_required
 from app.auth.models import User
+from app.auth.rate_limit import limiter
 from app.copilot.context import GraphContextService
 from app.copilot.conversation import ConversationService
 from app.copilot.personas import AIPersonaService
@@ -315,6 +316,7 @@ def _sse_event(data: str, event: str | None = None) -> str:
 
 
 @copilot_router.post("/chat")
+@limiter.limit("20/minute")
 async def copilot_chat(
     request: Request,
     user: User = Depends(get_current_user_or_api),

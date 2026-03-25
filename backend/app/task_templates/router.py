@@ -165,7 +165,8 @@ async def instantiate_template(
     try:
         command_dicts = await service.instantiate(template_id, overrides)
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        logger.warning("Template instantiate failed: %s", e)
+        raise HTTPException(status_code=404, detail="Template not found")
 
     # Dispatch through the batch command pipeline
     client = request.app.state.triplestore_client

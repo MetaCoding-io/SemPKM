@@ -15,6 +15,7 @@ from rdflib import URIRef
 
 from app.auth.dependencies import require_role_or_api, scope_required
 from app.auth.models import User
+from app.auth.rate_limit import limiter
 from app.commands.dispatcher import dispatch
 from app.commands.exceptions import CommandError
 from app.commands.schemas import (
@@ -96,6 +97,7 @@ def _parse_commands(body: Any) -> list[Command]:
 
 
 @router.post("/commands", dependencies=[Depends(scope_required("commands:execute"))])
+@limiter.limit("20/minute")
 async def execute_commands(
     request: Request,
     user: User = Depends(require_role_or_api("owner", "member")),

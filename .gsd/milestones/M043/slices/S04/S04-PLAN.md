@@ -21,7 +21,7 @@ Rate limits use existing slowapi infrastructure. No new dependencies. Documentat
 
 ## Tasks
 
-- [ ] **T01: Rate limits, query timeout, error disclosure fix, auth failure logging** `est:3h`
+- [x] **T01: Rate limits, query timeout, error disclosure fix, auth failure logging** `est:3h`
   1. Add @limiter.limit decorators to endpoints:
    - POST /api/sparql: '60/minute'
    - POST /api/copilot/chat: '20/minute'
@@ -45,7 +45,7 @@ Unit tests: verify 429 response after exceeding rate limit, verify timeout retur
   - Files: `backend/app/sparql/router.py`, `backend/app/copilot/router.py`, `backend/app/auth/router.py`, `backend/app/api/router.py`, `backend/app/triplestore/client.py`, `backend/app/main.py`, `backend/app/workflow/router.py`, `backend/app/dashboard/router.py`, `backend/app/task_templates/router.py`
   - Verify: cd backend && .venv/bin/python -m pytest tests/ -v -x --timeout=60
 
-- [ ] **T02: Security audit log table + shared-data model documentation** `est:3h`
+- [x] **T02: Security audit log table + shared-data model documentation** `est:3h`
   1. Create SecurityAuditLog model in backend/app/auth/models.py:
    - id: int (auto)
    - event_type: str (login_success, login_failed, token_created, token_revoked, session_revoked_all, role_changed, model_installed, model_uninstalled)

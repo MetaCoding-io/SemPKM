@@ -254,7 +254,8 @@ async def create_workflow(
             description=body.get("description", ""),
         )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        logger.warning("Workflow create failed: %s", e)
+        raise HTTPException(status_code=400, detail="Invalid workflow data")
 
     return JSONResponse(
         content={"id": workflow.id, "name": workflow.name},
@@ -290,7 +291,8 @@ async def update_workflow(
     try:
         result = await service.update(wid, user.id, **updates)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        logger.warning("Workflow update failed: %s", e)
+        raise HTTPException(status_code=400, detail="Invalid workflow data")
 
     if not result:
         raise HTTPException(status_code=404, detail="Workflow not found")

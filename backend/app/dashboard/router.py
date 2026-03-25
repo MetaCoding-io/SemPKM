@@ -485,7 +485,8 @@ async def create_dashboard(
             description=body.get("description", ""),
         )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        logger.warning("Dashboard create failed: %s", e)
+        raise HTTPException(status_code=400, detail="Invalid dashboard data")
 
     return JSONResponse(
         content={"id": dashboard.id, "name": dashboard.name},
@@ -523,7 +524,8 @@ async def update_dashboard(
     try:
         result = await service.update(did, user.id, **updates)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        logger.warning("Dashboard update failed: %s", e)
+        raise HTTPException(status_code=400, detail="Invalid dashboard data")
 
     if not result:
         raise HTTPException(status_code=404, detail="Dashboard not found")

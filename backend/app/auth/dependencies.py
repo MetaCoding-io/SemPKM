@@ -281,6 +281,11 @@ async def get_current_user_or_api(
             request.state.auth_method = "bearer"
             return user
         # Token was provided but invalid — give a specific message
+        logger.warning(
+            "auth.bearer_failed source_ip=%s token_prefix=%s",
+            request.client.host if request.client else "unknown",
+            bearer_token[:8] + "..." if len(bearer_token) > 8 else "***",
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired API token",
