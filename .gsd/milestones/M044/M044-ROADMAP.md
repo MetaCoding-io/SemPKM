@@ -18,7 +18,7 @@
 - [x] **S01: Centralized Fetch Wrapper & Migration** `risk:high` `depends:[]`
   > After this: After this: all 131 fetch() calls route through apiFetch() with consistent error handling — network failures show user-facing toasts instead of silently failing
 
-- [ ] **S02: Event Listener & Timer Leak Fixes** `risk:high` `depends:[]`
+- [x] **S02: Event Listener & Timer Leak Fixes** `risk:high` `depends:[]`
   > After this: After this: opening and closing dockview panels (graph, kanban, SPARQL console) no longer leaks event listeners; federation panel can be reopened without duplicate polling intervals
 
 - [ ] **S03: Window Namespace Consolidation** `risk:medium` `depends:[]`

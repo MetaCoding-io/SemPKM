@@ -698,3 +698,13 @@ Setting `headers_enabled=True` on a `Limiter()` instance causes `response must b
 `log_security_event()` in `backend/app/auth/audit.py` creates its own `async_session_factory()` session rather than accepting a session parameter. This is because: (1) the helper must never fail the parent operation, so it needs its own try/catch boundary, (2) the parent's session may not exist yet (failed login = no authenticated session), and (3) the helper is called from router handlers where the session lifecycle is managed by FastAPI Depends. The `_audit()` wrapper in `router.py` uses `getattr(request.app.state, 'async_session_factory', None)` — test environments that don't set the factory silently skip audit logging.
 
 **Affected file:** `backend/app/auth/audit.py`, `backend/app/auth/router.py`
+
+### Dockview panel dispose() → cleanup registry wiring
+
+**Discovered:** M044/S02/T01
+
+All three dockview content renderers (object-editor, view-panel, special-panel) in `workspace-layout.js` have `dispose()` methods that call `window.runCleanup(el.id)` on the panel root and all child elements with IDs. This is the correct teardown path for any JS code that registers cleanup via `window.registerCleanup(elementId, fn)`. When adding new panel types or view renderers, register cleanup functions keyed to the panel's root element ID — they fire automatically when dockview destroys the panel.
+
+**Pattern for document/window listeners in per-panel JS:** Store handler references in module-scoped variables (not anonymous functions). Remove before re-adding to prevent stacking on panel reopen. Register a `registerCleanup()` callback that removes all document/window listeners + destroys library instances. See `calendar.js` and `canvas.js` for reference implementations.
+
+**Affected files:** `frontend/static/js/workspace-layout.js`, `frontend/static/js/cleanup.js`, `frontend/static/js/calendar.js`, `frontend/static/js/canvas.js`
