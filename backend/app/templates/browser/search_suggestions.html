@@ -12,7 +12,7 @@
 {% if results %}
 {% for item in results %}
 <div class="suggestion-item"
-     onclick="selectReference('{{ field_id }}', '{{ item.iri }}', '{{ item.label }}', {{ index if index is not none else 'null' }})">
+     onclick="SemPKM.selectReference('{{ field_id }}', '{{ item.iri }}', '{{ item.label }}', {{ index if index is not none else 'null' }})">
     {{ item.label }}
 </div>
 {% endfor %}

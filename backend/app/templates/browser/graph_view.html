@@ -14,8 +14,8 @@
         <option value="{{ layout.name }}"{% if loop.first %} selected{% endif %}>{{ layout.label }}</option>
         {% endfor %}
     </select>
-    <button class="graph-fit-btn" onclick="if(window._sempkmGraph) window._sempkmGraph.fit()" title="Fit graph to view">Fit</button>
-    <button class="graph-icon-toggle-btn" id="graph-icon-toggle" onclick="window._toggleGraphIcons()" title="Toggle node icons"><i data-lucide="shapes"></i> <span>Icons</span></button>
+    <button class="graph-fit-btn" onclick="if(SemPKM._sempkmGraph) SemPKM._sempkmGraph.fit()" title="Fit graph to view">Fit</button>
+    <button class="graph-icon-toggle-btn" id="graph-icon-toggle" onclick="SemPKM._toggleGraphIcons()" title="Toggle node icons"><i data-lucide="shapes"></i> <span>Icons</span></button>
 </div>
 
 <div class="graph-isometric-wrapper" id="cy-wrapper">
@@ -34,11 +34,11 @@
 
     // Wait for graph.js to be loaded, then initialize
     function tryInit() {
-        if (typeof window.initGraph === 'function') {
-            window.initGraph('cy-container', specIri, typeColors, availableLayouts, customDataUrl);
+        if (typeof SemPKM.initGraph === 'function') {
+            SemPKM.initGraph('cy-container', specIri, typeColors, availableLayouts, customDataUrl);
             // Apply carried-over filter after graph data loads
-            if (initialFilter && typeof window.filterGraph === 'function') {
-                setTimeout(function() { window.filterGraph(initialFilter); }, 500);
+            if (initialFilter && typeof SemPKM.filterGraph === 'function') {
+                setTimeout(function() { SemPKM.filterGraph(initialFilter); }, 500);
             }
         } else {
             setTimeout(tryInit, 50);

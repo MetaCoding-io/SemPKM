@@ -492,7 +492,7 @@
   }
 
   function onDragOver(event) {
-    if (!window.__canvasDragPayload) return;
+    if (!window.SemPKM.__canvasDragPayload) return;
     if (!isOverCanvas(event)) {
       state.viewport.classList.remove('canvas-drop-active');
       return;
@@ -522,16 +522,16 @@
     lastDragOverCanvas = null;
 
     // Check for bulk drop payload (multi-select drag from nav tree)
-    var payload = window.__canvasDragPayload;
+    var payload = window.SemPKM.__canvasDragPayload;
     if (payload && Array.isArray(payload.items) && payload.items.length > 1) {
       if (payload.items.length > 20) {
         if (!window.confirm('Drop ' + payload.items.length + ' nodes? This may crowd the canvas.')) {
-          window.__canvasDragPayload = null;
+          window.SemPKM.__canvasDragPayload = null;
           return;
         }
       }
       addNodesFromBulkDrop(payload.items, event.clientX, event.clientY);
-      window.__canvasDragPayload = null;
+      window.SemPKM.__canvasDragPayload = null;
       return;
     }
 
@@ -544,14 +544,14 @@
         url: payload.url,
         label: payload.label || 'Embed',
       }, event.clientX, event.clientY);
-      window.__canvasDragPayload = null;
+      window.SemPKM.__canvasDragPayload = null;
       return;
     }
 
     var iri = event.dataTransfer.getData('text/iri');
     var label = event.dataTransfer.getData('text/label');
     addNodeFromDrag(iri, label, event.clientX, event.clientY);
-    window.__canvasDragPayload = null;
+    window.SemPKM.__canvasDragPayload = null;
   }
 
   function onDragEnd(event) {
@@ -559,14 +559,14 @@
     state.viewport.classList.remove('canvas-drop-active');
     // Fallback: if drop never fired but we had a valid position over the
     // canvas, use the side-channel payload set by tree_children.html.
-    if (lastDragOverCanvas && window.__canvasDragPayload) {
-      var payload = window.__canvasDragPayload;
+    if (lastDragOverCanvas && window.SemPKM.__canvasDragPayload) {
+      var payload = window.SemPKM.__canvasDragPayload;
       // Check for bulk drop payload (multi-select drag)
       if (Array.isArray(payload.items) && payload.items.length > 1) {
         if (payload.items.length > 20) {
           if (!window.confirm('Drop ' + payload.items.length + ' nodes? This may crowd the canvas.')) {
             lastDragOverCanvas = null;
-            window.__canvasDragPayload = null;
+            window.SemPKM.__canvasDragPayload = null;
             return;
           }
         }
@@ -584,7 +584,7 @@
       }
     }
     lastDragOverCanvas = null;
-    window.__canvasDragPayload = null;
+    window.SemPKM.__canvasDragPayload = null;
   }
 
   function onWheel(event) {

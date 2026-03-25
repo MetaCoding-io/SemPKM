@@ -6,12 +6,12 @@
   {% for dash in dashboards %}
   <div class="tree-leaf"
        draggable="true"
-       ondragstart="event.dataTransfer.setData('text/plain', '{{ dash.name | e }}'); event.dataTransfer.effectAllowed = 'copy'; window.__canvasDragPayload = {type:'dashboard', id:'{{ dash.id }}', label:'{{ dash.name | e }}', url:'/browser/dashboard/{{ dash.id }}?embed=1'}"
+       ondragstart="event.dataTransfer.setData('text/plain', '{{ dash.name | e }}'); event.dataTransfer.effectAllowed = 'copy'; window.SemPKM.__canvasDragPayload = {type:'dashboard', id:'{{ dash.id }}', label:'{{ dash.name | e }}', url:'/browser/dashboard/{{ dash.id }}?embed=1'}"
        onclick="openDashboardTab('{{ dash.id }}', '{{ dash.name | e }}')">
     <i data-lucide="layout-dashboard" class="tree-icon"></i>
     <span class="tree-label" title="{{ dash.description | e if dash.description else dash.name | e }}">{{ dash.name }}</span>
     <button class="tree-leaf-action btn-icon" title="Delete dashboard"
-            onclick="event.stopPropagation(); window._deleteDashboard('{{ dash.id }}', '{{ dash.name | e }}')">
+            onclick="event.stopPropagation(); SemPKM._deleteDashboard('{{ dash.id }}', '{{ dash.name | e }}')">
       <i data-lucide="trash-2"></i>
     </button>
   </div>
@@ -23,7 +23,7 @@
 <script>
 (function() {
   'use strict';
-  window._deleteDashboard = function(id, name) {
+  window.SemPKM._deleteDashboard = function(id, name) {
     if (!window.confirm('Delete dashboard "' + name + '"? This cannot be undone.')) return;
     apiFetch('/api/dashboard/' + id, { method: 'DELETE', silent: true })
       .then(function() {

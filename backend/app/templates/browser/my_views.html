@@ -27,8 +27,8 @@
     if (typeof lucide !== 'undefined') {
         lucide.createIcons({ root: document.getElementById('saved-views-tree') });
     }
-    if (typeof window.demoteView === 'undefined') {
-        window.demoteView = async function(queryId) {
+    if (typeof SemPKM.demoteView === 'undefined') {
+        window.SemPKM.demoteView = async function(queryId) {
             if (!confirm('Remove this view? The saved query will be kept.')) return;
             try {
                 var resp = await apiFetch('/api/sparql/saved/' + queryId + '/promote', {
@@ -44,8 +44,8 @@
             }
         };
     }
-    if (typeof window.deleteSavedView === 'undefined') {
-        window.deleteSavedView = async function(viewId) {
+    if (typeof SemPKM.deleteSavedView === 'undefined') {
+        window.SemPKM.deleteSavedView = async function(viewId) {
             if (!confirm('Remove this saved view?')) return;
             try {
                 var resp = await apiFetch('/browser/views/saved/' + viewId, {

@@ -20,7 +20,7 @@
         <div class="kanban-column-body">
             {% for item in col['items'] %}
             <div class="kanban-card" draggable="true" data-iri="{{ item.iri }}" data-title="{{ item.label }}">
-                <span class="kanban-card-title" onclick="openTab('{{ item.iri }}', '{{ item.label | replace("'", "\\'") }}'); return false;">{{ item.label }}</span>
+                <span class="kanban-card-title" onclick="SemPKM.openTab('{{ item.iri }}', '{{ item.label | replace("'", "\\'") }}'); return false;">{{ item.label }}</span>
             </div>
             {% endfor %}
         </div>

@@ -11,7 +11,7 @@
     <input type="text" class="settings-text-input" id="llm-api-base-url"
            value="{{ llm_config.api_base_url }}"
            placeholder="https://api.openai.com"
-           oninput="llmSettingChanged('api_base_url', this.value)"
+           oninput="SemPKM.llmSettingChanged('api_base_url', this.value)"
            autocomplete="off">
   </div>
 </div>
@@ -28,7 +28,7 @@
     <input type="password" class="settings-text-input" id="llm-api-key"
            placeholder="{{ '••••••••' if llm_config.api_key_set else 'Enter API key' }}"
            autocomplete="new-password"
-           oninput="llmSettingChanged('api_key', this.value)">
+           oninput="SemPKM.llmSettingChanged('api_key', this.value)">
   </div>
 </div>
 
@@ -42,7 +42,7 @@
       <input type="text" class="settings-text-input" id="llm-default-model"
              value="{{ llm_config.default_model }}"
              placeholder="e.g. gpt-4o or llama3"
-             oninput="llmSettingChanged('default_model', this.value)"
+             oninput="SemPKM.llmSettingChanged('default_model', this.value)"
              autocomplete="off">
     </div>
     <button class="settings-action-btn"
@@ -74,7 +74,7 @@
 <script>
 (function () {
   var _pending = {};
-  window.llmSettingChanged = function (field, value) {
+  window.SemPKM.llmSettingChanged = function (field, value) {
     clearTimeout(_pending[field]);
     _pending[field] = setTimeout(function () {
       apiFetch('/browser/llm/config', {

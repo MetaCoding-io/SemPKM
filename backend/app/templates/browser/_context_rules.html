@@ -5,7 +5,7 @@
   {# ── Test against current context ──────────────────────────── #}
   <div class="context-rules-test-section">
     <button class="settings-action-btn" id="context-rules-test-btn"
-            onclick="contextRulesTestCurrent()">
+            onclick="SemPKM.contextRulesTestCurrent()">
       <i data-lucide="play"></i>
       Test against current context
     </button>
@@ -28,15 +28,15 @@
           <label class="settings-toggle context-rule-toggle" title="{% if rule.enabled %}Disable{% else %}Enable{% endif %} rule">
             <input type="checkbox" class="settings-toggle-input"
                    {% if rule.enabled %}checked{% endif %}
-                   onchange="contextRulesToggleEnabled('{{ rule.id }}', this.checked)">
+                   onchange="SemPKM.contextRulesToggleEnabled('{{ rule.id }}', this.checked)">
             <span class="settings-toggle-slider"></span>
           </label>
           <button class="settings-action-btn"
-                  onclick="contextRulesToggleEdit('{{ rule.id }}')" title="Edit">
+                  onclick="SemPKM.contextRulesToggleEdit('{{ rule.id }}')" title="Edit">
             <i data-lucide="pencil"></i>
           </button>
           <button class="settings-action-btn btn-danger-sm"
-                  onclick="contextRulesDelete('{{ rule.id }}', '{{ rule.name }}')" title="Delete">
+                  onclick="SemPKM.contextRulesDelete('{{ rule.id }}', '{{ rule.name }}')" title="Delete">
             <i data-lucide="trash-2"></i>
           </button>
         </div>
@@ -57,7 +57,7 @@
 
       {# Inline edit form — hidden by default #}
       <div class="context-rule-edit-form" id="edit-form-{{ rule.id }}" style="display:none">
-        <form onsubmit="return contextRulesUpdate(event, '{{ rule.id }}')">
+        <form onsubmit="return SemPKM.contextRulesUpdate(event, '{{ rule.id }}')">
           <div class="context-rule-form-grid">
             <label class="context-rule-form-label">
               Name
@@ -119,7 +119,7 @@
           <div class="context-rule-form-actions">
             <button type="submit" class="settings-action-btn settings-action-btn--primary">Save Changes</button>
             <button type="button" class="settings-action-btn"
-                    onclick="contextRulesToggleEdit('{{ rule.id }}')">Cancel</button>
+                    onclick="SemPKM.contextRulesToggleEdit('{{ rule.id }}')">Cancel</button>
           </div>
         </form>
       </div>
@@ -136,7 +136,7 @@
       <i data-lucide="plus"></i>
       New Rule
     </summary>
-    <form class="context-rule-form" onsubmit="return contextRulesCreate(event)">
+    <form class="context-rule-form" onsubmit="return SemPKM.contextRulesCreate(event)">
       <div class="context-rule-form-grid">
         <label class="context-rule-form-label">
           Name <span class="context-rule-required">*</span>
@@ -249,7 +249,7 @@
   /* ── CRUD actions ────────────────────────────────────────── */
 
   /** Create a new rule. */
-  window.contextRulesCreate = function (e) {
+  window.SemPKM.contextRulesCreate = function (e) {
     e.preventDefault();
     var formEl = e.target;
     var payload = _buildPayload(formEl);
@@ -270,7 +270,7 @@
   };
 
   /** Update an existing rule. */
-  window.contextRulesUpdate = function (e, ruleId) {
+  window.SemPKM.contextRulesUpdate = function (e, ruleId) {
     e.preventDefault();
     var formEl = e.target;
     var payload = _buildPayload(formEl);
@@ -291,7 +291,7 @@
   };
 
   /** Toggle enabled/disabled state for a rule. */
-  window.contextRulesToggleEnabled = function (ruleId, enabled) {
+  window.SemPKM.contextRulesToggleEnabled = function (ruleId, enabled) {
     apiFetch('/api/context/rules/' + ruleId, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -303,7 +303,7 @@
   };
 
   /** Delete a rule with confirmation. */
-  window.contextRulesDelete = function (ruleId, ruleName) {
+  window.SemPKM.contextRulesDelete = function (ruleId, ruleName) {
     if (!confirm("Delete rule '" + ruleName + "'?")) return;
     apiFetch('/api/context/rules/' + ruleId, {
       method: 'DELETE',
@@ -314,7 +314,7 @@
   };
 
   /** Toggle the inline edit form for a rule card. */
-  window.contextRulesToggleEdit = function (ruleId) {
+  window.SemPKM.contextRulesToggleEdit = function (ruleId) {
     var form = document.getElementById('edit-form-' + ruleId);
     if (form) {
       form.style.display = form.style.display === 'none' ? '' : 'none';
@@ -322,7 +322,7 @@
   };
 
   /** Test rules against current context. */
-  window.contextRulesTestCurrent = function () {
+  window.SemPKM.contextRulesTestCurrent = function () {
     var resultDiv = document.getElementById('context-rules-test-result');
     resultDiv.textContent = 'Evaluating…';
     resultDiv.className = 'context-rule-test-result';

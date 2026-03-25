@@ -67,8 +67,8 @@
     </div>
 </div>
 <script>
-if (!window._viewFilterRefocusBound) {
-    window._viewFilterRefocusBound = true;
+if (!window.SemPKM._viewFilterRefocusBound) {
+    window.SemPKM._viewFilterRefocusBound = true;
     document.body.addEventListener('htmx:afterSwap', function (evt) {
         if (evt.detail.target && evt.detail.target.classList.contains('group-editor-area')) {
             var input = document.getElementById('view-filter');
@@ -81,8 +81,8 @@ if (!window._viewFilterRefocusBound) {
     });
 }
 
-if (typeof window.saveCurrentView === 'undefined') {
-    window.saveCurrentView = async function() {
+if (typeof SemPKM.saveCurrentView === 'undefined') {
+    window.SemPKM.saveCurrentView = async function() {
         var toolbar = document.querySelector('.view-toolbar');
         if (!toolbar) return;
         var renderer = toolbar.dataset.renderer || 'table';

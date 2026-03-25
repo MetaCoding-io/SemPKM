@@ -37,10 +37,10 @@
 
     <!-- Actions -->
     <div class="form-actions">
-      <button type="button" class="btn-primary" id="builder-save-btn" onclick="window._builderSave()">
+      <button type="button" class="btn-primary" id="builder-save-btn" onclick="SemPKM._builderSave()">
         <i data-lucide="save"></i> Save Dashboard
       </button>
-      <button type="button" class="btn-secondary" onclick="window._builderCancel()">
+      <button type="button" class="btn-secondary" onclick="SemPKM._builderCancel()">
         Cancel
       </button>
       <span class="builder-saving-indicator" id="builder-saving" style="display:none;">Saving...</span>
@@ -136,7 +136,7 @@
         return '<div class="block-config-fields">' +
           '<div class="form-field"><label>Target Class IRI</label>' +
           '<div class="reference-field">' +
-          '<input type="text" class="reference-search builder-class-search" placeholder="Search classes..." autocomplete="off" oninput="window._builderClassSearch(this)"' +
+          '<input type="text" class="reference-search builder-class-search" placeholder="Search classes..." autocomplete="off" oninput="SemPKM._builderClassSearch(this)"' +
           (config.target_class ? ' value="' + escapeAttr(config.target_class) + '"' : '') + '>' +
           '<input type="hidden" class="block-config-input" data-key="target_class" value="' + escapeAttr(config.target_class || '') + '">' +
           '<div class="suggestions-dropdown builder-suggestions"></div>' +
@@ -145,7 +145,7 @@
         return '<div class="block-config-fields">' +
           '<div class="form-field"><label>Object IRI</label>' +
           '<div class="reference-field">' +
-          '<input type="text" class="reference-search builder-object-search" placeholder="Search objects..." autocomplete="off" oninput="window._builderObjectSearch(this)"' +
+          '<input type="text" class="reference-search builder-object-search" placeholder="Search objects..." autocomplete="off" oninput="SemPKM._builderObjectSearch(this)"' +
           (config.object_iri ? ' value="' + escapeAttr(config.object_iri) + '"' : '') + '>' +
           '<input type="hidden" class="block-config-input" data-key="object_iri" value="' + escapeAttr(config.object_iri || '') + '">' +
           '<div class="suggestions-dropdown builder-suggestions"></div>' +
@@ -228,12 +228,12 @@
     return '<div class="fg-slot-row">' +
       '<input type="text" class="fg-slot-name" data-fg-slot-name placeholder="Slot name (e.g. note)" value="' + escapeAttr(slot.name || '') + '">' +
       '<div class="reference-field fg-slot-class-field">' +
-        '<input type="text" class="reference-search builder-class-search fg-slot-class-search" placeholder="Search classes..." autocomplete="off" oninput="window._builderClassSearch(this)"' +
+        '<input type="text" class="reference-search builder-class-search fg-slot-class-search" placeholder="Search classes..." autocomplete="off" oninput="SemPKM._builderClassSearch(this)"' +
         (slot.target_class ? ' value="' + escapeAttr(slot.target_class) + '"' : '') + '>' +
         '<input type="hidden" data-fg-slot-class value="' + escapeAttr(slot.target_class || '') + '">' +
         '<div class="suggestions-dropdown builder-suggestions"></div>' +
       '</div>' +
-      '<button type="button" class="btn-icon fg-remove-btn" title="Remove slot" onclick="this.closest(\'.fg-slot-row\').remove(); window._fgSyncEdgeDropdowns();">' +
+      '<button type="button" class="btn-icon fg-remove-btn" title="Remove slot" onclick="this.closest(\'.fg-slot-row\').remove(); SemPKM._fgSyncEdgeDropdowns();">' +
         '<i data-lucide="x"></i></button>' +
     '</div>';
   }
@@ -272,17 +272,17 @@
       '<div class="form-field">' +
         '<label>Slots</label>' +
         '<div id="fg-slots-list">' + slotsHTML + '</div>' +
-        '<button type="button" class="fg-add-btn" onclick="window._fgAddSlot()"><i data-lucide="plus"></i> Add Slot</button>' +
+        '<button type="button" class="fg-add-btn" onclick="SemPKM._fgAddSlot()"><i data-lucide="plus"></i> Add Slot</button>' +
       '</div>' +
       '<div class="form-field">' +
         '<label>Edges</label>' +
         '<div id="fg-edges-list">' + edgesHTML + '</div>' +
-        '<button type="button" class="fg-add-btn" onclick="window._fgAddEdge()"><i data-lucide="plus"></i> Add Edge</button>' +
+        '<button type="button" class="fg-add-btn" onclick="SemPKM._fgAddEdge()"><i data-lucide="plus"></i> Add Edge</button>' +
       '</div>' +
     '</div>';
   }
 
-  window._fgAddSlot = function() {
+  window.SemPKM._fgAddSlot = function() {
     var list = document.getElementById('fg-slots-list');
     if (!list) return;
     var tmp = document.createElement('div');
@@ -292,10 +292,10 @@
     if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [row] });
     // Bind name change → sync edge dropdowns
     var nameInput = row.querySelector('.fg-slot-name');
-    if (nameInput) nameInput.addEventListener('input', window._fgSyncEdgeDropdowns);
+    if (nameInput) nameInput.addEventListener('input', SemPKM._fgSyncEdgeDropdowns);
   };
 
-  window._fgAddEdge = function() {
+  window.SemPKM._fgAddEdge = function() {
     var list = document.getElementById('fg-edges-list');
     if (!list) return;
     var slotNames = _fgCurrentSlotNames();
@@ -315,7 +315,7 @@
     return names;
   }
 
-  window._fgSyncEdgeDropdowns = function() {
+  window.SemPKM._fgSyncEdgeDropdowns = function() {
     var slotNames = _fgCurrentSlotNames();
     document.querySelectorAll('#fg-edges-list .fg-edge-row').forEach(function(row) {
       ['fg-edge-source', 'fg-edge-target'].forEach(function(cls) {
@@ -378,11 +378,11 @@
     }
   });
 
-  window._builderClassSearch = function(inputEl) {
+  window.SemPKM._builderClassSearch = function(inputEl) {
     _builderAutocomplete(inputEl, '/browser/class-search');
   };
 
-  window._builderObjectSearch = function(inputEl) {
+  window.SemPKM._builderObjectSearch = function(inputEl) {
     _builderAutocomplete(inputEl, '/browser/object-search');
   };
 
@@ -563,14 +563,14 @@
     // Form-group: bind slot name inputs to sync edge dropdowns
     if (blockType === 'form-group') {
       widgetEl.querySelectorAll('.fg-slot-name').forEach(function(inp) {
-        inp.addEventListener('input', window._fgSyncEdgeDropdowns);
+        inp.addEventListener('input', SemPKM._fgSyncEdgeDropdowns);
       });
     }
   }
 
   // ------ Save ------
 
-  window._builderSave = function() {
+  window.SemPKM._builderSave = function() {
     var nameInput = document.getElementById('builder-name');
     var name = nameInput.value.trim();
     if (!name) {
@@ -676,8 +676,8 @@
       var builderTabKey = dashboardId
         ? 'dashboard-builder:' + dashboardId
         : 'dashboard-builder:new';
-      if (window._dockview) {
-        var panel = window._dockview.panels.find(function(p) { return p.id === builderTabKey; });
+      if (SemPKM._dockview) {
+        var panel = SemPKM._dockview.panels.find(function(p) { return p.id === builderTabKey; });
         if (panel) panel.api.close();
       }
     })
@@ -691,15 +691,15 @@
     });
   };
 
-  window._builderCancel = function() {
+  window.SemPKM._builderCancel = function() {
     var dashboardId = null;
     var idInput = document.getElementById('builder-dashboard-id');
     if (idInput) dashboardId = idInput.value;
     var builderTabKey = dashboardId
       ? 'dashboard-builder:' + dashboardId
       : 'dashboard-builder:new';
-    if (window._dockview) {
-      var panel = window._dockview.panels.find(function(p) { return p.id === builderTabKey; });
+    if (SemPKM._dockview) {
+      var panel = SemPKM._dockview.panels.find(function(p) { return p.id === builderTabKey; });
       if (panel) panel.api.close();
     }
   };

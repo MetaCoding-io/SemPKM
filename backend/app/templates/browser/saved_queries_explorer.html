@@ -18,7 +18,7 @@
   {% for q in user_queries %}
   <div class="tree-leaf"
        draggable="true"
-       ondragstart="event.dataTransfer.setData('text/plain', '{{ q.name | e }}'); event.dataTransfer.effectAllowed = 'copy'; window.__canvasDragPayload = {type:'query', id:'{{ q.id }}', label:'{{ q.name | e }}', url:'/browser/sparql-result/{{ q.id }}?embed=1'}"
+       ondragstart="event.dataTransfer.setData('text/plain', '{{ q.name | e }}'); event.dataTransfer.effectAllowed = 'copy'; window.SemPKM.__canvasDragPayload = {type:'query', id:'{{ q.id }}', label:'{{ q.name | e }}', url:'/browser/sparql-result/{{ q.id }}?embed=1'}"
        onclick="openGenericViewTab('table', '{{ q.id }}', '{{ q.name | e }}')">
     <i data-lucide="database" class="tree-icon"></i>
     <span class="tree-label" title="{{ q.description | e if q.description else q.name | e }}">{{ q.name }}</span>
@@ -31,7 +31,7 @@
   {% for q in model_queries %}
   <div class="tree-leaf"
        draggable="true"
-       ondragstart="event.dataTransfer.setData('text/plain', '{{ q.name | e }}'); event.dataTransfer.effectAllowed = 'copy'; window.__canvasDragPayload = {type:'query', id:'{{ q.id }}', label:'{{ q.name | e }}', url:'/browser/sparql-result/{{ q.id }}?embed=1'}"
+       ondragstart="event.dataTransfer.setData('text/plain', '{{ q.name | e }}'); event.dataTransfer.effectAllowed = 'copy'; window.SemPKM.__canvasDragPayload = {type:'query', id:'{{ q.id }}', label:'{{ q.name | e }}', url:'/browser/sparql-result/{{ q.id }}?embed=1'}"
        onclick="openGenericViewTab('table', '{{ q.id }}', '{{ q.name | e }}')">
     <i data-lucide="book-open" class="tree-icon"></i>
     <span class="tree-label" title="{{ q.description | e if q.description else q.name | e }}">{{ q.name }}</span>

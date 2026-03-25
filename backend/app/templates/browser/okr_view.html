@@ -19,7 +19,7 @@
     <div class="okr-objective-card" data-iri="{{ obj['iri'] }}">
         <div class="okr-objective-header">
             <span class="okr-objective-title"
-                  onclick="openTab('{{ obj['iri'] }}', '{{ obj['title'] | replace("'", "\\'") }}'); return false;">
+                  onclick="SemPKM.openTab('{{ obj['iri'] }}', '{{ obj['title'] | replace("'", "\\'") }}'); return false;">
                 {{ obj['title'] }}
             </span>
             <span class="okr-objective-progress">{{ obj['progress'] }}%</span>
@@ -35,7 +35,7 @@
             {% for kr in obj['key_results'] %}
             <div class="okr-kr-row" data-iri="{{ kr['iri'] }}">
                 <span class="okr-kr-title"
-                      onclick="openTab('{{ kr['iri'] }}', '{{ kr['title'] | replace("'", "\\'") }}'); return false;">
+                      onclick="SemPKM.openTab('{{ kr['iri'] }}', '{{ kr['title'] | replace("'", "\\'") }}'); return false;">
                     {{ kr['title'] }}
                 </span>
                 <span class="okr-kr-values"><span class="okr-current-value">{{ kr['current_value'] }}</span> / {{ kr['target_value'] }}{% if kr['unit'] %} {{ kr['unit'] }}{% endif %}</span>
@@ -61,7 +61,7 @@
         {% for kr in ungrouped %}
         <div class="okr-kr-row" data-iri="{{ kr['iri'] }}">
             <span class="okr-kr-title"
-                  onclick="openTab('{{ kr['iri'] }}', '{{ kr['title'] | replace("'", "\\'") }}'); return false;">
+                  onclick="SemPKM.openTab('{{ kr['iri'] }}', '{{ kr['title'] | replace("'", "\\'") }}'); return false;">
                 {{ kr['title'] }}
             </span>
             <span class="okr-kr-values"><span class="okr-current-value">{{ kr['current_value'] }}</span> / {{ kr['target_value'] }}{% if kr['unit'] %} {{ kr['unit'] }}{% endif %}</span>

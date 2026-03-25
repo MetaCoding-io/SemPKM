@@ -46,14 +46,14 @@
     {# ── Navigation buttons ── #}
     <div class="workflow-nav">
         <button class="workflow-nav-btn workflow-prev-btn" disabled
-                onclick="workflowNavigate('{{ workflow_id }}', -1)">
+                onclick="SemPKM.workflowNavigate('{{ workflow_id }}', -1)">
             ← Previous
         </button>
         <span class="workflow-step-counter">
             Step <span id="workflow-current-{{ workflow_id }}">1</span> of {{ total_steps }}
         </span>
         <button class="workflow-nav-btn workflow-next-btn"
-                onclick="workflowNavigate('{{ workflow_id }}', 1)"
+                onclick="SemPKM.workflowNavigate('{{ workflow_id }}', 1)"
                 {% if total_steps <= 1 %}disabled{% endif %}>
             Next →
         </button>
@@ -65,7 +65,7 @@
     var state = { currentStep: 0, totalSteps: {{ total_steps }} };
     var runnerId = '{{ workflow_id }}';
 
-    window.workflowNavigate = function(wfId, direction) {
+    window.SemPKM.workflowNavigate = function(wfId, direction) {
         if (wfId !== runnerId) return;
         var newStep = state.currentStep + direction;
         if (newStep < 0 || newStep >= state.totalSteps) return;

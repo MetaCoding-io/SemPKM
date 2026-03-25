@@ -7,7 +7,7 @@
     {% for tab in tabs %}
     <div class="workspace-tab {% if tab.active %}active{% endif %}"
          data-iri="{{ tab.iri }}"
-         onclick="switchTab('{{ tab.iri }}')">
+         onclick="SemPKM.switchTab('{{ tab.iri }}')">
         <span class="tab-label">{{ tab.label }}</span>
         {% if tab.dirty %}
         <span class="tab-dirty" title="Unsaved changes"></span>

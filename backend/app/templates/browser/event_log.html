@@ -12,7 +12,7 @@
       {% endfor %}
     </div>
     <label class="event-autorefresh-label">
-      <input type="checkbox" id="event-autorefresh-cb" onchange="sempkmToggleAutoRefresh(this.checked)">
+      <input type="checkbox" id="event-autorefresh-cb" onchange="SemPKM.sempkmToggleAutoRefresh(this.checked)">
       Auto-refresh (30s)
     </label>
     <div class="event-filter-controls">
@@ -103,7 +103,7 @@
           <button class="event-btn-diff" disabled>Diff</button>
           {% endif %}
           {% if event.operation_type in ['object.patch', 'body.set', 'body.diff', 'edge.create', 'edge.patch', 'object.create'] or ',' in event.operation_type %}
-          <button class="event-btn-undo" onclick="sempkmUndoEvent('{{ event.event_iri }}', this)">Undo</button>
+          <button class="event-btn-undo" onclick="SemPKM.sempkmUndoEvent('{{ event.event_iri }}', this)">Undo</button>
           {% else %}
           <button class="event-btn-undo" disabled>Undo</button>
           {% endif %}
@@ -180,7 +180,7 @@
   });
 
   /* Refresh function: preserves current filter state */
-  window.sempkmRefreshEventLog = function () {
+  window.SemPKM.sempkmRefreshEventLog = function () {
     var el = document.getElementById('panel-event-log') ||
              document.getElementById('event-log-right');
     if (!el) return;
@@ -199,15 +199,15 @@
     htmx.ajax('GET', url, { target: el, swap: 'innerHTML' });
   };
 
-  window.sempkmToggleAutoRefresh = function (enabled) {
+  window.SemPKM.sempkmToggleAutoRefresh = function (enabled) {
     localStorage.setItem(LS_KEY, enabled ? 'true' : 'false');
     if (enabled) {
       if (!window._sempkmRefreshTimer) {
-        window._sempkmRefreshTimer = setInterval(window.sempkmRefreshEventLog, INTERVAL_MS);
+        window.SemPKM._sempkmRefreshTimer = setInterval(SemPKM.sempkmRefreshEventLog, INTERVAL_MS);
       }
     } else {
-      clearInterval(window._sempkmRefreshTimer);
-      window._sempkmRefreshTimer = null;
+      clearInterval(window.SemPKM._sempkmRefreshTimer);
+      window.SemPKM._sempkmRefreshTimer = null;
     }
   };
 
@@ -216,18 +216,18 @@
   var cb = document.getElementById('event-autorefresh-cb');
   if (cb) cb.checked = enabled;
 
-  if (enabled && !window._sempkmRefreshTimer) {
-    window._sempkmRefreshTimer = setInterval(window.sempkmRefreshEventLog, INTERVAL_MS);
-  } else if (!enabled && window._sempkmRefreshTimer) {
-    clearInterval(window._sempkmRefreshTimer);
-    window._sempkmRefreshTimer = null;
+  if (enabled && !window.SemPKM._sempkmRefreshTimer) {
+    window.SemPKM._sempkmRefreshTimer = setInterval(SemPKM.sempkmRefreshEventLog, INTERVAL_MS);
+  } else if (!enabled && window.SemPKM._sempkmRefreshTimer) {
+    clearInterval(window.SemPKM._sempkmRefreshTimer);
+    window.SemPKM._sempkmRefreshTimer = null;
   }
 
   /* Refresh immediately after a command is executed */
-  if (window._sempkmCmdListener) {
-    document.removeEventListener('sempkm:command-executed', window._sempkmCmdListener);
+  if (window.SemPKM._sempkmCmdListener) {
+    document.removeEventListener('sempkm:command-executed', window.SemPKM._sempkmCmdListener);
   }
-  window._sempkmCmdListener = window.sempkmRefreshEventLog;
-  document.addEventListener('sempkm:command-executed', window._sempkmCmdListener);
+  window.SemPKM._sempkmCmdListener = SemPKM.sempkmRefreshEventLog;
+  document.addEventListener('sempkm:command-executed', window.SemPKM._sempkmCmdListener);
 })();
 </script>

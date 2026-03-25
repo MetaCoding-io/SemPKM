@@ -246,10 +246,10 @@
     <script>
     // Provide fallback close functions for workspace form templates loaded on admin page
     if (typeof closeClassEditForm === 'undefined') {
-        window.closeClassEditForm = function() { closeAdminClassEdit(); };
+        window.SemPKM.closeClassEditForm = function() { closeAdminClassEdit(); };
     }
     if (typeof closeClassCreationForm === 'undefined') {
-        window.closeClassCreationForm = function() {};
+        window.SemPKM.closeClassCreationForm = function() {};
     }
 
     function openAdminClassEdit(encodedIri) {

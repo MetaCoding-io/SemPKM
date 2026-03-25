@@ -29,8 +29,8 @@
     lucide.createIcons();
   }
   function render() {
-    if (typeof window.renderMarkdownFromUrl === 'function') {
-      window.renderMarkdownFromUrl('/docs/guide/' + filename, 'docs-content');
+    if (typeof SemPKM.renderMarkdownFromUrl === 'function') {
+      SemPKM.renderMarkdownFromUrl('/docs/guide/' + filename, 'docs-content');
     }
   }
   if (document.readyState === 'loading') {

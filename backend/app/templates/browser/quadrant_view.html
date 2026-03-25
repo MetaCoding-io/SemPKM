@@ -40,7 +40,7 @@
                      data-iri="{{ item.iri }}"
                      data-title="{{ item.label }}">
                     <span class="quadrant-card-title"
-                          onclick="openTab('{{ item.iri }}', '{{ item.label | replace("'", "\\'") }}'); return false;">
+                          onclick="SemPKM.openTab('{{ item.iri }}', '{{ item.label | replace("'", "\\'") }}'); return false;">
                         {{ item.label }}
                     </span>
                 </div>
@@ -64,7 +64,7 @@
                  data-iri="{{ item.iri }}"
                  data-title="{{ item.label }}">
                 <span class="quadrant-card-title"
-                      onclick="openTab('{{ item.iri }}', '{{ item.label | replace("'", "\\'") }}'); return false;">
+                      onclick="SemPKM.openTab('{{ item.iri }}', '{{ item.label | replace("'", "\\'") }}'); return false;">
                     {{ item.label }}
                 </span>
             </div>

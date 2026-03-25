@@ -8,7 +8,7 @@
     <i data-lucide="git-branch" class="tree-icon"></i>
     <span class="tree-label" title="{{ wf.description | e if wf.description else wf.name | e }}">{{ wf.name }}</span>
     <button class="tree-leaf-action btn-icon" title="Delete workflow"
-            onclick="event.stopPropagation(); window._deleteWorkflow('{{ wf.id }}', '{{ wf.name | e }}')">
+            onclick="event.stopPropagation(); SemPKM._deleteWorkflow('{{ wf.id }}', '{{ wf.name | e }}')">
       <i data-lucide="trash-2"></i>
     </button>
   </div>
@@ -20,7 +20,7 @@
 <script>
 (function() {
   'use strict';
-  window._deleteWorkflow = function(id, name) {
+  window.SemPKM._deleteWorkflow = function(id, name) {
     if (!window.confirm('Delete workflow "' + name + '"? This cannot be undone.')) return;
     apiFetch('/api/workflow/' + id, { method: 'DELETE', silent: true })
       .then(function() {

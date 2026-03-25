@@ -90,7 +90,7 @@
   'use strict';
 
   /** Update a single preference field via PUT. */
-  window.notifUpdatePref = function (field, value) {
+  window.SemPKM.notifUpdatePref = function (field, value) {
     var payload = {};
     payload[field] = value;
     apiFetch('/api/notifications/preferences', {
@@ -104,7 +104,7 @@
   };
 
   /** Update quiet hours (both start and end together). */
-  window.notifUpdateQuietHours = function () {
+  window.SemPKM.notifUpdateQuietHours = function () {
     var start = document.getElementById('notif-quiet-start').value;
     var end = document.getElementById('notif-quiet-end').value;
     if (!start || !end) return;
@@ -122,7 +122,7 @@
   };
 
   /** Collect checked notification types and update. */
-  window.notifUpdateTypes = function () {
+  window.SemPKM.notifUpdateTypes = function () {
     var checkboxes = document.querySelectorAll('.notification-type-checkbox');
     var types = [];
     checkboxes.forEach(function (cb) {
@@ -137,7 +137,7 @@
   };
 
   /** Send a test notification and show the result. */
-  window.notifSendTest = function () {
+  window.SemPKM.notifSendTest = function () {
     var resultDiv = document.getElementById('notif-test-result');
     var btn = document.getElementById('notif-test-btn');
     resultDiv.textContent = 'Sending…';

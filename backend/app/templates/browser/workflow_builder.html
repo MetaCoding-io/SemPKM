@@ -36,17 +36,17 @@
   <div class="form-field">
     <label>Steps</label>
     <div id="wf-builder-steps"></div>
-    <button type="button" class="btn-secondary builder-add-block-btn" onclick="window._wfBuilderAddStep()">
+    <button type="button" class="btn-secondary builder-add-block-btn" onclick="SemPKM._wfBuilderAddStep()">
       <i data-lucide="plus"></i> Add Step
     </button>
   </div>
 
   <!-- Actions -->
   <div class="form-actions">
-    <button type="button" class="btn-primary" id="wf-builder-save-btn" onclick="window._wfBuilderSave()">
+    <button type="button" class="btn-primary" id="wf-builder-save-btn" onclick="SemPKM._wfBuilderSave()">
       <i data-lucide="save"></i> Save Workflow
     </button>
-    <button type="button" class="btn-secondary" onclick="window._wfBuilderCancel()">
+    <button type="button" class="btn-secondary" onclick="SemPKM._wfBuilderCancel()">
       Cancel
     </button>
     <span class="builder-saving-indicator" id="wf-builder-saving" style="display:none;">Saving...</span>
@@ -69,7 +69,7 @@
       case 'view':
         return '<div class="block-config-fields">' +
           '<div class="form-field"><label>View</label>' +
-          '<select class="step-config-spec-iri" data-key="spec_iri" onchange="window._wfUpdateRendererFromView(this)"><option value="">Loading views...</option></select>' +
+          '<select class="step-config-spec-iri" data-key="spec_iri" onchange="SemPKM._wfUpdateRendererFromView(this)"><option value="">Loading views...</option></select>' +
           ' <span class="renderer-badge">' + (config.renderer_type ? '(' + config.renderer_type + ')' : '') + '</span>' +
           '<input type="hidden" class="wf-auto-renderer" data-key="renderer_type" value="' + escapeAttr(config.renderer_type || 'table') + '">' +
           '<small class="field-help">Choose a view to display. The view\'s own renderer (table/cards/graph) will be used.</small></div>' +
@@ -85,7 +85,7 @@
           '<div class="form-field"><label>Target Class IRI</label>' +
           '<small class="field-help">The RDF type IRI for the create form.</small>' +
           '<div class="reference-field">' +
-          '<input type="text" class="reference-search builder-class-search" placeholder="Search classes..." autocomplete="off" oninput="window._wfBuilderClassSearch(this)"' +
+          '<input type="text" class="reference-search builder-class-search" placeholder="Search classes..." autocomplete="off" oninput="SemPKM._wfBuilderClassSearch(this)"' +
           (config.target_class ? ' value="' + escapeAttr(config.target_class) + '"' : '') + '>' +
           '<input type="hidden" class="block-config-input" data-key="target_class" value="' + escapeAttr(config.target_class || '') + '">' +
           '<div class="suggestions-dropdown builder-suggestions"></div>' +
@@ -150,7 +150,7 @@
     }
   });
 
-  window._wfBuilderClassSearch = function(inputEl) {
+  window.SemPKM._wfBuilderClassSearch = function(inputEl) {
     _wfBuilderAutocomplete(inputEl, '/browser/class-search');
   };
 
@@ -184,8 +184,8 @@
       selectEl.appendChild(opt);
     });
     // Auto-update the renderer badge if a value is already selected
-    if (currentValue && window._wfUpdateRendererFromView) {
-      window._wfUpdateRendererFromView(selectEl);
+    if (currentValue && SemPKM._wfUpdateRendererFromView) {
+      SemPKM._wfUpdateRendererFromView(selectEl);
     }
   }
 
@@ -222,7 +222,7 @@
 
   // ------ Auto-set renderer from selected view ------
 
-  window._wfUpdateRendererFromView = function(selectEl) {
+  window.SemPKM._wfUpdateRendererFromView = function(selectEl) {
     var row = selectEl.closest('.block-row');
     var hiddenRenderer = row.querySelector('[data-key="renderer_type"]');
     var badge = row.querySelector('.renderer-badge');
@@ -247,7 +247,7 @@
     row.dataset.stepIndex = idx;
 
     // Type select
-    var typeSelect = '<select class="block-type-select" onchange="window._wfBuilderTypeChanged(this)">';
+    var typeSelect = '<select class="block-type-select" onchange="SemPKM._wfBuilderTypeChanged(this)">';
     typeSelect += '<option value="">— Select type —</option>';
     validStepTypes.forEach(function(t) {
       typeSelect += '<option value="' + t + '"' + (step.type === t ? ' selected' : '') + '>' + t + '</option>';
@@ -262,7 +262,7 @@
         '<div class="form-field step-label-field"><input type="text" class="step-label-input" placeholder="Step label (optional)" value="' +
         escapeAttr(step.label || '') + '">' +
         '<small class="field-help">A label shown on the step tab (e.g. "Review", "Create").</small></div>' +
-        '<button type="button" class="btn-icon builder-remove-block-btn" onclick="window._wfBuilderRemoveStep(this)" title="Remove step">' +
+        '<button type="button" class="btn-icon builder-remove-block-btn" onclick="SemPKM._wfBuilderRemoveStep(this)" title="Remove step">' +
           '<i data-lucide="trash-2"></i></button>' +
       '</div>' +
       '<div class="block-row-fields">' +
@@ -273,7 +273,7 @@
     return row;
   }
 
-  window._wfBuilderAddStep = function(step) {
+  window.SemPKM._wfBuilderAddStep = function(step) {
     var container = document.getElementById('wf-builder-steps');
     var row = createStepRow(step);
     container.appendChild(row);
@@ -291,13 +291,13 @@
     if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [row] });
   };
 
-  window._wfBuilderRemoveStep = function(btn) {
+  window.SemPKM._wfBuilderRemoveStep = function(btn) {
     var row = btn.closest('.block-row');
     if (row) row.remove();
     renumberSteps();
   };
 
-  window._wfBuilderTypeChanged = function(select) {
+  window.SemPKM._wfBuilderTypeChanged = function(select) {
     var row = select.closest('.block-row');
     var container = row.querySelector('.block-config-container');
     var stepType = select.value;
@@ -331,7 +331,7 @@
 
   // ------ Save ------
 
-  window._wfBuilderSave = function() {
+  window.SemPKM._wfBuilderSave = function() {
     var nameInput = document.getElementById('wf-builder-name');
     var name = nameInput.value.trim();
     if (!name) {
@@ -409,8 +409,8 @@
       var builderTabKey = workflowId
         ? 'workflow-builder:' + workflowId
         : 'workflow-builder:new';
-      if (window._dockview) {
-        var panel = window._dockview.panels.find(function(p) { return p.id === builderTabKey; });
+      if (SemPKM._dockview) {
+        var panel = SemPKM._dockview.panels.find(function(p) { return p.id === builderTabKey; });
         if (panel) panel.api.close();
       }
     })
@@ -424,15 +424,15 @@
     });
   };
 
-  window._wfBuilderCancel = function() {
+  window.SemPKM._wfBuilderCancel = function() {
     var workflowId = null;
     var idInput = document.getElementById('wf-builder-workflow-id');
     if (idInput) workflowId = idInput.value;
     var builderTabKey = workflowId
       ? 'workflow-builder:' + workflowId
       : 'workflow-builder:new';
-    if (window._dockview) {
-      var panel = window._dockview.panels.find(function(p) { return p.id === builderTabKey; });
+    if (SemPKM._dockview) {
+      var panel = SemPKM._dockview.panels.find(function(p) { return p.id === builderTabKey; });
       if (panel) panel.api.close();
     }
   };
@@ -460,7 +460,7 @@
   // Load existing steps for edit mode
   if (existingSteps && existingSteps.length > 0) {
     existingSteps.forEach(function(s) {
-      window._wfBuilderAddStep(s);
+      SemPKM._wfBuilderAddStep(s);
     });
   }
 

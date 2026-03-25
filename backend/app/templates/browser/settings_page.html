@@ -14,42 +14,42 @@
       {% for category_name, settings_list in categories.items() %}
       <button class="settings-category-btn {% if loop.first %}active{% endif %}"
               data-category="{{ category_name | lower | replace(' ', '-') }}"
-              onclick="showSettingsCategory('{{ category_name | lower | replace(' ', '-') }}')">
+              onclick="SemPKM.showSettingsCategory('{{ category_name | lower | replace(' ', '-') }}')">
         {{ category_name }}
       </button>
       {% endfor %}
       {% if llm_config is not none %}
       <button class="settings-category-btn"
               data-category="llm-connection"
-              onclick="showSettingsCategory('llm-connection')">
+              onclick="SemPKM.showSettingsCategory('llm-connection')">
         LLM Connection
       </button>
       {% endif %}
       <button class="settings-category-btn"
               data-category="virtual-filesystem"
-              onclick="showSettingsCategory('virtual-filesystem')">
+              onclick="SemPKM.showSettingsCategory('virtual-filesystem')">
         Virtual Filesystem
       </button>
       <button class="settings-category-btn"
               data-category="webid-profile"
-              onclick="showSettingsCategory('webid-profile')">
+              onclick="SemPKM.showSettingsCategory('webid-profile')">
         WebID Profile
       </button>
       <button class="settings-category-btn"
               data-category="authorized-apps"
-              onclick="showSettingsCategory('authorized-apps')">
+              onclick="SemPKM.showSettingsCategory('authorized-apps')">
         <i data-lucide="key" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;"></i>
         Authorized Apps
       </button>
       <button class="settings-category-btn"
               data-category="context-rules"
-              onclick="showSettingsCategory('context-rules')">
+              onclick="SemPKM.showSettingsCategory('context-rules')">
         <i data-lucide="brain" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;"></i>
         Context Rules
       </button>
       <button class="settings-category-btn"
               data-category="notifications"
-              onclick="showSettingsCategory('notifications')">
+              onclick="SemPKM.showSettingsCategory('notifications')">
         <i data-lucide="bell" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;"></i>
         Notifications
       </button>
@@ -65,7 +65,7 @@
         <div class="settings-category-header">
           <h2 class="settings-category-title">{{ category_name }}</h2>
           <button class="settings-reset-all-btn"
-                  onclick="resetCategorySettings('{{ cat_id }}')">
+                  onclick="SemPKM.resetCategorySettings('{{ cat_id }}')">
             Reset to defaults
           </button>
         </div>
@@ -82,7 +82,7 @@
           <div class="settings-row-control">
             {% if setting.key in user_overrides %}
             <span class="settings-modified-badge">Modified</span>
-            <button class="settings-reset-btn" onclick="resetSingleSetting('{{ setting.key }}', this)">
+            <button class="settings-reset-btn" onclick="SemPKM.resetSingleSetting('{{ setting.key }}', this)">
               Reset
             </button>
             {% endif %}
@@ -165,7 +165,7 @@
   'use strict';
 
   // Category switching
-  window.showSettingsCategory = function (catId) {
+  window.SemPKM.showSettingsCategory = function (catId) {
     document.querySelectorAll('.settings-category-panel').forEach(function (p) {
       p.style.display = p.dataset.category === catId ? '' : 'none';
     });
@@ -175,7 +175,7 @@
   };
 
   // Search filter: hide non-matching rows; hide sidebar buttons for fully-filtered categories
-  window.filterSettings = function (query) {
+  window.SemPKM.filterSettings = function (query) {
     var q = query.toLowerCase().trim();
     document.querySelectorAll('.settings-row').forEach(function (row) {
       var text = (row.dataset.search || '').toLowerCase();
@@ -194,17 +194,17 @@
     var activeBtn = document.querySelector('.settings-category-btn.active');
     if (activeBtn && activeBtn.style.display === 'none') {
       var firstVisible = document.querySelector('.settings-category-btn:not([style*="display: none"])');
-      if (firstVisible) window.showSettingsCategory(firstVisible.dataset.category);
+      if (firstVisible) SemPKM.showSettingsCategory(firstVisible.dataset.category);
     }
   };
 
   // Instant apply: called by input onchange/oninput handlers
-  window.settingChanged = function (key, value) {
+  window.SemPKM.settingChanged = function (key, value) {
     if (window.SemPKMSettings) window.SemPKMSettings.set(key, value);
   };
 
   // Reset single setting
-  window.resetSingleSetting = function (key, btn) {
+  window.SemPKM.resetSingleSetting = function (key, btn) {
     if (!window.SemPKMSettings) return;
     window.SemPKMSettings.reset(key).then(function (data) {
       // Update the input to show the default value
@@ -227,7 +227,7 @@
   };
 
   // Reset all settings in a category
-  window.resetCategorySettings = function (catId) {
+  window.SemPKM.resetCategorySettings = function (catId) {
     var panel = document.getElementById('category-' + catId);
     if (!panel) return;
     var rows = panel.querySelectorAll('.settings-row[data-key]');
@@ -237,7 +237,7 @@
       var badge = row.querySelector('.settings-modified-badge');
       if (badge) {
         var resetBtn = row.querySelector('.settings-reset-btn');
-        promises.push(window.resetSingleSetting(key, resetBtn));
+        promises.push(SemPKM.resetSingleSetting(key, resetBtn));
       }
     });
   };
@@ -251,7 +251,7 @@
   // e.g. #vfs-mount-section → show virtual-filesystem category and scroll
   var hash = window.location.hash;
   if (hash === '#vfs-mount-section') {
-    window.showSettingsCategory('virtual-filesystem');
+    SemPKM.showSettingsCategory('virtual-filesystem');
     setTimeout(function () {
       var el = document.getElementById('vfs-mount-section');
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });

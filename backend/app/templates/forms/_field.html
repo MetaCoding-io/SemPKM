@@ -29,7 +29,7 @@
         </label>
         {% if prop.helptext %}
         <button type="button" class="btn-helptext-toggle"
-                onclick="toggleFieldHelp('{{ field_id }}')" title="Show help">
+                onclick="SemPKM.toggleFieldHelp('{{ field_id }}')" title="Show help">
             <i data-lucide="help-circle"></i>
         </button>
         {% endif %}
@@ -66,18 +66,18 @@
         {# Tags property (bpkm:tags or schema:keywords): add tag-pill-item class for pill styling (phase 19-02) #}
         <div class="multi-value-item {{ 'tag-pill-item' if ('tags' in prop.path or 'keywords' in prop.path) else '' }}">
             {{ _render_input(prop, field_id, val, loop.index0, is_required and loop.index0 == 0, false, ref_labels) }}
-            <button type="button" class="btn-remove-value" onclick="removeMultiValue(this)" title="Remove">&times;</button>
+            <button type="button" class="btn-remove-value" onclick="SemPKM.removeMultiValue(this)" title="Remove">&times;</button>
         </div>
         {% endfor %}
         {% else %}
         {# Show one empty input for new entries #}
         <div class="multi-value-item {{ 'tag-pill-item' if ('tags' in prop.path or 'keywords' in prop.path) else '' }}">
             {{ _render_input(prop, field_id, display_value, 0, is_required, is_default, ref_labels) }}
-            <button type="button" class="btn-remove-value" onclick="removeMultiValue(this)" title="Remove">&times;</button>
+            <button type="button" class="btn-remove-value" onclick="SemPKM.removeMultiValue(this)" title="Remove">&times;</button>
         </div>
         {% endif %}
     </div>
-    <button type="button" class="btn-add-value" onclick="addMultiValue('{{ field_id }}', '{{ prop.path }}')">+ Add {{ prop.name }}</button>
+    <button type="button" class="btn-add-value" onclick="SemPKM.addMultiValue('{{ field_id }}', '{{ prop.path }}')">+ Add {{ prop.name }}</button>
     {% else %}
     {# Single-valued property #}
     {{ _render_input(prop, field_id, display_value, none, is_required, is_default, ref_labels) }}
@@ -206,9 +206,9 @@
     (function() {
       function _initRR() {
         var el = document.getElementById('{{ input_id }}');
-        if (el && typeof window.initRecurrenceEditor === 'function') window.initRecurrenceEditor(el);
+        if (el && typeof SemPKM.initRecurrenceEditor === 'function') SemPKM.initRecurrenceEditor(el);
       }
-      if (typeof window.initRecurrenceEditor === 'function') { _initRR(); }
+      if (typeof SemPKM.initRecurrenceEditor === 'function') { _initRR(); }
       else {
         var s = document.createElement('script');
         s.src = '/js/recurrence-editor.js';
@@ -222,9 +222,9 @@
     (function() {
       function _initEX() {
         var el = document.getElementById('{{ input_id }}');
-        if (el && typeof window.initExdateEditor === 'function') window.initExdateEditor(el);
+        if (el && typeof SemPKM.initExdateEditor === 'function') SemPKM.initExdateEditor(el);
       }
-      if (typeof window.initExdateEditor === 'function') { _initEX(); }
+      if (typeof SemPKM.initExdateEditor === 'function') { _initEX(); }
       else {
         var s = document.createElement('script');
         s.src = '/js/recurrence-editor.js';

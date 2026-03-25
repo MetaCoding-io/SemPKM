@@ -50,7 +50,7 @@
 <div class="tree-leaf" data-testid="tag-object"
      data-iri="{{ obj.iri }}"
      draggable="true"
-     ondragstart="var thisIri = '{{ obj.iri }}'; var thisLabel = '{{ obj.label }}'; event.dataTransfer.setData('text/iri', thisIri); event.dataTransfer.setData('text/label', thisLabel); event.dataTransfer.effectAllowed = 'copy'; window.__canvasDragPayload = { iri: thisIri, label: thisLabel };"
+     ondragstart="var thisIri = '{{ obj.iri }}'; var thisLabel = '{{ obj.label }}'; event.dataTransfer.setData('text/iri', thisIri); event.dataTransfer.setData('text/label', thisLabel); event.dataTransfer.effectAllowed = 'copy'; window.SemPKM.__canvasDragPayload = { iri: thisIri, label: thisLabel };"
      onclick="handleTreeLeafClick(event, '{{ obj.iri }}', '{{ obj.label }}')">
     <i data-lucide="{{ obj_icon.icon }}"
        class="tree-leaf-icon"

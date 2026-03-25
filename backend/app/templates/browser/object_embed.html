@@ -64,8 +64,8 @@
   </div>
   <script>
     (function() {
-      if (typeof window.renderMarkdownBody === 'function') {
-        window.renderMarkdownBody('md-source-embed', 'md-rendered-embed');
+      if (typeof SemPKM.renderMarkdownBody === 'function') {
+        SemPKM.renderMarkdownBody('md-source-embed', 'md-rendered-embed');
       } else {
         var src = document.getElementById('md-source-embed');
         var tgt = document.getElementById('md-rendered-embed');

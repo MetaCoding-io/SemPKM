@@ -12,7 +12,7 @@
 <div class="abox-instance"
      data-testid="abox-instance"
      data-iri="{{ inst.iri }}"
-     onclick="if(window.openTab) openTab('{{ inst.iri }}', '{{ inst.label | replace("'", "\\'") }}')">
+     onclick="if(SemPKM.openTab) SemPKM.openTab('{{ inst.iri }}', '{{ inst.label | replace("'", "\\'") }}')">
     <span class="abox-instance-icon">&#9679;</span>
     <span class="abox-instance-label" title="{{ inst.iri }}">{{ inst.label }}</span>
 </div>

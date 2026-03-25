@@ -171,7 +171,7 @@
   }
 
   // Expose functions to global scope
-  window.webidClaimUsername = function () {
+  window.SemPKM.webidClaimUsername = function () {
     var input = document.getElementById('webid-username-input');
     var username = input.value.trim();
     var errDiv = document.getElementById('webid-username-error');
@@ -200,7 +200,7 @@
     });
   };
 
-  window.webidTogglePublish = function (checked) {
+  window.SemPKM.webidTogglePublish = function (checked) {
     var endpoint = checked ? '/api/webid/publish' : '/api/webid/unpublish';
     apiFetch(endpoint, { method: 'POST', credentials: 'include', silent: true })
       .then(function (r) { return r.json(); })
@@ -209,14 +209,14 @@
           });
   };
 
-  window.webidCopyPEM = function () {
+  window.SemPKM.webidCopyPEM = function () {
     var pem = document.getElementById('webid-pem-store').value;
     if (pem && navigator.clipboard) {
       navigator.clipboard.writeText(pem);
     }
   };
 
-  window.webidRegenerateKey = function () {
+  window.SemPKM.webidRegenerateKey = function () {
     if (!confirm('Regenerate your key pair? The old key will be permanently discarded. Any systems relying on your current public key will need updating.')) {
       return;
     }
@@ -229,16 +229,16 @@
       });
   };
 
-  window.webidAddLinkRow = function () {
+  window.SemPKM.webidAddLinkRow = function () {
     appendLinkRow('');
   };
 
-  window.webidShowSaveBtn = function () {
+  window.SemPKM.webidShowSaveBtn = function () {
     var rows = document.querySelectorAll('.webid-link-row');
     document.getElementById('webid-save-links-btn').style.display = rows.length > 0 ? '' : 'none';
   };
 
-  window.webidSaveLinks = function () {
+  window.SemPKM.webidSaveLinks = function () {
     var inputs = document.querySelectorAll('.webid-link-input');
     var links = [];
     inputs.forEach(function (inp) {

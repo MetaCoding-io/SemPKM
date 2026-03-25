@@ -149,7 +149,7 @@
             <tbody>
               {% for item in results.results %}
               <tr class="lint-dashboard-row lint-severity-{{ item.severity | lower }}"
-                  onclick="openTab('{{ item.focus_node }}', '{{ item.object_label | e }}')"
+                  onclick="SemPKM.openTab('{{ item.focus_node }}', '{{ item.object_label | e }}')"
                   title="{{ item.message | e }}">
                 <td class="severity-icon">
                   {% if item.severity == 'Violation' %}

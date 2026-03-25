@@ -108,7 +108,7 @@ window.SEMPKM_BASE_NAMESPACE = "{{ base_namespace }}";
         var safeLabel = label.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
         var href = '/browser/object/' + encodeURIComponent(uri);
         return '<a class="sparql-iri-link" href="' + href + '" ' +
-          'onclick="event.preventDefault();if(window.openTab){window.openTab(\'' + safeUri + '\',\'' + safeLabel + '\');}else{window.location.href=this.href;}" ' +
+          'onclick="event.preventDefault();if(SemPKM.openTab){SemPKM.openTab(\'' + safeUri + '\',\'' + safeLabel + '\');}else{window.location.href=this.href;}" ' +
           'title="' + uri.replace(/"/g, '&quot;') + '">' + label + '</a>';
       }
       return origFormatter ? origFormatter(uri, compact) : null;

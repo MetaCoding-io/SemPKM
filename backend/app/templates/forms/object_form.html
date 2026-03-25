@@ -32,7 +32,7 @@
             Edit {{ form.label | replace(' Shape', '') }}
             {% endif %}
         </h2>
-        <button type="button" class="btn btn-sm collapse-toggle" onclick="toggleAllSections(this)"
+        <button type="button" class="btn btn-sm collapse-toggle" onclick="SemPKM.toggleAllSections(this)"
                 title="Expand All">&#9655;&#9665;</button>
     </div>
 
@@ -151,7 +151,7 @@
     'use strict';
 
     // Collapse/Expand all sections (form groups + required section)
-    window.toggleAllSections = function(btn) {
+    window.SemPKM.toggleAllSections = function(btn) {
         var container = btn.closest('.object-form-container');
         if (!container) return;
         var details = container.querySelectorAll('details.form-group');
@@ -162,7 +162,7 @@
     };
 
     // Multi-value add/remove functions
-    window.addMultiValue = function(fieldId, propPath) {
+    window.SemPKM.addMultiValue = function(fieldId, propPath) {
         var list = document.querySelector('.multi-value-list[data-field-id="' + fieldId + '"]');
         if (!list) return;
 
@@ -239,14 +239,14 @@
         removeBtn.className = 'btn-remove-value';
         removeBtn.title = 'Remove';
         removeBtn.textContent = '\u00D7';
-        removeBtn.onclick = function() { removeMultiValue(removeBtn); };
+        removeBtn.onclick = function() { SemPKM.removeMultiValue(removeBtn); };
         newItem.appendChild(removeBtn);
 
         list.appendChild(newItem);
         htmx.process(newItem);
     };
 
-    window.removeMultiValue = function(btn) {
+    window.SemPKM.removeMultiValue = function(btn) {
         var item = btn.closest('.multi-value-item');
         var list = item.closest('.multi-value-list');
         if (list.querySelectorAll('.multi-value-item').length > 1) {
@@ -259,7 +259,7 @@
     };
 
     // Reference search: select a suggestion
-    window.selectReference = function(fieldId, iri, label, index) {
+    window.SemPKM.selectReference = function(fieldId, iri, label, index) {
         var suffix = (index !== undefined && index !== null) ? '-' + index : '';
         var hiddenInput = document.getElementById('input-' + fieldId + suffix + '-hidden');
         var searchInput = document.getElementById('input-' + fieldId + suffix + '-search');
@@ -275,14 +275,14 @@
     if (form) {
         form.addEventListener('input', function() {
             var objectIri = form.querySelector('input[name="object_iri"]');
-            if (objectIri && objectIri.value && typeof window.markDirty === 'function') {
-                window.markDirty(objectIri.value);
+            if (objectIri && objectIri.value && typeof SemPKM.markDirty === 'function') {
+                SemPKM.markDirty(objectIri.value);
             }
         });
     }
 
     // Toggle field-level helptext
-    window.toggleFieldHelp = function(fieldId) {
+    window.SemPKM.toggleFieldHelp = function(fieldId) {
         var el = document.getElementById('helptext-' + fieldId);
         if (!el) return;
         var isHidden = el.style.display === 'none';

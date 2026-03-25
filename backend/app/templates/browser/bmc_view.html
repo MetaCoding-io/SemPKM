@@ -30,7 +30,7 @@
                                   data-iri="{{ item['iri'] }}"
                                   placeholder="Add content…">{{ item['content'] }}</textarea>
                         <span class="bmc-item-label"
-                              onclick="openTab('{{ item['iri'] }}', '{{ item['label'] | replace("'", "\\'") }}'); return false;">
+                              onclick="SemPKM.openTab('{{ item['iri'] }}', '{{ item['label'] | replace("'", "\\'") }}'); return false;">
                             {{ item['label'] }}
                         </span>
                     </div>

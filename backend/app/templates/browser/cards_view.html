@@ -26,7 +26,7 @@
 <div class="flip-card" data-iri="{{ card.iri }}" data-testid="card-item">
     <div class="flip-card-inner">
         <div class="flip-card-front">
-            <div class="card-title" onclick="openTab('{{ card.iri }}', '{{ card.label | replace("'", "\\'") }}'); return false;">{{ card.label }}</div>
+            <div class="card-title" onclick="SemPKM.openTab('{{ card.iri }}', '{{ card.label | replace("'", "\\'") }}'); return false;">{{ card.label }}</div>
             <div class="card-snippet">{{ card.snippet }}</div>
             <button class="card-btn card-btn-focus" onclick="focusCard(this.closest('.flip-card'))" title="Focus card">&#x26F6;</button>
             <button class="card-btn card-btn-flip" onclick="this.closest('.flip-card').classList.toggle('flipped')" title="Flip card">&#x21BB;</button>
@@ -49,14 +49,14 @@
                 <div class="card-rel">
                     <span class="card-rel-dir">&#x2192;</span>
                     <span class="card-rel-predicate">{{ rel.predicate_label }}</span>
-                    <a href="#" onclick="openTab('{{ rel.target_iri }}', '{{ rel.target_label | replace("'", "\\'") }}'); return false;">{{ rel.target_label }}</a>
+                    <a href="#" onclick="SemPKM.openTab('{{ rel.target_iri }}', '{{ rel.target_label | replace("'", "\\'") }}'); return false;">{{ rel.target_label }}</a>
                 </div>
                 {% endfor %}
                 {% for rel in card.inbound_relations %}
                 <div class="card-rel">
                     <span class="card-rel-dir">&#x2190;</span>
                     <span class="card-rel-predicate">{{ rel.predicate_label }}</span>
-                    <a href="#" onclick="openTab('{{ rel.target_iri }}', '{{ rel.target_label | replace("'", "\\'") }}'); return false;">{{ rel.target_label }}</a>
+                    <a href="#" onclick="SemPKM.openTab('{{ rel.target_iri }}', '{{ rel.target_label | replace("'", "\\'") }}'); return false;">{{ rel.target_label }}</a>
                 </div>
                 {% endfor %}
             </div>

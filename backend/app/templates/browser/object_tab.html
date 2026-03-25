@@ -16,7 +16,7 @@
       <button class="star-btn{% if is_favorite %} is-favorited{% endif %}"
               id="star-btn-{{ safe_id }}"
               data-iri="{{ object_iri }}"
-              onclick="toggleFavorite('{{ object_iri }}')"
+              onclick="SemPKM.toggleFavorite('{{ object_iri }}')"
               title="{{ 'Remove from favorites' if is_favorite else 'Add to favorites' }}">
         <i data-lucide="star"></i>
       </button>
@@ -38,7 +38,7 @@
               data-object-iri="{{ object_iri }}"
               data-has-body="{{ 'true' if body_text and body_text.strip() else 'false' }}"
               data-property-count="{{ property_count }}"
-              onclick="toggleProperties('{{ safe_id }}', '{{ object_iri }}')"
+              onclick="SemPKM.toggleProperties('{{ safe_id }}', '{{ object_iri }}')"
               title="Toggle properties">
         <span class="props-badge-icon">&#9656;</span>
         {{ property_count }} propert{{ 'y' if property_count == 1 else 'ies' }}
@@ -46,12 +46,12 @@
       {% endif %}
 
       <button class="btn btn-sm mode-toggle" id="mode-toggle-{{ safe_id }}"
-              onclick="toggleObjectMode('{{ safe_id }}', '{{ object_iri }}')"
+              onclick="SemPKM.toggleObjectMode('{{ safe_id }}', '{{ object_iri }}')"
               title="Toggle Edit (Alt+E)">
         Edit
       </button>
       <button class="btn btn-sm btn-save" id="save-btn-{{ safe_id }}"
-              onclick="saveCurrentObject()" title="Save (Alt+S)" style="display: none;">
+              onclick="SemPKM.saveCurrentObject()" title="Save (Alt+S)" style="display: none;">
         Save
       </button>
     </div>
@@ -81,10 +81,10 @@
         </div>
         <div class="object-editor-section" id="editor-section-{{ safe_id }}">
           <div class="editor-toolbar">
-            <button type="button" class="editor-btn" onclick="editorAction('bold')" title="Bold (Ctrl+B)"><b>B</b></button>
-            <button type="button" class="editor-btn" onclick="editorAction('italic')" title="Italic (Ctrl+I)"><i>I</i></button>
-            <button type="button" class="editor-btn" onclick="editorAction('heading')" title="Heading">H</button>
-            <button type="button" class="editor-btn" onclick="editorAction('link')" title="Link">&#128279;</button>
+            <button type="button" class="editor-btn" onclick="SemPKM.editorAction('bold')" title="Bold (Ctrl+B)"><b>B</b></button>
+            <button type="button" class="editor-btn" onclick="SemPKM.editorAction('italic')" title="Italic (Ctrl+I)"><i>I</i></button>
+            <button type="button" class="editor-btn" onclick="SemPKM.editorAction('heading')" title="Heading">H</button>
+            <button type="button" class="editor-btn" onclick="SemPKM.editorAction('link')" title="Link">&#128279;</button>
             <span class="editor-toolbar-separator"></span>
             <span class="editor-status" id="editor-status"></span>
           </div>
@@ -131,14 +131,14 @@
     var typeIcon = '{{ type_icon.icon if type_icon else "" }}';
     var typeColor = '{{ type_icon.color if type_icon else "" }}';
     if (typeIcon) {
-      if (!window._tabMeta) window._tabMeta = {};
-      if (!window._tabMeta[tabKey]) window._tabMeta[tabKey] = {};
-      window._tabMeta[tabKey].typeIcon = typeIcon;
-      window._tabMeta[tabKey].typeColor = typeColor;
+      if (!window.SemPKM._tabMeta) window.SemPKM._tabMeta = {};
+      if (!window.SemPKM._tabMeta[tabKey]) window.SemPKM._tabMeta[tabKey] = {};
+      window.SemPKM._tabMeta[tabKey].typeIcon = typeIcon;
+      window.SemPKM._tabMeta[tabKey].typeColor = typeColor;
     }
     // Apply accent color if this is the active panel
-    if (typeColor && window._dockview) {
-      var dv = window._dockview;
+    if (typeColor && window.SemPKM._dockview) {
+      var dv = window.SemPKM._dockview;
       var panel = dv.activePanel;
       if (panel && panel.id === tabKey && panel.group) {
         panel.group.element.style.setProperty('--tab-accent-color', typeColor);
@@ -156,14 +156,14 @@
   // Properties toggle: localStorage-backed per-object preference
   var PROPS_PREF_KEY = 'sempkm_props_collapsed';
 
-  window.getPropsPreference = function(objectIri) {
+  window.SemPKM.getPropsPreference = function(objectIri) {
     try {
       var data = JSON.parse(localStorage.getItem(PROPS_PREF_KEY) || '{}');
       return data[objectIri]; // true=collapsed, false=expanded, undefined=no pref
     } catch (e) { return undefined; }
   };
 
-  window.setPropsPreference = function(objectIri, collapsed) {
+  window.SemPKM.setPropsPreference = function(objectIri, collapsed) {
     try {
       var data = JSON.parse(localStorage.getItem(PROPS_PREF_KEY) || '{}');
       data[objectIri] = collapsed;
@@ -171,7 +171,7 @@
     } catch (e) {}
   };
 
-  window.toggleProperties = function(safeId, objectIri) {
+  window.SemPKM.toggleProperties = function(safeId, objectIri) {
     var readProps = document.getElementById('read-props-' + safeId);
     var editProps = document.getElementById('edit-props-' + safeId);
     var badge = document.getElementById('props-toggle-' + safeId);
@@ -194,11 +194,11 @@
       if (icon) icon.textContent = newCollapsed ? '\u25B8' : '\u25BE';
     }
 
-    setPropsPreference(objectIri, newCollapsed);
+    SemPKM.setPropsPreference(objectIri, newCollapsed);
   };
 
-  window.initPropertiesState = function(safeId, objectIri, hasBody) {
-    var pref = getPropsPreference(objectIri);
+  window.SemPKM.initPropertiesState = function(safeId, objectIri, hasBody) {
+    var pref = SemPKM.getPropsPreference(objectIri);
     var collapsed;
 
     if (pref !== undefined) {
@@ -262,8 +262,8 @@
         var initialContent = container.dataset.initialContent || '';
         var objectIri = container.dataset.objectIri || '';
 
-        if (typeof window.initEditor === 'function') {
-          window.initEditor(containerId, initialContent, objectIri);
+        if (typeof SemPKM.initEditor === 'function') {
+          SemPKM.initEditor(containerId, initialContent, objectIri);
           return true;
         }
         return false;
@@ -283,8 +283,8 @@
 
         fallback.style.display = 'block';
         fallback.addEventListener('input', function () {
-          if (typeof window.markDirty === 'function') {
-            window.markDirty(fallback.dataset.objectIri || '');
+          if (typeof SemPKM.markDirty === 'function') {
+            SemPKM.markDirty(fallback.dataset.objectIri || '');
           }
         });
       }
@@ -304,10 +304,10 @@
         });
         var load = import('/js/editor.js').then(function(mod) {
           if (mod && typeof mod.initEditor === 'function') {
-            window.initEditor = mod.initEditor;
-            window.editorAction = mod.editorAction;
-            window.getEditor = mod.getEditor;
-            window.destroyEditor = mod.destroyEditor;
+            window.SemPKM.initEditor = mod.initEditor;
+            window.SemPKM.editorAction = mod.editorAction;
+            window.SemPKM.getEditor = mod.getEditor;
+            window.SemPKM.destroyEditor = mod.destroyEditor;
           }
           return initBodyEditor();
         });
@@ -324,7 +324,7 @@
 
     // Initialize properties collapse state
     var hasBody = {{ 'true' if body_text and body_text.strip() else 'false' }};
-    initPropertiesState(safeId, '{{ object_iri }}', hasBody);
+    SemPKM.initPropertiesState(safeId, '{{ object_iri }}', hasBody);
 
     // If mode is 'edit' (e.g., newly created objects), initialize immediately
     {% if mode == 'edit' %}

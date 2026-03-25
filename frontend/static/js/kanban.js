@@ -38,7 +38,7 @@
 
     // Side-channel for calendar / canvas external drop handlers
     window.__calendarDragPayload = { iri: iri, title: title };
-    window.__canvasDragPayload = { iri: iri, label: title };
+    window.SemPKM.__canvasDragPayload = { iri: iri, label: title };
 
     card.classList.add('dragging');
     // Prevent dockview from intercepting the drag

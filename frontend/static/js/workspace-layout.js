@@ -424,7 +424,7 @@
 
     // Belt-and-suspenders: also save on beforeunload
     window.addEventListener('beforeunload', function () {
-      if (window._sempkmSkipLayoutSave) return;
+      if (window.SemPKM._sempkmSkipLayoutSave) return;
       try {
         localStorage.setItem(DV_LAYOUT_KEY, JSON.stringify(dv.toJSON()));
       } catch (e) {}
