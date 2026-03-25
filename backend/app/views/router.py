@@ -158,10 +158,17 @@ async def saved_queries_explorer(
     except Exception:
         logger.exception("saved_queries_explorer: failed to load queries")
         queries = []
+    model_queries = [q for q in queries if q.source == "model"]
+    user_queries = [q for q in queries if q.source != "model"]
     return templates.TemplateResponse(
         request,
         "browser/saved_queries_explorer.html",
-        {"request": request, "queries": queries},
+        {
+            "request": request,
+            "queries": queries,
+            "model_queries": model_queries,
+            "user_queries": user_queries,
+        },
     )
 
 

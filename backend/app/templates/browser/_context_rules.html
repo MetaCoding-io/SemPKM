@@ -43,14 +43,12 @@
       </div>
       <div class="context-rule-conditions-summary">
         {% set conds = rule.conditions or {} %}
-        {% set has_conds = [] %}
         {% for key, val in conds.items() %}
           {% if val is not none and val != '' %}
-            {% if has_conds.append(1) %}{% endif %}
             <span class="context-rule-condition-tag">{{ key | replace('_', ' ') | title }}: {{ val }}</span>
           {% endif %}
         {% endfor %}
-        {% if not has_conds %}
+        {% if not rule.has_conditions %}
           <span class="context-rule-condition-tag context-rule-condition-any">Any context (catch-all)</span>
         {% endif %}
       </div>

@@ -12,20 +12,8 @@
   </div>
 
   {% if form %}
-    {# Build form_paths list for checking inferred-only properties #}
-    {% set form_paths = [] %}
-    {% for prop in form.properties %}
-      {% set _ = form_paths.append(prop.path) %}
-    {% endfor %}
 
-    {# Check if there are any property values to show #}
-    {% set ns = namespace(any_prop=false) %}
-    {% for prop in form.properties %}
-      {% set vals = read_values.get(prop.path, []) %}
-      {% if vals and prop.path != body_property_path %}{% set ns.any_prop = true %}{% endif %}
-    {% endfor %}
-
-    {% if ns.any_prop %}
+    {% if any_prop %}
     <table class="embed-property-table" style="width:100%; border-collapse:collapse; margin-bottom:16px; font-size:0.88rem;">
       <tbody>
         {% for prop in form.properties %}

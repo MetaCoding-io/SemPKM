@@ -142,13 +142,6 @@
             <i data-lucide="alert-triangle"></i>
             Warnings ({{ scan_result.warnings|length }})
         </h3>
-        {% set warning_categories = {} %}
-        {% for w in scan_result.warnings %}
-            {% if w.category not in warning_categories %}
-                {% set _ = warning_categories.update({w.category: []}) %}
-            {% endif %}
-            {% set _ = warning_categories[w.category].append(w) %}
-        {% endfor %}
         {% for cat, warnings in warning_categories.items() %}
         <details class="import-collapsible">
             <summary>

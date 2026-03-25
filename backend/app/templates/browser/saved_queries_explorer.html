@@ -2,16 +2,6 @@
    Rendered by GET /browser/views/saved-queries/explorer.
    Context: queries — list of SavedQueryData objects (id, name, description, source, readonly) #}
 
-{% set user_queries = [] %}
-{% set model_queries = [] %}
-{% for q in queries %}
-  {% if q.source == 'model' %}
-    {% set _ = model_queries.append(q) %}
-  {% else %}
-    {% set _ = user_queries.append(q) %}
-  {% endif %}
-{% endfor %}
-
 {% if queries %}
   {% if user_queries %}
   <div class="tree-group-header">My Queries</div>

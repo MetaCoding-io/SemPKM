@@ -40,47 +40,15 @@
 </div>
 {% else %}
 <div class="object-read-view">
-  {# Check if there are any properties (user or inferred) #}
-  {% set ns_check = namespace(has_values=false) %}
-  {% for prop in form.properties %}
-    {% set vals = read_values.get(prop.path, []) %}
-    {% if vals %}
-      {% set ns_check.has_values = true %}
-    {% endif %}
-  {% endfor %}
-  {# Also check for inferred-only properties not in the form #}
-  {% set form_paths = [] %}
-  {% for prop in form.properties %}
-    {% set _ = form_paths.append(prop.path) %}
-  {% endfor %}
-  {% for pred, items in read_values.items() %}
-    {% if pred not in form_paths %}
-      {% set ns_check.has_values = true %}
-    {% endif %}
-  {% endfor %}
-
-  {% if not ns_check.has_values and not body_text %}
+  {% if not has_values and not body_text %}
   <div class="read-empty">
     <p>This object has no content yet.</p>
   </div>
   {% else %}
 
   {# Property table: unified grid with user + inferred properties inline #}
-  {% set ns = namespace(any_prop=false) %}
-  {% for prop in form.properties %}
-    {% set vals = read_values.get(prop.path, []) %}
-    {% if vals %}{% set ns.any_prop = true %}{% endif %}
-  {% endfor %}
-  {# Check inferred-only and mirrored-only properties too #}
-  {% for pred, items in read_values.items() %}
-    {% if pred not in form_paths %}
-      {% set inferred_items = items | selectattr("source", "equalto", "inferred") | list %}
-      {% set mirrored_items = items | selectattr("source", "equalto", "mirrored") | list %}
-      {% if inferred_items or mirrored_items %}{% set ns.any_prop = true %}{% endif %}
-    {% endif %}
-  {% endfor %}
 
-  {% if ns.any_prop %}
+  {% if any_prop %}
   <div class="properties-collapsible" id="read-props-{{ safe_id }}">
     <div class="properties-inner">
       <div class="property-table">

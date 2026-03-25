@@ -51,14 +51,7 @@
     <!-- Block palette sidebar -->
     <aside class="block-palette" id="block-palette">
       <h3 class="block-palette-title">Blocks</h3>
-      {% set categories = {} %}
-      {% for bt in block_types %}
-        {% if bt.category not in categories %}
-          {% if categories.update({bt.category: []}) %}{% endif %}
-        {% endif %}
-        {% if categories[bt.category].append(bt) %}{% endif %}
-      {% endfor %}
-      {% for cat_name, cat_items in categories.items() %}
+      {% for cat_name, cat_items in block_categories.items() %}
       <div class="block-palette-category">
         <h4 class="block-palette-category-label">{{ cat_name | capitalize }}</h4>
         {% for bt in cat_items %}

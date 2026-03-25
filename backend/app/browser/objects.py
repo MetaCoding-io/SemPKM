@@ -49,6 +49,44 @@ from ._helpers import (
 
 logger = logging.getLogger(__name__)
 
+_SKIP_PATHS_STATIC = frozenset([
+    "http://purl.org/dc/terms/created",
+    "http://purl.org/dc/terms/modified",
+])
+
+
+def _partition_form_properties(
+    form,
+    body_property_path: str = "",
+) -> dict:
+    """Pre-compute property partitions for the object form template.
+
+    Returns a dict with required_props, optional_ungrouped, and
+    group_props (dict[group_iri → list[prop]]) — eliminating the
+    Jinja2 namespace() hacks in object_form.html.
+    """
+    if not form:
+        return {"required_props": [], "optional_ungrouped": [], "group_props": {}}
+    skip = _SKIP_PATHS_STATIC | {body_property_path or ""}
+    required_props = []
+    optional_ungrouped = []
+    group_props: dict[str, list] = {}
+    for prop in form.properties:
+        if prop.path in skip:
+            continue
+        if prop.group:
+            group_props.setdefault(prop.group, []).append(prop)
+        elif prop.min_count is not None and prop.min_count > 0:
+            required_props.append(prop)
+        else:
+            optional_ungrouped.append(prop)
+    return {
+        "required_props": required_props,
+        "optional_ungrouped": optional_ungrouped,
+        "group_props": group_props,
+    }
+
+
 objects_router = APIRouter(tags=["objects"])
 
 
@@ -297,6 +335,53 @@ async def get_object(
     )
     is_favorite = fav_result.scalar_one_or_none() is not None
 
+    # Pre-compute template helper values (eliminates Jinja2 .append / namespace hacks)
+    form_paths: list[str] = []
+    has_values = False
+    any_prop_read = False
+    any_prop_embed = False
+    property_count = 0
+    if form:
+        form_paths = [prop.path for prop in form.properties]
+        # has_values: any form property has read_values, or non-form predicate exists in read_values
+        for prop in form.properties:
+            if read_values.get(prop.path):
+                has_values = True
+                break
+        if not has_values:
+            for pred in read_values:
+                if pred not in form_paths:
+                    has_values = True
+                    break
+        # any_prop_read: any form property has values, or non-form pred has inferred/mirrored items
+        for prop in form.properties:
+            if read_values.get(prop.path):
+                any_prop_read = True
+                break
+        if not any_prop_read:
+            for pred, items in read_values.items():
+                if pred not in form_paths:
+                    if any(
+                        item.get("source") in ("inferred", "mirrored")
+                        for item in items
+                    ):
+                        any_prop_read = True
+                        break
+        # any_prop_embed: any form property has values excluding body_property_path
+        for prop in form.properties:
+            vals = read_values.get(prop.path)
+            if vals and prop.path != body_property_path:
+                any_prop_embed = True
+                break
+        # property_count: count of form props with non-body values (for tab badge)
+        for prop in form.properties:
+            vals = values.get(prop.path, [])
+            if vals and prop.path != body_property_path:
+                property_count += 1
+
+    # Pre-compute form property partitions for the edit form (object_form.html included via object_tab.html)
+    form_parts = _partition_form_properties(form, body_property_path)
+
     context = {
         "request": request,
         "form": form,
@@ -316,6 +401,11 @@ async def get_object(
         "mode": mode,
         "type_icon": type_icon,
         "is_favorite": is_favorite,
+        "form_paths": form_paths,
+        "has_values": has_values,
+        "any_prop": any_prop_read,
+        "property_count": property_count,
+        **form_parts,
     }
 
     if embed:
@@ -329,6 +419,8 @@ async def get_object(
             "ref_labels": ref_labels,
             "body_text": body_text,
             "body_property_path": body_property_path,
+            "form_paths": form_paths,
+            "any_prop": any_prop_embed,
         }
         response = templates.TemplateResponse(
             request, "browser/object_embed.html", embed_context
@@ -1087,6 +1179,7 @@ async def create_form(
             status_code=200,
         )
 
+    form_parts = _partition_form_properties(form)
     context = {
         "request": request,
         "form": form,
@@ -1095,6 +1188,7 @@ async def create_form(
         "object_iri": None,
         "success_message": None,
         "error_message": None,
+        **form_parts,
     }
 
     return templates.TemplateResponse(
@@ -1180,6 +1274,7 @@ async def create_object(
 
         # Re-render as edit form with success message
         form = await shapes_service.get_form_for_type(type_iri)
+        form_parts = _partition_form_properties(form)
         context = {
             "request": request,
             "form": form,
@@ -1188,6 +1283,7 @@ async def create_object(
             "object_iri": created_iri,
             "success_message": f"Created {type_iri.rsplit('/', 1)[-1].rsplit(':', 1)[-1]} successfully",
             "error_message": None,
+            **form_parts,
         }
 
         response = templates.TemplateResponse(
@@ -1202,6 +1298,7 @@ async def create_object(
     except Exception as e:
         logger.exception("Failed to create object")
         form = await shapes_service.get_form_for_type(type_iri)
+        form_parts = _partition_form_properties(form)
         context = {
             "request": request,
             "form": form,
@@ -1210,6 +1307,7 @@ async def create_object(
             "object_iri": None,
             "success_message": None,
             "error_message": f"Failed to create object: {str(e)}",
+            **form_parts,
         }
         return templates.TemplateResponse(
             request, "forms/object_form.html", context
@@ -1302,6 +1400,7 @@ async def save_object(
         }
         save_ref_labels = await label_service.resolve_batch(list(ref_iris)) if ref_iris else {}
 
+        form_parts = _partition_form_properties(form)
         context = {
             "request": request,
             "form": form,
@@ -1311,6 +1410,7 @@ async def save_object(
             "object_iri": decoded_iri,
             "success_message": "Changes saved successfully",
             "error_message": None,
+            **form_parts,
         }
 
         response = templates.TemplateResponse(
@@ -1335,6 +1435,7 @@ async def save_object(
     except Exception as e:
         logger.exception("Failed to save object %s", decoded_iri)
         form = await shapes_service.get_form_for_type(type_iri)
+        form_parts = _partition_form_properties(form)
         context = {
             "request": request,
             "form": form,
@@ -1343,6 +1444,7 @@ async def save_object(
             "object_iri": decoded_iri,
             "success_message": None,
             "error_message": f"Failed to save changes: {str(e)}",
+            **form_parts,
         }
         return templates.TemplateResponse(
             request, "forms/object_form.html", context

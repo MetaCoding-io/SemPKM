@@ -97,6 +97,14 @@ def _block_types_for_template() -> list[dict]:
     return result
 
 
+def _block_types_by_category() -> dict[str, list[dict]]:
+    """Group block-type dicts by category for the builder palette."""
+    cats: dict[str, list[dict]] = {}
+    for bt in _block_types_for_template():
+        cats.setdefault(bt["category"], []).append(bt)
+    return cats
+
+
 # ---------------------------------------------------------------------------
 # Browser routes (htmx partials)
 # ---------------------------------------------------------------------------
@@ -133,6 +141,7 @@ async def dashboard_builder_new(
         "layout_definitions": LAYOUT_DEFINITIONS,
         "valid_block_types": sorted(VALID_BLOCK_TYPES),
         "block_types": _block_types_for_template(),
+        "block_categories": _block_types_by_category(),
     }
     return templates.TemplateResponse(
         request, "browser/dashboard_builder.html", context
@@ -164,6 +173,7 @@ async def dashboard_builder_edit(
         "layout_definitions": LAYOUT_DEFINITIONS,
         "valid_block_types": sorted(VALID_BLOCK_TYPES),
         "block_types": _block_types_for_template(),
+        "block_categories": _block_types_by_category(),
     }
     return templates.TemplateResponse(
         request, "browser/dashboard_builder.html", context

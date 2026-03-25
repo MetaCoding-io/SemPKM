@@ -223,10 +223,14 @@ async def trigger_scan(
         )
 
         templates = request.app.state.templates
+        # Pre-group warnings by category for the template
+        warning_categories: dict[str, list] = {}
+        for w in result.warnings:
+            warning_categories.setdefault(w.category, []).append(w)
         return templates.TemplateResponse(
             request,
             "notion/partials/scan_results.html",
-            {"request": request, "scan_result": result, "import_id": import_id},
+            {"request": request, "scan_result": result, "import_id": import_id, "warning_categories": warning_categories},
         )
     finally:
         _broadcasts.pop(import_id, None)
@@ -312,10 +316,14 @@ async def get_results(
     result = NotionScanResult.from_dict(json.loads(result_path.read_text()))
 
     templates = request.app.state.templates
+    # Pre-group warnings by category for the template
+    warning_categories: dict[str, list] = {}
+    for w in result.warnings:
+        warning_categories.setdefault(w.category, []).append(w)
     return templates.TemplateResponse(
         request,
         "notion/partials/scan_results.html",
-        {"request": request, "scan_result": result, "import_id": import_id},
+        {"request": request, "scan_result": result, "import_id": import_id, "warning_categories": warning_categories},
     )
 
 
@@ -422,6 +430,20 @@ async def property_mapping_step(
             for name, info in col_dict.items()
         ]
 
+    # Pre-compute auto-matches: for each type+column pair, find the SHACL property
+    # whose label matches the column name (case-insensitive). Eliminates namespace() in template.
+    auto_matches: dict[str, dict[str, str]] = {}
+    for type_iri, section in type_sections.items():
+        prop_mappings = mapping_config.property_mappings.get(type_iri, {})
+        type_matches: dict[str, str] = {}
+        for col in section["columns"]:
+            if col["name"] not in prop_mappings:
+                for prop in section.get("properties", []):
+                    if prop.name.lower() == col["name"].lower():
+                        type_matches[col["name"]] = prop.path
+                        break
+        auto_matches[type_iri] = type_matches
+
     templates = request.app.state.templates
     return templates.TemplateResponse(
         request,
@@ -432,6 +454,7 @@ async def property_mapping_step(
             "mapping_config": mapping_config,
             "import_id": import_id,
             "current_step": 4,
+            "auto_matches": auto_matches,
         },
     )
 

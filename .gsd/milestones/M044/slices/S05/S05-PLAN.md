@@ -29,7 +29,7 @@
 
 ## Tasks
 
-- [ ] **T01: Move template .append() and namespace() hacks to Python views** `est:2h`
+- [x] **T01: Move template .append() and namespace() hacks to Python views** `est:2h`
   Eliminate all Jinja2 `.append()` hacks (8 files) and `namespace()` hacks (5 files) by computing the needed data structures in the Python view functions that serve these templates. Each fix is independent: add a few lines to the Python view to pre-compute the list/dict/bool/count, pass it in the template context, and simplify the template to use the pre-computed value.
 
 Key constraint: `object_detail()` in browser/objects.py serves object_tab.html, object_read.html, and object_embed.html — consolidate all three templates' pre-computation in one block at the end of that function.

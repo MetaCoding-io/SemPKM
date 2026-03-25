@@ -77,7 +77,13 @@ def _render_template(queries: list[SavedQueryData]) -> str:
     )
     env = Environment(loader=FileSystemLoader(template_dir))
     template = env.get_template("browser/saved_queries_explorer.html")
-    return template.render(queries=queries)
+    model_queries = [q for q in queries if q.source == "model"]
+    user_queries = [q for q in queries if q.source != "model"]
+    return template.render(
+        queries=queries,
+        model_queries=model_queries,
+        user_queries=user_queries,
+    )
 
 
 # ── Template rendering tests ──────────────────────────────────

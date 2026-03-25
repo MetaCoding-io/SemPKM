@@ -41,15 +41,7 @@
                 {% for col in type_info.columns %}
                 {% set prop_mappings = mapping_config.property_mappings.get(type_iri, {}) %}
                 {% set current_prop = prop_mappings.get(col.name) %}
-                {# Auto-suggest: match column name to property label (case-insensitive) #}
-                {% set auto_match = namespace(iri=None) %}
-                {% if not current_prop %}
-                    {% for prop in type_info.properties %}
-                        {% if prop.name|lower == col.name|lower %}
-                            {% set auto_match.iri = prop.path %}
-                        {% endif %}
-                    {% endfor %}
-                {% endif %}
+                {% set auto_match_iri = auto_matches.get(type_iri, {}).get(col.name) %}
                 <tr class="property-mapping-row">
                     <td><code>{{ col.name }}</code></td>
                     <td>{{ col.non_empty_count }}</td>
@@ -71,7 +63,7 @@
                             {% for prop in type_info.properties %}
                             <option value="{{ prop.path }}"
                                     {% if current_prop and current_prop.source == 'shacl' and current_prop.target_property_iri == prop.path %}selected
-                                    {% elif auto_match.iri == prop.path %}selected
+                                    {% elif auto_match_iri == prop.path %}selected
                                     {% endif %}>
                                 {{ prop.name }}
                             </option>

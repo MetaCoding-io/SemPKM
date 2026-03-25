@@ -95,10 +95,13 @@ async def context_rules_panel(
     # Convert rules to dicts for template (conditions needs dict access)
     rule_dicts = []
     for r in rules:
+        conds = r.conditions or {}
+        has_conditions = any(v is not None and v != "" for v in conds.values())
         rule_dicts.append({
             "id": str(r.id),
             "name": r.name,
-            "conditions": r.conditions or {},
+            "conditions": conds,
+            "has_conditions": has_conditions,
             "persona_id": r.persona_id,
             "priority": r.priority,
             "enabled": r.enabled,

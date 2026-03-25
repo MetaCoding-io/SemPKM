@@ -21,17 +21,6 @@
         <i data-lucide="star"></i>
       </button>
 
-      {% set ns_count = namespace(n=0) %}
-      {% if form %}
-        {% for prop in form.properties %}
-          {% set vals = values.get(prop.path, []) %}
-          {% if vals and prop.path != body_property_path %}
-            {% set ns_count.n = ns_count.n + 1 %}
-          {% endif %}
-        {% endfor %}
-      {% endif %}
-      {% set property_count = ns_count.n %}
-
       {% if property_count > 0 %}
       <button class="btn btn-sm properties-toggle-badge"
               id="props-toggle-{{ safe_id }}"

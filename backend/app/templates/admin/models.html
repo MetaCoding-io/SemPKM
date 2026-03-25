@@ -190,14 +190,7 @@
             </tr>
         </thead>
         <tbody>
-            {% set all_props = [] %}
-            {% for p in custom_types.object_properties %}
-                {% set _ = all_props.append(p) %}
-            {% endfor %}
-            {% for p in custom_types.datatype_properties %}
-                {% set _ = all_props.append(p) %}
-            {% endfor %}
-            {% for prop in all_props %}
+            {% for prop in all_properties %}
             <tr>
                 <td>{{ prop.label }}</td>
                 <td>

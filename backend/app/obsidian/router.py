@@ -201,10 +201,14 @@ async def trigger_scan(
         )
 
         templates = request.app.state.templates
+        # Pre-group warnings by category for the template
+        warning_categories: dict[str, list] = {}
+        for w in result.warnings:
+            warning_categories.setdefault(w.category, []).append(w)
         return templates.TemplateResponse(
             request,
             "obsidian/partials/scan_results.html",
-            {"request": request, "scan_result": result, "import_id": import_id},
+            {"request": request, "scan_result": result, "import_id": import_id, "warning_categories": warning_categories},
         )
     finally:
         _broadcasts.pop(import_id, None)
@@ -291,10 +295,14 @@ async def get_results(
     result = VaultScanResult.from_dict(json.loads(result_path.read_text()))
 
     templates = request.app.state.templates
+    # Pre-group warnings by category for the template
+    warning_categories: dict[str, list] = {}
+    for w in result.warnings:
+        warning_categories.setdefault(w.category, []).append(w)
     return templates.TemplateResponse(
         request,
         "obsidian/partials/scan_results.html",
-        {"request": request, "scan_result": result, "import_id": import_id},
+        {"request": request, "scan_result": result, "import_id": import_id, "warning_categories": warning_categories},
     )
 
 
