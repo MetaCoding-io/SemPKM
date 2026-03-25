@@ -29,7 +29,7 @@ No upstream surfaces consumed. No new wiring — purely additive debug utility a
   - Files: `frontend/static/js/api-fetch.js`, `frontend/static/js/copilot.js`, `frontend/static/js/calendar.js`, `frontend/static/js/workspace.js`, `frontend/static/js/graph.js`, `frontend/static/js/tutorials.js`, `frontend/static/js/bmc.js`, `frontend/static/js/decision-matrix.js`, `frontend/static/js/kanban.js`, `frontend/static/js/okr.js`, `frontend/static/js/quadrant.js`, `frontend/static/js/recurrence-editor.js`, `backend/app/templates/browser/timeline_view.html`, `backend/app/templates/browser/workspace.html`
   - Verify: grep -rn 'console\.log' frontend/static/js/ backend/app/templates/ --include='*.js' --include='*.html' | grep -v node_modules | wc -l  # must be 0
 
-- [ ] **T02: Write frontend conventions documentation** `est:30m`
+- [x] **T02: Write frontend conventions documentation** `est:30m`
   Create docs/FRONTEND-CONVENTIONS.md covering the six convention areas established by M044: htmx patterns, JS module structure, CSS theme system, debug logging, fetch conventions, and event cleanup. Developer-facing reference documenting the codebase's frontend patterns as they exist post-M044.
   - Files: `docs/FRONTEND-CONVENTIONS.md`
   - Verify: test -f docs/FRONTEND-CONVENTIONS.md && grep -c '^## ' docs/FRONTEND-CONVENTIONS.md  # must be >= 6 sections
