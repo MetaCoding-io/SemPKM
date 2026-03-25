@@ -105,4 +105,22 @@
 
   window.SemPKM.apiFetch = apiFetch;
 
+  /**
+   * Debug logging gated by localStorage flag.
+   * Enable:  localStorage.setItem('sempkm_debug', '1')
+   * Disable: localStorage.removeItem('sempkm_debug')
+   *
+   * @param {string} tag - Component tag (e.g. 'copilot', 'calendar')
+   * @param {...*} args - Values forwarded to console.log
+   */
+  window.SemPKM.debug = function debug(tag, ...args) {
+    try {
+      if (localStorage.getItem('sempkm_debug')) {
+        console.log('[' + tag + ']', ...args);
+      }
+    } catch (_) {
+      // localStorage unavailable (private browsing, iframe sandbox) — silently skip
+    }
+  };
+
 })();

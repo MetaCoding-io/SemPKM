@@ -28,7 +28,7 @@
     var payload = { iri: iri, start: info.event.startStr };
     if (info.event.end) payload.end = info.event.endStr;
 
-    console.log('[calendar] ' + actionLabel + ':', iri,
+    SemPKM.debug('calendar', actionLabel + ':', iri,
       'start=' + info.event.startStr,
       info.event.end ? 'end=' + info.event.endStr : '(no end)');
 
@@ -41,7 +41,7 @@
     }).then(function (r) {
       return r.json();
     }).then(function (result) {
-      console.log('[calendar] ' + actionLabel + ' persisted, event_iri:', result.event_iri);
+      SemPKM.debug('calendar', actionLabel + ' persisted, event_iri:', result.event_iri);
       if (typeof showToast === 'function') showToast(actionLabel === 'resize' ? 'Duration updated' : 'Task rescheduled');
       document.dispatchEvent(new CustomEvent('sempkm:command-executed'));
     }).catch(function (err) {
@@ -75,7 +75,7 @@
     var scheduledStart = info.dateStr || info.date.toISOString();
     var scheduledEnd = new Date(info.date.getTime() + 3600000).toISOString();
 
-    console.log('[calendar] external drop:', iri, 'start=' + scheduledStart, 'end=' + scheduledEnd);
+    SemPKM.debug('calendar', 'external drop:', iri, 'start=' + scheduledStart, 'end=' + scheduledEnd);
 
     apiFetch('/browser/views/calendar/patch', {
       method: 'POST',
@@ -184,7 +184,7 @@
 
           /* ── Click empty slot to create Task ── */
           select: function (info) {
-            console.log('[calendar] select range:',
+            SemPKM.debug('calendar', 'select range:',
               info.startStr, '→', info.endStr);
             /* Stash selected dates for future form pre-fill */
             window.SemPKM._calendarSelectedDates = {
@@ -202,7 +202,7 @@
         cal.render();
         window.SemPKM._sempkmCalendar = cal;
 
-        console.log('[calendar] rendered with',
+        SemPKM.debug('calendar', 'rendered with',
           (data.events || []).length, 'events, editable=true, droppable=true');
 
         /* ── External drop visual feedback ── */
@@ -237,7 +237,7 @@
           var ownPanelId = ownPanel ? (ownPanel.id || '') : '';
           if (detail.sourcePanel && detail.sourcePanel === ownPanelId) return;
 
-          console.log('[calendar] scope sync: scopeQuery=' + (detail.scopeQuery || '(none)') +
+          SemPKM.debug('calendar', 'scope sync: scopeQuery=' + (detail.scopeQuery || '(none)') +
             ' from panel=' + (detail.sourcePanel || '(unknown)'));
 
           // Build the new data URL with the updated scope_query
@@ -258,7 +258,7 @@
               (data.events || []).forEach(function (evt) {
                 cal.addEvent(evt);
               });
-              console.log('[calendar] scope sync complete:', (data.events || []).length, 'events');
+              SemPKM.debug('calendar', 'scope sync complete:', (data.events || []).length, 'events');
             })
             .catch(function (err) {
               console.error('[calendar] scope sync failed:', err);

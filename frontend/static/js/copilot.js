@@ -81,7 +81,7 @@ export function initCopilotChat() {
     } else {
       _activeObjectIri = null;
     }
-    console.log('copilot: active object tracking', _activeObjectIri ? 'iri=' + _activeObjectIri : 'null');
+    SemPKM.debug('copilot', 'active object tracking', _activeObjectIri ? 'iri=' + _activeObjectIri : 'null');
   });
 
   // Load existing conversations
@@ -90,7 +90,7 @@ export function initCopilotChat() {
   // Load personas for the selector
   _loadPersonas();
 
-  console.log('copilot: initialized');
+  SemPKM.debug('copilot', 'initialized');
 }
 
 // ---------------------------------------------------------------------------
@@ -104,7 +104,7 @@ function _loadConversations() {
     })
     .then(function (data) {
       _conversations = data || [];
-      console.log('copilot: conversations loaded, count=' + _conversations.length);
+      SemPKM.debug('copilot', 'conversations loaded, count=' + _conversations.length);
       _renderConversationHeader();
       if (_conversations.length > 0) {
         _switchConversation(_conversations[0].id);
@@ -125,7 +125,7 @@ function _switchConversation(id) {
   _messageThread = [];
   if (_messagesEl) _messagesEl.innerHTML = '';
 
-  console.log('copilot: switched conversation id=' + id);
+  SemPKM.debug('copilot', 'switched conversation id=' + id);
 
   apiFetch('/api/copilot/conversations/' + id, { credentials: 'same-origin', silent: true })
     .then(function (resp) {
@@ -175,7 +175,7 @@ function _createNewChat() {
       _conversations.unshift({ id: data.id, title: data.title || 'New Chat', updated_at: new Date().toISOString() });
       _updateHeaderTitle(data.title || 'New Chat');
       _showEmptyState();
-      console.log('copilot: new chat created id=' + data.id);
+      SemPKM.debug('copilot', 'new chat created id=' + data.id);
       if (_inputEl && !_inputEl.disabled) _inputEl.focus();
     })
     .catch(function (err) {
@@ -193,7 +193,7 @@ function _deleteConversation(id) {
       return resp.json();
     })
     .then(function () {
-      console.log('copilot: conversation deleted id=' + id);
+      SemPKM.debug('copilot', 'conversation deleted id=' + id);
       _conversations = _conversations.filter(function (c) { return c.id !== id; });
       if (_currentConversationId === id) {
         if (_conversations.length > 0) {
@@ -553,7 +553,7 @@ function _streamCopilotResponse() {
                         updated_at: new Date().toISOString()
                       });
                     }
-                    console.log('copilot: conversation_created id=' + convData.conversation_id);
+                    SemPKM.debug('copilot', 'conversation_created id=' + convData.conversation_id);
                   }
                 } catch (e) {
                   console.warn('copilot: failed to parse conversation_created event', e);
@@ -1397,7 +1397,7 @@ function _loadPersonas() {
           break;
         }
       }
-      console.log('copilot: personas loaded, count=' + _personas.length + ', active=' + _activePersonaId);
+      SemPKM.debug('copilot', 'personas loaded, count=' + _personas.length + ', active=' + _activePersonaId);
       _renderPersonaSelector();
     })
     .catch(function (err) {
@@ -1539,7 +1539,7 @@ function _activatePersona(personaId) {
       for (var i = 0; i < _personas.length; i++) {
         _personas[i].is_active = (_personas[i].id === data.id);
       }
-      console.log('copilot: persona activated id=' + data.id + ', name=' + data.name);
+      SemPKM.debug('copilot', 'persona activated id=' + data.id + ', name=' + data.name);
       _renderPersonaSelector();
       // Close dropdown
       var dd = document.getElementById('copilot-persona-dropdown');
@@ -1720,7 +1720,7 @@ function _handleCreateObject(card, data) {
       _messageThread.push({ role: 'assistant', content: sysContent, timestamp: new Date() });
 
       _scrollToBottom();
-      console.log('copilot: object created iri=' + iri);
+      SemPKM.debug('copilot', 'object created iri=' + iri);
     })
     .catch(function (err) {
       if (loadingEl) loadingEl.style.display = 'none';

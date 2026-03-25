@@ -2509,7 +2509,7 @@
           })
           .then(function (created) {
             _activePersonaId = created.id;
-            console.log('SemPKM: persona init — created Default (' + created.id + ')');
+            SemPKM.debug('SemPKM', 'persona init — created Default (' + created.id + ')');
           });
         } else {
           // Find active persona
@@ -2517,7 +2517,7 @@
           if (active) {
             _activePersonaId = active.id;
           }
-          console.log('SemPKM: persona init — active: ' + (_activePersonaId || 'none'));
+          SemPKM.debug('SemPKM', 'persona init — active: ' + (_activePersonaId || 'none'));
         }
       })
       .catch(function (err) {
@@ -2626,7 +2626,7 @@
         window.SemPKM._switchingPersona = false;
 
         showToast('Switched to persona: ' + persona.name);
-        console.log('SemPKM: switched to persona: ' + persona.name + ' (' + id + ')');
+        SemPKM.debug('SemPKM', 'switched to persona: ' + persona.name + ' (' + id + ')');
 
         // Refresh persona selector in sidebar if visible
         var selectorContainer = document.getElementById('persona-selector-container');
@@ -2691,7 +2691,7 @@
         // API auto-activates new persona, update tracking
         _activePersonaId = created.id;
         showToast("Persona '" + created.name + "' created");
-        console.log('SemPKM: persona created: ' + created.name + ' (' + created.id + ')');
+        SemPKM.debug('SemPKM', 'persona created: ' + created.name + ' (' + created.id + ')');
 
         // Refresh persona selector in sidebar if visible
         var selectorContainer = document.getElementById('persona-selector-container');
@@ -3673,7 +3673,7 @@
         sourcePanel: sourcePanel
       }
     }));
-    console.log('[scope] propagated: scopeQuery=' + (queryId || '(none)') +
+    SemPKM.debug('scope', 'propagated: scopeQuery=' + (queryId || '(none)') +
       ' renderer=' + renderer + ' sourcePanel=' + (sourcePanel || '(none)'));
 
     var url = '/browser/views/generic/' + encodeURIComponent(renderer);

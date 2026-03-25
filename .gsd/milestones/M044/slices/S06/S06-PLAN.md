@@ -24,7 +24,7 @@ No upstream surfaces consumed. No new wiring — purely additive debug utility a
 
 ## Tasks
 
-- [ ] **T01: Add SemPKM.debug() utility and migrate all console.log calls** `est:45m`
+- [x] **T01: Add SemPKM.debug() utility and migrate all console.log calls** `est:45m`
   Create a SemPKM.debug(tag, ...args) function in api-fetch.js gated by localStorage flag, then replace all 37 console.log calls across 14 files with SemPKM.debug() calls. Keep console.warn/error untouched.
   - Files: `frontend/static/js/api-fetch.js`, `frontend/static/js/copilot.js`, `frontend/static/js/calendar.js`, `frontend/static/js/workspace.js`, `frontend/static/js/graph.js`, `frontend/static/js/tutorials.js`, `frontend/static/js/bmc.js`, `frontend/static/js/decision-matrix.js`, `frontend/static/js/kanban.js`, `frontend/static/js/okr.js`, `frontend/static/js/quadrant.js`, `frontend/static/js/recurrence-editor.js`, `backend/app/templates/browser/timeline_view.html`, `backend/app/templates/browser/workspace.html`
   - Verify: grep -rn 'console\.log' frontend/static/js/ backend/app/templates/ --include='*.js' --include='*.html' | grep -v node_modules | wc -l  # must be 0

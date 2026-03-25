@@ -164,7 +164,7 @@
     var ownPanelId = ownPanel ? (ownPanel.id || '') : '';
     if (detail.sourcePanel && detail.sourcePanel === ownPanelId) return;
 
-    console.log('[kanban] scope sync: scopeQuery=' + (detail.scopeQuery || '(none)') +
+    SemPKM.debug('kanban', 'scope sync: scopeQuery=' + (detail.scopeQuery || '(none)') +
       ' from panel=' + (detail.sourcePanel || '(unknown)'));
 
     // Determine the type IRI from the board's context or the event detail

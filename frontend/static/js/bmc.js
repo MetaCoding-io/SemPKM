@@ -135,7 +135,7 @@
     var ownPanelId = ownPanel ? (ownPanel.id || '') : '';
     if (detail.sourcePanel && detail.sourcePanel === ownPanelId) return;
 
-    console.log('[bmc] scope sync: scopeQuery=' + (detail.scopeQuery || '(none)') +
+    SemPKM.debug('bmc', 'scope sync: scopeQuery=' + (detail.scopeQuery || '(none)') +
       ' from panel=' + (detail.sourcePanel || '(unknown)'));
 
     var typeIri = boardEl.dataset.typeIri || detail.selectedType || '';

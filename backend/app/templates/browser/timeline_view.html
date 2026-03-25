@@ -40,7 +40,7 @@
         var payload = { iri: task.id, start: formatDate(start) };
         if (end) payload.end = formatDate(end);
 
-        console.log('[timeline] reschedule:', task.id,
+        SemPKM.debug('timeline', 'reschedule:', task.id,
             'start=' + payload.start,
             end ? 'end=' + payload.end : '(no end)');
 
@@ -53,7 +53,7 @@
         }).then(function (r) {
             return r.json();
         }).then(function (result) {
-            console.log('[timeline] reschedule persisted, event_iri:', result.event_iri);
+            SemPKM.debug('timeline', 'reschedule persisted, event_iri:', result.event_iri);
             if (typeof showToast === 'function') showToast('Task rescheduled');
             document.dispatchEvent(new CustomEvent('sempkm:command-executed'));
         }).catch(function (err) {
@@ -72,7 +72,7 @@
                 var tasks = data.tasks || [];
                 if (tasks.length === 0) {
                     el.innerHTML = '<div class="view-empty-state"><p>No tasks with dates found</p></div>';
-                    console.log('[timeline] no tasks to render');
+                    SemPKM.debug('timeline', 'no tasks to render');
                     return;
                 }
 
@@ -108,7 +108,7 @@
                     }
                 });
 
-                console.log('[timeline] rendered with', ganttTasks.length,
+                SemPKM.debug('timeline', 'rendered with', ganttTasks.length,
                     'tasks,', (data.dependency_count || 0), 'dependencies');
             })
             .catch(function (err) {

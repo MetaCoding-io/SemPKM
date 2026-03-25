@@ -304,7 +304,7 @@
       return;
     }
 
-    console.log('[SemPKM] Demo tour started');
+    SemPKM.debug('SemPKM', 'Demo tour started');
 
     var driverObj;
 
@@ -314,7 +314,7 @@
         // Mark tour as completed and notify CTA banner
         localStorage.setItem('sempkm_demo_tour_done', '1');
         document.dispatchEvent(new CustomEvent('sempkm:demo-tour-done'));
-        console.log('[SemPKM] Demo tour completed');
+        SemPKM.debug('SemPKM', 'Demo tour completed');
         driverObj.destroy();
       },
       steps: [

@@ -636,6 +636,6 @@
     inputEl.addEventListener('input', updateSummary);
   };
 
-  console.log('[recurrence-editor] loaded');
+  SemPKM.debug('recurrence-editor', 'loaded');
 
 })();

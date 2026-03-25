@@ -831,7 +831,7 @@
 
       cy.invalidateSize();
       cy._isometricActive = true;
-      console.log('[graph] Isometric 2.5D transform applied');
+      SemPKM.debug('graph', 'Isometric 2.5D transform applied');
     });
 
     layout.run();
@@ -860,7 +860,7 @@
 
     cy.invalidateSize();
     cy._isometricActive = false;
-    console.log('[graph] Isometric 2.5D transform removed');
+    SemPKM.debug('graph', 'Isometric 2.5D transform removed');
   }
 
   // --- Layout Switching ---
