@@ -30,7 +30,7 @@
 - [x] **S05: Template Hygiene & Deduplication** `risk:medium` `depends:[]`
   > After this: After this: template computation logic lives in Python views (testable); Notion/Obsidian importers share base templates; guide/docs pages use loops instead of 81 copy-pasted buttons
 
-- [ ] **S06: Console Cleanup & Convention Documentation** `risk:low` `depends:[]`
+- [x] **S06: Console Cleanup & Convention Documentation** `risk:low` `depends:[]`
   > After this: After this: browser console is clean in production; htmx conventions are documented; debug logging available via flag
 
 - [ ] **S07: E2E Regression Suite** `risk:low` `depends:[S01,S02,S03,S04,S05,S06]`
