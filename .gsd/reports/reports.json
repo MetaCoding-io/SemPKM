@@ -2,7 +2,7 @@
   "version": 1,
   "projectName": "SemPKM",
   "projectPath": "/home/james/Code/SemPKM",
-  "gsdVersion": "2.42.0",
+  "gsdVersion": "2.44.0",
   "entries": [
     {
       "filename": "M012-2026-03-18T03-26-53.html",
@@ -467,6 +467,22 @@
       "doneMilestones": 41,
       "totalMilestones": 42,
       "phase": "pre-planning"
+    },
+    {
+      "filename": "M043-2026-03-25T15-40-57.html",
+      "generatedAt": "2026-03-25T15:40:57.164Z",
+      "milestoneId": "M043",
+      "milestoneTitle": "Security Hardening — Injection, Auth & Access Control Fixes",
+      "label": "M043: Security Hardening — Injection, Auth & Access Control Fixes",
+      "kind": "milestone",
+      "totalCost": 1622.1539192500004,
+      "totalTokens": 2287723009,
+      "totalDuration": 271812950,
+      "doneSlices": 256,
+      "totalSlices": 269,
+      "doneMilestones": 43,
+      "totalMilestones": 45,
+      "phase": "planning"
     }
   ]
 }
