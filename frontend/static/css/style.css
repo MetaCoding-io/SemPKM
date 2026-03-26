@@ -2111,6 +2111,49 @@ kbd {
   line-height: 1.5;
 }
 
+/* Ontology diagram legend */
+.ontology-diagram-legend {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.25rem 0.5rem 0.5rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.legend-line {
+  display: inline-block;
+  width: 24px;
+  height: 0;
+  border-top: 2px solid #bbb;
+  vertical-align: middle;
+}
+
+.legend-line-dashed {
+  border-top-style: dashed;
+  border-top-color: #94a3b8;
+}
+
+.legend-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  vertical-align: middle;
+}
+
+.legend-swatch-external {
+  background: #94a3b8;
+  opacity: 0.5;
+  border: 1.5px dashed #64748b;
+}
+
 .diagram-loading {
   text-align: center;
   padding: 2rem;

@@ -13,9 +13,14 @@
     {% if not has_edges %}
     <div class="diagram-empty">
         <i data-lucide="git-branch"></i>
-        <p>No relationships defined between types in this model.</p>
+        <p>No relationships or class hierarchy defined in this model.</p>
     </div>
     {% else %}
+    <div class="ontology-diagram-legend">
+        <span class="legend-item"><span class="legend-line legend-line-solid"></span> Object Property</span>
+        <span class="legend-item"><span class="legend-line legend-line-dashed"></span> Subclass Of</span>
+        <span class="legend-item"><span class="legend-swatch legend-swatch-external"></span> External Type</span>
+    </div>
     <button class="cy-fit-btn" id="ontology-fit-btn" title="Fit to view">
         <i data-lucide="maximize-2"></i> Fit
     </button>
@@ -34,20 +39,24 @@
         var n = nodes[i];
         elements.push({
           group: 'nodes',
-          data: { id: n.id, label: n.label, color: n.color }
+          data: { id: n.id, label: n.label, color: n.color, external: n.external ? 'yes' : 'no' }
         });
       }
       for (var j = 0; j < edges.length; j++) {
         var e = edges[j];
         elements.push({
           group: 'edges',
-          data: { id: e.id, source: e.source, target: e.target, label: e.label, description: e.description || '', domain_label: e.domain_label || '', range_label: e.range_label || '' }
+          data: { id: e.id, source: e.source, target: e.target, label: e.label, description: e.description || '', domain_label: e.domain_label || '', range_label: e.range_label || '', edge_type: e.edge_type || 'object_property' }
         });
       }
 
       // Simple color darkening helper
       function darkenColor(hex, amount) {
         hex = hex.replace('#', '');
+        // Expand 3-char shorthand (#999 → 999999)
+        if (hex.length === 3) {
+          hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+        }
         var r = parseInt(hex.substring(0, 2), 16);
         var g = parseInt(hex.substring(2, 4), 16);
         var b = parseInt(hex.substring(4, 6), 16);
@@ -108,6 +117,33 @@
             }
           },
           {
+            selector: 'edge[edge_type = "subclass"]',
+            style: {
+              'line-style': 'dashed',
+              'line-dash-pattern': [6, 3],
+              'line-color': '#94a3b8',
+              'target-arrow-shape': 'triangle',
+              'target-arrow-color': '#94a3b8',
+              'target-arrow-fill': 'hollow',
+              'width': 1.5,
+              'label': '',
+              'arrow-scale': 1.2
+            }
+          },
+          {
+            selector: 'node[external = "yes"]',
+            style: {
+              'shape': 'round-rectangle',
+              'width': 50,
+              'height': 30,
+              'font-size': '10px',
+              'font-style': 'italic',
+              'border-style': 'dashed',
+              'border-width': 1.5,
+              'background-opacity': 0.5
+            }
+          },
+          {
             selector: 'node.hovered',
             style: {
               'width': 46,
@@ -117,9 +153,9 @@
         ].concat(perNodeStyles),
         layout: {
           name: 'dagre',
-          rankDir: 'LR',
-          nodeSep: 50,
-          rankSep: 80,
+          rankDir: 'TB',
+          nodeSep: 40,
+          rankSep: 60,
           animate: true,
           animationDuration: 600
         },
@@ -156,7 +192,7 @@
         var html = '<div class="graph-popover-header">' +
           '<span class="graph-popover-label">' + escHtml(data.label) + '</span>' +
           '<span class="graph-popover-type" style="background:' + escHtml(data.color) + '">' +
-            data.instance_count + ' instance' + (data.instance_count !== 1 ? 's' : '') +
+            (data.external ? 'External type' : data.instance_count + ' instance' + (data.instance_count !== 1 ? 's' : '')) +
           '</span></div>';
 
         if (data.properties.length > 0) {
@@ -224,9 +260,12 @@
         if (showTimer) clearTimeout(showTimer);
         showTimer = setTimeout(function() {
           if (!popover || !panel) return;
+          var isSubclass = edgeData.edge_type === 'subclass';
+          var edgeLabel = isSubclass ? 'rdfs:subClassOf' : escHtml(edgeData.label);
+          var bgColor = isSubclass ? '#94a3b8' : '#999';
           var html = '<div class="graph-popover-header">' +
-            '<span class="graph-popover-label">' + escHtml(edgeData.label) + '</span>' +
-            '<span class="graph-popover-type" style="background:#999">' +
+            '<span class="graph-popover-label">' + edgeLabel + '</span>' +
+            '<span class="graph-popover-type" style="background:' + bgColor + '">' +
               escHtml(edgeData.domain_label) + ' → ' + escHtml(edgeData.range_label) +
             '</span></div>';
           if (edgeData.description) {

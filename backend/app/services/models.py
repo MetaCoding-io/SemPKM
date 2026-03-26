@@ -706,6 +706,8 @@ class ModelService:
         shapes = await self._query_shapes(graphs.shapes, namespace)
         prefixes = await self._query_prefixes(model_id)
 
+        subclass_edges = await self._query_subclass_edges(graphs.ontology, namespace)
+
         return {
             "info": model_info,
             "types": types,
@@ -713,6 +715,7 @@ class ModelService:
             "views": views,
             "shapes": shapes,
             "prefixes": prefixes,
+            "subclass_edges": subclass_edges,
         }
 
     async def _query_types(self, ontology_graph: str, namespace: str) -> list[dict]:
@@ -735,6 +738,49 @@ class ModelService:
             }
             for b in bindings
         ]
+
+    async def _query_subclass_edges(self, ontology_graph: str, namespace: str) -> list[dict]:
+        """Extract rdfs:subClassOf edges from the ontology graph.
+
+        Returns edges with child/parent local names and labels.  External
+        superclasses (outside the model namespace) are included so the
+        diagram can show the full TBox hierarchy.
+        """
+        sparql = f"""SELECT ?child ?childLabel ?parent ?parentLabel WHERE {{
+  GRAPH <{ontology_graph}> {{
+    ?child <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?parent .
+    FILTER(!isBlank(?child) && !isBlank(?parent))
+    ?child <http://www.w3.org/2000/01/rdf-schema#label> ?childLabel .
+    OPTIONAL {{ ?parent <http://www.w3.org/2000/01/rdf-schema#label> ?parentLabel }}
+  }}
+}} ORDER BY ?childLabel"""
+        result = await self._client.query(sparql)
+        bindings = result.get("results", {}).get("bindings", [])
+
+        def _local(iri: str) -> str:
+            """Derive a short local name for an IRI."""
+            if iri.startswith(namespace):
+                return iri[len(namespace):]
+            # External IRI — use fragment or last path segment
+            if "#" in iri:
+                return iri.rsplit("#", 1)[-1]
+            return iri.rsplit("/", 1)[-1]
+
+        edges = []
+        for b in bindings:
+            child_iri = b["child"]["value"]
+            parent_iri = b["parent"]["value"]
+            parent_label = b.get("parentLabel", {}).get("value", "")
+            edges.append({
+                "child_iri": child_iri,
+                "child_local": _local(child_iri),
+                "child_label": b["childLabel"]["value"],
+                "parent_iri": parent_iri,
+                "parent_local": _local(parent_iri),
+                "parent_label": parent_label or _local(parent_iri),
+                "parent_external": not parent_iri.startswith(namespace),
+            })
+        return edges
 
     async def _query_properties(self, ontology_graph: str, namespace: str) -> list[dict]:
         """Extract OWL properties from the ontology graph."""

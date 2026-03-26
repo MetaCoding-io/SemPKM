@@ -321,6 +321,7 @@ async def admin_model_ontology_diagram(
     icon_map = icon_svc.get_icon_map("tree")
 
     # Build nodes list: one dict per type
+    node_ids = set()
     nodes = []
     for t in detail["types"]:
         icon_data = icon_map.get(t["iri"], {"icon": "circle", "color": "#999"})
@@ -328,12 +329,17 @@ async def admin_model_ontology_diagram(
             "id": t["local_name"],
             "label": t["label"],
             "color": icon_data["color"],
+            "external": False,
         })
+        node_ids.add(t["local_name"])
 
     # Build edges list: one dict per ObjectProperty
+    # Only include edges where both endpoints exist as nodes
     edges = []
     for idx, p in enumerate(detail["properties"]):
         if p["prop_type"] == "Object" and p["domain"] and p["range"]:
+            if p["domain"] not in node_ids or p["range"] not in node_ids:
+                continue
             edges.append({
                 "id": f"edge-{idx}-{p['domain']}-{p['range']}",
                 "source": p["domain"],
@@ -342,7 +348,32 @@ async def admin_model_ontology_diagram(
                 "description": p.get("comment", ""),
                 "domain_label": p.get("domain", ""),
                 "range_label": p.get("range", ""),
+                "edge_type": "object_property",
             })
+
+    # Build subclass edges and add external superclass nodes
+    subclass_edges = detail.get("subclass_edges", [])
+    for sc in subclass_edges:
+        # Add external parent nodes (e.g. gist:Category, gist:Collection)
+        if sc["parent_external"] and sc["parent_local"] not in node_ids:
+            nodes.append({
+                "id": sc["parent_local"],
+                "label": sc["parent_label"],
+                "color": "#94a3b8",  # slate-400, neutral for external types
+                "external": True,
+            })
+            node_ids.add(sc["parent_local"])
+
+        edges.append({
+            "id": f"subclass-{sc['child_local']}-{sc['parent_local']}",
+            "source": sc["child_local"],
+            "target": sc["parent_local"],
+            "label": "",
+            "description": f"{sc['child_label']} is a subclass of {sc['parent_label']}",
+            "domain_label": sc["child_label"],
+            "range_label": sc["parent_label"],
+            "edge_type": "subclass",
+        })
 
     # Build SHACL property lookup from shapes
     shape_props: dict[str, list] = {}
@@ -366,7 +397,19 @@ async def admin_model_ontology_diagram(
             "color": icon_data["color"],
             "instance_count": count,
             "properties": [{"name": p["name"], "type": p.get("type", "any")} for p in props],
+            "external": False,
         }
+
+    # Add node_data entries for external superclass nodes
+    for sc in subclass_edges:
+        if sc["parent_external"] and sc["parent_local"] not in node_data:
+            node_data[sc["parent_local"]] = {
+                "label": sc["parent_label"],
+                "color": "#94a3b8",
+                "instance_count": 0,
+                "properties": [],
+                "external": True,
+            }
 
     context = {
         "request": request,
