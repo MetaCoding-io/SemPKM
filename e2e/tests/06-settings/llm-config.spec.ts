@@ -70,27 +70,5 @@ test.describe('LLM Config', () => {
     await ownerRequest.put(`${BASE_URL}/browser/llm/config`, {
       data: { field: 'default_model', value: '' },
     });
-      data: {
-        field: 'api_base_url',
-        value: 'http://fake-llm-server:8080',
-      },
-    });
-    expect(saveResp.ok()).toBeTruthy();
-    const saveData = await saveResp.json();
-    expect(saveData.ok).toBe(true);
-
-    // Save another field — default_model
-    const saveModelResp = await ownerRequest.put(`${BASE_URL}/browser/llm/config`, {
-      data: {
-        field: 'default_model',
-        value: 'gpt-4-test',
-      },
-    });
-    expect(saveModelResp.ok()).toBeTruthy();
-
-  test('list LLM models endpoint responds', async ({ ownerRequest }) => {
-    const resp = await ownerRequest.post(`${BASE_URL}/browser/llm/models`);
-    // May succeed with models list or fail gracefully without API key
-    expect(resp.status()).toBeLessThan(500);
   });
 });

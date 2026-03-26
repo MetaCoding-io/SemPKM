@@ -41,20 +41,7 @@ test.describe('Health Check', () => {
     expect(resp2.ok()).toBeTruthy();
     const data2 = await resp2.json();
     expect(data2.status).toBe(data.status);
-    expect(data.status).toBeDefined();
-    expect(['healthy', 'degraded']).toContain(data.status);
-
-    // 3. Services section
-    expect(data.services).toBeDefined();
-    expect(typeof data.services).toBe('object');
-    expect(data.services.api).toBe('up');
-    // triplestore should be "up" in the test environment
-    expect(data.services.triplestore).toBe('up');
-
-    // 4. Version info
-    expect(data.version).toBeDefined();
-    expect(typeof data.version).toBe('string');
-    expect(data.version.length).toBeGreaterThan(0);
+  });
 
   test('health endpoint includes version info', async ({ anonApi }) => {
     const ctx = (anonApi as any).request;

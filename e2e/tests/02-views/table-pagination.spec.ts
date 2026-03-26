@@ -23,14 +23,6 @@ test.describe('Table View Pagination', () => {
     // 2. Create enough objects to guarantee pagination with page_size=5
     //    (Using small page_size rather than creating 25+ objects)
     const commands = Array.from({ length: 8 }, (_, i) => ({
- */
-import { test, expect, BASE_URL } from '../../fixtures/auth';
-import { TYPES } from '../../fixtures/seed-data';
-
-test.describe('Table View Pagination', () => {
-  test('create enough objects to trigger pagination', async ({ ownerRequest }) => {
-    // Create 12 objects to exceed the default page size (typically 10)
-    const commands = Array.from({ length: 12 }, (_, i) => ({
       command: 'object.create',
       params: {
         type: TYPES.Note,
@@ -99,61 +91,5 @@ test.describe('Table View Pagination', () => {
       { headers: { Accept: 'text/html' } },
     );
     expect(outResp.status()).toBeLessThan(500);
-    const specs = await specsResp.json();
-    const tableSpec = specs.find((s: any) => s.renderer_type === 'table');
-    expect(tableSpec).toBeDefined();
-
-    const specIri = encodeURIComponent(tableSpec.spec_iri);
-
-    // 2. Create enough objects to guarantee pagination with page_size=5
-    //    (Using small page_size rather than creating 25+ objects)
-    const commands = Array.from({ length: 8 }, (_, i) => ({
-      command: 'object.create',
-      params: {
-        type: TYPES.Note,
-        properties: {
-          'http://purl.org/dc/terms/title': `Pagination Test Note ${Date.now()}-${i}`,
-        },
-      },
-    }));
-
-    const createResp = await ownerRequest.post(`${BASE_URL}/api/commands`, {
-      data: commands,
-    });
-    expect(createResp.ok()).toBeTruthy();
-    const createData = await createResp.json();
-    expect(createData.results.length).toBe(8);
-
-    // 3. Fetch page 1 with small page_size to trigger pagination
-    const page1Resp = await ownerRequest.get(
-      `${BASE_URL}/browser/views/table/${specIri}?page=1&page_size=5`,
-      { headers: { Accept: 'text/html' } },
-    );
-    expect(page1Resp.ok()).toBeTruthy();
-    const page1Html = await page1Resp.text();
-
-    // Should contain pagination controls (the pagination.html partial)
-    expect(page1Html).toContain('pagination');
-    // Page 1 info should be present
-    expect(page1Html).toContain('Page 1 of');
-    // Should contain "Next" link for next page
-    expect(page1Html).toContain('Next');
-
-    // 4. Fetch page 2 — verify it returns different content
-    const page2Resp = await ownerRequest.get(
-      `${BASE_URL}/browser/views/table/${specIri}?page=2&page_size=5`,
-      { headers: { Accept: 'text/html' } },
-    );
-    expect(page2Resp.ok()).toBeTruthy();
-    const page2Html = await page2Resp.text();
-    expect(page2Html).toContain('Page 2 of');
-    // Page 2 should have "Prev" navigation
-    expect(page2Html).toContain('Prev');
-
-        // Rows should still be present after navigation
-        const rowsAfter = await ownerPage.locator(SEL.views.tableRow).count();
-        expect(rowsAfter).toBeGreaterThan(0);
-      }
-    }
   });
 });

@@ -51,11 +51,6 @@ test.describe('Edge Deletion', () => {
                        <urn:sempkm:target> <${targetIri}> ;
                        <urn:sempkm:predicate> <http://purl.org/dc/terms/subject> .
         }`,
-
-    // Verify edge resource exists via SPARQL (check the resource's structural triples)
-    const checkResp = await ownerRequest.post(`${BASE_URL}/api/sparql`, {
-      data: {
-        query: `ASK FROM <urn:sempkm:current> { <${sourceIri}> <http://purl.org/dc/terms/subject> <${targetIri}> }`,
       },
     });
     const checkData = await checkResp.json();

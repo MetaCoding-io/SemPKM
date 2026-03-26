@@ -50,30 +50,6 @@ test.describe('Debug Pages Access Control', () => {
       expect(
         status === 403 || status === 401 || status === 302 || status === 307 || status >= 400
       ).toBeTruthy();
-  });
-
-  test('member cannot access debug pages', async ({ memberPage }) => {
-    // 1. Member tries to access /sparql — should get 403 or redirect
-    const sparqlResp = await memberPage.goto(`${BASE_URL}/sparql`);
-    if (sparqlResp) {
-      // require_role("owner") raises 403 for non-owner users
-      const status = sparqlResp.status();
-      expect(
-        status === 403 || status === 401 || status === 302 || status === 307 || status >= 400
-      ).toBeTruthy();
-    }
-
-  test('member cannot access /debug/sparql (403)', async ({ memberPage }) => {
-    const resp = await memberPage.goto(`${BASE_URL}/debug/sparql`);
-    if (resp) {
-      expect([403, 401, 302, 307].includes(resp.status()) || resp.status() >= 400).toBeTruthy();
-    }
-  });
-
-  test('member cannot access /debug/events (403)', async ({ memberPage }) => {
-    const resp = await memberPage.goto(`${BASE_URL}/debug/events`);
-    if (resp) {
-      expect([403, 401, 302, 307].includes(resp.status()) || resp.status() >= 400).toBeTruthy();
     }
   });
 });

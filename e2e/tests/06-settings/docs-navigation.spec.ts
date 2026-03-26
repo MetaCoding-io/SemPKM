@@ -78,34 +78,4 @@ test.describe('Docs Navigation', () => {
       expect(contentAfterClick).toBe(true);
     }
   });
-
-    // Docs page should have navigation links
-    const docLinks = ownerPage.locator('#docs-page a, #docs-page [hx-get]');
-    const linkCount = await docLinks.count();
-    expect(linkCount).toBeGreaterThan(0);
-
-    // Click the first link and verify content loads
-    if (linkCount > 0) {
-      const firstLink = docLinks.first();
-      const firstHref = await firstLink.getAttribute('href');
-      const firstHxGet = await firstLink.getAttribute('hx-get');
-      expect(firstHref || firstHxGet).toBeTruthy();
-
-      await firstLink.click();
-      await waitForIdle(ownerPage);
-
-      // After clicking a guide link, content may load via htmx swap.
-      // Verify meaningful content exists.
-      const contentAfterClick = await ownerPage.evaluate(() => {
-        const docsEl = document.getElementById('docs-page');
-        if (docsEl && (docsEl.textContent?.length || 0) > 0) return true;
-        const mdBody = document.querySelector('.markdown-body, .docs-content, .guide-content');
-        if (mdBody && (mdBody.textContent?.length || 0) > 0) return true;
-        const backLink = document.querySelector('a[href*="docs"], [hx-get*="docs"]');
-        if (backLink) return true;
-        return false;
-      });
-      expect(contentAfterClick).toBe(true);
-    }
-  });
 });

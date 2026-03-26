@@ -29,19 +29,6 @@ test.describe('Invite Flow', () => {
 
     const mlResp = await anonCtx.post(`${BASE_URL}/api/auth/magic-link`, {
       data: { email: inviteEmail },
-
-    const inviteResp = await ownerRequest.post(`${BASE_URL}/api/auth/invite`, {
-      data: { email: inviteEmail, role: 'member' },
-    });
-    expect(inviteResp.ok()).toBeTruthy();
-    const inviteData = await inviteResp.json();
-    expect(inviteData).toBeDefined();
-
-    // ---- Part 2: Invited user can log in via magic link ----
-    const anonCtx = await request.newContext({ baseURL: BASE_URL });
-
-    const mlResp = await anonCtx.post(`${BASE_URL}/api/auth/magic-link`, {
-      data: { email },
     });
     expect(mlResp.ok()).toBeTruthy();
     const mlData = await mlResp.json();
@@ -82,56 +69,5 @@ test.describe('Invite Flow', () => {
     // Cleanup contexts
     await anonCtx.dispose();
     await invitedCtx.dispose();
-    expect(meResp.ok()).toBeTruthy();
-    const meData = await meResp.json();
-    expect(meData.email).toBe(inviteEmail);
-    expect(meData.role).toBe('member');
-
-    // ---- Part 3: Member cannot invite other users (owner-only) ----
-    const memberInviteResp = await invitedCtx.post(`${BASE_URL}/api/auth/invite`, {
-      data: { email: 'should-fail@example.com', role: 'member' },
-    });
-    // Should be forbidden (403 or similar 4xx)
-    expect(memberInviteResp.status()).toBeGreaterThanOrEqual(400);
-
-    // Cleanup contexts
-    await anonCtx.dispose();
-    await authedCtx.dispose();
-  });
-
-  test('member cannot invite other users (owner-only)', async ({ ownerRequest }) => {
-    // First invite a member
-    const memberEmail = `member-noinvite-${Date.now()}@test.local`;
-    await ownerRequest.post(`${BASE_URL}/api/auth/invite`, {
-      data: { email: memberEmail, role: 'member' },
-    });
-
-    // Login as member
-    const anonCtx = await request.newContext({ baseURL: BASE_URL });
-    const mlResp = await anonCtx.post(`${BASE_URL}/api/auth/magic-link`, {
-      data: { email: memberEmail },
-    });
-    const mlData = await mlResp.json();
-    const verifyResp = await anonCtx.post(`${BASE_URL}/api/auth/verify`, {
-      data: { token: mlData.token },
-    });
-    const setCookie = verifyResp.headers()['set-cookie'] || '';
-    const match = setCookie.match(/sempkm_session=([^;]+)/);
-    await anonCtx.dispose();
-
-    const memberCtx = await request.newContext({
-      baseURL: BASE_URL,
-      extraHTTPHeaders: {
-        Cookie: `sempkm_session=${match![1]}`,
-      },
-    });
-
-    // Member tries to invite — should be forbidden
-    const inviteResp = await memberCtx.post(`${BASE_URL}/api/auth/invite`, {
-      data: { email: 'should-fail@test.local', role: 'member' },
-    });
-    expect(inviteResp.status()).toBeGreaterThanOrEqual(400);
-
-    await memberCtx.dispose();
   });
 });

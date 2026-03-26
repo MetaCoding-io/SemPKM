@@ -109,53 +109,5 @@ test.describe('SPARQL Workspace Panel', () => {
       return !JSON.parse(saved).open;
     });
     expect(panelClosed).toBe(true);
-    await ownerPage.goto(`${BASE_URL}/browser/`);
-    await waitForWorkspace(ownerPage);
-
-    // --- 1. Open the bottom panel via JS (more reliable than Alt+j in headless) ---
-    await ownerPage.evaluate(() => {
-      (window as any).SemPKM.toggleBottomPanel();
-    });
-    await waitForIdle(ownerPage);
-
-    // --- 2. Click the SPARQL tab to activate it ---
-    const sparqlTab = ownerPage.locator('.panel-tab[data-panel="sparql"]');
-    await expect(sparqlTab).toBeVisible({ timeout: 5000 });
-    await sparqlTab.click();
-    await waitForIdle(ownerPage);
-
-    // Wait for the SPARQL panel pane to become active
-    const sparqlPane = ownerPage.locator('#panel-sparql');
-    await expect(sparqlPane).toBeVisible({ timeout: 10000 });
-
-    // --- 3. Verify CodeMirror 6 editor initializes ---
-    // The sparql-console.js lazy-loads and creates a CodeMirror 6 editor
-    // Wait for the editor container to appear
-    const editorReady = await ownerPage.waitForFunction(
-      () => {
-        // CodeMirror 6 uses .cm-editor class
-        const cm6 = document.querySelector('#panel-sparql .cm-editor');
-        // Fallback: check for any textarea or legacy editor
-        const textarea = document.querySelector('#panel-sparql textarea');
-        return !!(cm6 || textarea);
-      },
-      { timeout: 15000 },
-    );
-    expect(editorReady).toBeTruthy();
-
-    // --- 4. Verify toolbar elements exist (run button, history dropdown, etc.) ---
-    // The sparql-console.js creates a toolbar with Run button
-    const hasToolbar = await ownerPage.evaluate(() => {
-      const panel = document.getElementById('panel-sparql');
-      if (!panel) return false;
-      // Check for run button (may be labeled "Run" or have a play icon)
-      const runBtn = panel.querySelector('#sparql-run-btn, button[id*="run"], .sparql-toolbar button');
-      return !!runBtn;
-    });
-    expect(resp.ok()).toBeTruthy();
-    const data = await resp.json();
-    expect(data.results).toBeDefined();
-    expect(data.results.bindings).toBeDefined();
-    expect(data.results.bindings.length).toBeGreaterThan(0);
   });
 });

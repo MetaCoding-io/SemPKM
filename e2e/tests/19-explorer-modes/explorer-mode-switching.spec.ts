@@ -5,7 +5,6 @@
  * - Dropdown visible with three mode options, by-type default shows nav sections
  * - Switching to hierarchy shows empty state or hierarchy nodes
  * - Switching to by-tag shows real tag folders, switching back restores by-type tree
- * - Switching to by-tag shows placeholder, switching back restores real tree
  * - Lazy expansion works after mode round-trip
  * - Multi-select state clears on mode switch
  *
@@ -84,29 +83,6 @@ test.describe('Explorer Mode Switching', () => {
     }
 
     // Nav sections from by-type should NOT be present
-
-    // Placeholder (data-testid="explorer-placeholder") should NOT be present —
-    // hierarchy now returns real content or a descriptive empty state
-    const placeholder = treeBody.locator(SEL.explorer.placeholder);
-    await expect(placeholder).toHaveCount(0);
-
-    // Hierarchy mode should show either hierarchy nodes OR an empty-state message
-    const hierarchyNodes = treeBody.locator('[data-testid="hierarchy-node"]');
-    const emptyState = treeBody.locator('.tree-empty');
-
-    // At least one of the two must be visible
-    const nodeCount = await hierarchyNodes.count();
-    const emptyCount = await emptyState.count();
-    expect(nodeCount + emptyCount).toBeGreaterThanOrEqual(1);
-
-    // If empty state is shown, it should mention "hierarchy" (case-insensitive)
-    if (emptyCount > 0) {
-      const text = await emptyState.innerText();
-      expect(text.toLowerCase()).toContain('hierarchy');
-    }
-
-    // Nav sections from by-type should NOT be present
-    const treeBody = ownerPage.locator(SEL.explorer.treeBody);
     const sections = treeBody.locator(SEL.nav.section);
     await expect(sections).toHaveCount(0);
   });
