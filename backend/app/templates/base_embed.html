@@ -17,16 +17,8 @@
     <link rel="stylesheet" href="{{ 'style.css' | asset_url }}">
     <link rel="stylesheet" href="{{ 'workspace.css' | asset_url }}">
     <link rel="stylesheet" href="{{ 'views.css' | asset_url }}">
-    {% if asset_manifest_available %}
-    {# Production: locally-vendored, minified, content-hashed bundles #}
+    {# Vendor libraries — locally vendored #}
     <script src="{{ 'vendor.js' | asset_url }}"></script>
-    {% else %}
-    {# Dev mode: CDN-loaded libraries (volume-mounted raw files) #}
-    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
-    <script src="https://unpkg.com/lucide@0.575.0/dist/umd/lucide.min.js"></script>
-    {% endif %}
     {% block head %}{% endblock %}
 </head>
 <body style="margin:0; padding:8px; background:var(--color-bg-primary); color:var(--color-text-primary);">

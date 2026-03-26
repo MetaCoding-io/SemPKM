@@ -1,22 +1,16 @@
 /**
  * SemPKM CodeMirror 6 Markdown Editor
  *
- * ESM module that initializes CodeMirror 6 with Markdown syntax highlighting,
- * Ctrl+S save handling, and dirty state tracking. Uses esm.sh with major-version
- * ranges (@6) to ensure all packages share the same @codemirror/state instance.
- *
- * If esm.sh causes issues, fall back to a local bundle strategy:
- * 1. npm install codemirror @codemirror/lang-markdown @codemirror/view
- * 2. Bundle with esbuild/rollup to /js/codemirror-bundle.js
- * 3. Change imports below to local paths
+ * Uses the locally vendored CodeMirror bundle (window.CM_Markdown) which is
+ * loaded as a <script> tag from the codemirror-markdown vendor bundle.
+ * Provides Markdown syntax highlighting, Ctrl+S save, and dirty state tracking.
  */
 
-// Unpinned @6 ranges so esm.sh resolves all packages to the same @codemirror/state.
-// Pinned versions caused state version/target divergence (6.4.1/esnext vs 6.5.2/es2022).
-import { EditorView, keymap } from "https://esm.sh/@codemirror/view@6";
-import { EditorState, Compartment } from "https://esm.sh/@codemirror/state@6";
-import { basicSetup } from "https://esm.sh/codemirror@6.0.1";
-import { markdown } from "https://esm.sh/@codemirror/lang-markdown@6";
+// Read from the vendored IIFE bundle (codemirror-markdown.min.js sets window.CM_Markdown)
+var { EditorView, keymap } = window.CM_Markdown;
+var { EditorState, Compartment } = window.CM_Markdown;
+var { basicSetup } = window.CM_Markdown;
+var { markdown } = window.CM_Markdown;
 
 // --- Theme Compartment (shared across all editor instances) ---
 var themeCompartment = new Compartment();

@@ -6,7 +6,7 @@
  * a manifest.json mapping logical names to hashed filenames.
  *
  * Decisions: D267 (esbuild), D268 (npm vendor strategy),
- *            D269 (.gz pre-compression), D272 (yasgui/chartjs lazy)
+ *            D269 (.gz pre-compression), D272 (chartjs lazy)
  *
  * Usage: cd frontend && npm ci && node build.js
  */
@@ -188,26 +188,133 @@ async function build() {
   console.log(`   ${wsVendorCssFile}`);
 
   // =========================================================================
-  // 5. YASGUI BUNDLES — pre-built, just content-hash and copy
+  // 5a. GRIDSTACK BUNDLES — UMD JS + minified CSS
   // =========================================================================
-  console.log('4. Building yasgui bundles...');
+  console.log('4a. Building gridstack bundles...');
 
-  const yasguiJs = fs.readFileSync(
-    path.join(NODE_MODULES, '@zazuko/yasgui/build/yasgui.min.js')
-  );
-  const yasguiJsFile = writeHashed('yasgui', '.min.js', yasguiJs);
-  manifest['yasgui.js'] = yasguiJsFile;
-  console.log(`   ${yasguiJsFile}`);
+  const gridstackJs = readVendor('gridstack/dist/gridstack-all.js');
+  const gridstackJsMinified = await esbuild.transform(gridstackJs, {
+    minify: true,
+    target: 'es2020',
+  });
+  const gridstackJsFile = writeHashed('gridstack', '.min.js', gridstackJsMinified.code);
+  manifest['gridstack.js'] = gridstackJsFile;
+  console.log(`   ${gridstackJsFile}`);
 
-  const yasguiCss = fs.readFileSync(
-    path.join(NODE_MODULES, '@zazuko/yasgui/build/yasgui.min.css')
-  );
-  const yasguiCssFile = writeHashed('yasgui', '.min.css', yasguiCss);
-  manifest['yasgui.css'] = yasguiCssFile;
-  console.log(`   ${yasguiCssFile}`);
+  const gridstackCss = readVendor('gridstack/dist/gridstack.min.css');
+  const gridstackCssMinified = await esbuild.transform(gridstackCss, {
+    minify: true,
+    loader: 'css',
+  });
+  const gridstackCssFile = writeHashed('gridstack', '.min.css', gridstackCssMinified.code);
+  manifest['gridstack.css'] = gridstackCssFile;
+  console.log(`   ${gridstackCssFile}`);
 
   // =========================================================================
-  // 6. CHART.JS BUNDLE — UMD, just minify and hash
+  // 5b. FULLCALENDAR BUNDLE — pre-built global IIFE, just content-hash
+  // =========================================================================
+  console.log('4b. Building fullcalendar bundle...');
+
+  const fullcalendarJs = fs.readFileSync(
+    path.join(NODE_MODULES, 'fullcalendar/index.global.min.js')
+  );
+  const fullcalendarJsFile = writeHashed('fullcalendar', '.min.js', fullcalendarJs);
+  manifest['fullcalendar.js'] = fullcalendarJsFile;
+  console.log(`   ${fullcalendarJsFile} (${(fullcalendarJs.length / 1024).toFixed(0)}KB)`);
+
+  // =========================================================================
+  // 5c. LEAFLET + MARKERCLUSTER BUNDLES — UMD JS concat + CSS concat
+  // =========================================================================
+  console.log('4c. Building leaflet bundles...');
+
+  const leafletJsSrc = readVendor('leaflet/dist/leaflet.js');
+  const clusterJsSrc = readVendor('leaflet.markercluster/dist/leaflet.markercluster.js');
+  const leafletJsConcat = `/* leaflet */\n${leafletJsSrc}\n;\n/* leaflet.markercluster */\n${clusterJsSrc}\n;\n`;
+  const leafletJsMinified = await esbuild.transform(leafletJsConcat, {
+    minify: true,
+    target: 'es2020',
+  });
+  const leafletJsFile = writeHashed('leaflet', '.min.js', leafletJsMinified.code);
+  manifest['leaflet.js'] = leafletJsFile;
+  console.log(`   ${leafletJsFile}`);
+
+  const leafletCssSrc = readVendor('leaflet/dist/leaflet.css');
+  const clusterCssSrc = readVendor('leaflet.markercluster/dist/MarkerCluster.css');
+  const clusterDefaultCssSrc = readVendor('leaflet.markercluster/dist/MarkerCluster.Default.css');
+  const leafletCssConcat = `${leafletCssSrc}\n${clusterCssSrc}\n${clusterDefaultCssSrc}`;
+  const leafletCssMinified = await esbuild.transform(leafletCssConcat, {
+    minify: true,
+    loader: 'css',
+  });
+  const leafletCssFile = writeHashed('leaflet', '.min.css', leafletCssMinified.code);
+  manifest['leaflet.css'] = leafletCssFile;
+  console.log(`   ${leafletCssFile}`);
+
+  // =========================================================================
+  // 5d. FRAPPE-GANTT BUNDLES — UMD JS + CSS
+  // =========================================================================
+  console.log('4d. Building frappe-gantt bundles...');
+
+  const frappeGanttJs = readVendor('frappe-gantt/dist/frappe-gantt.umd.js');
+  const frappeGanttJsMinified = await esbuild.transform(frappeGanttJs, {
+    minify: true,
+    target: 'es2020',
+  });
+  const frappeGanttJsFile = writeHashed('frappe-gantt', '.min.js', frappeGanttJsMinified.code);
+  manifest['frappe-gantt.js'] = frappeGanttJsFile;
+  console.log(`   ${frappeGanttJsFile}`);
+
+  const frappeGanttCss = readVendor('frappe-gantt/dist/frappe-gantt.css');
+  const frappeGanttCssMinified = await esbuild.transform(frappeGanttCss, {
+    minify: true,
+    loader: 'css',
+  });
+  const frappeGanttCssFile = writeHashed('frappe-gantt', '.min.css', frappeGanttCssMinified.code);
+  manifest['frappe-gantt.css'] = frappeGanttCssFile;
+  console.log(`   ${frappeGanttCssFile}`);
+
+  // =========================================================================
+  // 5e. CODEMIRROR BUNDLES — ESM, bundled via esbuild
+  //     Two bundles: markdown (editor.js, vfs-browser.js) and sparql (sparql-console.js)
+  // =========================================================================
+  console.log('4e. Building CodeMirror bundles...');
+
+  // CodeMirror Markdown bundle — IIFE, exposes window.CM_Markdown
+  const cmMarkdownResult = await esbuild.build({
+    entryPoints: [path.join(__dirname, 'src', 'codemirror-markdown-entry.js')],
+    bundle: true,
+    format: 'iife',
+    globalName: 'CM_Markdown',
+    minify: true,
+    write: false,
+    platform: 'browser',
+    target: 'es2020',
+    nodePaths: [NODE_MODULES],
+  });
+  const cmMarkdownCode = cmMarkdownResult.outputFiles[0].text;
+  const cmMarkdownFile = writeHashed('codemirror-markdown', '.min.js', cmMarkdownCode);
+  manifest['codemirror-markdown.js'] = cmMarkdownFile;
+  console.log(`   ${cmMarkdownFile} (${(Buffer.byteLength(cmMarkdownCode) / 1024).toFixed(0)}KB)`);
+
+  // CodeMirror SPARQL bundle — IIFE, exposes window.CM_Sparql
+  const cmSparqlResult = await esbuild.build({
+    entryPoints: [path.join(__dirname, 'src', 'codemirror-sparql-entry.js')],
+    bundle: true,
+    format: 'iife',
+    globalName: 'CM_Sparql',
+    minify: true,
+    write: false,
+    platform: 'browser',
+    target: 'es2020',
+    nodePaths: [NODE_MODULES],
+  });
+  const cmSparqlCode = cmSparqlResult.outputFiles[0].text;
+  const cmSparqlFile = writeHashed('codemirror-sparql', '.min.js', cmSparqlCode);
+  manifest['codemirror-sparql.js'] = cmSparqlFile;
+  console.log(`   ${cmSparqlFile} (${(Buffer.byteLength(cmSparqlCode) / 1024).toFixed(0)}KB)`);
+
+  // =========================================================================
+  // 5. CHART.JS BUNDLE — UMD, just minify and hash
   // =========================================================================
   console.log('5. Building chart.js bundle...');
 
@@ -291,6 +398,18 @@ async function build() {
   const manifestJson = JSON.stringify(manifest, null, 2);
   fs.writeFileSync(path.join(DIST, 'manifest.json'), manifestJson);
   console.log(`   ${Object.keys(manifest).length} entries`);
+
+  // =========================================================================
+  // 10a. STABLE-NAMED COPIES — for static HTML files that can't use manifest
+  // =========================================================================
+  console.log('9a. Creating stable-named copies for static HTML...');
+
+  // vendor.min.js — used by frontend/static/index.html (dev console)
+  fs.copyFileSync(
+    path.join(DIST, manifest['vendor.js']),
+    path.join(DIST, 'vendor.min.js')
+  );
+  console.log('   vendor.min.js');
 
   // =========================================================================
   // 11. GENERATE .gz PRE-COMPRESSED SIBLINGS (D269)

@@ -8,16 +8,16 @@
  * Loaded as an ES module via dynamic import() on first SPARQL tab activation.
  */
 
-import { EditorView, keymap } from "https://esm.sh/@codemirror/view@6";
-import { EditorState, Compartment } from "https://esm.sh/@codemirror/state@6";
-import { basicSetup } from "https://esm.sh/codemirror@6.0.1";
-import { autocompletion } from "https://esm.sh/@codemirror/autocomplete@6";
+// Read from the vendored IIFE bundle (codemirror-sparql.min.js sets window.CM_Sparql)
+var { EditorView, keymap } = window.CM_Sparql;
+var { EditorState, Compartment } = window.CM_Sparql;
+var { basicSetup } = window.CM_Sparql;
+var { autocompletion } = window.CM_Sparql;
 
-// Try to load SPARQL language support; fall back gracefully
+// SPARQL language support from the vendored bundle
 var sparqlLang = null;
 try {
-  var mod = await import("https://esm.sh/codemirror-lang-sparql@2");
-  sparqlLang = mod.sparql;
+  sparqlLang = window.CM_Sparql.sparql;
 } catch (e) {
   console.warn("SPARQL language extension failed to load, using plain text:", e);
 }
@@ -1712,7 +1712,7 @@ function bindToolbarEvents() {
   });
 }
 
-export function initSparqlConsole() {
+function initSparqlConsole() {
   var container = document.getElementById('sparql-editor');
   if (!container) {
     console.error('SPARQL editor container #sparql-editor not found');
@@ -1739,3 +1739,6 @@ export function initSparqlConsole() {
 
   handlePromoteSubmit();
 }
+
+// Expose for lazy-loading by workspace.js
+window.initSparqlConsole = initSparqlConsole;

@@ -17,11 +17,7 @@
     <link rel="stylesheet" href="{{ 'theme.css' | asset_url }}">
     <link rel="stylesheet" href="{{ 'style.css' | asset_url }}">
     <!-- Lucide for lock icon -->
-    {% if asset_manifest_available %}
     <script src="{{ 'vendor.js' | asset_url }}"></script>
-    {% else %}
-    <script src="https://unpkg.com/lucide@0.575.0/dist/umd/lucide.min.js"></script>
-    {% endif %}
     <style>
         .error-page {
             display: flex;

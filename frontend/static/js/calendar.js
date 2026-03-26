@@ -10,7 +10,9 @@
 (function () {
   'use strict';
 
-  var CDN = 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.17/index.global.min.js';
+  // Resolve fullcalendar URL: prefer data attribute from template, fall back to asset path
+  var _fcConfig = document.getElementById('fullcalendar-loader-config');
+  var CDN = _fcConfig ? _fcConfig.getAttribute('data-fullcalendar-src') : '/js/fullcalendar.js';
 
   // Named handlers for document-level events — stored here so we can
   // removeEventListener with the same reference on cleanup / reinit.

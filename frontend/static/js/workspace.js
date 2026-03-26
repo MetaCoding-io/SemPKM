@@ -420,12 +420,36 @@
     if (panelState.open && panelState.activeTab === 'sparql') {
       if (!window.SemPKM._sparqlConsoleInit) {
         window.SemPKM._sparqlConsoleInit = true;
-        import('/js/sparql-console.js').then(function(mod) {
-          mod.initSparqlConsole();
-        }).catch(function(err) {
-          console.error('Failed to load SPARQL console:', err);
-          window.SemPKM._sparqlConsoleInit = false;
-        });
+        // Load codemirror-sparql bundle first, then sparql-console.js
+        var sparqlConfig = document.getElementById('sparql-loader-config');
+        var sparqlBundleUrl = sparqlConfig ? sparqlConfig.getAttribute('data-cm-sparql-src') : '/js/codemirror-sparql.js';
+        var sparqlConsoleSrc = sparqlConfig ? sparqlConfig.getAttribute('data-sparql-console-src') : '/js/sparql-console.js';
+        function _loadSparqlConsole() {
+          var sc = document.createElement('script');
+          sc.src = sparqlConsoleSrc;
+          sc.onload = function() {
+            if (typeof window.initSparqlConsole === 'function') {
+              window.initSparqlConsole();
+            }
+          };
+          sc.onerror = function() {
+            console.error('Failed to load SPARQL console');
+            window.SemPKM._sparqlConsoleInit = false;
+          };
+          document.head.appendChild(sc);
+        }
+        if (window.CM_Sparql) {
+          _loadSparqlConsole();
+        } else {
+          var cmsc = document.createElement('script');
+          cmsc.src = sparqlBundleUrl;
+          cmsc.onload = _loadSparqlConsole;
+          cmsc.onerror = function() {
+            console.error('Failed to load CodeMirror SPARQL bundle');
+            window.SemPKM._sparqlConsoleInit = false;
+          };
+          document.head.appendChild(cmsc);
+        }
       }
     }
 
@@ -3423,7 +3447,8 @@
     if (_chartJsLoading) return;
     _chartJsLoading = true;
     var script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4/dist/chart.umd.min.js';
+    var chartjsConfig = document.getElementById('chartjs-loader-config');
+    script.src = chartjsConfig ? chartjsConfig.getAttribute('data-chartjs-src') : '/js/chartjs.js';
     script.onload = function() {
       _chartJsLoaded = true;
       _chartJsLoading = false;

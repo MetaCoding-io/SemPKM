@@ -11,10 +11,10 @@
 <link rel="stylesheet" href="{{ 'workspace-vendor.css' | asset_url }}">
 <script src="{{ 'workspace-vendor.js' | asset_url }}"></script>
 {% else %}
-{# Dev mode: CDN dockview + separate bridge CSS #}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dockview-core@4.11.0/dist/styles/dockview.css">
+{# Dev mode: dockview from vendor bundle, bridge CSS from static #}
+<link rel="stylesheet" href="{{ 'workspace-vendor.css' | asset_url }}">
 <link rel="stylesheet" href="/css/dockview-sempkm-bridge.css">
-<script src="https://cdn.jsdelivr.net/npm/dockview-core@4.11.0/dist/dockview-core.min.js"></script>
+<script src="{{ 'workspace-vendor.js' | asset_url }}"></script>
 {% endif %}
 <link rel="stylesheet" href="{{ 'federation.css' | asset_url }}">
 <link rel="stylesheet" href="/css/copilot.css">
@@ -338,5 +338,9 @@ document.addEventListener('sempkm:demo-tour-done', function() {
 {% endblock %}
 
 {% block scripts %}
+<script data-cm-sparql-src="{{ 'codemirror-sparql.js' | asset_url }}"
+        data-sparql-console-src="{{ 'sparql-console.js' | asset_url }}"
+        id="sparql-loader-config"></script>
+<script id="chartjs-loader-config" data-chartjs-src="{{ 'chartjs.js' | asset_url }}"></script>
 <script src="/js/context-indicator.js"></script>
 {% endblock %}

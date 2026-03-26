@@ -24,11 +24,11 @@
 (function () {
     var dataUrl = {{ map_data_url | tojson }};
 
-    var LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    var CLUSTER_CSS = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css';
-    var CLUSTER_DEFAULT_CSS = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css';
-    var LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    var CLUSTER_JS = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js';
+    var LEAFLET_CSS = {{ 'leaflet.css' | asset_url | tojson }};
+    var CLUSTER_CSS = '';  // bundled with leaflet.css
+    var CLUSTER_DEFAULT_CSS = '';  // bundled with leaflet.css
+    var LEAFLET_JS = {{ 'leaflet.js' | asset_url | tojson }};
+    var CLUSTER_JS = '';  // bundled with leaflet.js
 
     /* Load a CSS file by creating a <link> element */
     function loadCSS(href) {
@@ -105,22 +105,15 @@
         resizeObserver.observe(el);
     }
 
-    /* Lazy-load sequence: CSS first, then Leaflet JS, then MarkerCluster JS */
+    /* Lazy-load sequence: CSS first, then combined Leaflet+MarkerCluster JS */
     loadCSS(LEAFLET_CSS);
-    loadCSS(CLUSTER_CSS);
-    loadCSS(CLUSTER_DEFAULT_CSS);
 
     if (typeof L !== 'undefined' && L.markerClusterGroup) {
         /* Both already loaded (e.g. second map tab) */
         initMap();
-    } else if (typeof L !== 'undefined') {
-        /* Leaflet loaded but not MarkerCluster */
-        loadScript(CLUSTER_JS, initMap);
     } else {
-        /* Load Leaflet first, then MarkerCluster */
-        loadScript(LEAFLET_JS, function () {
-            loadScript(CLUSTER_JS, initMap);
-        });
+        /* Load combined Leaflet + MarkerCluster bundle */
+        loadScript(LEAFLET_JS, initMap);
     }
 })();
 </script>

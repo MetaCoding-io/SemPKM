@@ -15,8 +15,8 @@
 <script>
 (function () {
     var dataUrl = {{ timeline_data_url | tojson }};
-    var CDN_JS = 'https://cdn.jsdelivr.net/npm/frappe-gantt@1.2.2/dist/frappe-gantt.umd.js';
-    var CDN_CSS = 'https://cdn.jsdelivr.net/npm/frappe-gantt@1.2.2/dist/frappe-gantt.css';
+    var CDN_JS = {{ 'frappe-gantt.js' | asset_url | tojson }};
+    var CDN_CSS = {{ 'frappe-gantt.css' | asset_url | tojson }};
 
     /**
      * Format a Date object or date string to YYYY-MM-DD for the PATCH endpoint.

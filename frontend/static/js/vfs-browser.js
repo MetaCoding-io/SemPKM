@@ -50,26 +50,23 @@
     }
   }
 
-  // ── CodeMirror dynamic import ──────────────────────────────────────
+  // ── CodeMirror (from vendored bundle loaded in base.html) ────────
 
   function loadCodeMirror() {
     if (_cmModules) return Promise.resolve(_cmModules);
-    return Promise.all([
-      import('https://esm.sh/@codemirror/view@6'),
-      import('https://esm.sh/@codemirror/state@6'),
-      import('https://esm.sh/codemirror@6.0.1'),
-      import('https://esm.sh/@codemirror/lang-markdown@6')
-    ]).then(function (mods) {
+    // CM_Markdown is set by the codemirror-markdown IIFE bundle
+    if (window.CM_Markdown) {
       _cmModules = {
-        EditorView: mods[0].EditorView,
-        keymap: mods[0].keymap,
-        EditorState: mods[1].EditorState,
-        Compartment: mods[1].Compartment,
-        basicSetup: mods[2].basicSetup,
-        markdown: mods[3].markdown
+        EditorView: window.CM_Markdown.EditorView,
+        keymap: window.CM_Markdown.keymap,
+        EditorState: window.CM_Markdown.EditorState,
+        Compartment: window.CM_Markdown.Compartment,
+        basicSetup: window.CM_Markdown.basicSetup,
+        markdown: window.CM_Markdown.markdown
       };
-      return _cmModules;
-    });
+      return Promise.resolve(_cmModules);
+    }
+    return Promise.reject(new Error('CM_Markdown bundle not loaded'));
   }
 
   // ── Tree loading ───────────────────────────────────────────────────

@@ -43,8 +43,8 @@
       if (lightHref && darkHref) {
         hljsLink.href = (resolved === 'dark') ? darkHref : lightHref;
       } else {
-        // Fallback to CDN (dev mode)
-        var base = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/';
+        // Fallback to local paths (dev mode without build manifest)
+        var base = '/css/';
         hljsLink.href = base + (resolved === 'dark' ? 'github-dark.min.css' : 'github.min.css');
       }
     }

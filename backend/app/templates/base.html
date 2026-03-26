@@ -16,40 +16,15 @@
     </script>
     <link rel="stylesheet" href="{{ 'theme.css' | asset_url }}">
     <link rel="stylesheet" href="{{ 'style.css' | asset_url }}">
-    {# ── Vendor libraries ── #}
-    {% if asset_manifest_available %}
-    {# Production: locally-vendored, minified, content-hashed bundles #}
+    {# Vendor libraries — locally vendored, minified, content-hashed bundles #}
     <script src="{{ 'vendor.js' | asset_url }}"></script>
     <link rel="stylesheet" href="{{ 'vendor.css' | asset_url }}">
     <link id="hljs-theme" rel="stylesheet"
           href="{{ 'hljs-github.css' | asset_url }}"
           data-light-href="{{ 'hljs-github.css' | asset_url }}"
           data-dark-href="{{ 'hljs-github-dark.css' | asset_url }}">
-    {# GridStack — not yet in vendor bundle, loaded from CDN #}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@10/dist/gridstack.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/gridstack@10/dist/gridstack-all.js"></script>
-    {% else %}
-    {# Dev mode: CDN-loaded libraries (volume-mounted raw files) #}
-    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-    <script src="https://unpkg.com/split.js@1.6.5/dist/split.min.js"></script>
-    <script type="module" src="https://unpkg.com/ninja-keys@1.2.2?module"></script>
-    <script src="https://unpkg.com/cytoscape@3.33.1/dist/cytoscape.min.js"></script>
-    <script src="https://unpkg.com/layout-base@2.0.1/layout-base.js"></script>
-    <script src="https://unpkg.com/cose-base@2.2.0/cose-base.js"></script>
-    <script src="https://unpkg.com/cytoscape-fcose@2.2.0/cytoscape-fcose.js"></script>
-    <script src="https://unpkg.com/dagre@0.8.5/dist/dagre.min.js"></script>
-    <script src="https://unpkg.com/cytoscape-dagre@2.5.0/cytoscape-dagre.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked-highlight/lib/index.umd.js"></script>
-    <link id="hljs-theme" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
-    <script src="https://unpkg.com/lucide@0.575.0/dist/umd/lucide.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.css">
-    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.4.0/dist/driver.js.iife.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@10/dist/gridstack.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/gridstack@10/dist/gridstack-all.js"></script>
-    {% endif %}
+    <link rel="stylesheet" href="{{ 'gridstack.css' | asset_url }}">
+    <script src="{{ 'gridstack.js' | asset_url }}"></script>
     <script src="{{ 'api-fetch.js' | asset_url }}"></script>
     <script src="{{ 'posthog.js' | asset_url }}"></script>
     <script src="{{ 'auth.js' | asset_url }}"></script>
@@ -145,6 +120,7 @@
     </script>
     <script src="{{ 'cleanup.js' | asset_url }}"></script>
     <script src="{{ 'markdown-render.js' | asset_url }}"></script>
+    <script src="{{ 'codemirror-markdown.js' | asset_url }}"></script>
     <script type="module" src="{{ 'editor.js' | asset_url }}"></script>
     <script src="{{ 'sidebar.js' | asset_url }}"></script>
     <script src="{{ 'theme.js' | asset_url }}"></script>

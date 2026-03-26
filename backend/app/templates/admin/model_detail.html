@@ -382,11 +382,7 @@
 {% endblock %}
 
 {% block scripts %}
-{% if asset_manifest_available %}
 <script src="{{ 'chartjs.js' | asset_url }}"></script>
-{% else %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4/dist/chart.umd.min.js"></script>
-{% endif %}
 <script>
     function initTypeCharts(localName) {
         var growthCanvas = document.getElementById('chart-growth-' + localName);
