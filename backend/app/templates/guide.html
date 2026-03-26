@@ -1,5 +1,7 @@
 {% extends "base.html" %}
-{% block page_css %}{% endblock %}
+{% block page_css %}
+<link rel="stylesheet" href="{{ 'workspace.css' | asset_url }}">
+{% endblock %}
 {% block title %}Docs &amp; Tutorials — SemPKM{% endblock %}
 
 {% block content %}
@@ -16,7 +18,7 @@
   <section class="docs-section">
     <h3 class="docs-section-title">{{ section.title }}</h3>
     <div class="docs-cards">
-      {% for tour in section.items %}
+      {% for tour in section['items'] %}
       <div class="docs-card">
         <div class="docs-card-icon">
           <i data-lucide="{{ tour.icon }}"></i>
@@ -38,7 +40,7 @@
   <section class="docs-section">
     <h3 class="docs-section-title">{{ section.title }}</h3>
     <div class="docs-chapter-list">
-      {% for ch in section.items %}
+      {% for ch in section['items'] %}
       <button class="docs-chapter-item{% if ch.appendix is defined and ch.appendix %} docs-chapter-appendix{% endif %}"
               hx-get="/guide/{{ ch.filename }}"
               hx-target="#app-content"
@@ -56,7 +58,7 @@
   <section class="docs-section">
     <h3 class="docs-section-title">{{ section.title }}</h3>
     <div class="docs-links">
-      {% for link in section.items %}
+      {% for link in section['items'] %}
       <a href="{{ link.url }}" target="_blank" class="docs-link-item">
         <i data-lucide="{{ link.icon }}"></i>
         <span>{{ link.title }}</span>

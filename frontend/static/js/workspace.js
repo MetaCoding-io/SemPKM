@@ -46,6 +46,7 @@
   var defaultSizes = [20, 50, 30];
 
   function initSplit() {
+    if (!document.getElementById('nav-pane')) return; // not on workspace page
     if (typeof Split === 'undefined') {
       console.warn('Split.js not loaded yet, retrying...');
       setTimeout(initSplit, 100);

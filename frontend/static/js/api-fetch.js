@@ -104,6 +104,8 @@
   }
 
   window.SemPKM.apiFetch = apiFetch;
+  // Backward-compat shim — 19 files still reference bare apiFetch
+  window.apiFetch = apiFetch;
 
   /**
    * Debug logging gated by localStorage flag.

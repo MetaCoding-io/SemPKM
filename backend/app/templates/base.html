@@ -50,8 +50,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@10/dist/gridstack.min.css">
     <script src="https://cdn.jsdelivr.net/npm/gridstack@10/dist/gridstack-all.js"></script>
     {% endif %}
-    <script src="{{ 'posthog.js' | asset_url }}"></script>
     <script src="{{ 'api-fetch.js' | asset_url }}"></script>
+    <script src="{{ 'posthog.js' | asset_url }}"></script>
     <script src="{{ 'auth.js' | asset_url }}"></script>
     {% block page_css %}
     <link rel="stylesheet" href="{{ 'workspace.css' | asset_url }}">

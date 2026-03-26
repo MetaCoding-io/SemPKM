@@ -336,7 +336,7 @@
       try {
         // Filter out ephemeral create-form panels — they can't be restored after reload
         var layout = dv.toJSON();
-        if (layout && layout.grid && layout.panels) {
+        if (layout && layout.grid && Array.isArray(layout.panels)) {
           layout.panels = layout.panels.filter(function (p) {
             return !p.id || !p.id.startsWith('__new-object-');
           });
@@ -406,7 +406,7 @@
     if (saved) {
       try {
         // Strip ephemeral create-form panels that can't be restored
-        if (saved.panels) {
+        if (Array.isArray(saved.panels)) {
           saved.panels = saved.panels.filter(function (p) {
             return !p.id || !p.id.startsWith('__new-object-');
           });
