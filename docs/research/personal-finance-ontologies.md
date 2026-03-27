@@ -252,6 +252,49 @@ GIST provides a **strong foundation** for a personal finance model. Its `Financi
 
 ---
 
+## 9. REA (Resources, Events, Agents) Pattern
+
+**Foundational accounting theory with high conceptual relevance.**
+
+| Attribute | Detail |
+|-----------|--------|
+| **Origin** | William McCarthy, Michigan State University (1982) |
+| **Status** | Foundational theory, widely cited in academia and ISO 15944-4 |
+| **RDF version** | No single canonical RDF serialization exists |
+
+### Core Model
+
+REA models all economic activity as three primitives:
+- **Resources** -- things of economic value (money, goods, services)
+- **Events** -- economic transactions that affect resources (payment, purchase, sale)
+- **Agents** -- participants in economic events (you, your employer, a merchant)
+
+Every economic event involves a Resource flowing from one Agent to another. Double-entry accounting emerges naturally: every exchange has a give-event and a take-event.
+
+### Assessment
+
+**High theoretical relevance.** REA maps cleanly to personal finance: your money (Resource) moves via transactions (Events) between you and counterparties (Agents). No canonical RDF download exists, but the pattern is straightforward to implement in OWL and aligns well with GIST's `Event` and `Organization` classes.
+
+---
+
+## 10. Open Banking Ontology (OBO)
+
+**Academic ontology for bank statement semantics.**
+
+| Attribute | Detail |
+|-----------|--------|
+| **Published** | 2023, Applied Sciences journal (MDPI) |
+| **Format** | OWL 2 |
+| **Size** | 14 classes, 10 object properties, 35 data properties, ~250 axioms |
+| **Context** | PSD2 open banking, bank statement & invoice management |
+| **Status** | Academic prototype |
+
+### Assessment
+
+**Medium relevance.** Directly models bank statements and transactions, which is the core data flow for personal finance. However, it is an academic prototype rather than an adopted standard. Useful as a reference for transaction modeling patterns.
+
+---
+
 ## Gap Analysis: What's Missing for Personal Finance
 
 No existing ontology covers these personal finance concepts that users need:
@@ -279,8 +322,9 @@ No existing ontology covers these personal finance concepts that users need:
 1. **Lightweight over comprehensive** -- model what users actually track, not institutional complexity
 2. **GIST-grounded** -- use GIST upper ontology as foundation (consistent with all SemPKM models)
 3. **Schema.org-aligned** -- map to schema.org types where possible for interoperability
-4. **Category-driven** -- expense/income categories are the core user mental model
-5. **Goal-oriented** -- financial planning = goal tracking with monetary targets
+4. **REA-structured** -- use Resource-Event-Agent pattern as conceptual backbone for transactions
+5. **Category-driven** -- expense/income categories are the core user mental model
+6. **Goal-oriented** -- financial planning = goal tracking with monetary targets
 
 ### Proposed Core Classes
 
