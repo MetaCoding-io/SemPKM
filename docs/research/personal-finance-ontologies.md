@@ -275,6 +275,76 @@ Every economic event involves a Resource flowing from one Agent to another. Doub
 
 **High theoretical relevance.** REA maps cleanly to personal finance: your money (Resource) moves via transactions (Events) between you and counterparties (Agents). No canonical RDF download exists, but the pattern is straightforward to implement in OWL and aligns well with GIST's `Event` and `Organization` classes.
 
+### 9a. EREN -- Entity-Relationship Event Network (Batra's REA Extension)
+
+**Extends REA with richer event semantics grounded in cognitive linguistics.**
+
+| Attribute | Detail |
+|-----------|--------|
+| **Full name** | Entity-Relationship Event Network |
+| **Author** | Dinesh Batra, Florida International University |
+| **Key paper** | "An Event-Oriented Data Modeling Technique Based on the Cognitive Semantics Theory" -- *Journal of Database Management (JDM)*, Vol. 23, No. 4, 2012, pp. 52-74 |
+| **Follow-up** | Batra & Wishart, "Novice Designer Performance Comparison Between the Entity Relationship Event Network and the Event-Based Logical Relational Design Techniques" -- *JDM*, Vol. 25, No. 3, 2014, pp. 1-27 |
+| **Also see** | Batra, *Conceptual Data Modeling Patterns* (book, ResearchGate) |
+
+#### Why EREN Extends REA
+
+REA was designed for **accounting transactions** -- but most real-world business events are not pure accounting transactions. Batra observed that the REA formulation of Resource + Event + Agent is **incomplete** for modeling the full range of events a person or business encounters. EREN addresses this by introducing more discriminating entity types derived from Jackendoff's Conceptual Semantics theory (1985).
+
+#### The EREN Template
+
+Where REA gives you three entity categories per event, EREN provides a richer **event template** drawing on Jackendoff's thematic roles:
+
+| Jackendoff Thematic Role | EREN Entity Type | Personal Finance Example |
+|--------------------------|-----------------|-------------------------|
+| **Thing** (what is affected) | Resource | Money, investment shares, property |
+| **Event** (what happens) | Event | Purchase, payment, transfer, deposit |
+| **Agent** (who acts) | Agent | You, your employer, a merchant, a bank |
+| **Place** (where) | Location | Bank branch, online platform, ATM |
+| **Path** (trajectory of change) | Flow/Transfer | From checking to savings, from employer to you |
+| **Manner** (how) | Detail/Method | Wire transfer, cash, direct deposit, recurring |
+
+The EREN technique is **top-down and template-driven**: you identify events, sketch a network of how events relate to each other, then apply the EREN template to each event to derive its full data model. This contrasts with bottom-up approaches and makes it particularly useful for **design** (not just description) of new data models.
+
+#### The Event Network Concept
+
+Beyond enriching individual events, EREN models **networks of events** -- how events connect, trigger, and depend on each other. For personal finance, this captures real patterns:
+
+```
+Salary Deposit ──triggers──> Budget Allocation
+Budget Allocation ──enables──> Bill Payment
+                  ──enables──> Savings Transfer
+                  ──enables──> Investment Purchase
+Investment Purchase ──may trigger──> Dividend Income
+Loan Payment ──reduces──> Loan Balance
+              ──is part of──> Debt Payoff Plan
+```
+
+This network view is a natural fit for SemPKM's knowledge graph approach -- financial events don't exist in isolation, they form meaningful chains that users want to see and reason about.
+
+#### READY Model (Dynamic Behavior Extension)
+
+Batra also developed the **READY model** (building on REA + scenario notation) to illustrate patterns of dynamic behavior in REA-based accounting applications. This adds temporal sequencing and state transitions to the REA/EREN patterns -- relevant for modeling things like loan amortization schedules, budget periods, and goal progress over time.
+
+#### Assessment for SemPKM
+
+**High relevance for our mental model design.** EREN provides exactly the conceptual vocabulary we need to go beyond simple transaction recording toward rich event modeling:
+
+1. **Template-driven design** aligns with how SemPKM mental models work -- we define a template (ontology + shapes) that users instantiate
+2. **Thematic roles** map to the properties we need on transactions (who, what, where, how, from-where, to-where)
+3. **Event networks** map naturally to RDF graph structure -- events linked to resources, agents, locations, and to each other
+4. **Cognitive grounding** (Jackendoff's theory, Cognitive Load Theory) means the model mirrors how people actually think about their financial events -- important for a PKM tool
+
+The EREN template should inform how we structure the `pf:Transaction` class and its properties in the personal finance mental model.
+
+#### Sources
+
+- [EREN Paper (IGI Global)](https://www.igi-global.com/article/event-oriented-data-modeling-technique/76666)
+- [EREN vs ELRD Comparison (IGI Global)](https://www.igi-global.com/gateway/article/118086)
+- [Conceptual Data Modeling Patterns (ResearchGate)](https://www.researchgate.net/publication/276002049_Conceptual_Data_Modeling_Patterns)
+- [REA Wikipedia](https://en.wikipedia.org/wiki/Resources,_Events,_Agents)
+- [Understanding REA (XBRL blog)](http://xbrl.squarespace.com/journal/2016/9/27/understanding-the-resource-event-agent-rea-conceptual-model.html)
+
 ---
 
 ## 10. Open Banking Ontology (OBO)
@@ -322,7 +392,7 @@ No existing ontology covers these personal finance concepts that users need:
 1. **Lightweight over comprehensive** -- model what users actually track, not institutional complexity
 2. **GIST-grounded** -- use GIST upper ontology as foundation (consistent with all SemPKM models)
 3. **Schema.org-aligned** -- map to schema.org types where possible for interoperability
-4. **REA-structured** -- use Resource-Event-Agent pattern as conceptual backbone for transactions
+4. **REA/EREN-structured** -- use Resource-Event-Agent pattern as conceptual backbone, enriched with EREN thematic roles (location, method, path) for richer event modeling
 5. **Category-driven** -- expense/income categories are the core user mental model
 6. **Goal-oriented** -- financial planning = goal tracking with monetary targets
 
@@ -369,12 +439,24 @@ Categories (SKOS taxonomy):
 ### Key Properties
 
 ```
-pf:hasAccount           -- Person -> FinancialAccount
+Core (REA):
+pf:hasAccount           -- Person -> FinancialAccount          (Agent -> Resource)
 pf:hasBalance           -- FinancialAccount -> MonetaryAmount
-pf:transactionAmount    -- Transaction -> MonetaryAmount
-pf:transactionDate      -- Transaction -> xsd:date
-pf:category             -- Transaction -> ExpenseCategory/IncomeCategory
-pf:payee                -- Expense -> Organization/Person
+pf:transactionAmount    -- Transaction -> MonetaryAmount        (Event -> Resource)
+pf:transactionDate      -- Transaction -> xsd:date              (Event -> Time)
+pf:category             -- Transaction -> ExpenseCategory       (Event -> Classification)
+pf:payee                -- Expense -> Organization/Person       (Event -> Agent)
+pf:payer                -- Income -> Organization/Person        (Event -> Agent)
+
+EREN-enriched (thematic roles):
+pf:fromAccount          -- Transaction -> FinancialAccount      (Path: source)
+pf:toAccount            -- Transaction -> FinancialAccount      (Path: destination)
+pf:transactionMethod    -- Transaction -> PaymentMethod         (Manner: how)
+pf:transactionLocation  -- Transaction -> Place                 (Place: where)
+pf:triggeredBy          -- Transaction -> Transaction           (Event network: causation)
+pf:partOfPlan           -- Transaction -> FinancialGoal         (Event network: goal linkage)
+
+Planning & Goals:
 pf:targetAmount         -- FinancialGoal -> MonetaryAmount
 pf:currentAmount        -- FinancialGoal -> MonetaryAmount
 pf:targetDate           -- FinancialGoal -> xsd:date
