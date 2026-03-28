@@ -688,3 +688,91 @@ Systematic security audit against OWASP Top 10 2021 (A01–A10) plus backend har
 
 **Context:** `.gsd/milestones/M042/M042-CONTEXT.md`
 **Depends on:** None (can run immediately)
+
+---
+
+## E2E Test Suite Remediation
+
+**Queued:** 2026-03-27
+**Status:** Ready
+**Priority:** High — 62 of 331 core tests failing, many pre-existing since M029
+
+### Context
+
+Full E2E run on 2026-03-27 after fixing the critical htmx/vendor.js loading issue (test compose used raw nginx instead of built frontend image). Results: 262 passed, 3 flaky, 62 failed. The failures cluster into 7 distinct categories that need separate fixes.
+
+### Category A: Auth fixture — member login failures (~15 tests)
+
+**Symptoms:** `Magic link request did not return a token for member@test.local` or `Token has already been used`
+**Affected:** admin-access-control (3), member-permissions (6), dark-mode per-user (1), debug-pages member (1), session-management (1), plus cascading from setup tests (3+)
+**Root cause:** The `memberPage` fixture invites `member@test.local` then requests a magic link. When tests run close together, the invite may not complete before the login attempt. The itsdangerous same-second token collision was fixed (nonce added) but may also interact with rate limiting on the magic-link endpoint.
+**Fix approach:** The auth fixture needs to cache the session token across tests in the same file rather than re-authenticating per test. Or use a test-only "create session directly" endpoint that bypasses magic link entirely for E2E environments.
+
+### Category B: App platform — sync apps not starting (~10 tests)
+
+**Symptoms:** `#connect-content` not visible after 60s, status badge never shows "running"
+**Affected:** linear-sync, github-sync, jira-sync, monday-sync, todoist-sync, caldav-calendar, asana-sync, app-platform lifecycle
+**Root cause:** The app platform starts apps as subprocesses with their own Python venvs. In the test Docker container, the apps directory is mounted read-only (`./apps:/app/apps:ro`) and the SDK is at `./backend/sdk:/app/backend/sdk:ro`. The apps need writable venvs — the `ro` mount prevents pip install of the SDK. The app processes likely crash on startup with import errors.
+**Fix approach:** Either (1) make the apps volume writable in test compose, (2) pre-build app venvs in the Docker image, or (3) add the SDK to the API container's Python path so apps inherit it. Check `docker compose -f docker-compose.test.yml exec api cat /app/data/apps/*/stderr.log` for the actual errors.
+
+### Category C: Ontology viewer / class creation — duplicate testid (~6 tests)
+
+**Symptoms:** `strict mode violation: locator '[data-testid="tbox-tree"]' resolved to 2 elements`
+**Affected:** ontology-viewer (3 tests: TBox, ABox, RBox tabs), class-creation (3 tests)
+**Root cause:** The ontology viewer opens in a dockview tab. When the tab is opened twice (e.g., from a previous test that didn't close it), two instances of the same panel exist in the DOM with identical `data-testid` attributes. Playwright strict mode rejects ambiguous locators.
+**Fix approach:** Tests should scope locators to the active dockview panel (`.dv-view:not(.dv-hidden)`) or use `.first()` on the locator. Alternatively, ensure each test closes the ontology tab before opening a new one.
+
+### Category D: Copilot — bottom panel click intercepted (~5 tests)
+
+**Symptoms:** `<div class="editor-empty">` or `<html>` intercepts pointer events on the AI COPILOT tab button
+**Affected:** All 5 copilot tests (basic chat, SPARQL approval, persistence, personas, object creation)
+**Root cause:** The bottom panel tab buttons sit behind the editor-empty overlay in z-index stacking. When no object is open, the `.editor-empty` div covers the bottom panel tabs. The copilot tab button is visible but not clickable.
+**Fix approach:** Either (1) fix the CSS z-index so bottom panel tabs are always above the editor area, or (2) have the test open an object first to dismiss the empty overlay, or (3) use `{ force: true }` on the click (last resort).
+
+### Category E: Calendar/recurring tasks — view rendering timeouts (~5 tests)
+
+**Symptoms:** Timeout waiting for FullCalendar container or calendar events
+**Affected:** calendar-view (3 tests), recurring-tasks (2 tests)
+**Root cause:** FullCalendar loads via CDN lazy-load pattern (script tag in template). The CDN fetch may be slow or blocked in the Docker test environment. If the script fails to load, the calendar never initializes.
+**Fix approach:** Vendor FullCalendar into the build pipeline (it's already in `frontend/build.js` as `fullcalendar.js`). Check if the calendar template is using the vendored version or still referencing a CDN.
+
+### Category F: Setup wizard UI tests (~5 tests)
+
+**Symptoms:** `setup.html` form elements not found or submit not working
+**Affected:** setup-wizard tests 3-6 (form visibility, invalid token, valid token, post-setup status)
+**Root cause:** `setup.html` is a static HTML file served by nginx. It doesn't use htmx or the vendor bundle — it has its own inline JS. The form submit uses `fetch()` to POST to `/api/setup/configure-instance` and `/api/auth/setup`. Need to check if the setup endpoint is working correctly and if the JS is finding the form elements.
+**Fix approach:** Run just the setup wizard test with `--headed` to see what the page looks like. May be a simple selector mismatch or a timing issue with the fetch response.
+
+### Category G: Miscellaneous UI interaction failures (~16 tests)
+
+Individual failures that don't cluster into a pattern:
+
+- **table-pagination**: 422 from bad request (test data issue)
+- **markdown-rendering**: Timeout waiting for rendered markdown
+- **create-edge relations panel**: Object tab not opening
+- **create-object type picker**: Type picker overlay not appearing
+- **edit-object multi-value ref**: Reference field save not persisting
+- **keyboard Alt+N**: Type picker shortcut not firing
+- **workspace layout right pane**: Details pane sections not found
+- **workspace layout bottom panel**: EVENT LOG/COPILOT tabs not found
+- **event-log Alt+J**: Bottom panel open shortcut not firing
+- **ops-log badge text**: Expected "Model Install" got "model.install" (display format change)
+- **vfs-mountspec**: 422 instead of 400 for bad strategy
+- **canvas-resize UI**: Backward compat interaction test
+- **tags tag-explorer**: Tag pills not visible
+- **comments (3)**: Object tab not opening (comment thread tests)
+- **crossfade inferred badge**: Relations panel badge not appearing
+- **dm-board business-planning**: Decision matrix view not rendering
+- **lint-dashboard sorting**: Sort order assertion off
+
+**Fix approach:** Each needs individual investigation. Many may be resolved by fixing categories A-F first (auth failures cascade, z-index issues affect multiple panels). Start by re-running after the auth and z-index fixes to see which of these are truly independent.
+
+### Recommended execution order
+
+1. **Category A** (auth fixture) — highest ROI, unblocks ~15 tests and may resolve cascading failures in G
+2. **Category D** (copilot z-index) — quick CSS fix, unblocks 5 tests
+3. **Category B** (app platform) — infrastructure fix, unblocks 10 tests
+4. **Category C** (ontology testid) — test-side fix, unblocks 6 tests
+5. **Category E** (calendar) — check vendoring, unblocks 5 tests
+6. **Category F** (setup wizard) — investigate, unblocks 5 tests
+7. **Category G** (misc) — re-evaluate after A-F are done
