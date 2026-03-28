@@ -27,7 +27,7 @@ Steps:
   - Estimate: 1h
   - Files: backend/app/federation/schemas.py, backend/app/federation/router.py, backend/app/federation/service.py, backend/app/federation/namespace_filter.py, backend/tests/test_federation_integrity.py
   - Verify: cd backend && .venv/bin/python -m pytest tests/test_federation_integrity.py -v
-- [ ] **T03: Wire model install/uninstall security audit logging** — Add security audit logging for model install and uninstall operations in the admin router. The SecurityAuditLog model and log_security_event helper already exist (M043 F-029). The event types `model_installed` and `model_uninstalled` are already defined in AUDIT_EVENT_TYPES. This task wires the calls into the admin router handlers. Write unit tests.
+- [x] **T03: Wired model_installed and model_uninstalled security audit events into admin router with 10 passing tests** — Add security audit logging for model install and uninstall operations in the admin router. The SecurityAuditLog model and log_security_event helper already exist (M043 F-029). The event types `model_installed` and `model_uninstalled` are already defined in AUDIT_EVENT_TYPES. This task wires the calls into the admin router handlers. Write unit tests.
 
 Steps:
 1. In `backend/app/admin/router.py`, add `from app.auth.audit import log_security_event` at the top.

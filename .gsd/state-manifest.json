@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-03-28T23:26:08.721Z",
+  "exported_at": "2026-03-28T23:32:58.469Z",
   "milestones": [
     {
       "id": "M001",
@@ -29374,19 +29374,24 @@
       "milestone_id": "M045",
       "slice_id": "S01",
       "id": "T03",
-      "title": "Wire model install/uninstall security audit logging",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Wired model_installed and model_uninstalled security audit events into admin router with 10 passing tests",
+      "status": "complete",
+      "one_liner": "Wired model_installed and model_uninstalled security audit events into admin router with 10 passing tests",
+      "narrative": "Added log_security_event import and _client_ip/_security_audit helper functions to the admin router. Wired _security_audit calls into admin_models_install() and admin_models_remove() success paths. Both are fire-and-forget — audit failures cannot break model operations. Wrote 10 unit tests covering event writing, detail field content, failure resilience, helper behavior, and IP extraction.",
+      "verification_result": "All 50 slice tests pass: 23 SSRF guard + 17 federation integrity + 10 model audit. cd backend && .venv/bin/python -m pytest tests/test_ssrf_guard.py tests/test_federation_integrity.py tests/test_model_audit.py -v → 50 passed in 1.22s",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-03-28T23:32:58.433Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/admin/router.py",
+        "backend/tests/test_model_audit.py"
+      ],
+      "key_decisions": [
+        "Used local _client_ip + _security_audit helper pattern mirroring auth/router.py rather than importing _audit directly, keeping admin router self-contained"
+      ],
+      "full_summary_md": "---\nid: T03\nparent: S01\nmilestone: M045\nkey_files:\n  - backend/app/admin/router.py\n  - backend/tests/test_model_audit.py\nkey_decisions:\n  - Used local _client_ip + _security_audit helper pattern mirroring auth/router.py rather than importing _audit directly, keeping admin router self-contained\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-03-28T23:32:58.433Z\nblocker_discovered: false\n---\n\n# T03: Wired model_installed and model_uninstalled security audit events into admin router with 10 passing tests\n\n**Wired model_installed and model_uninstalled security audit events into admin router with 10 passing tests**\n\n## What Happened\n\nAdded log_security_event import and _client_ip/_security_audit helper functions to the admin router. Wired _security_audit calls into admin_models_install() and admin_models_remove() success paths. Both are fire-and-forget — audit failures cannot break model operations. Wrote 10 unit tests covering event writing, detail field content, failure resilience, helper behavior, and IP extraction.\n\n## Verification\n\nAll 50 slice tests pass: 23 SSRF guard + 17 federation integrity + 10 model audit. cd backend && .venv/bin/python -m pytest tests/test_ssrf_guard.py tests/test_federation_integrity.py tests/test_model_audit.py -v → 50 passed in 1.22s\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python -m pytest tests/test_model_audit.py -v` | 0 | ✅ pass | 1030ms |\n| 2 | `cd backend && .venv/bin/python -m pytest tests/test_ssrf_guard.py tests/test_federation_integrity.py tests/test_model_audit.py -v` | 0 | ✅ pass | 1220ms |\n\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/admin/router.py`\n- `backend/tests/test_model_audit.py`\n",
       "description": "Add security audit logging for model install and uninstall operations in the admin router. The SecurityAuditLog model and log_security_event helper already exist (M043 F-029). The event types `model_installed` and `model_uninstalled` are already defined in AUDIT_EVENT_TYPES. This task wires the calls into the admin router handlers. Write unit tests.\n\nSteps:\n1. In `backend/app/admin/router.py`, add `from app.auth.audit import log_security_event` at the top.\n2. In `admin_models_install()`, after a successful install (inside the `else` branch where `result.success` is True), add a fire-and-forget call: get the session factory from `request.app.state.async_session_factory`, call `await log_security_event(factory, 'model_installed', source_ip, user_id=user.id, detail={'model_id': result.model_id, 'path': path})`. Use the same `_client_ip` pattern from auth/router.py. Wrap in try/except to ensure audit failure doesn't break model install.\n3. In `admin_models_remove()`, after a successful remove (inside the `else` branch), add: `await log_security_event(factory, 'model_uninstalled', source_ip, user_id=user.id, detail={'model_id': model_id})`. Same fire-and-forget pattern.\n4. Write `backend/tests/test_model_audit.py` testing: (a) successful model install writes `model_installed` event to SecurityAuditLog, (b) successful model uninstall writes `model_uninstalled` event, (c) audit failure doesn't crash the install/uninstall operation, (d) detail field includes model_id. Use in-memory SQLite and mock the ModelService.",
       "estimate": "45m",
       "files": [
@@ -35062,6 +35067,28 @@
       "verdict": "✅ pass",
       "duration_ms": 300,
       "created_at": "2026-03-28T23:26:08.673Z"
+    },
+    {
+      "id": 109,
+      "task_id": "T03",
+      "slice_id": "S01",
+      "milestone_id": "M045",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_model_audit.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1030,
+      "created_at": "2026-03-28T23:32:58.433Z"
+    },
+    {
+      "id": 110,
+      "task_id": "T03",
+      "slice_id": "S01",
+      "milestone_id": "M045",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_ssrf_guard.py tests/test_federation_integrity.py tests/test_model_audit.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1220,
+      "created_at": "2026-03-28T23:32:58.433Z"
     }
   ]
 }

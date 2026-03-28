@@ -15,6 +15,7 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.auth.audit import log_security_event
 from app.auth.dependencies import get_current_user, require_role
 from app.auth.models import User
 from app.auth.service import AuthService
@@ -47,6 +48,19 @@ WEBHOOK_EVENT_TYPES = ["object.changed", "edge.changed", "validation.completed"]
 def _is_htmx_request(request: Request) -> bool:
     """Check if the request is an htmx partial request."""
     return request.headers.get("HX-Request") == "true"
+
+
+def _client_ip(request: Request) -> str:
+    """Extract client IP from request for audit logging."""
+    return request.client.host if request.client else "unknown"
+
+
+async def _security_audit(request: Request, event_type: str, **kwargs) -> None:
+    """Fire-and-forget security audit log entry. Silent no-op if session factory unavailable."""
+    factory = getattr(request.app.state, "async_session_factory", None)
+    if factory is None:
+        return
+    await log_security_event(factory, event_type, _client_ip(request), **kwargs)
 
 
 @router.get("/")
@@ -472,6 +486,12 @@ async def admin_models_install(
             )
         except Exception:
             logger.warning("Failed to write ops log for model install", exc_info=True)
+        # Security audit log (fire-and-forget)
+        await _security_audit(
+            request, "model_installed",
+            user_id=user.id,
+            detail={"model_id": result.model_id, "path": path},
+        )
 
     return templates_response(request, "admin/models.html", context, block_name="model_table")
 
@@ -533,6 +553,12 @@ async def admin_models_remove(
             )
         except Exception:
             logger.warning("Failed to write ops log for model remove", exc_info=True)
+        # Security audit log (fire-and-forget)
+        await _security_audit(
+            request, "model_uninstalled",
+            user_id=user.id,
+            detail={"model_id": model_id},
+        )
 
     return templates_response(request, "admin/models.html", context, block_name="model_table")
 
