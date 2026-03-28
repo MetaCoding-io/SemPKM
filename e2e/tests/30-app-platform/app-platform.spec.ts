@@ -26,22 +26,22 @@ test.describe('App Platform', () => {
     // Cleanup: If test-app is already installed from a prior run, remove it
     // ──────────────────────────────────────────
     await ownerPage.goto(`${BASE_URL}/admin/apps`);
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
     await expect(ownerPage.locator('h1')).toContainText('Applications', { timeout: 15000 });
 
     const existingCard = ownerPage.locator(SEL.apps.appCard).filter({ hasText: /Test Application/i });
     if (await existingCard.count() > 0) {
       // Uninstall via form submission on the detail page
       await ownerPage.goto(`${BASE_URL}/admin/apps/test-app`);
-      await ownerPage.waitForLoadState('networkidle');
+      await ownerPage.waitForLoadState('domcontentloaded');
       const uninstallBtn = ownerPage.locator('form[action="/admin/apps/test-app/uninstall"] button[type="submit"]');
       if (await uninstallBtn.count() > 0) {
         await uninstallBtn.click();
-        await ownerPage.waitForLoadState('networkidle');
+        await ownerPage.waitForLoadState('domcontentloaded');
         await ownerPage.waitForTimeout(2000);
       }
       await ownerPage.goto(`${BASE_URL}/admin/apps`);
-      await ownerPage.waitForLoadState('networkidle');
+      await ownerPage.waitForLoadState('domcontentloaded');
     }
 
     // ──────────────────────────────────────────
@@ -53,13 +53,13 @@ test.describe('App Platform', () => {
     await ownerPage.locator(`${SEL.apps.installForm} button[type="submit"]`).click();
 
     // After form submit, server redirects 303 → /admin/apps with ?success= message
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
 
     // App install includes venv creation + SDK install + subprocess start + health check
     // Poll the admin list page until the app appears with "Running" status
     await expect(async () => {
       await ownerPage.goto(`${BASE_URL}/admin/apps`);
-      await ownerPage.waitForLoadState('networkidle');
+      await ownerPage.waitForLoadState('domcontentloaded');
       const card = ownerPage.locator(SEL.apps.appCard).filter({ hasText: /Test Application/i });
       await expect(card).toBeVisible();
       await expect(card.locator('.status-badge')).toContainText(/running/i);
@@ -74,7 +74,7 @@ test.describe('App Platform', () => {
     // Phase 2: Verify admin detail page
     // ──────────────────────────────────────────
     await ownerPage.goto(`${BASE_URL}/admin/apps/test-app`);
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
 
     // App name in title
     await expect(ownerPage.locator('h1')).toContainText('Test Application', { timeout: 15000 });
@@ -164,14 +164,14 @@ test.describe('App Platform', () => {
     // Phase 6: Admin actions — stop and restart
     // ──────────────────────────────────────────
     await ownerPage.goto(`${BASE_URL}/admin/apps/test-app`);
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
     await expect(ownerPage.locator('.model-title-row .status-badge')).toContainText(/running/i, { timeout: 15000 });
 
     // Stop the app
     const stopForm = ownerPage.locator('form[action="/admin/apps/test-app/stop"]');
     await expect(stopForm).toBeVisible();
     await stopForm.locator('button[type="submit"]').click();
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
 
     // Verify status shows stopped
     await expect(ownerPage.locator('.model-title-row .status-badge')).toContainText(/stopped/i, { timeout: 15000 });
@@ -180,12 +180,12 @@ test.describe('App Platform', () => {
     const startForm = ownerPage.locator('form[action="/admin/apps/test-app/start"]');
     await expect(startForm).toBeVisible();
     await startForm.locator('button[type="submit"]').click();
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
 
     // Wait for the app to come back to running (health check takes time)
     await expect(async () => {
       await ownerPage.goto(`${BASE_URL}/admin/apps/test-app`);
-      await ownerPage.waitForLoadState('networkidle');
+      await ownerPage.waitForLoadState('domcontentloaded');
       await expect(ownerPage.locator('.model-title-row .status-badge')).toContainText(/running/i);
     }).toPass({ timeout: 60_000, intervals: [3000, 5000, 5000, 5000] });
 
@@ -193,7 +193,7 @@ test.describe('App Platform', () => {
     // Phase 7: Uninstall and verify removal
     // ──────────────────────────────────────────
     await ownerPage.goto(`${BASE_URL}/admin/apps/test-app`);
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
 
     // Click the uninstall button — has hx-confirm so dialog handler will accept
     const uninstallForm = ownerPage.locator('form[action="/admin/apps/test-app/uninstall"]');
@@ -201,13 +201,13 @@ test.describe('App Platform', () => {
     await uninstallForm.locator('button[type="submit"]').click();
 
     // After confirm dialog accepted and form submitted, server redirects 303 → /admin/apps
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
     await ownerPage.waitForTimeout(2000);
 
     // Ensure we're on the list page
     if (!ownerPage.url().includes('/admin/apps')) {
       await ownerPage.goto(`${BASE_URL}/admin/apps`);
-      await ownerPage.waitForLoadState('networkidle');
+      await ownerPage.waitForLoadState('domcontentloaded');
     }
 
     // Verify the test app no longer appears in the list

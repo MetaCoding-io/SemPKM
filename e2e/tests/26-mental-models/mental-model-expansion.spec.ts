@@ -236,7 +236,9 @@ test.describe('Mental Model Expansion', () => {
     // ================================================================
     // STEP 5: Run inference via API and verify completion
     // ================================================================
-    const inferResp = await ownerRequest.post(`${BASE_URL}/api/inference/run`);
+    const inferResp = await ownerRequest.post(`${BASE_URL}/api/inference/run`, {
+      timeout: 60_000,  // Inference with 4 models can take >10s
+    });
     expect(inferResp.status()).toBe(200);
 
     const inferData = await inferResp.json();

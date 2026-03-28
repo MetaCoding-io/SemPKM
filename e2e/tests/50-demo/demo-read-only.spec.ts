@@ -18,6 +18,15 @@ const DEMO_URL = 'http://localhost:3902';
 
 test.describe('Demo Instance — Read-Only Mode', () => {
   test.describe.configure({ mode: 'serial' });
+  test.beforeAll(async () => {
+    // Skip if demo stack is not running
+    try {
+      await fetch('http://localhost:3902/api/health', { signal: AbortSignal.timeout(2000) });
+    } catch {
+      test.skip(true, 'Demo stack not running (port 3902). Start with: docker compose -f docker-compose.demo.yml up -d --build');
+    }
+  });
+
 
   // ── DEMO-01: Anonymous workspace access ──────────────────────────
 

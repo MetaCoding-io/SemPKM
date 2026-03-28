@@ -50,14 +50,14 @@ test.describe('Media Scheduler', () => {
     // ────────────────────────────────────────────
     // Phase 1: Install media-scheduler model
     // ────────────────────────────────────────────
-    const modelInstallResp = await ownerRequest.post(`${BASE_URL}/admin/models`, {
+    const modelInstallResp = await ownerRequest.post(`${BASE_URL}/admin/models/install`, {
       form: { path: '/app/models/media-scheduler' },
     });
     expect(modelInstallResp.status()).toBeLessThan(400);
 
     // Verify the model appears in the admin list
     await ownerPage.goto(`${BASE_URL}/admin/models`);
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
 
     let modelVisible = false;
     for (let attempt = 0; attempt < 5; attempt++) {
@@ -68,7 +68,7 @@ test.describe('Media Scheduler', () => {
       }
       await ownerPage.waitForTimeout(2000);
       await ownerPage.reload();
-      await ownerPage.waitForLoadState('networkidle');
+      await ownerPage.waitForLoadState('domcontentloaded');
     }
     expect(modelVisible).toBe(true);
 
@@ -76,7 +76,7 @@ test.describe('Media Scheduler', () => {
     // Phase 2: Install media-scheduler app
     // ────────────────────────────────────────────
     await ownerPage.goto(`${BASE_URL}/admin/apps`);
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
     await expect(ownerPage.locator('h1')).toContainText('Applications');
 
     // Fill app path and submit via the install form
@@ -87,7 +87,7 @@ test.describe('Media Scheduler', () => {
 
     // Wait for install — server redirects to /admin/apps
     await ownerPage.waitForURL('**/admin/apps', { timeout: 90_000 });
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
 
     // Poll for "running" status (venv creation + pip install + health check)
     let appRunning = false;
@@ -99,7 +99,7 @@ test.describe('Media Scheduler', () => {
       }
       await ownerPage.waitForTimeout(5000);
       await ownerPage.goto(`${BASE_URL}/admin/apps`);
-      await ownerPage.waitForLoadState('networkidle');
+      await ownerPage.waitForLoadState('domcontentloaded');
     }
     expect(appRunning).toBe(true);
 
@@ -111,7 +111,7 @@ test.describe('Media Scheduler', () => {
     // Phase 3: App navigation — verify main layout
     // ────────────────────────────────────────────
     await ownerPage.goto(`${BASE_URL}/app/media-scheduler/`);
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
 
     // Wait for the app container to be visible
     const container = ownerPage.locator(SEL.mediaScheduler.container);
@@ -168,7 +168,7 @@ test.describe('Media Scheduler', () => {
     if (sourceCount === 0) {
       // Force a page reload if the htmx trigger didn't fire
       await ownerPage.goto(`${BASE_URL}/app/media-scheduler/`);
-      await ownerPage.waitForLoadState('networkidle');
+      await ownerPage.waitForLoadState('domcontentloaded');
       await ownerPage.waitForTimeout(3000);
       await waitForIdle(ownerPage);
       sourceCount = await ownerPage.locator(SEL.mediaScheduler.sourceItem).count();
@@ -321,13 +321,13 @@ test.describe('Media Scheduler', () => {
 
     // Verify app is gone from admin list
     await ownerPage.goto(`${BASE_URL}/admin/apps`);
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
     const remainingAppCards = ownerPage.locator('.admin-page .card').filter({ hasText: 'Media Scheduler' });
     await expect(remainingAppCards).toHaveCount(0, { timeout: 10_000 });
 
     // Verify model is gone
     await ownerPage.goto(`${BASE_URL}/admin/models`);
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
     const pageText = await ownerPage.locator('body').textContent();
     expect(pageText).not.toContain('media-scheduler');
   });

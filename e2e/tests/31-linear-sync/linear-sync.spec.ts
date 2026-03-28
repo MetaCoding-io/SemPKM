@@ -25,28 +25,28 @@ test.describe('Linear Sync', () => {
     // Phase 0 — Cleanup: remove linear-sync if installed from prior run
     // ──────────────────────────────────────────
     await ownerPage.goto(`${BASE_URL}/admin/apps`);
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
     await expect(ownerPage.locator('h1')).toContainText('Applications', { timeout: 15000 });
 
     const existingLinearCard = ownerPage.locator(SEL.apps.appCard).filter({ hasText: /Linear Sync/i });
     if (await existingLinearCard.count() > 0) {
       await ownerPage.goto(`${BASE_URL}/admin/apps/linear-sync`);
-      await ownerPage.waitForLoadState('networkidle');
+      await ownerPage.waitForLoadState('domcontentloaded');
       const uninstallBtn = ownerPage.locator('form[action="/admin/apps/linear-sync/uninstall"] button[type="submit"]');
       if (await uninstallBtn.count() > 0) {
         await uninstallBtn.click();
-        await ownerPage.waitForLoadState('networkidle');
+        await ownerPage.waitForLoadState('domcontentloaded');
         await ownerPage.waitForTimeout(3000);
       }
       await ownerPage.goto(`${BASE_URL}/admin/apps`);
-      await ownerPage.waitForLoadState('networkidle');
+      await ownerPage.waitForLoadState('domcontentloaded');
     }
 
     // ──────────────────────────────────────────
     // Phase 1 — Prerequisite: install basic-pkm model
     // ──────────────────────────────────────────
     await ownerPage.goto(`${BASE_URL}/admin/models`);
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
     await expect(ownerPage.locator('h1')).toContainText('Mental Models', { timeout: 15000 });
 
     const bpkmCard = ownerPage.locator('.card').filter({ hasText: /basic-pkm/i });
@@ -56,12 +56,12 @@ test.describe('Linear Sync', () => {
       await expect(modelInstallInput).toBeVisible({ timeout: 10000 });
       await modelInstallInput.fill('/app/models/basic-pkm');
       await ownerPage.locator('form.install-form button[type="submit"]').click();
-      await ownerPage.waitForLoadState('networkidle');
+      await ownerPage.waitForLoadState('domcontentloaded');
 
       // Wait for model to appear in the list
       await expect(async () => {
         await ownerPage.goto(`${BASE_URL}/admin/models`);
-        await ownerPage.waitForLoadState('networkidle');
+        await ownerPage.waitForLoadState('domcontentloaded');
         const card = ownerPage.locator('.card').filter({ hasText: /basic-pkm/i });
         await expect(card).toBeVisible();
       }).toPass({ timeout: 30_000, intervals: [3000, 5000, 5000] });
@@ -71,18 +71,18 @@ test.describe('Linear Sync', () => {
     // Phase 2 — Install linear-sync app
     // ──────────────────────────────────────────
     await ownerPage.goto(`${BASE_URL}/admin/apps`);
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
 
     const installInput = ownerPage.locator(SEL.apps.installInput);
     await expect(installInput).toBeVisible({ timeout: 10000 });
     await installInput.fill('/app/apps/linear-sync');
     await ownerPage.locator(`${SEL.apps.installForm} button[type="submit"]`).click();
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
 
     // Poll until linear-sync shows "Running" status
     await expect(async () => {
       await ownerPage.goto(`${BASE_URL}/admin/apps`);
-      await ownerPage.waitForLoadState('networkidle');
+      await ownerPage.waitForLoadState('domcontentloaded');
       const card = ownerPage.locator(SEL.apps.appCard).filter({ hasText: /Linear Sync/i });
       await expect(card).toBeVisible();
       await expect(card.locator('.status-badge')).toContainText(/running/i);
@@ -221,7 +221,7 @@ test.describe('Linear Sync', () => {
     // Phase 9 — Admin detail page
     // ──────────────────────────────────────────
     await ownerPage.goto(`${BASE_URL}/admin/apps/linear-sync`);
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
 
     await expect(ownerPage.locator('h1')).toContainText('Linear Sync', { timeout: 15000 });
     await expect(ownerPage.locator('.model-title-row .status-badge')).toContainText(/running/i);
@@ -234,12 +234,12 @@ test.describe('Linear Sync', () => {
     await uninstallForm.locator('button[type="submit"]').click();
 
     // Wait for redirect to apps list
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
     await ownerPage.waitForTimeout(2000);
 
     if (!ownerPage.url().includes('/admin/apps')) {
       await ownerPage.goto(`${BASE_URL}/admin/apps`);
-      await ownerPage.waitForLoadState('networkidle');
+      await ownerPage.waitForLoadState('domcontentloaded');
     }
 
     // Verify linear-sync no longer appears

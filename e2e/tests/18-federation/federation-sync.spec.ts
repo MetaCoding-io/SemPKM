@@ -73,6 +73,15 @@ async function loginViaApi(
 }
 
 test.describe.serial('Federation Sync Flow', () => {
+  test.beforeAll(async () => {
+    // Skip if federation stack is not running
+    try {
+      await fetch('http://localhost:3911/api/health', { signal: AbortSignal.timeout(2000) });
+    } catch {
+      test.skip(true, 'Federation stack not running (port 3911). Start with: e2e/scripts/start-federation-env.sh');
+    }
+  });
+
   let clientA: ApiClient;
   let clientB: ApiClient;
   let ctxA: import('@playwright/test').APIRequestContext;

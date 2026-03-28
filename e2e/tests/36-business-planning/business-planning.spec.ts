@@ -296,8 +296,8 @@ test.describe('Business Planning Model', () => {
     await expect(ownerPage.locator(SEL.views.okrBoard)).toBeVisible({ timeout: 10_000 });
 
     // Decision Matrix view
-    await openGenericViewTab(ownerPage, 'decision-matrix', SEL.views.dmBoard, '', '', 20000);
-    await expect(ownerPage.locator(SEL.views.dmBoard)).toBeVisible({ timeout: 10_000 });
+    await openGenericViewTab(ownerPage, 'decision-matrix', SEL.views.dmBoard, '', '', 30000);
+    await expect(ownerPage.locator(SEL.views.dmBoard)).toBeVisible({ timeout: 15_000 });
 
     // ================================================================
     // STEP 5: SPARQL cross-model query

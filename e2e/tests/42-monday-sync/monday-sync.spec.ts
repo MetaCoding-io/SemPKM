@@ -32,28 +32,28 @@ test.describe('Monday.com Sync', () => {
     // Phase 0 — Cleanup: remove monday-sync if installed from prior run
     // ──────────────────────────────────────────
     await ownerPage.goto(`${BASE_URL}/admin/apps`);
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
     await expect(ownerPage.locator('h1')).toContainText('Applications', { timeout: 15000 });
 
     const existingCard = ownerPage.locator(SEL.apps.appCard).filter({ hasText: /Monday\.com Sync/i });
     if (await existingCard.count() > 0) {
       await ownerPage.goto(`${BASE_URL}/admin/apps/monday-sync`);
-      await ownerPage.waitForLoadState('networkidle');
+      await ownerPage.waitForLoadState('domcontentloaded');
       const uninstallBtn = ownerPage.locator('form[action="/admin/apps/monday-sync/uninstall"] button[type="submit"]');
       if (await uninstallBtn.count() > 0) {
         await uninstallBtn.click();
-        await ownerPage.waitForLoadState('networkidle');
+        await ownerPage.waitForLoadState('domcontentloaded');
         await ownerPage.waitForTimeout(3000);
       }
       await ownerPage.goto(`${BASE_URL}/admin/apps`);
-      await ownerPage.waitForLoadState('networkidle');
+      await ownerPage.waitForLoadState('domcontentloaded');
     }
 
     // ──────────────────────────────────────────
     // Phase 1 — Prerequisite: install basic-pkm model
     // ──────────────────────────────────────────
     await ownerPage.goto(`${BASE_URL}/admin/models`);
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
     await expect(ownerPage.locator('h1')).toContainText('Mental Models', { timeout: 15000 });
 
     const bpkmRow = ownerPage.locator('#model-table tr, #model-table .card').filter({ hasText: /basic.pkm/i });
@@ -62,12 +62,12 @@ test.describe('Monday.com Sync', () => {
       await expect(modelInstallInput).toBeVisible({ timeout: 10000 });
       await modelInstallInput.fill('/app/models/basic-pkm');
       await ownerPage.locator('form button[type="submit"]').first().click();
-      await ownerPage.waitForLoadState('networkidle');
+      await ownerPage.waitForLoadState('domcontentloaded');
 
       // Wait for model to appear in the list
       await expect(async () => {
         await ownerPage.goto(`${BASE_URL}/admin/models`);
-        await ownerPage.waitForLoadState('networkidle');
+        await ownerPage.waitForLoadState('domcontentloaded');
         const row = ownerPage.locator('#model-table tr, #model-table .card').filter({ hasText: /basic.pkm/i });
         await expect(row).toBeVisible();
       }).toPass({ timeout: 30_000, intervals: [3000, 5000, 5000] });
@@ -77,18 +77,18 @@ test.describe('Monday.com Sync', () => {
     // Phase 2 — Install monday-sync app
     // ──────────────────────────────────────────
     await ownerPage.goto(`${BASE_URL}/admin/apps`);
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
 
     const installInput = ownerPage.locator(SEL.apps.installInput);
     await expect(installInput).toBeVisible({ timeout: 10000 });
     await installInput.fill('/app/apps/monday-sync');
     await ownerPage.locator(`${SEL.apps.installForm} button[type="submit"]`).click();
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
 
     // Poll until monday-sync shows "Running" status
     await expect(async () => {
       await ownerPage.goto(`${BASE_URL}/admin/apps`);
-      await ownerPage.waitForLoadState('networkidle');
+      await ownerPage.waitForLoadState('domcontentloaded');
       const card = ownerPage.locator(SEL.apps.appCard).filter({ hasText: /Monday\.com Sync/i });
       await expect(card).toBeVisible();
       await expect(card.locator('.status-badge')).toContainText(/running/i);
@@ -337,7 +337,7 @@ test.describe('Monday.com Sync', () => {
     // Phase 11 — Admin detail page verification
     // ──────────────────────────────────────────
     await ownerPage.goto(`${BASE_URL}/admin/apps`);
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
 
     const runningCard = ownerPage.locator(SEL.apps.appCard).filter({ hasText: /Monday\.com Sync/i });
     await expect(runningCard).toBeVisible({ timeout: 15000 });
@@ -347,7 +347,7 @@ test.describe('Monday.com Sync', () => {
     // Phase 12 — Cleanup: uninstall monday-sync
     // ──────────────────────────────────────────
     await ownerPage.goto(`${BASE_URL}/admin/apps/monday-sync`);
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
 
     await expect(ownerPage.locator('h1')).toContainText('Monday.com Sync', { timeout: 15000 });
 
@@ -356,12 +356,12 @@ test.describe('Monday.com Sync', () => {
     await uninstallForm.locator('button[type="submit"]').click();
 
     // Wait for redirect to apps list
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
     await ownerPage.waitForTimeout(2000);
 
     if (!ownerPage.url().includes('/admin/apps')) {
       await ownerPage.goto(`${BASE_URL}/admin/apps`);
-      await ownerPage.waitForLoadState('networkidle');
+      await ownerPage.waitForLoadState('domcontentloaded');
     }
 
     // Verify monday-sync no longer appears

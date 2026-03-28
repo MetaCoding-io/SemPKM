@@ -24,6 +24,15 @@ const DEMO_DASHBOARD_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
 
 test.describe('Demo Instance — Full Demo Flow', () => {
   test.describe.configure({ mode: 'serial' });
+  test.beforeAll(async () => {
+    // Skip if demo stack is not running
+    try {
+      await fetch('http://localhost:3902/api/health', { signal: AbortSignal.timeout(2000) });
+    } catch {
+      test.skip(true, 'Demo stack not running (port 3902). Start with: docker compose -f docker-compose.demo.yml up -d --build');
+    }
+  });
+
 
   /** Collect page errors across the serial test suite */
   const pageErrors: Error[] = [];

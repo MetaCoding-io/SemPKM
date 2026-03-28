@@ -92,6 +92,10 @@ def delete_setup_token(path: str | None = None) -> None:
 def create_magic_link_token(email: str) -> str:
     """Sign an email address for magic link authentication.
 
+    Includes a random nonce to guarantee uniqueness even when called
+    multiple times within the same second (itsdangerous timestamps
+    have seconds resolution).
+
     Args:
         email: The email address to encode in the token.
 
@@ -99,7 +103,8 @@ def create_magic_link_token(email: str) -> str:
         A URL-safe signed token string.
     """
     serializer = _get_serializer()
-    return serializer.dumps(email, salt="magic-link")
+    nonce = secrets.token_hex(8)
+    return serializer.dumps({"email": email, "nonce": nonce}, salt="magic-link")
 
 
 def verify_magic_link_token(token: str, max_age_seconds: int = 600) -> str | None:
@@ -114,7 +119,11 @@ def verify_magic_link_token(token: str, max_age_seconds: int = 600) -> str | Non
     """
     serializer = _get_serializer()
     try:
-        return serializer.loads(token, salt="magic-link", max_age=max_age_seconds)
+        payload = serializer.loads(token, salt="magic-link", max_age=max_age_seconds)
+        # Handle both old (plain string) and new (dict with nonce) formats
+        if isinstance(payload, dict):
+            return payload.get("email")
+        return payload  # legacy plain-string token
     except (BadSignature, SignatureExpired):
         return None
 

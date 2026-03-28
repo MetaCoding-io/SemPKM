@@ -50,14 +50,14 @@ test.describe('RSS Reader', () => {
     // ────────────────────────────────────────────
     // Phase 1: Install rss-feeds model
     // ────────────────────────────────────────────
-    const modelInstallResp = await ownerRequest.post(`${BASE_URL}/admin/models`, {
+    const modelInstallResp = await ownerRequest.post(`${BASE_URL}/admin/models/install`, {
       form: { path: '/app/models/rss-feeds' },
     });
     expect(modelInstallResp.status()).toBeLessThan(400);
 
     // Verify the model appears in the admin list
     await ownerPage.goto(`${BASE_URL}/admin/models`);
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
 
     let modelVisible = false;
     for (let attempt = 0; attempt < 5; attempt++) {
@@ -68,7 +68,7 @@ test.describe('RSS Reader', () => {
       }
       await ownerPage.waitForTimeout(2000);
       await ownerPage.reload();
-      await ownerPage.waitForLoadState('networkidle');
+      await ownerPage.waitForLoadState('domcontentloaded');
     }
     expect(modelVisible).toBe(true);
 
@@ -76,7 +76,7 @@ test.describe('RSS Reader', () => {
     // Phase 2: Install rss-reader app
     // ────────────────────────────────────────────
     await ownerPage.goto(`${BASE_URL}/admin/apps`);
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
     await expect(ownerPage.locator('h1')).toContainText('Applications');
 
     // Open install form (<details>)
@@ -90,7 +90,7 @@ test.describe('RSS Reader', () => {
 
     // Wait for install (venv creation + pip install) — redirects to /admin/apps
     await ownerPage.waitForURL('**/admin/apps', { timeout: 90_000 });
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
 
     // Poll for "running" status (health check takes time)
     let appRunning = false;
@@ -102,7 +102,7 @@ test.describe('RSS Reader', () => {
       }
       await ownerPage.waitForTimeout(5000);
       await ownerPage.goto(`${BASE_URL}/admin/apps`);
-      await ownerPage.waitForLoadState('networkidle');
+      await ownerPage.waitForLoadState('domcontentloaded');
     }
     expect(appRunning).toBe(true);
 
@@ -114,7 +114,7 @@ test.describe('RSS Reader', () => {
     // Phase 3: Verify admin detail page
     // ────────────────────────────────────────────
     await ownerPage.goto(`${BASE_URL}/admin/apps/rss-reader`);
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
 
     await expect(ownerPage.locator('h1')).toContainText('RSS Reader');
     await expect(ownerPage.locator('.model-title-row .badge')).toContainText('running');
@@ -517,13 +517,13 @@ test.describe('RSS Reader', () => {
 
     // Verify app is gone from admin list
     await ownerPage.goto(`${BASE_URL}/admin/apps`);
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
     const remainingAppCards = ownerPage.locator('.admin-page .card').filter({ hasText: 'RSS Reader' });
     await expect(remainingAppCards).toHaveCount(0, { timeout: 10_000 });
 
     // Verify model is gone
     await ownerPage.goto(`${BASE_URL}/admin/models`);
-    await ownerPage.waitForLoadState('networkidle');
+    await ownerPage.waitForLoadState('domcontentloaded');
     const pageText = await ownerPage.locator('body').textContent();
     expect(pageText).not.toContain('rss-feeds');
 
