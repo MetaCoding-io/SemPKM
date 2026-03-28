@@ -34,6 +34,7 @@ services:
       - ./docs:/app/docs:ro
       - ./apps:/app/apps:ro
       - ./backend/sdk:/app/backend/sdk:ro
+      - frontend_test_assets:/app/frontend_assets:ro
     environment:
       TRIPLESTORE_URL: http://triplestore:8080/rdf4j-server
       REPOSITORY_ID: sempkm_test
@@ -140,13 +141,13 @@ services:
       - sempkm-test
 
   frontend:
-    image: nginx:stable-alpine
+    build: ./frontend
     ports:
       - "3901:80"
     volumes:
       - ./frontend/static:/usr/share/nginx/html:ro
       - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - sempkm_test_data:/app/data:ro
+      - frontend_test_assets:/srv/built-assets
     depends_on:
       api:
         condition: service_healthy
@@ -159,3 +160,4 @@ networks:
 volumes:
   rdf4j_test_data:
   sempkm_test_data:
+  frontend_test_assets:

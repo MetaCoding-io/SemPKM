@@ -97,8 +97,17 @@ def asset_url(name: str) -> str:
     With manifest (production): returns /assets/<hashed-filename>
     Without manifest (dev):     returns /js/<name>, /css/<name>, or /<name>
     """
+    global _manifest, _manifest_loaded
+
     if not name:
         return ""
+
+    # Lazy retry: if manifest wasn't found at startup, check once more on
+    # first template render.  Handles the race where the frontend container
+    # populates the shared volume after the API has already started.
+    if _manifest is None and _manifest_loaded:
+        _manifest_loaded = False          # allow one re-check
+        _load_manifest()
 
     # Production mode: manifest available and contains this key
     if _manifest is not None and name in _manifest:
