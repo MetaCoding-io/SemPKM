@@ -347,3 +347,28 @@ class MappingConfig:
             standalone_page_type_iri=data.get("standalone_page_type_iri"),
             standalone_page_type_label=data.get("standalone_page_type_label"),
         )
+
+
+@dataclass
+class ImportResult:
+    """Result of a Notion workspace import execution."""
+
+    created: int = 0
+    skipped: int = 0
+    edges_created: int = 0
+    unresolved_relations: list[tuple[str, str]] = field(default_factory=list)
+    errors: list[tuple[str, str]] = field(default_factory=list)
+    duration_seconds: float = 0.0
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to a JSON-compatible dictionary."""
+        return {
+            "created": self.created,
+            "skipped": self.skipped,
+            "edges_created": self.edges_created,
+            "unresolved_relations": [
+                {"source": s, "target": t} for s, t in self.unresolved_relations
+            ],
+            "errors": [{"path": p, "message": m} for p, m in self.errors],
+            "duration_seconds": self.duration_seconds,
+        }

@@ -814,3 +814,102 @@ async def save_standalone_type_mapping(
     _save_mapping(import_dir, config)
     logger.debug("Saved standalone type mapping: %s", target_type or "(cleared)")
     return HTMLResponse("")
+
+
+# ---------------------------------------------------------------------------
+# Import execution endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.post("/{import_id}/execute")
+async def import_execute(
+    request: Request,
+    import_id: str,
+    user: User = Depends(get_current_user),
+):
+    """Trigger Notion import execution and return progress UI partial."""
+    import_dir = _get_import_dir(user, import_id)
+    scan_result = _load_scan_result(import_dir)
+    mapping_config = _load_mapping(import_dir)
+    extract_path = Path(scan_result.extract_path)
+
+    event_store = request.app.state.event_store
+    triplestore_client = request.app.state.triplestore_client
+
+    broadcast = ScanBroadcast()
+    broadcast_key = f"{import_id}_import"
+    _broadcasts[broadcast_key] = broadcast
+
+    from .executor import NotionImportExecutor
+
+    executor = NotionImportExecutor(
+        scan_result=scan_result,
+        mapping_config=mapping_config,
+        extract_path=extract_path,
+        event_store=event_store,
+        triplestore_client=triplestore_client,
+        user=user,
+        broadcast=broadcast,
+        import_dir=import_dir,
+    )
+
+    async def _run_import():
+        try:
+            await executor.execute()
+        finally:
+            _broadcasts.pop(broadcast_key, None)
+
+    asyncio.create_task(_run_import())
+
+    templates = request.app.state.templates
+    return templates.TemplateResponse(
+        request,
+        "importer/partials/import_progress.html",
+        {"request": request, "import_id": import_id, "current_step": 7, **_IMPORTER_CTX},
+    )
+
+
+@router.get("/{import_id}/execute/stream")
+async def import_stream(
+    request: Request,
+    import_id: str,
+    user: User = Depends(get_current_user),
+):
+    """SSE stream for Notion import progress events."""
+    parts = import_id.split("_", 1)
+    if len(parts) != 2 or parts[0] != str(user.id):
+        raise HTTPException(403, "Access denied")
+
+    broadcast_key = f"{import_id}_import"
+    broadcast = _broadcasts.get(broadcast_key)
+    if not broadcast:
+        import_dir = _get_import_dir(user, import_id)
+        result_path = import_dir / "import_result.json"
+        if result_path.exists():
+            result_data = json.loads(result_path.read_text())
+
+            async def completed():
+                yield f'event: import_complete\ndata: {json.dumps(result_data)}\n\n'
+
+            return StreamingResponse(completed(), media_type="text/event-stream")
+
+        async def empty():
+            yield 'event: import_error\ndata: {"message": "No active import"}\n\n'
+
+        return StreamingResponse(empty(), media_type="text/event-stream")
+
+    queue = broadcast.subscribe()
+
+    async def event_generator():
+        try:
+            while True:
+                event = await asyncio.wait_for(queue.get(), timeout=30.0)
+                yield f"event: {event.event}\ndata: {json.dumps(event.data)}\n\n"
+                if event.event in ("import_complete", "import_error"):
+                    break
+        except asyncio.TimeoutError:
+            yield 'event: keepalive\ndata: {}\n\n'
+        except asyncio.CancelledError:
+            pass
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
