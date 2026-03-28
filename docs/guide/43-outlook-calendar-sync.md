@@ -48,9 +48,9 @@ Outlook Calendar Sync uses **OAuth 2.0** via the Microsoft Identity Platform to 
 5. Under **Supported account types**, select "Accounts in any organizational directory and personal Microsoft accounts" (the `/common/` endpoint).
 6. Under **Redirect URI**, select **Web** and enter:
    ```
-   http://localhost:3000/app/outlook-calendar/_fragments/oauth-callback
+   http://localhost:4000/app/outlook-calendar/_fragments/oauth-callback
    ```
-   > **Important:** Replace `http://localhost:3000` with your actual SemPKM base URL if deployed remotely. The path `/app/outlook-calendar/_fragments/oauth-callback` must match exactly.
+   > **Important:** Replace `http://localhost:4000` with your actual SemPKM base URL if deployed remotely. The path `/app/outlook-calendar/_fragments/oauth-callback` must match exactly.
 7. Click **Register**.
 
 ### Creating a Client Secret

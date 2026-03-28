@@ -151,7 +151,11 @@ async def configure_instance(
     # Compute namespace and base URL per deployment mode
     if body.mode == "local":
         base_namespace = f"urn:sempkm:{instance_id}/"
-        app_base_url = "http://localhost:3000"
+        # Respect APP_BASE_URL env var; otherwise derive from request origin
+        import os
+        app_base_url = os.environ.get("APP_BASE_URL", "").strip()
+        if not app_base_url:
+            app_base_url = f"{request.url.scheme}://{request.url.netloc}"
     elif body.mode == "domain":
         base_namespace = f"https://{domain}/data/"
         app_base_url = f"https://{domain}"

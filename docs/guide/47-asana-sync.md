@@ -52,7 +52,7 @@ OAuth gives scoped access without exposing your password and supports automatic 
    - Go to **My Apps > Create New App**.
    - Set the **Redirect URL** to:
      ```
-     http://localhost:3000/app/asana-sync/_fragments/oauth-callback
+     http://localhost:4000/app/asana-sync/_fragments/oauth-callback
      ```
      Adjust the host and port if your SemPKM instance runs elsewhere.
    - Copy the **Client ID** and **Client Secret**.

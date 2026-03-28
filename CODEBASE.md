@@ -6,7 +6,7 @@
 
 SemPKM is an event-sourced RDF knowledge graph application with HTMX server-side rendering. It provides an IDE-style workspace for creating, browsing, and exploring structured knowledge through auto-generated forms, views, and graph visualizations.
 
-The system runs three Docker services: a **FastAPI backend** (Python, port 8001), an **nginx frontend** (static assets + reverse proxy, port 3000), and an **RDF4J triplestore** (SPARQL graph database). All writes flow through a single `POST /api/commands` endpoint into an immutable event store with current-state materialization. All reads query `urn:sempkm:current` via SPARQL and render Jinja2/htmx partials.
+The system runs three Docker services: a **FastAPI backend** (Python, port 8001), an **nginx frontend** (static assets + reverse proxy, port 4000), and an **RDF4J triplestore** (SPARQL graph database). All writes flow through a single `POST /api/commands` endpoint into an immutable event store with current-state materialization. All reads query `urn:sempkm:current` via SPARQL and render Jinja2/htmx partials.
 
 Domain schemas are pluggable "Mental Models" (OWL ontology + SHACL shapes + view specs + seed data) installed at runtime.
 
@@ -256,7 +256,7 @@ Models are mounted read-only into the container at `/app/models/` and installed 
 |---------|-------|---------------|-----------|---------|
 | `triplestore` | `eclipse/rdf4j-workbench:5.0.1` | 8080 | (internal) | RDF4J SPARQL graph database |
 | `api` | Custom (`./backend` Dockerfile) | 8000 | 8001 | FastAPI backend (uvicorn, hot-reload) |
-| `frontend` | `nginx:stable-alpine` | 80 | 3000 | Static assets + reverse proxy to API |
+| `frontend` | `nginx:stable-alpine` | 80 | 4000 | Static assets + reverse proxy to API |
 
 **Key volumes:** `rdf4j_data` (triplestore persistence), `sempkm_data` (SQLite + secrets), `lucene_index` (full-text search)
 
@@ -270,7 +270,7 @@ Models are mounted read-only into the container at `/app/models/` and installed 
 Browser JS (editor.js)
   |  POST /api/commands {command: "object.create", params: {...}}
   v
-nginx (port 3000) --> proxy_pass --> FastAPI (port 8000)
+nginx (port 4000) --> proxy_pass --> FastAPI (port 8000)
   |
   v
 commands/router.py --> dispatcher.py --> handlers/object_create.py

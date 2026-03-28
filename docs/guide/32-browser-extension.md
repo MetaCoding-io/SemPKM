@@ -94,7 +94,7 @@ Open the extension settings page:
 
 | Field          | Description                                                        |
 |----------------|--------------------------------------------------------------------|
-| **Instance URL** | The address of your SemPKM server (e.g., `http://localhost:3000`). |
+| **Instance URL** | The address of your SemPKM server (e.g., `http://localhost:4000`). |
 | **API Key**    | The Bearer token from the previous step. Stored in `chrome.storage.local`. |
 
 Click **Test Connection** to verify the extension can reach your instance. A
@@ -249,7 +249,7 @@ Press **Alt+S** to open the capture popup from any page — no mouse required.
 ### "Cannot reach instance" or connection test fails
 
 - Verify the **Instance URL** in extension settings matches your SemPKM server
-  address (include the port, e.g., `http://localhost:3000`).
+  address (include the port, e.g., `http://localhost:4000`).
 - Ensure SemPKM is running (`docker compose ps` should show healthy containers).
 - Check that no firewall or proxy is blocking the connection.
 - If using HTTPS, ensure the certificate is valid or accepted by the browser.
@@ -261,7 +261,7 @@ Press **Alt+S** to open the capture popup from any page — no mouse required.
 - Ensure you copied the full token (no leading/trailing spaces).
 - Verify the key works with a curl test:
   ```bash
-  curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:3000/.well-known/sempkm
+  curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:4000/.well-known/sempkm
   ```
 
 ### "No types available" in the type dropdown
@@ -283,7 +283,7 @@ Press **Alt+S** to open the capture popup from any page — no mouse required.
 - The SHACL shape for the selected type may not be loading. Open the popup's
   DevTools (right-click the popup → Inspect) and check the Console for errors.
 - Verify the shape endpoint works: visit
-  `http://localhost:3000/api/shapes/<type_iri>` in your browser.
+  `http://localhost:4000/api/shapes/<type_iri>` in your browser.
 
 ### Auto-populated fields are empty
 

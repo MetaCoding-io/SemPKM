@@ -9,6 +9,7 @@ RUN npm ci --no-audit --no-fund
 # Copy source files and run build
 COPY build.js ./
 COPY static/ ./static/
+COPY src/ ./src/
 RUN node build.js
 
 # ── Stage 2: Serve with nginx ──

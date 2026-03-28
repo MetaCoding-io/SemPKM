@@ -548,7 +548,7 @@ class TestCORSMiddleware:
             resp = await client.get(
                 "/.well-known/sempkm",
                 cookies={"sempkm_session": valid_session.token},
-                headers={"Origin": "http://localhost:3000"},
+                headers={"Origin": "http://localhost:4000"},
             )
         assert resp.headers.get("access-control-allow-origin") == "*"
 

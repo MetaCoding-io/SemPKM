@@ -15,7 +15,7 @@ import { SemPKMClient, SemPKMError } from '../shared/api-client.js';
 // Helpers — mock fetch infrastructure
 // ---------------------------------------------------------------------------
 
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = 'http://localhost:4000';
 const API_KEY = 'test-api-key-12345';
 
 /** Captured fetch calls — reset before every test. */

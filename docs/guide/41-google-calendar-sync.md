@@ -49,9 +49,9 @@ Google Calendar Sync uses **OAuth 2.0** to access your calendars securely. You n
 7. Give it a name (e.g., "SemPKM Calendar Sync").
 8. Under **Authorized redirect URIs**, add:
    ```
-   http://localhost:3000/app/google-calendar/_fragments/oauth-callback
+   http://localhost:4000/app/google-calendar/_fragments/oauth-callback
    ```
-   > **Important:** Replace `http://localhost:3000` with your actual SemPKM base URL if deployed remotely. The path `/app/google-calendar/_fragments/oauth-callback` must match exactly.
+   > **Important:** Replace `http://localhost:4000` with your actual SemPKM base URL if deployed remotely. The path `/app/google-calendar/_fragments/oauth-callback` must match exactly.
 9. Click **Create**.
 10. Copy the **Client ID** and **Client Secret** — you'll need both in the next step.
 

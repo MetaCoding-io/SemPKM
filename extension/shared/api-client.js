@@ -29,7 +29,7 @@ export class SemPKMError extends Error {
  * SemPKM API client.
  *
  * Usage:
- *   const client = new SemPKMClient('http://localhost:3000', 'my-api-key');
+ *   const client = new SemPKMClient('http://localhost:4000', 'my-api-key');
  *   const info = await client.connect();
  *   const types = await client.getTypes();
  */

@@ -203,7 +203,7 @@ This appendix covers common issues you may encounter when running SemPKM, with s
 
 ### Frontend returns 502 or blank page
 
-**Symptom:** The browser shows a 502 Bad Gateway error or a completely blank page at `http://localhost:3000`.
+**Symptom:** The browser shows a 502 Bad Gateway error or a completely blank page at `http://localhost:4000`.
 
 **Cause:** The frontend Nginx container depends on the API being healthy. If the API is not running, the Nginx reverse proxy returns a 502 for API-proxied requests.
 

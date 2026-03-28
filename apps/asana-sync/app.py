@@ -33,9 +33,18 @@ from services.sync_engine import pull_sync, push_sync
 
 logger = logging.getLogger("asana.sync.app")
 
-REDIRECT_URI = "http://localhost:3000/app/asana-sync/_fragments/oauth-callback"
-
 asana_sync_app = App("asana-sync")
+
+
+def _redirect_uri(ctx: AppContext) -> str:
+    """Compute OAuth redirect URI from the platform URL."""
+    return f"{ctx.platform_url.rstrip('/')}/app/asana-sync/_fragments/oauth-callback"
+
+
+def _render_connect(ctx: AppContext, **kwargs) -> str:
+    """Render connect.html with redirect_uri always injected."""
+    kwargs.setdefault("redirect_uri", _redirect_uri(ctx))
+    return ctx.render_template("connect.html", **kwargs)
 
 
 def _make_client(ctx: AppContext) -> AsanaClient:
@@ -157,16 +166,14 @@ async def connect_fragment(request: Request):
             return await _render_connect_status(ctx)
         except (AsanaAPIError, AsanaAuthError, Exception) as exc:
             logger.warning("Failed to render connect status: %s", exc)
-            return HTMLResponse(ctx.render_template(
-                "connect.html",
+            return HTMLResponse(_render_connect(ctx,
                 error=f"Connection error: {exc}. Please reconnect.",
                 success=None,
                 has_credentials=bool(await ctx.state.get("client_id")),
             ))
 
     has_credentials = bool(await ctx.state.get("client_id"))
-    return HTMLResponse(ctx.render_template(
-        "connect.html",
+    return HTMLResponse(_render_connect(ctx,
         error=None,
         success=None,
         has_credentials=has_credentials,
@@ -182,8 +189,7 @@ async def save_credentials(request: Request):
     client_secret = form.get("client_secret", "").strip()
 
     if not client_id or not client_secret:
-        return HTMLResponse(ctx.render_template(
-            "connect.html",
+        return HTMLResponse(_render_connect(ctx,
             error="Both Client ID and Client Secret are required.",
             success=None,
             has_credentials=False,
@@ -193,8 +199,7 @@ async def save_credentials(request: Request):
     await ctx.state.set("client_secret", client_secret)
     logger.info("Asana OAuth credentials saved")
 
-    return HTMLResponse(ctx.render_template(
-        "connect.html",
+    return HTMLResponse(_render_connect(ctx,
         error=None,
         success="Credentials saved. You can now connect with Asana.",
         has_credentials=True,
@@ -208,8 +213,7 @@ async def initiate_oauth(request: Request):
 
     client_id = await ctx.state.get("client_id")
     if not client_id:
-        return HTMLResponse(ctx.render_template(
-            "connect.html",
+        return HTMLResponse(_render_connect(ctx,
             error="Save your Asana OAuth credentials first.",
             success=None,
             has_credentials=False,
@@ -221,7 +225,7 @@ async def initiate_oauth(request: Request):
 
     authorize_url = build_asana_authorize_url(
         client_id=client_id,
-        redirect_uri=REDIRECT_URI,
+        redirect_uri=_redirect_uri(ctx),
         state=oauth_state,
     )
 
@@ -282,7 +286,7 @@ async def oauth_callback(request: Request):
             code=code,
             client_id=client_id,
             client_secret=client_secret,
-            redirect_uri=REDIRECT_URI,
+            redirect_uri=_redirect_uri(ctx),
         )
 
         # Temporarily store the access token so AsanaClient can use it
@@ -344,8 +348,7 @@ async def connect_pat(request: Request):
     api_key = form.get("api_key", "").strip()
 
     if not api_key:
-        return HTMLResponse(ctx.render_template(
-            "connect.html",
+        return HTMLResponse(_render_connect(ctx,
             error="Please enter your Personal Access Token.",
             success=None,
             has_credentials=bool(await ctx.state.get("client_id")),
@@ -370,8 +373,7 @@ async def connect_pat(request: Request):
 
     except AsanaAuthError as exc:
         logger.warning("PAT verification failed: %s", exc)
-        return HTMLResponse(ctx.render_template(
-            "connect.html",
+        return HTMLResponse(_render_connect(ctx,
             error=f"Invalid token: {exc}",
             success=None,
             has_credentials=bool(await ctx.state.get("client_id")),
@@ -396,8 +398,7 @@ async def disconnect(request: Request):
     await ctx.state.set("story_points_field_gid", "")
     logger.info("Disconnected from Asana")
     has_credentials = bool(await ctx.state.get("client_id"))
-    return HTMLResponse(ctx.render_template(
-        "connect.html",
+    return HTMLResponse(_render_connect(ctx,
         error=None,
         success=None,
         has_credentials=has_credentials,

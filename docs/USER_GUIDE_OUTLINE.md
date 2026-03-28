@@ -37,7 +37,7 @@ Step-by-step instructions for getting SemPKM running.
 - **Quick Start (5-minute path)**
   - Clone the repository
   - Run `docker compose up`
-  - Access the application at `http://localhost:3000`
+  - Access the application at `http://localhost:4000`
 - **First-Run Setup Wizard**
   - The setup token (displayed in API logs on first run)
   - Claiming the instance as the owner

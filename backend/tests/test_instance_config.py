@@ -45,13 +45,13 @@ class TestInstanceConfigModel:
             instance_id="test-uuid",
             deployment_mode="local",
             base_namespace="urn:sempkm:test-uuid/",
-            app_base_url="http://localhost:3000",
+            app_base_url="http://localhost:4000",
             configured_at="2026-03-22T00:00:00+00:00",
         )
         assert config.instance_id == "test-uuid"
         assert config.deployment_mode == "local"
         assert config.base_namespace == "urn:sempkm:test-uuid/"
-        assert config.app_base_url == "http://localhost:3000"
+        assert config.app_base_url == "http://localhost:4000"
 
     def test_create_domain_config(self):
         config = InstanceConfig(
@@ -90,7 +90,7 @@ class TestInstanceConfigModel:
             instance_id="test-uuid",
             deployment_mode="local",
             base_namespace="urn:sempkm:test-uuid/",
-            app_base_url="http://localhost:3000",
+            app_base_url="http://localhost:4000",
             configured_at="2026-03-22T00:00:00+00:00",
         )
         json_str = config.model_dump_json()
@@ -130,7 +130,7 @@ class TestSaveLoadConfig:
             instance_id=instance_id,
             deployment_mode="local",
             base_namespace=f"urn:sempkm:{instance_id}/",
-            app_base_url="http://localhost:3000",
+            app_base_url="http://localhost:4000",
             configured_at="2026-03-22T00:00:00+00:00",
         )
 
@@ -221,7 +221,7 @@ class TestConfigPriorityChain:
             instance_id="test-uuid",
             deployment_mode="local",
             base_namespace="urn:sempkm:test-uuid/",
-            app_base_url="http://localhost:3000",
+            app_base_url="http://localhost:4000",
             configured_at="2026-03-22T00:00:00+00:00",
         )
         config_path = tmp_path / ".instance-config.json"
@@ -245,7 +245,7 @@ class TestConfigPriorityChain:
             with patch("app.config.settings", s):
                 _apply_instance_config_overrides()
         assert s.base_namespace == "urn:sempkm:test-uuid/"
-        assert s.app_base_url == "http://localhost:3000"
+        assert s.app_base_url == "http://localhost:4000"
 
     def test_env_var_overrides_instance_config(self, tmp_path, monkeypatch):
         """Explicit env var wins over instance config."""
@@ -253,7 +253,7 @@ class TestConfigPriorityChain:
             instance_id="test-uuid",
             deployment_mode="local",
             base_namespace="urn:sempkm:test-uuid/",
-            app_base_url="http://localhost:3000",
+            app_base_url="http://localhost:4000",
             configured_at="2026-03-22T00:00:00+00:00",
         )
         config_path = tmp_path / ".instance-config.json"
@@ -330,7 +330,7 @@ class TestConfigureInstanceEndpoint:
         data = resp.json()
         assert data["base_namespace"].startswith("urn:sempkm:")
         assert data["base_namespace"].endswith("/")
-        assert data["app_base_url"] == "http://localhost:3000"
+        assert data["app_base_url"] == "http://localhost:4000"
         assert data["instance_id"]
         # Verify config was persisted
         loaded = load_instance_config(path=config_path)

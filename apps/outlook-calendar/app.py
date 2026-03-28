@@ -34,9 +34,18 @@ from services.outlook_client import (
 
 logger = logging.getLogger("outlook_calendar.app")
 
-REDIRECT_URI = "http://localhost:3000/app/outlook-calendar/_fragments/oauth-callback"
-
 outlook_calendar_app = App("outlook-calendar")
+
+
+def _redirect_uri(ctx: AppContext) -> str:
+    """Compute OAuth redirect URI from the platform URL."""
+    return f"{ctx.platform_url.rstrip('/')}/app/outlook-calendar/_fragments/oauth-callback"
+
+
+def _render_connect(ctx: AppContext, **kwargs) -> str:
+    """Render connect.html with redirect_uri always injected."""
+    kwargs.setdefault("redirect_uri", _redirect_uri(ctx))
+    return ctx.render_template("connect.html", **kwargs)
 
 
 def _make_client(ctx: AppContext) -> OutlookClient:
@@ -112,16 +121,14 @@ async def connect_fragment(request: Request):
             return await _render_connect_status(ctx)
         except (OutlookAPIError, OutlookAuthError, Exception) as exc:
             logger.warning("Failed to render connect status: %s", exc)
-            return HTMLResponse(ctx.render_template(
-                "connect.html",
+            return HTMLResponse(_render_connect(ctx,
                 error=f"Connection error: {exc}. Please reconnect.",
                 success=None,
                 has_credentials=bool(await ctx.state.get("client_id")),
             ))
 
     has_credentials = bool(await ctx.state.get("client_id"))
-    return HTMLResponse(ctx.render_template(
-        "connect.html",
+    return HTMLResponse(_render_connect(ctx,
         error=None,
         success=None,
         has_credentials=has_credentials,
@@ -137,8 +144,7 @@ async def save_credentials(request: Request):
     client_secret = form.get("client_secret", "").strip()
 
     if not client_id or not client_secret:
-        return HTMLResponse(ctx.render_template(
-            "connect.html",
+        return HTMLResponse(_render_connect(ctx,
             error="Both Application (Client) ID and Client Secret are required.",
             success=None,
             has_credentials=False,
@@ -148,8 +154,7 @@ async def save_credentials(request: Request):
     await ctx.state.set("client_secret", client_secret)
     logger.info("Azure AD credentials saved")
 
-    return HTMLResponse(ctx.render_template(
-        "connect.html",
+    return HTMLResponse(_render_connect(ctx,
         error=None,
         success="Credentials saved. You can now connect with Microsoft.",
         has_credentials=True,
@@ -163,8 +168,7 @@ async def initiate_oauth(request: Request):
 
     client_id = await ctx.state.get("client_id")
     if not client_id:
-        return HTMLResponse(ctx.render_template(
-            "connect.html",
+        return HTMLResponse(_render_connect(ctx,
             error="Save your Azure AD credentials first.",
             success=None,
             has_credentials=False,
@@ -176,7 +180,7 @@ async def initiate_oauth(request: Request):
 
     authorize_url = build_authorize_url(
         client_id=client_id,
-        redirect_uri=REDIRECT_URI,
+        redirect_uri=_redirect_uri(ctx),
         state=oauth_state,
     )
 
@@ -241,7 +245,7 @@ async def oauth_callback(request: Request):
             code=code,
             client_id=client_id,
             client_secret=client_secret,
-            redirect_uri=REDIRECT_URI,
+            redirect_uri=_redirect_uri(ctx),
         )
 
         # Temporarily store the access token so OutlookClient can use it
@@ -314,8 +318,7 @@ async def disconnect(request: Request):
     await ctx.state.set("selected_calendars", "")
     logger.info("Disconnected from Outlook Calendar")
     has_credentials = bool(await ctx.state.get("client_id"))
-    return HTMLResponse(ctx.render_template(
-        "connect.html",
+    return HTMLResponse(_render_connect(ctx,
         error=None,
         success=None,
         has_credentials=has_credentials,

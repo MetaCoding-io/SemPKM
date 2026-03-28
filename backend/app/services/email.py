@@ -24,7 +24,7 @@ async def send_magic_link_email(email: str, token: str, base_url: str) -> bool:
     Args:
         email: Recipient email address.
         token: Magic link verification token.
-        base_url: Application base URL (e.g., http://localhost:3000).
+        base_url: Application base URL (e.g., http://localhost:4000).
 
     Returns:
         True if sent successfully, False on error.

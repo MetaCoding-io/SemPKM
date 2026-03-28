@@ -20,7 +20,7 @@
       → App registrations → New registration.<br>
       Under <strong>Certificates &amp; secrets</strong>, create a new client secret.<br>
       Set the redirect URI (Web) to:<br>
-      <code class="redirect-uri">http://localhost:3000/app/outlook-calendar/_fragments/oauth-callback</code>
+      <code class="redirect-uri">{{ redirect_uri }}</code>
     </p>
     <form class="credentials-form"
           hx-post="/app/outlook-calendar/_fragments/connect/credentials"

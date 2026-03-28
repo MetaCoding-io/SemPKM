@@ -19,7 +19,7 @@
       <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud Console</a>
       → APIs &amp; Services → Credentials.<br>
       Set the authorized redirect URI to:<br>
-      <code class="redirect-uri">http://localhost:3000/app/google-calendar/_fragments/oauth-callback</code>
+      <code class="redirect-uri">{{ redirect_uri }}</code>
     </p>
     <form class="credentials-form"
           hx-post="/app/google-calendar/_fragments/connect/credentials"

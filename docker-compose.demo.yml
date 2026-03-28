@@ -6,7 +6,7 @@
 #   docker compose -f docker-compose.demo.yml down -v
 #
 # Ports:
-#   - Frontend: http://localhost:3902  (dev=3000, test=3901)
+#   - Frontend: http://localhost:3902  (dev=4000, test=3901)
 #   - API:      http://localhost:8902  (dev=8001, test=8901)
 #
 # DEMO_MODE=true causes the API to bypass authentication and return a
