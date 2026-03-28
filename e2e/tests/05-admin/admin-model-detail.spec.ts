@@ -1,8 +1,11 @@
 /**
- * Admin Model Detail & Webhook Deletion E2E Tests
+ * Admin Model Detail, Ontology Diagram & Webhook Deletion E2E Tests
  *
- * Tests model detail page (info, stats, types, schema) and webhook
- * creation + deletion.
+ * Tests model detail page (info, stats, types), ontology diagram rendering
+ * via the Relationships tab, and webhook creation + deletion.
+ *
+ * Consolidated into a single test() to stay within the 5/minute
+ * magic-link rate limit when running alongside admin-model-lifecycle.spec.ts.
  */
 import { test, expect, BASE_URL } from '../../fixtures/auth';
 import { SEL } from '../../helpers/selectors';
@@ -48,22 +51,51 @@ test.describe('Admin Model Detail & Webhook CRUD', () => {
     await expect(ownerPage.locator('.version-pill')).toBeVisible();
     await expect(ownerPage.locator('.model-meta-row')).toBeVisible();
 
-    // ---- Part B: Technical Details (Schema tab) ----
-    const schemaTab = ownerPage.locator('.model-tab[data-tab="schema"]');
-    if (await schemaTab.count() > 0) {
-      await schemaTab.click();
-      await ownerPage.waitForTimeout(500);
+    // ---- Part B: Ontology Diagram (Relationships tab) ----
+    const relationshipsTab = ownerPage.locator('.model-tab[data-tab="relationships"]');
+    await expect(relationshipsTab).toBeVisible();
+    await relationshipsTab.click();
+    await waitForIdle(ownerPage);
 
-      const techDetails = ownerPage.locator('.tech-details');
-      await expect(techDetails).toBeVisible();
+    // Wait for the diagram to load via htmx
+    await ownerPage.waitForTimeout(3000);
+    await waitForIdle(ownerPage);
 
-      // Expand tech details
-      await techDetails.locator('summary').click();
-      await ownerPage.waitForTimeout(500);
+    // The ontology diagram panel should now be visible
+    const diagramPanel = ownerPage.locator('.ontology-diagram-panel');
+    await expect(diagramPanel).toBeVisible({ timeout: 15000 });
 
-      const techContent = await techDetails.textContent();
-      expect(techContent).toContain('basic-pkm');
+    // Should have either a Cytoscape container or "no relationships" message
+    const hasCytoscape = await ownerPage.locator('#ontology-cy').count();
+    const hasEmptyMsg = await ownerPage.locator('.diagram-empty').count();
+    expect(hasCytoscape + hasEmptyMsg).toBeGreaterThanOrEqual(1);
+
+    if (hasCytoscape > 0) {
+      const cyContainer = ownerPage.locator('#ontology-cy');
+      await expect(cyContainer).toBeVisible();
+
+      // Verify Cytoscape initialized (has child elements)
+      const hasChildren = await ownerPage.evaluate(() => {
+        const cy = document.getElementById('ontology-cy');
+        return cy ? cy.children.length > 0 : false;
+      });
+      expect(hasChildren).toBe(true);
     }
+
+    // Verify Technical Details section
+    const schemaTab = ownerPage.locator('.model-tab[data-tab="schema"]');
+    await schemaTab.click();
+    await ownerPage.waitForTimeout(500);
+
+    const techDetails = ownerPage.locator('.tech-details');
+    await expect(techDetails).toBeVisible();
+
+    // Expand tech details
+    await techDetails.locator('summary').click();
+    await ownerPage.waitForTimeout(500);
+
+    const techContent = await techDetails.textContent();
+    expect(techContent).toContain('basic-pkm');
 
     // ---- Part C: Webhook Create & Delete ----
     // Register dialog handler for hx-confirm
