@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-03-28T23:22:25.119Z",
+  "exported_at": "2026-03-28T23:26:08.721Z",
   "milestones": [
     {
       "id": "M001",
@@ -29321,19 +29321,28 @@
       "milestone_id": "M045",
       "slice_id": "S01",
       "id": "T02",
-      "title": "Federation SHA-256 integrity hash and namespace-filtered import",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Added SHA-256 integrity hash to federation exports and namespace-filtered import with 17 passing tests",
+      "status": "complete",
+      "one_liner": "Added SHA-256 integrity hash to federation exports and namespace-filtered import with 17 passing tests",
+      "narrative": "Added content_hash field to PatchExportResponse (optional, backward-compatible). Export router computes SHA-256 of patch_text. sync_shared_graph() verifies hash if present (rejects on mismatch), logs WARNING if absent. Created namespace_filter.py with filter_federation_triples() rejecting triples in urn:sempkm:* (except shared:*), owl:#, sh:# namespaces and rdf:type assertions for OWL/SHACL classes. Applied to both inserts and deletes in sync. 17 tests covering all cases.",
+      "verification_result": "Ran pytest tests/test_federation_integrity.py -v — 17/17 passed. Ran test_ssrf_guard.py — 23/23 still pass. All 4 modified modules import cleanly.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-03-28T23:26:08.672Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "Applied namespace filtering to both inserts AND deletes (plan only mentioned inserts). Deletes should be filtered too to prevent malicious DELETE triples targeting system namespaces.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/federation/schemas.py",
+        "backend/app/federation/router.py",
+        "backend/app/federation/service.py",
+        "backend/app/federation/namespace_filter.py",
+        "backend/tests/test_federation_integrity.py"
+      ],
+      "key_decisions": [
+        "Namespace filter applies to both inserts and deletes in sync",
+        "OWL/SHACL blocked type list covers 9 class IRIs for comprehensive ontology injection prevention"
+      ],
+      "full_summary_md": "---\nid: T02\nparent: S01\nmilestone: M045\nkey_files:\n  - backend/app/federation/schemas.py\n  - backend/app/federation/router.py\n  - backend/app/federation/service.py\n  - backend/app/federation/namespace_filter.py\n  - backend/tests/test_federation_integrity.py\nkey_decisions:\n  - Namespace filter applies to both inserts and deletes in sync\n  - OWL/SHACL blocked type list covers 9 class IRIs for comprehensive ontology injection prevention\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-03-28T23:26:08.673Z\nblocker_discovered: false\n---\n\n# T02: Added SHA-256 integrity hash to federation exports and namespace-filtered import with 17 passing tests\n\n**Added SHA-256 integrity hash to federation exports and namespace-filtered import with 17 passing tests**\n\n## What Happened\n\nAdded content_hash field to PatchExportResponse (optional, backward-compatible). Export router computes SHA-256 of patch_text. sync_shared_graph() verifies hash if present (rejects on mismatch), logs WARNING if absent. Created namespace_filter.py with filter_federation_triples() rejecting triples in urn:sempkm:* (except shared:*), owl:#, sh:# namespaces and rdf:type assertions for OWL/SHACL classes. Applied to both inserts and deletes in sync. 17 tests covering all cases.\n\n## Verification\n\nRan pytest tests/test_federation_integrity.py -v — 17/17 passed. Ran test_ssrf_guard.py — 23/23 still pass. All 4 modified modules import cleanly.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python -m pytest tests/test_federation_integrity.py -v` | 0 | ✅ pass | 1030ms |\n| 2 | `cd backend && .venv/bin/python -m pytest tests/test_ssrf_guard.py -v` | 0 | ✅ pass | 100ms |\n| 3 | `cd backend && .venv/bin/python -c \"from app.federation.namespace_filter import filter_federation_triples\"` | 0 | ✅ pass | 300ms |\n| 4 | `cd backend && .venv/bin/python -c \"from app.federation.service import FederationService\"` | 0 | ✅ pass | 300ms |\n\n\n## Deviations\n\nApplied namespace filtering to both inserts AND deletes (plan only mentioned inserts). Deletes should be filtered too to prevent malicious DELETE triples targeting system namespaces.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/federation/schemas.py`\n- `backend/app/federation/router.py`\n- `backend/app/federation/service.py`\n- `backend/app/federation/namespace_filter.py`\n- `backend/tests/test_federation_integrity.py`\n",
       "description": "Add content integrity verification (SHA-256 hash) to federation patch exports and imports per D372 backward-compat strategy. Add namespace filtering to reject system-managed predicates in incoming federation triples per F-037. Write unit tests.\n\nSteps:\n1. In `backend/app/federation/schemas.py`, add optional `content_hash: str | None = None` field to `PatchExportResponse`.\n2. In `backend/app/federation/router.py` `export_patches()`, compute SHA-256 of `patch_text` and include it as `content_hash` in the response.\n3. In `backend/app/federation/service.py` `sync_shared_graph()`, after receiving the remote response, check for `content_hash` field. If present, compute SHA-256 of received `patch_text` and compare. If mismatch, add error to SyncResult and return without applying. If absent, log WARNING about missing integrity verification.\n4. Create `backend/app/federation/namespace_filter.py` with `filter_federation_triples(triples: list[tuple]) -> tuple[list[tuple], list[tuple]]` that splits triples into (allowed, rejected). Reject triples where any of s/p/o starts with system namespaces: `urn:sempkm:` (except `urn:sempkm:shared:` which is the federation graph itself), any predicate in `http://www.w3.org/2002/07/owl#`, `http://www.w3.org/ns/shacl#`, `http://www.w3.org/1999/02/22-rdf-syntax-ns#type` when the object is an OWL/SHACL class.\n5. In `backend/app/federation/service.py` `sync_shared_graph()`, after deserializing the patch and before building Operations, call `filter_federation_triples()` on the inserts list. Log the count of rejected triples at WARNING if any. Use only the allowed triples for the Operation.\n6. Write `backend/tests/test_federation_integrity.py` with tests: (a) export includes content_hash, (b) import with correct hash passes, (c) import with wrong hash fails, (d) import with missing hash logs warning but proceeds, (e) namespace filter rejects sempkm: predicates, (f) namespace filter rejects owl:Class triples, (g) namespace filter rejects sh: predicates, (h) namespace filter allows normal data triples, (i) namespace filter allows urn:sempkm:shared: graph IRIs in subjects.",
       "estimate": "1h",
       "files": [
@@ -35009,6 +35018,50 @@
       "verdict": "✅ pass",
       "duration_ms": 300,
       "created_at": "2026-03-28T23:22:25.073Z"
+    },
+    {
+      "id": 105,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M045",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_federation_integrity.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1030,
+      "created_at": "2026-03-28T23:26:08.672Z"
+    },
+    {
+      "id": 106,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M045",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_ssrf_guard.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-03-28T23:26:08.672Z"
+    },
+    {
+      "id": 107,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M045",
+      "command": "cd backend && .venv/bin/python -c \"from app.federation.namespace_filter import filter_federation_triples\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 300,
+      "created_at": "2026-03-28T23:26:08.672Z"
+    },
+    {
+      "id": 108,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M045",
+      "command": "cd backend && .venv/bin/python -c \"from app.federation.service import FederationService\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 300,
+      "created_at": "2026-03-28T23:26:08.673Z"
     }
   ]
 }

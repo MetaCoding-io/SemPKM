@@ -9,6 +9,7 @@ metadata graph. All writes go through EventStore to maintain the event
 sourcing invariant.
 """
 
+import hashlib
 import logging
 from datetime import datetime, timezone
 from uuid import uuid4
@@ -19,6 +20,7 @@ from rdflib.namespace import RDF, XSD
 
 from app.events.store import EventStore, Operation
 from app.federation.patch import deserialize_patch
+from app.federation.namespace_filter import filter_federation_triples
 from app.federation.schemas import (
     ContactInfo,
     SharedGraphResponse,
@@ -669,11 +671,32 @@ class FederationService:
 
         patch_text = data.get("patch_text", "")
         event_count = data.get("event_count", 0)
+        content_hash = data.get("content_hash")
 
         if not patch_text or event_count == 0:
             # Update last sync even if nothing to pull
             await self._update_last_sync(graph_iri)
             return SyncResult(pulled=0, applied=0, errors=errors)
+
+        # SHA-256 integrity verification (backward-compat: absent hash = warning)
+        if content_hash:
+            computed = hashlib.sha256(patch_text.encode("utf-8")).hexdigest()
+            if computed != content_hash:
+                errors.append(
+                    f"Integrity check failed: expected {content_hash}, "
+                    f"got {computed}"
+                )
+                logger.error(
+                    "SHA-256 mismatch on sync from %s for %s",
+                    remote_instance_url, graph_iri,
+                )
+                return SyncResult(pulled=event_count, applied=0, errors=errors)
+        else:
+            logger.warning(
+                "Remote %s did not provide content_hash for graph %s — "
+                "skipping integrity verification",
+                remote_instance_url, graph_iri,
+            )
 
         # Deserialize patch
         try:
@@ -690,6 +713,28 @@ class FederationService:
                 inserts.append((s, p, o))
             elif action == "D":
                 deletes.append((s, p, o))
+
+        # Namespace filtering: reject system-managed triples from inserts
+        if inserts:
+            allowed_inserts, rejected_inserts = filter_federation_triples(inserts)
+            if rejected_inserts:
+                logger.warning(
+                    "Filtered %d system-namespace triples from federation "
+                    "import for %s from %s",
+                    len(rejected_inserts), graph_iri, remote_instance_url,
+                )
+            inserts = allowed_inserts
+
+        # Namespace filtering: reject system-managed triples from deletes
+        if deletes:
+            allowed_deletes, rejected_deletes = filter_federation_triples(deletes)
+            if rejected_deletes:
+                logger.warning(
+                    "Filtered %d system-namespace triples from federation "
+                    "deletes for %s from %s",
+                    len(rejected_deletes), graph_iri, remote_instance_url,
+                )
+            deletes = allowed_deletes
 
         op = Operation(
             operation_type="federation.sync",

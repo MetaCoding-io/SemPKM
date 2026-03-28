@@ -15,7 +15,7 @@ Steps:
   - Estimate: 1h
   - Files: backend/app/security/__init__.py, backend/app/security/ssrf.py, backend/app/federation/service.py, backend/app/federation/router.py, backend/app/services/webhooks.py, backend/tests/test_ssrf_guard.py
   - Verify: cd backend && .venv/bin/python -m pytest tests/test_ssrf_guard.py -v
-- [ ] **T02: Federation SHA-256 integrity hash and namespace-filtered import** — Add content integrity verification (SHA-256 hash) to federation patch exports and imports per D372 backward-compat strategy. Add namespace filtering to reject system-managed predicates in incoming federation triples per F-037. Write unit tests.
+- [x] **T02: Added SHA-256 integrity hash to federation exports and namespace-filtered import with 17 passing tests** — Add content integrity verification (SHA-256 hash) to federation patch exports and imports per D372 backward-compat strategy. Add namespace filtering to reject system-managed predicates in incoming federation triples per F-037. Write unit tests.
 
 Steps:
 1. In `backend/app/federation/schemas.py`, add optional `content_hash: str | None = None` field to `PatchExportResponse`.

@@ -10,6 +10,7 @@ class PatchExportResponse(BaseModel):
     event_count: int
     since: str
     graph_iri: str
+    content_hash: str | None = None
 
 
 class SharedGraphInfo(BaseModel):

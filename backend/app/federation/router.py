@@ -10,6 +10,7 @@ Provides endpoints for:
 - Patch export for remote pull (from Plan 01)
 """
 
+import hashlib
 import logging
 from datetime import datetime, timezone
 
@@ -460,11 +461,19 @@ async def export_patches(
     else:
         patch_text = ""
 
+    # Compute SHA-256 integrity hash of the patch content
+    content_hash = (
+        hashlib.sha256(patch_text.encode("utf-8")).hexdigest()
+        if patch_text
+        else None
+    )
+
     return PatchExportResponse(
         patch_text=patch_text,
         event_count=len(events_data),
         since=since,
         graph_iri=graph_iri,
+        content_hash=content_hash,
     )
 
 
