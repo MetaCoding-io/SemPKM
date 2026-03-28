@@ -239,11 +239,14 @@ async def sync_shared_graph(
                 "No remote members found for this shared graph",
             )
 
-    return await service.sync_shared_graph(
-        graph_iri=graph_iri,
-        remote_instance_url=remote_url,
-        local_webid=user_webid,
-    )
+    try:
+        return await service.sync_shared_graph(
+            graph_iri=graph_iri,
+            remote_instance_url=remote_url,
+            local_webid=user_webid,
+        )
+    except ValueError as exc:
+        raise HTTPException(400, str(exc))
 
 
 # ---------------------------------------------------------------------------

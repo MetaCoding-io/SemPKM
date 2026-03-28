@@ -21,6 +21,7 @@ from app.sparql.builder import sparql_escape_string
 from app.triplestore.client import TriplestoreClient
 from app.rdf.namespaces import WEBHOOKS_GRAPH
 from app.config import TIMEOUT_SHORT
+from app.security.ssrf import validate_outbound_url
 
 logger = logging.getLogger(__name__)
 
@@ -328,6 +329,9 @@ class WebhookService:
         async with httpx.AsyncClient(timeout=TIMEOUT_SHORT) as http_client:
             for config in matching:
                 try:
+                    # SSRF guard: reject internal/private webhook targets
+                    validate_outbound_url(config.target_url)
+
                     resp = await http_client.post(
                         config.target_url,
                         json={
@@ -340,6 +344,13 @@ class WebhookService:
                         config.id,
                         config.target_url,
                         resp.status_code,
+                    )
+                except ValueError as ssrf_exc:
+                    logger.warning(
+                        "Webhook %s dispatch blocked by SSRF guard for %s: %s",
+                        config.id,
+                        config.target_url,
+                        ssrf_exc,
                     )
                 except Exception:
                     logger.warning(

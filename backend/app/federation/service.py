@@ -30,6 +30,7 @@ from app.rdf.namespaces import AS, CURRENT_GRAPH, DCTERMS, SEMPKM, FEDERATION_GR
 from app.sparql.builder import sparql_escape_string
 from app.triplestore.client import TriplestoreClient
 from app.config import TIMEOUT_DEFAULT, TIMEOUT_FEDERATION
+from app.security.ssrf import validate_outbound_url
 
 logger = logging.getLogger(__name__)
 
@@ -624,6 +625,9 @@ class FederationService:
         """
         errors: list[str] = []
 
+        # SSRF guard: reject internal/private URLs before any HTTP request
+        validate_outbound_url(remote_instance_url)
+
         # Determine since timestamp (last sync or epoch for first sync)
         since = await self._get_last_sync(graph_iri)
         if not since:
@@ -981,6 +985,8 @@ class FederationService:
         """Discover a user's inbox URL from their WebID profile."""
         try:
             profile_url = webid.split("#")[0]
+            # SSRF guard: reject internal/private profile URLs
+            validate_outbound_url(profile_url)
             async with httpx.AsyncClient(timeout=TIMEOUT_FEDERATION) as client:
                 resp = await client.get(
                     profile_url,
@@ -1019,6 +1025,9 @@ class FederationService:
             key_id: Key ID for signing.
         """
         import json
+
+        # SSRF guard: reject internal/private inbox URLs
+        validate_outbound_url(inbox_url)
 
         body = json.dumps(notification).encode("utf-8")
         headers: dict[str, str] = {
