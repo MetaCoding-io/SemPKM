@@ -14,10 +14,11 @@ from datetime import datetime, timezone
 
 from app.sparql.builder import sparql_escape_string
 from app.triplestore.client import TriplestoreClient
+from app.rdf.namespaces import TASK_TEMPLATES_GRAPH
+TEMPLATE_GRAPH = TASK_TEMPLATES_GRAPH
 
 logger = logging.getLogger(__name__)
 
-TEMPLATE_GRAPH = "urn:sempkm:task-templates"
 TEMPLATE_IRI_PREFIX = "urn:sempkm:task-template:"
 
 # SPARQL prefixes used across all queries

@@ -29,6 +29,7 @@ from app.views.service import ViewSpec, ViewSpecService, extract_scope_where_bod
 from app.triplestore.client import TriplestoreClient
 from app.validation.queue import AsyncValidationQueue
 from app.services.webhooks import WebhookService
+from app.rdf.namespaces import CURRENT_GRAPH
 
 logger = logging.getLogger(__name__)
 
@@ -1454,7 +1455,7 @@ async def calendar_patch(
 
     # Detect the object's type to determine the right predicates
     type_query = f"""SELECT ?type WHERE {{
-  GRAPH <urn:sempkm:current> {{
+  GRAPH <{CURRENT_GRAPH}> {{
     {safe_body_iri} a ?type .
   }}
 }}"""

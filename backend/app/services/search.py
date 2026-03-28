@@ -9,6 +9,7 @@ import logging
 from dataclasses import dataclass
 
 from app.triplestore.client import TriplestoreClient
+from app.rdf.namespaces import CURRENT_GRAPH
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 SELECT DISTINCT ?iri ?type ?label ?snippet ?score WHERE {{
-  GRAPH <urn:sempkm:current> {{
+  GRAPH <{CURRENT_GRAPH}> {{
     ?iri search:matches [
       search:query {query!r} ;
       search:score ?score ;
@@ -117,7 +118,7 @@ class SearchService:
             return []
 
         normalized = self._normalize_query(query, fuzzy)
-        sparql = FTS_QUERY.format(query=normalized, limit=limit)
+        sparql = FTS_QUERY.format(query=normalized, limit=limit, CURRENT_GRAPH=CURRENT_GRAPH)
         try:
             result = await self._client.query(sparql)
         except Exception:

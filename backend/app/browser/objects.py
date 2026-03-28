@@ -39,6 +39,7 @@ from app.services.prefixes import PrefixRegistry
 from app.services.shapes import ShapesService
 from app.triplestore.client import TriplestoreClient
 from app.validation.queue import AsyncValidationQueue
+from app.rdf.namespaces import CURRENT_GRAPH
 
 from ._helpers import (
     _format_date,
@@ -121,7 +122,7 @@ async def get_object(
     # Query user-created properties from current graph
     props_sparql = f"""
     SELECT ?p ?o WHERE {{
-      GRAPH <urn:sempkm:current> {{
+      GRAPH <{CURRENT_GRAPH}> {{
         <{decoded_iri}> ?p ?o .
       }}
     }}
@@ -450,7 +451,7 @@ async def get_tooltip(
 
     props_sparql = f"""
     SELECT ?p ?o WHERE {{
-      GRAPH <urn:sempkm:current> {{
+      GRAPH <{CURRENT_GRAPH}> {{
         <{decoded_iri}> ?p ?o .
       }}
     }}
@@ -534,7 +535,7 @@ async def save_body(
     # Query existing body from current state graph
     predicate_iri = predicate if predicate else "urn:sempkm:body"
     body_sparql = f"""SELECT ?body WHERE {{
-      GRAPH <urn:sempkm:current> {{ <{decoded_iri}> <{predicate_iri}> ?body }}
+      GRAPH <{CURRENT_GRAPH}> {{ <{decoded_iri}> <{predicate_iri}> ?body }}
     }}"""
     result = await client.query(body_sparql)
     rows = result.get("results", {}).get("bindings", [])
@@ -626,7 +627,7 @@ async def get_relations(
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     SELECT ?predicate ?object ?source WHERE {{
       {{
-        GRAPH <urn:sempkm:current> {{
+        GRAPH <{CURRENT_GRAPH}> {{
           <{decoded_iri}> ?predicate ?object .
           FILTER(isIRI(?object))
           FILTER(?predicate != rdf:type)
@@ -654,7 +655,7 @@ async def get_relations(
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     SELECT ?subject ?predicate ?source WHERE {{
       {{
-        GRAPH <urn:sempkm:current> {{
+        GRAPH <{CURRENT_GRAPH}> {{
           ?subject ?predicate <{decoded_iri}> .
           FILTER(isIRI(?subject))
           FILTER(?predicate != rdf:type)
@@ -932,7 +933,7 @@ async def delete_edge(
     # Also find and delete any edge resource for this triple
     edge_query = f"""
     SELECT ?edge WHERE {{
-      GRAPH <urn:sempkm:current> {{
+      GRAPH <{CURRENT_GRAPH}> {{
         ?edge a <urn:sempkm:Edge> ;
               <urn:sempkm:source> <{subject_iri}> ;
               <urn:sempkm:predicate> <{predicate_iri}> ;
@@ -1004,7 +1005,7 @@ async def bulk_delete_objects(
         # Query all triples where this IRI is the subject in the current graph
         sparql = f"""
         SELECT ?p ?o WHERE {{
-          GRAPH <urn:sempkm:current> {{
+          GRAPH <{CURRENT_GRAPH}> {{
             <{iri}> ?p ?o .
           }}
         }}

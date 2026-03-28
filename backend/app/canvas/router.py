@@ -31,6 +31,7 @@ from app.services.labels import LabelService
 from app.services.shapes import NodeShapeForm, PropertyShape, ShapesService
 from app.triplestore.client import TriplestoreClient
 from app.views.service import ViewSpecService
+from app.rdf.namespaces import CURRENT_GRAPH
 
 logger = logging.getLogger(__name__)
 
@@ -131,7 +132,7 @@ async def get_node_body(
 
     sparql = f"""
     SELECT ?body WHERE {{
-      GRAPH <urn:sempkm:current> {{
+      GRAPH <{CURRENT_GRAPH}> {{
         <{iri}> ?p ?body .
         FILTER(STRENDS(STR(?p), ":body") || STR(?p) = "urn:sempkm:body")
       }}
@@ -303,7 +304,7 @@ async def get_node_properties(
     # --- Query current graph ---
     current_sparql = f"""
     SELECT ?p ?o WHERE {{
-      GRAPH <urn:sempkm:current> {{
+      GRAPH <{CURRENT_GRAPH}> {{
         <{iri}> ?p ?o .
       }}
     }}
@@ -450,7 +451,7 @@ async def resolve_wikilinks(
 
     sparql = f"""
     SELECT ?title ?iri WHERE {{
-      GRAPH <urn:sempkm:current> {{
+      GRAPH <{CURRENT_GRAPH}> {{
         ?iri ?labelProp ?title .
         VALUES ?labelProp {{
           <http://purl.org/dc/terms/title>
@@ -503,7 +504,7 @@ async def batch_edges(
     sparql = f"""
     SELECT DISTINCT ?s ?p ?o ?plabel WHERE {{
       {{
-        GRAPH <urn:sempkm:current> {{
+        GRAPH <{CURRENT_GRAPH}> {{
           ?s ?p ?o .
           FILTER(isIRI(?o))
         }}
@@ -518,7 +519,7 @@ async def batch_edges(
       VALUES ?s {{ {values_clause} }}
       VALUES ?o {{ {values_clause} }}
       OPTIONAL {{
-        GRAPH <urn:sempkm:current> {{
+        GRAPH <{CURRENT_GRAPH}> {{
           ?p <http://www.w3.org/2000/01/rdf-schema#label> ?plabel .
         }}
       }}

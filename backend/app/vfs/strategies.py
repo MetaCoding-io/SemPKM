@@ -17,6 +17,7 @@ from enum import Enum
 from typing import TYPE_CHECKING
 
 from app.vfs.mount_service import MountDefinition
+from app.rdf.namespaces import CURRENT_GRAPH, QUERIES_GRAPH
 
 if TYPE_CHECKING:
     from app.triplestore.sync_client import SyncTriplestoreClient
@@ -24,7 +25,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 # ── Query resolution constants ───────────────────────────────────────
-QUERIES_GRAPH = "urn:sempkm:queries"
 PRED_QUERY_TEXT = "urn:sempkm:vocab:queryText"
 
 
@@ -175,7 +175,7 @@ def query_flat_objects(scope_filter: str) -> str:
     """List all objects with labels (flat strategy)."""
     return f"""
 SELECT ?iri ?label ?typeIri ?created
-FROM <urn:sempkm:current>
+FROM <{CURRENT_GRAPH}>
 WHERE {{
   ?iri a ?typeIri .
   {_LABEL_OPTIONALS}
@@ -192,7 +192,7 @@ def query_type_folders(scope_filter: str) -> str:
     """List distinct types with labels (by-type strategy folders)."""
     return f"""
 SELECT DISTINCT ?typeIri ?typeLabel
-FROM <urn:sempkm:current>
+FROM <{CURRENT_GRAPH}>
 WHERE {{
   ?iri a ?typeIri .
   {scope_filter}
@@ -207,7 +207,7 @@ def query_objects_by_type(type_iri: str, scope_filter: str) -> str:
     """List objects of a specific type."""
     return f"""
 SELECT ?iri ?label ?created
-FROM <urn:sempkm:current>
+FROM <{CURRENT_GRAPH}>
 WHERE {{
   ?iri a <{type_iri}> .
   {_LABEL_OPTIONALS}
@@ -223,7 +223,7 @@ def query_date_year_folders(date_property: str, scope_filter: str) -> str:
     """List distinct years from a date property (by-date strategy top-level)."""
     return f"""
 SELECT DISTINCT ?year
-FROM <urn:sempkm:current>
+FROM <{CURRENT_GRAPH}>
 WHERE {{
   ?iri <{date_property}> ?dateVal .
   {scope_filter}
@@ -238,7 +238,7 @@ def query_date_month_folders(date_property: str, year: str, scope_filter: str) -
     """List distinct months within a year from a date property."""
     return f"""
 SELECT DISTINCT ?month ?monthNum
-FROM <urn:sempkm:current>
+FROM <{CURRENT_GRAPH}>
 WHERE {{
   ?iri <{date_property}> ?dateVal .
   {scope_filter}
@@ -257,7 +257,7 @@ def query_objects_by_date(
     """List objects matching a specific year and month."""
     return f"""
 SELECT ?iri ?label ?typeIri ?created
-FROM <urn:sempkm:current>
+FROM <{CURRENT_GRAPH}>
 WHERE {{
   ?iri <{date_property}> ?dateVal ;
        a ?typeIri .
@@ -276,7 +276,7 @@ def query_tag_folders(tag_property: str, scope_filter: str) -> str:
     """List distinct tag values (by-tag strategy folders)."""
     return f"""
 SELECT DISTINCT ?tagValue
-FROM <urn:sempkm:current>
+FROM <{CURRENT_GRAPH}>
 WHERE {{
   ?iri <{tag_property}> ?tagValue .
   {scope_filter}
@@ -289,7 +289,7 @@ def query_objects_by_tag(tag_property: str, tag_value: str, scope_filter: str) -
     """List objects with a specific tag value."""
     return f"""
 SELECT ?iri ?label ?typeIri ?created
-FROM <urn:sempkm:current>
+FROM <{CURRENT_GRAPH}>
 WHERE {{
   ?iri <{tag_property}> ?matchVal ;
        a ?typeIri .
@@ -308,7 +308,7 @@ def query_property_folders(group_property: str, scope_filter: str) -> str:
     """List distinct values of a grouping property with label resolution."""
     return f"""
 SELECT DISTINCT ?groupValue ?groupLabel
-FROM <urn:sempkm:current>
+FROM <{CURRENT_GRAPH}>
 WHERE {{
   ?iri <{group_property}> ?groupValue .
   {scope_filter}
@@ -340,7 +340,7 @@ def query_objects_by_property(
 
     return f"""
 SELECT ?iri ?label ?typeIri ?created
-FROM <urn:sempkm:current>
+FROM <{CURRENT_GRAPH}>
 WHERE {{
   ?iri <{group_property}> ?matchVal ;
        a ?typeIri .
@@ -359,7 +359,7 @@ def query_uncategorized_objects(group_property: str, scope_filter: str) -> str:
     """List objects missing the grouping property (_uncategorized folder)."""
     return f"""
 SELECT ?iri ?label ?typeIri ?created
-FROM <urn:sempkm:current>
+FROM <{CURRENT_GRAPH}>
 WHERE {{
   ?iri a ?typeIri .
   FILTER NOT EXISTS {{ ?iri <{group_property}> ?anyVal }}
@@ -377,7 +377,7 @@ def query_has_uncategorized(group_property: str, scope_filter: str) -> str:
     """Check if any objects are missing the grouping property."""
     return f"""
 ASK
-FROM <urn:sempkm:current>
+FROM <{CURRENT_GRAPH}>
 WHERE {{
   ?iri a ?anyType .
   FILTER NOT EXISTS {{ ?iri <{group_property}> ?anyVal }}

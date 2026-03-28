@@ -30,14 +30,14 @@ from app.inference.entailments import (
 )
 from app.inference.models import InferenceTripleState, compute_triple_hash
 from app.triplestore.client import TriplestoreClient
+from app.rdf.namespaces import CURRENT_GRAPH, INFERRED_GRAPH, MODELS_GRAPH
+INFERRED_GRAPH_IRI = INFERRED_GRAPH
 
 logger = logging.getLogger(__name__)
 
 # Named graph for inferred triples
-INFERRED_GRAPH_IRI = "urn:sempkm:inferred"
 
 # Model registry graph
-MODELS_GRAPH = "urn:sempkm:models"
 SEMPKM_NS = "urn:sempkm:"
 
 
@@ -400,7 +400,7 @@ class InferenceService:
 
     async def _load_current_data(self) -> Graph:
         """Load all triples from urn:sempkm:current via CONSTRUCT."""
-        sparql = "CONSTRUCT { ?s ?p ?o } FROM <urn:sempkm:current> WHERE { ?s ?p ?o }"
+        sparql = f"CONSTRUCT {{ ?s ?p ?o }} FROM <{CURRENT_GRAPH}> WHERE {{ ?s ?p ?o }}"
         turtle_bytes = await self._client.construct(sparql)
         graph = Graph()
         if turtle_bytes.strip():

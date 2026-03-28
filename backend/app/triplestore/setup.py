@@ -12,6 +12,7 @@ import logging
 from pathlib import Path
 
 import httpx
+from app.rdf.namespaces import CURRENT_GRAPH
 
 logger = logging.getLogger(__name__)
 
@@ -66,10 +67,10 @@ async def ensure_repository(
     # Ensure sentinel triple exists in current state graph (Pitfall 1)
     # This prevents RDF4J from deleting the empty graph
     sentinel_sparql = (
-        "INSERT DATA { "
-        "GRAPH <urn:sempkm:current> { "
-        "<urn:sempkm:current> a <urn:sempkm:StateGraph> "
-        "} }"
+        f"INSERT DATA {{ "
+        f"GRAPH <{CURRENT_GRAPH}> {{ "
+        f"<{CURRENT_GRAPH}> a <urn:sempkm:StateGraph> "
+        f"}} }}"
     )
     resp = await client.post(
         f"{repo_url}/statements",

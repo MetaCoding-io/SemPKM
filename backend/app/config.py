@@ -96,6 +96,16 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
+# ── HTTP timeout defaults (seconds) ────────────────────────────────────────
+# Centralised constants — import these instead of hardcoding timeout values.
+# Override per call-site only when a specific endpoint needs different timing.
+
+TIMEOUT_DEFAULT = 30.0       # General-purpose HTTP calls, triplestore, SSE queues
+TIMEOUT_SHORT = 5.0          # Webhooks, IndieAuth, quick external checks
+TIMEOUT_FEDERATION = 15.0    # Federation HTTP signatures, WebFinger, remote fetch
+TIMEOUT_LLM = 300.0          # LLM streaming (large model responses)
+TIMEOUT_LLM_SHORT = 60.0    # LLM non-streaming (embeddings, single-shot)
+
 
 def _apply_instance_config_overrides() -> None:
     """Apply instance config overrides to settings where env vars are absent.

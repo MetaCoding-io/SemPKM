@@ -18,6 +18,7 @@ from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
 
 from app.triplestore.sync_client import SyncTriplestoreClient
 from app.vfs.cache import cached_get_member_names
+from app.rdf.namespaces import CURRENT_GRAPH
 
 
 def _slugify(text: str) -> str:
@@ -242,7 +243,7 @@ class TypeCollection(DAVCollection):
             PREFIX dcterms: <http://purl.org/dc/terms/>
             PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
             PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-            SELECT ?iri ?label FROM <urn:sempkm:current>
+            SELECT ?iri ?label FROM <{CURRENT_GRAPH}>
             WHERE {{
               ?iri a <{type_iri}> .
               OPTIONAL {{ ?iri dcterms:title ?t }}

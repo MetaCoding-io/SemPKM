@@ -13,9 +13,9 @@ from rdflib.namespace import RDF, XSD
 
 from app.models.manifest import ManifestSchema
 from app.triplestore.client import TriplestoreClient
+from app.rdf.namespaces import CURRENT_GRAPH, MODELS_GRAPH
 
 # Named graph for model registry metadata
-MODELS_GRAPH = "urn:sempkm:models"
 
 # SemPKM vocabulary namespace
 SEMPKM_NS = "urn:sempkm:"
@@ -315,7 +315,7 @@ async def check_user_data_exists(
             continue
 
         sparql = f"""ASK {{
-  GRAPH <urn:sempkm:current> {{
+  GRAPH <{CURRENT_GRAPH}> {{
     ?s a <{cls_str}> .
   }}
 }}"""

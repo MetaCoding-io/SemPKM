@@ -54,6 +54,7 @@ from app.vfs.strategies import (
     query_tag_folders,
     query_type_folders,
 )
+from app.rdf.namespaces import CURRENT_GRAPH
 
 logger = logging.getLogger(__name__)
 
@@ -597,7 +598,7 @@ async def _query_strategy_folders(
     if strategy == "flat":
         result = await client.query(
             f"""
-            SELECT (COUNT(DISTINCT ?iri) AS ?count) FROM <urn:sempkm:current>
+            SELECT (COUNT(DISTINCT ?iri) AS ?count) FROM <{CURRENT_GRAPH}>
             WHERE {{
               ?iri a ?type .
               {scope_filter}
@@ -616,7 +617,7 @@ async def _query_strategy_folders(
             type_label = b["typeLabel"]["value"]
             count_result = await client.query(
                 f"""
-                SELECT (COUNT(DISTINCT ?iri) AS ?count) FROM <urn:sempkm:current>
+                SELECT (COUNT(DISTINCT ?iri) AS ?count) FROM <{CURRENT_GRAPH}>
                 WHERE {{
                   ?iri a <{type_iri}> .
                   {scope_filter}
@@ -635,7 +636,7 @@ async def _query_strategy_folders(
                 # Count objects per tag
                 count_result = await client.query(
                     f"""
-                    SELECT (COUNT(DISTINCT ?iri) AS ?count) FROM <urn:sempkm:current>
+                    SELECT (COUNT(DISTINCT ?iri) AS ?count) FROM <{CURRENT_GRAPH}>
                     WHERE {{
                       ?iri <{mount.group_by_property}> ?tv .
                       FILTER(STR(?tv) = "{tag_value}")
@@ -756,7 +757,7 @@ async def preview_mount(
         # Flat: just count all objects
         result = await client.query(
             f"""
-            SELECT (COUNT(DISTINCT ?iri) AS ?count) FROM <urn:sempkm:current>
+            SELECT (COUNT(DISTINCT ?iri) AS ?count) FROM <{CURRENT_GRAPH}>
             WHERE {{
               ?iri a ?type .
               {scope_filter}
@@ -770,7 +771,7 @@ async def preview_mount(
         # Group by rdf:type
         result = await client.query(
             f"""
-            SELECT ?typeLabel (COUNT(DISTINCT ?iri) AS ?count) FROM <urn:sempkm:current>
+            SELECT ?typeLabel (COUNT(DISTINCT ?iri) AS ?count) FROM <{CURRENT_GRAPH}>
             WHERE {{
               ?iri a ?typeIri .
               {scope_filter}
@@ -793,7 +794,7 @@ async def preview_mount(
         safe_prop = safe_iri(body.group_by_property)
         result = await client.query(
             f"""
-            SELECT ?tagValue (COUNT(DISTINCT ?iri) AS ?count) FROM <urn:sempkm:current>
+            SELECT ?tagValue (COUNT(DISTINCT ?iri) AS ?count) FROM <{CURRENT_GRAPH}>
             WHERE {{
               ?iri {safe_prop} ?tagValue .
               {scope_filter}
@@ -811,7 +812,7 @@ async def preview_mount(
         # Check for uncategorized objects
         uncat_result = await client.query(
             f"""
-            SELECT (COUNT(DISTINCT ?iri) AS ?count) FROM <urn:sempkm:current>
+            SELECT (COUNT(DISTINCT ?iri) AS ?count) FROM <{CURRENT_GRAPH}>
             WHERE {{
               ?iri a ?type .
               {scope_filter}
@@ -832,7 +833,7 @@ async def preview_mount(
         safe_date_prop = safe_iri(body.date_property)
         result = await client.query(
             f"""
-            SELECT ?year ?month (COUNT(DISTINCT ?iri) AS ?count) FROM <urn:sempkm:current>
+            SELECT ?year ?month (COUNT(DISTINCT ?iri) AS ?count) FROM <{CURRENT_GRAPH}>
             WHERE {{
               ?iri {safe_date_prop} ?date .
               {scope_filter}
@@ -864,7 +865,7 @@ async def preview_mount(
         result = await client.query(
             f"""
             SELECT ?groupValue ?groupLabel (COUNT(DISTINCT ?iri) AS ?count)
-            FROM <urn:sempkm:current>
+            FROM <{CURRENT_GRAPH}>
             WHERE {{
               ?iri {safe_grp_prop} ?groupValue .
               {scope_filter}

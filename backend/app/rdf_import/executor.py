@@ -23,6 +23,7 @@ from app.rdf_import.models import RdfImportResult, RdfParseResult
 from app.services.models import model_shapes_loader
 from app.triplestore.client import TriplestoreClient
 from app.validation.report import ValidationReport, ValidationResult
+from app.rdf.namespaces import CURRENT_GRAPH
 
 logger = logging.getLogger(__name__)
 
@@ -104,7 +105,7 @@ async def check_collisions(
     # Build VALUES clause
     values_entries = " ".join(f"<{iri}>" for iri in iris)
     sparql = f"""SELECT DISTINCT ?s WHERE {{
-  GRAPH <urn:sempkm:current> {{
+  GRAPH <{CURRENT_GRAPH}> {{
     ?s ?p ?o .
   }}
   VALUES ?s {{ {values_entries} }}

@@ -16,11 +16,11 @@ from rdflib.namespace import XSD
 
 from app.triplestore.client import TriplestoreClient
 from app.validation.report import ValidationReport, ValidationReportSummary
+from app.rdf.namespaces import CURRENT_GRAPH, VALIDATIONS_GRAPH
 
 logger = logging.getLogger(__name__)
 
 # Named graph for validation report summaries
-VALIDATIONS_GRAPH = "urn:sempkm:validations"
 
 
 async def empty_shapes_loader() -> Graph:
@@ -70,7 +70,7 @@ class ValidationService:
         """
         # 1. Fetch current state graph
         turtle_bytes = await self._client.construct(
-            "CONSTRUCT { ?s ?p ?o } FROM <urn:sempkm:current> WHERE { ?s ?p ?o }"
+            f"CONSTRUCT {{ ?s ?p ?o }} FROM <{CURRENT_GRAPH}> WHERE {{ ?s ?p ?o }}"
         )
         data_graph = Graph()
         if turtle_bytes.strip():

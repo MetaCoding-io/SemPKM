@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.models import User
 from app.db.session import get_db_session
 from app.webid.service import build_profile_url, build_webid_uri, get_base_url
+from app.config import TIMEOUT_FEDERATION
 
 logger = logging.getLogger(__name__)
 
@@ -118,7 +119,7 @@ async def discover_webid(handle_or_url: str) -> dict:
     webfinger_url = f"https://{domain}/.well-known/webfinger"
 
     try:
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with httpx.AsyncClient(timeout=TIMEOUT_FEDERATION) as client:
             resp = await client.get(
                 webfinger_url,
                 params={"resource": resource},

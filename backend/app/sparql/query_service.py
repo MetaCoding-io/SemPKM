@@ -17,11 +17,11 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 
 from app.triplestore.client import TriplestoreClient
+from app.rdf.namespaces import QUERIES_GRAPH
 
 logger = logging.getLogger(__name__)
 
 # Named graph for all query data
-QUERIES_GRAPH = "urn:sempkm:queries"
 
 # Vocabulary IRIs
 VOCAB = "urn:sempkm:vocab:"

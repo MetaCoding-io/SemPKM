@@ -48,7 +48,7 @@ from app.middleware.etag import ConditionalGetMiddleware
 from app.middleware.timing import TimingMiddleware, timing_router
 from app.auth.service import AuthService
 from app.auth.tokens import load_or_create_setup_token
-from app.config import settings
+from app.config import settings, TIMEOUT_DEFAULT
 from app.commands.router import router as commands_router
 from app.db.engine import create_engine
 from app.db.session import async_session_factory
@@ -147,7 +147,7 @@ async def lifespan(app: FastAPI):
     app.state.triplestore_client = client
 
     # Ensure RDF4J repository exists with proper configuration
-    async with httpx.AsyncClient(timeout=30.0) as setup_client:
+    async with httpx.AsyncClient(timeout=TIMEOUT_DEFAULT) as setup_client:
         await ensure_repository(
             client=setup_client,
             base_url=settings.triplestore_url,
@@ -395,12 +395,19 @@ async def lifespan(app: FastAPI):
 
     # Initialize App Platform manager
     from app.apps.manager import AppManager
+    _platform_url = settings.app_base_url
+    if not _platform_url:
+        logger.warning(
+            "APP_BASE_URL not set — app platform_url will default to "
+            "http://localhost:4000. Set APP_BASE_URL for production."
+        )
+        _platform_url = "http://localhost:4000"
     app_manager = AppManager(
         session_factory=async_session_factory,
         triplestore_client=client,
         apps_dir=Path("/app/apps"),
         data_dir=Path("/app/data/apps"),
-        platform_url=settings.app_base_url or "http://localhost:8000",
+        platform_url=_platform_url,
     )
     app.state.app_manager = app_manager
 

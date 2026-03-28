@@ -3,6 +3,7 @@
 Each object is presented as a .md file with YAML frontmatter containing
 metadata (type IRI, object IRI, label, key properties) and a Markdown body
 from the object's body predicate.
+from app.rdf.namespaces import CURRENT_GRAPH
 
 Write path (PUT):
   begin_write() returns a BytesIO buffer.
@@ -121,7 +122,7 @@ class ResourceFile(DAVNonCollection):
         # Fetch all properties of the object
         result = self._client.query(
             f"""
-            SELECT ?predicate ?object FROM <urn:sempkm:current>
+            SELECT ?predicate ?object FROM <{CURRENT_GRAPH}>
             WHERE {{ <{iri}> ?predicate ?object . }}
             """
         )

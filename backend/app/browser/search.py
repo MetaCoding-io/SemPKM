@@ -12,6 +12,7 @@ from app.dependencies import get_label_service, get_triplestore_client
 from app.services.labels import LabelService
 from app.sparql.builder import sparql_escape_string
 from app.triplestore.client import TriplestoreClient
+from app.rdf.namespaces import CURRENT_GRAPH
 
 from ._helpers import _validate_iri
 
@@ -42,7 +43,7 @@ def build_tag_suggestions_sparql(q: str) -> str:
         )
 
     sparql = f"""SELECT ?tagValue (COUNT(DISTINCT ?s) AS ?count)
-FROM <urn:sempkm:current>
+FROM <{CURRENT_GRAPH}>
 WHERE {{
   {{
     ?s <urn:sempkm:model:basic-pkm:tags> ?tagValue .
@@ -99,7 +100,7 @@ async def search_references(
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
     SELECT DISTINCT ?obj WHERE {{
-      GRAPH <urn:sempkm:current> {{
+      GRAPH <{CURRENT_GRAPH}> {{
         ?obj rdf:type <{type}> .
       }}
     }}
@@ -237,7 +238,7 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX schema: <https://schema.org/>
 
 SELECT DISTINCT ?s ?label WHERE {{
-  GRAPH <urn:sempkm:current> {{
+  GRAPH <{CURRENT_GRAPH}> {{
     ?s a ?type .
     ?s rdfs:label|dcterms:title|skos:prefLabel|schema:name ?label .
   }}

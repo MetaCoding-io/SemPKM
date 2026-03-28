@@ -10,6 +10,8 @@ from typing import Optional
 
 import httpx
 
+from app.config import TIMEOUT_DEFAULT
+
 logger = logging.getLogger(__name__)
 
 
@@ -110,7 +112,7 @@ class PrefixRegistry:
         """
         url = "https://lov.linkeddata.es/dataset/lov/api/v2/vocabulary/list"
         try:
-            resp = await http_client.get(url, timeout=30.0)
+            resp = await http_client.get(url, timeout=TIMEOUT_DEFAULT)
             resp.raise_for_status()
             vocabs = resp.json()
         except Exception:

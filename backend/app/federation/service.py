@@ -26,14 +26,14 @@ from app.federation.schemas import (
 )
 from app.federation.signatures import sign_request
 from app.federation.webfinger import discover_webid
-from app.rdf.namespaces import AS, DCTERMS, SEMPKM
+from app.rdf.namespaces import AS, CURRENT_GRAPH, DCTERMS, SEMPKM, FEDERATION_GRAPH
 from app.sparql.builder import sparql_escape_string
 from app.triplestore.client import TriplestoreClient
+from app.config import TIMEOUT_DEFAULT, TIMEOUT_FEDERATION
 
 logger = logging.getLogger(__name__)
 
 # Federation metadata graph for shared graph membership, contacts, etc.
-FEDERATION_GRAPH = "urn:sempkm:federation"
 
 
 class FederationService:
@@ -249,7 +249,7 @@ class FederationService:
         # Query all triples for the object from current graph
         sparql = f"""
         SELECT ?p ?o WHERE {{
-          GRAPH <urn:sempkm:current> {{
+          GRAPH <{CURRENT_GRAPH}> {{
             <{object_iri}> ?p ?o .
           }}
         }}
@@ -655,7 +655,7 @@ class FederationService:
                 return SyncResult(pulled=0, applied=0, errors=errors)
 
         try:
-            async with httpx.AsyncClient(timeout=30.0) as http_client:
+            async with httpx.AsyncClient(timeout=TIMEOUT_DEFAULT) as http_client:
                 resp = await http_client.get(url, headers=headers)
                 resp.raise_for_status()
                 data = resp.json()
@@ -981,7 +981,7 @@ class FederationService:
         """Discover a user's inbox URL from their WebID profile."""
         try:
             profile_url = webid.split("#")[0]
-            async with httpx.AsyncClient(timeout=15.0) as client:
+            async with httpx.AsyncClient(timeout=TIMEOUT_FEDERATION) as client:
                 resp = await client.get(
                     profile_url,
                     headers={"Accept": "text/turtle"},
@@ -1033,7 +1033,7 @@ class FederationService:
             except Exception as e:
                 logger.warning("Failed to sign outbound notification: %s", e)
 
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with httpx.AsyncClient(timeout=TIMEOUT_FEDERATION) as client:
             resp = await client.post(
                 inbox_url,
                 content=body,

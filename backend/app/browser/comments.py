@@ -24,7 +24,7 @@ from app.db.session import get_db_session
 from app.dependencies import get_event_store, get_triplestore_client
 from app.events.store import EventStore, Operation
 from app.rdf.iri import mint_object_iri
-from app.rdf.namespaces import PROV, SEMPKM
+from app.rdf.namespaces import CURRENT_GRAPH, PROV, SEMPKM
 from app.triplestore.client import TriplestoreClient
 
 from ._helpers import _validate_iri
@@ -262,7 +262,7 @@ async def get_comments(
     PREFIX prov: <http://www.w3.org/ns/prov#>
 
     SELECT ?comment ?body ?author ?timestamp ?replyTo
-    FROM <urn:sempkm:current>
+    FROM <{CURRENT_GRAPH}>
     WHERE {{
         ?comment rdf:type sempkm:Comment .
         ?comment sempkm:commentOn <{decoded_iri}> .
@@ -438,7 +438,7 @@ async def delete_comment(
     PREFIX prov: <http://www.w3.org/ns/prov#>
 
     SELECT ?body ?author
-    FROM <urn:sempkm:current>
+    FROM <{CURRENT_GRAPH}>
     WHERE {{
         <{decoded_iri}> a sempkm:Comment .
         <{decoded_iri}> sempkm:commentBody ?body .

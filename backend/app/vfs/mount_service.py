@@ -17,12 +17,13 @@ from datetime import UTC, datetime
 from app.sparql.builder import safe_iri, sparql_escape_string
 
 from app.triplestore.sync_client import SyncTriplestoreClient
+from app.rdf.namespaces import MOUNTS_GRAPH
+GRAPH_MOUNTS = MOUNTS_GRAPH
 
 # ── RDF Vocabulary Constants ────────────────────────────────────────
 
 NS_SEMPKM = "urn:sempkm:"
 NS_MOUNT = "urn:sempkm:mount:"
-GRAPH_MOUNTS = "urn:sempkm:mounts"
 
 # Predicate IRIs for MountSpec properties
 MOUNT_NAME = f"{NS_SEMPKM}mountName"

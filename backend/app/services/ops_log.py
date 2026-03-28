@@ -12,11 +12,11 @@ import uuid
 from datetime import datetime, timezone
 
 from app.triplestore.client import TriplestoreClient
+from app.rdf.namespaces import OPS_LOG_GRAPH
 
 logger = logging.getLogger(__name__)
 
 # Named graph for all operations log data
-OPS_LOG_GRAPH = "urn:sempkm:ops-log"
 
 # ---- Vocabulary IRIs (raw strings, not rdflib objects) ----
 

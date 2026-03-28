@@ -30,6 +30,7 @@ from app.sparql.client import scope_to_current_graph
 from app.sparql.query_service import QueryService
 from app.sparql.utils import escape_sparql_regex
 from app.triplestore.client import TriplestoreClient
+from app.rdf.namespaces import CURRENT_GRAPH
 from cachetools import TTLCache
 
 logger = logging.getLogger(__name__)
@@ -804,7 +805,7 @@ OFFSET {offset}"""
         # Fetch all properties for these subjects
         values_clause = " ".join(safe_iri(iri) for iri in subject_iris)
         props_query = f"""SELECT ?s ?p ?o
-FROM <urn:sempkm:current>
+FROM <{CURRENT_GRAPH}>
 WHERE {{
   VALUES ?s {{ {values_clause} }}
   ?s ?p ?o .
@@ -847,7 +848,7 @@ WHERE {{
         # Fetch outbound relationships (IRI objects, not literals)
         out_query = f"""PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 SELECT ?s ?predicate ?object
-FROM <urn:sempkm:current>
+FROM <{CURRENT_GRAPH}>
 WHERE {{
   VALUES ?s {{ {values_clause} }}
   ?s ?predicate ?object .
@@ -875,7 +876,7 @@ WHERE {{
         # Fetch inbound relationships
         in_query = f"""PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 SELECT ?s ?predicate ?subject
-FROM <urn:sempkm:current>
+FROM <{CURRENT_GRAPH}>
 WHERE {{
   VALUES ?s {{ {values_clause} }}
   ?subject ?predicate ?s .
@@ -1096,7 +1097,7 @@ WHERE {
         """
         safe_node = safe_iri(node_iri)
         construct_query = f"""CONSTRUCT {{ ?s ?p ?o }}
-FROM <urn:sempkm:current>
+FROM <{CURRENT_GRAPH}>
 FROM <urn:sempkm:inferred>
 FROM <urn:sempkm:mirrored>
 WHERE {{
@@ -3327,7 +3328,7 @@ WHERE {{
         if all_node_iris:
             values_clause = " ".join(safe_iri(iri) for iri in all_node_iris)
             sup_query = f"""SELECT ?s ?p ?o
-FROM <urn:sempkm:current>
+FROM <{CURRENT_GRAPH}>
 FROM <urn:sempkm:inferred>
 FROM <urn:sempkm:mirrored>
 WHERE {{

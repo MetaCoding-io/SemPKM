@@ -26,6 +26,7 @@ from app.auth.models import User
 from app.dependencies import get_event_store, get_triplestore_client
 from app.events.store import EventStore
 from app.triplestore.client import TriplestoreClient
+from app.rdf.namespaces import CURRENT_GRAPH
 
 logger = logging.getLogger(__name__)
 
@@ -126,7 +127,7 @@ async def vfs_tree(
                 PREFIX dcterms: <http://purl.org/dc/terms/>
                 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
                 PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-                SELECT ?iri ?label FROM <urn:sempkm:current>
+                SELECT ?iri ?label FROM <{CURRENT_GRAPH}>
                 WHERE {{
                   ?iri a <{type_iri}> .
                   OPTIONAL {{ ?iri dcterms:title ?t }}
@@ -216,7 +217,7 @@ async def vfs_file_content(
         PREFIX dcterms: <http://purl.org/dc/terms/>
         PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
         PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-        SELECT ?iri ?label FROM <urn:sempkm:current>
+        SELECT ?iri ?label FROM <{CURRENT_GRAPH}>
         WHERE {{
           ?iri a <{type_iri}> .
           OPTIONAL {{ ?iri dcterms:title ?t }}
@@ -256,7 +257,7 @@ async def vfs_file_content(
 
     # Fetch all properties
     props_result = await client.query(f"""
-        SELECT ?predicate ?object FROM <urn:sempkm:current>
+        SELECT ?predicate ?object FROM <{CURRENT_GRAPH}>
         WHERE {{ <{object_iri}> ?predicate ?object . }}
     """)
 

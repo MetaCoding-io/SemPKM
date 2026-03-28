@@ -14,7 +14,9 @@ from urllib.parse import urlencode
 
 logger = logging.getLogger("google_calendar.auth")
 
-GOOGLE_AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/v2/auth"
+GOOGLE_AUTHORIZE_URL = os.environ.get(
+    "GOOGLE_AUTHORIZE_URL", "https://accounts.google.com/o/oauth2/v2/auth"
+)
 GOOGLE_TOKEN_URL = os.environ.get(
     "GOOGLE_TOKEN_URL", "https://oauth2.googleapis.com/token"
 )

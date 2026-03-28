@@ -1,3 +1,4 @@
+from app.config import TIMEOUT_FEDERATION
 """HTTP Message Signatures (RFC 9421) sign/verify wrappers for federation.
 
 Provides outbound request signing with the local instance's Ed25519 private key,
@@ -134,7 +135,7 @@ async def fetch_webid_public_key(
     profile_url = webid_uri.split("#")[0]
 
     try:
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with httpx.AsyncClient(timeout=TIMEOUT_FEDERATION) as client:
             resp = await client.get(
                 profile_url,
                 headers={"Accept": "text/turtle"},

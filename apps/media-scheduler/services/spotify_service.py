@@ -36,6 +36,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import logging
+import os
 import re
 import secrets
 from datetime import datetime, timedelta, timezone
@@ -49,9 +50,9 @@ APP_NS = "urn:sempkm:app:media-scheduler:"
 MEDIA_SOURCE_TYPE = f"{MS_NS}MediaSource"
 MEDIA_ITEM_TYPE = f"{MS_NS}MediaItem"
 
-SPOTIFY_API_BASE = "https://api.spotify.com/v1"
-SPOTIFY_AUTHORIZE_URL = "https://accounts.spotify.com/authorize"
-SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
+SPOTIFY_API_BASE = os.environ.get("SPOTIFY_API_URL", "https://api.spotify.com/v1")
+SPOTIFY_AUTHORIZE_URL = os.environ.get("SPOTIFY_AUTHORIZE_URL", "https://accounts.spotify.com/authorize")
+SPOTIFY_TOKEN_URL = os.environ.get("SPOTIFY_TOKEN_URL", "https://accounts.spotify.com/api/token")
 
 SPOTIFY_SCOPES = (
     "playlist-read-private playlist-read-collaborative "

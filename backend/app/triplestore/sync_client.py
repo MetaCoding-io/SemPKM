@@ -7,6 +7,8 @@ never call from the async event loop.
 
 import httpx
 
+from app.config import TIMEOUT_DEFAULT
+
 
 class SyncTriplestoreClient:
     """Synchronous client for RDF4J triplestore operations.
@@ -19,7 +21,7 @@ class SyncTriplestoreClient:
         self.base_url = base_url.rstrip("/")
         self.repository_id = repository_id
         self._repo_url = f"{self.base_url}/repositories/{self.repository_id}"
-        self._client = httpx.Client(timeout=30.0)
+        self._client = httpx.Client(timeout=TIMEOUT_DEFAULT)
 
     def query(self, sparql: str) -> dict:
         """Execute a SPARQL SELECT/ASK query synchronously, return JSON results dict."""
@@ -41,4 +43,5 @@ class SyncTriplestoreClient:
 
     def close(self) -> None:
         """Close the underlying httpx client."""
+        self._client.close()
         self._client.close()

@@ -11,6 +11,8 @@ import logging
 from dataclasses import dataclass
 from typing import Any, AsyncGenerator
 
+from app.config import TIMEOUT_DEFAULT
+
 logger = logging.getLogger(__name__)
 
 
@@ -117,7 +119,7 @@ async def stream_sse(
                 shutdown_task = asyncio.ensure_future(shutdown_event.wait())
                 done, pending = await asyncio.wait(
                     {get_task, shutdown_task},
-                    timeout=30.0,
+                    timeout=TIMEOUT_DEFAULT,
                     return_when=asyncio.FIRST_COMPLETED,
                 )
                 for task in pending:
@@ -132,7 +134,7 @@ async def stream_sse(
                 else:
                     yield ": keepalive\n\n"
             else:
-                event = await asyncio.wait_for(queue.get(), timeout=30.0)
+                event = await asyncio.wait_for(queue.get(), timeout=TIMEOUT_DEFAULT)
                 yield event.format()
                 if event.event in terminal_events:
                     break

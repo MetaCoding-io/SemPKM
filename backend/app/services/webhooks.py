@@ -19,11 +19,12 @@ from rdflib.namespace import XSD
 
 from app.sparql.builder import sparql_escape_string
 from app.triplestore.client import TriplestoreClient
+from app.rdf.namespaces import WEBHOOKS_GRAPH
+from app.config import TIMEOUT_SHORT
 
 logger = logging.getLogger(__name__)
 
 # Dedicated named graph for webhook configuration storage
-WEBHOOKS_GRAPH = "urn:sempkm:webhooks"
 
 # SemPKM vocabulary namespace for webhook terms
 SEMPKM_NS = "urn:sempkm:"
@@ -324,7 +325,7 @@ class WebhookService:
         if not matching:
             return
 
-        async with httpx.AsyncClient(timeout=5.0) as http_client:
+        async with httpx.AsyncClient(timeout=TIMEOUT_SHORT) as http_client:
             for config in matching:
                 try:
                     resp = await http_client.post(

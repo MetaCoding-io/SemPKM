@@ -57,6 +57,7 @@ from app.vfs.strategies import (
     query_type_folders,
     query_uncategorized_objects,
 )
+from app.rdf.namespaces import CURRENT_GRAPH
 
 from ._helpers import _is_htmx_request, _validate_iri, get_hidden_types, get_icon_service
 
@@ -134,14 +135,14 @@ async def _handle_hierarchy(
     templates = request.app.state.templates
     client = request.app.state.triplestore_client
 
-    sparql = """
+    sparql = f"""
     PREFIX dcterms: <http://purl.org/dc/terms/>
-    SELECT ?obj ?type WHERE {
-      GRAPH <urn:sempkm:current> {
+    SELECT ?obj ?type WHERE {{
+      GRAPH <{CURRENT_GRAPH}> {{
         ?obj a ?type .
-        FILTER NOT EXISTS { ?obj dcterms:isPartOf ?parent . }
-      }
-    }
+        FILTER NOT EXISTS {{ ?obj dcterms:isPartOf ?parent . }}
+      }}
+    }}
     """
 
     try:
@@ -191,14 +192,14 @@ async def _handle_by_tag(
     templates = request.app.state.templates
     client = request.app.state.triplestore_client
 
-    sparql = """
+    sparql = f"""
     SELECT ?tagValue (COUNT(DISTINCT ?iri) AS ?count)
-    FROM <urn:sempkm:current>
-    WHERE {
-      { ?iri <urn:sempkm:model:basic-pkm:tags> ?tagValue }
+    FROM <{CURRENT_GRAPH}>
+    WHERE {{
+      {{ ?iri <urn:sempkm:model:basic-pkm:tags> ?tagValue }}
       UNION
-      { ?iri <https://schema.org/keywords> ?tagValue }
-    }
+      {{ ?iri <https://schema.org/keywords> ?tagValue }}
+    }}
     GROUP BY ?tagValue
     ORDER BY ?tagValue
     """
@@ -711,7 +712,7 @@ async def tree_children(
     sparql = f"""
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     SELECT ?obj WHERE {{
-      GRAPH <urn:sempkm:current> {{
+      GRAPH <{CURRENT_GRAPH}> {{
         ?obj rdf:type <{decoded_iri}> .
       }}
     }}
@@ -766,7 +767,7 @@ async def explorer_children(
     sparql = f"""
     PREFIX dcterms: <http://purl.org/dc/terms/>
     SELECT ?obj ?type WHERE {{
-      GRAPH <urn:sempkm:current> {{
+      GRAPH <{CURRENT_GRAPH}> {{
         ?obj dcterms:isPartOf <{parent}> .
         ?obj a ?type .
       }}
@@ -851,7 +852,7 @@ async def tag_children(
         # PLUS the exact prefix value (for direct_count objects)
         sparql = f"""
         SELECT ?tagValue (COUNT(DISTINCT ?iri) AS ?count)
-        FROM <urn:sempkm:current>
+        FROM <{CURRENT_GRAPH}>
         WHERE {{
           {{
             ?iri <urn:sempkm:model:basic-pkm:tags> ?tagValue .
@@ -893,7 +894,7 @@ async def tag_children(
             escaped_tag = sparql_escape_string(prefix)
             obj_sparql = f"""
             SELECT ?iri ?label ?typeIri
-            FROM <urn:sempkm:current>
+            FROM <{CURRENT_GRAPH}>
             WHERE {{
               {{
                 ?iri <urn:sempkm:model:basic-pkm:tags> "{escaped_tag}" .
@@ -933,7 +934,7 @@ async def tag_children(
     escaped_tag = sparql_escape_string(tag)
     sparql = f"""
     SELECT ?iri ?label ?typeIri
-    FROM <urn:sempkm:current>
+    FROM <{CURRENT_GRAPH}>
     WHERE {{
       {{
         ?iri <urn:sempkm:model:basic-pkm:tags> "{escaped_tag}" .
@@ -1233,7 +1234,7 @@ async def migrate_tags(
     """
     from app.commands.handlers.object_patch import split_tag_values
 
-    graph_iri = "urn:sempkm:current"
+    graph_iri = CURRENT_GRAPH
     tags_predicate = "urn:sempkm:model:basic-pkm:tags"
 
     # Query for all comma-containing tag values

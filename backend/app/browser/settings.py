@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user, require_role
 from app.auth.models import User
+from app.config import TIMEOUT_LLM
 from app.db.session import get_db_session
 from app.services.settings import SettingsService
 
@@ -329,7 +330,7 @@ async def llm_chat_stream(
 
     async def event_stream():
         try:
-            async with httpx.AsyncClient(timeout=300.0) as client:
+            async with httpx.AsyncClient(timeout=TIMEOUT_LLM) as client:
                 async with client.stream(
                     "POST",
                     f"{base_url}/v1/chat/completions",

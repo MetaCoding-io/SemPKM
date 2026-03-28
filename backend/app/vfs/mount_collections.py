@@ -40,6 +40,7 @@ from app.vfs.strategies import (
     query_type_folders,
     query_uncategorized_objects,
 )
+from app.rdf.namespaces import CURRENT_GRAPH
 
 logger = logging.getLogger(__name__)
 
@@ -609,19 +610,19 @@ class StrategyFolderCollection(DAVCollection):
         if type_iri:
             return query_objects_by_type(type_iri, sf)
         # Fallback: no objects
-        return f"SELECT ?iri ?label ?typeIri FROM <urn:sempkm:current> WHERE {{ FILTER(false) }}"
+        return f"SELECT ?iri ?label ?typeIri FROM <{CURRENT_GRAPH}> WHERE {{ FILTER(false) }}"
 
     def _build_by_date_query(self, scope_filter: str | None = None) -> str:
         """Query objects for a specific year+month."""
         sf = scope_filter if scope_filter is not None else self._scope_filter
         if not self._mount.date_property or not self._parent_folder_value:
-            return f"SELECT ?iri ?label ?typeIri FROM <urn:sempkm:current> WHERE {{ FILTER(false) }}"
+            return f"SELECT ?iri ?label ?typeIri FROM <{CURRENT_GRAPH}> WHERE {{ FILTER(false) }}"
 
         year = self._parent_folder_value
         # Parse month from "MM-MonthName" format
         month = self._parse_month_number(self._folder_value)
         if month is None:
-            return f"SELECT ?iri ?label ?typeIri FROM <urn:sempkm:current> WHERE {{ FILTER(false) }}"
+            return f"SELECT ?iri ?label ?typeIri FROM <{CURRENT_GRAPH}> WHERE {{ FILTER(false) }}"
 
         return query_objects_by_date(
             self._mount.date_property, year, month, sf
@@ -631,7 +632,7 @@ class StrategyFolderCollection(DAVCollection):
         """Query objects with a specific tag value."""
         sf = scope_filter if scope_filter is not None else self._scope_filter
         if not self._mount.group_by_property:
-            return f"SELECT ?iri ?label ?typeIri FROM <urn:sempkm:current> WHERE {{ FILTER(false) }}"
+            return f"SELECT ?iri ?label ?typeIri FROM <{CURRENT_GRAPH}> WHERE {{ FILTER(false) }}"
 
         if self._folder_value == _UNCATEGORIZED:
             return query_uncategorized_objects(
@@ -645,7 +646,7 @@ class StrategyFolderCollection(DAVCollection):
         """Query objects with a specific property value."""
         sf = scope_filter if scope_filter is not None else self._scope_filter
         if not self._mount.group_by_property:
-            return f"SELECT ?iri ?label ?typeIri FROM <urn:sempkm:current> WHERE {{ FILTER(false) }}"
+            return f"SELECT ?iri ?label ?typeIri FROM <{CURRENT_GRAPH}> WHERE {{ FILTER(false) }}"
 
         if self._folder_value == _UNCATEGORIZED:
             return query_uncategorized_objects(
@@ -691,7 +692,7 @@ class StrategyFolderCollection(DAVCollection):
         # Try to find an IRI value whose resolved label matches
         sparql = f"""
 SELECT ?groupValue
-FROM <urn:sempkm:current>
+FROM <{CURRENT_GRAPH}>
 WHERE {{
   ?iri <{self._mount.group_by_property}> ?groupValue .
   FILTER(isIRI(?groupValue))

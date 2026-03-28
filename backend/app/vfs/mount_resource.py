@@ -31,6 +31,7 @@ import frontmatter
 
 from app.services.shapes import PropertyShape
 from app.triplestore.sync_client import SyncTriplestoreClient
+from app.rdf.namespaces import CURRENT_GRAPH
 
 logger = logging.getLogger(__name__)
 
@@ -141,7 +142,7 @@ def _resolve_labels_for_iris(
     values = " ".join(f"<{iri}>" for iri in iris)
     sparql = f"""
 SELECT ?iri ?label
-FROM <urn:sempkm:current>
+FROM <{CURRENT_GRAPH}>
 WHERE {{
   VALUES ?iri {{ {values} }}
   OPTIONAL {{ ?iri <http://purl.org/dc/terms/title> ?t }}
@@ -197,7 +198,7 @@ class MountedResourceFile(DAVNonCollection):
         # Fetch all triples for this object
         result = self._client.query(
             f"""
-            SELECT ?p ?o FROM <urn:sempkm:current>
+            SELECT ?p ?o FROM <{CURRENT_GRAPH}>
             WHERE {{ <{iri}> ?p ?o . }}
             """
         )

@@ -14,6 +14,7 @@ from cachetools import TTLCache
 
 from app.services.prefixes import PrefixRegistry
 from app.triplestore.client import TriplestoreClient
+from app.rdf.namespaces import CURRENT_GRAPH
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +79,7 @@ class LabelService:
         PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 
         SELECT ?iri ?label
-        FROM <urn:sempkm:current>
+        FROM <{CURRENT_GRAPH}>
         FROM <urn:sempkm:inferred>
         WHERE {{
           VALUES (?iri) {{ {values_clause} }}

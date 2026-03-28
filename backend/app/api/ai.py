@@ -24,10 +24,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user_or_api
 from app.auth.models import User
+from app.config import TIMEOUT_LLM, TIMEOUT_LLM_SHORT
 from app.db.session import get_db_session
 from app.services.llm import LLMConfigService
 from app.services.search import SearchService
 from app.sparql.builder import sparql_escape_string
+from app.rdf.namespaces import CURRENT_GRAPH
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +83,7 @@ async def llm_stream(
 
     async def event_stream():
         try:
-            async with httpx.AsyncClient(timeout=300.0) as client:
+            async with httpx.AsyncClient(timeout=TIMEOUT_LLM) as client:
                 async with client.stream(
                     "POST",
                     f"{base_url}/v1/chat/completions",
@@ -291,7 +293,7 @@ async def _find_research_gaps(
     PREFIX dcterms: <http://purl.org/dc/terms/>
 
     SELECT ?rq ?title ?description ?status WHERE {{
-      GRAPH <urn:sempkm:current> {{
+      GRAPH <{CURRENT_GRAPH}> {{
         ?rq a res:ResearchQuestion .
         ?rq res:status ?status .
         FILTER(?status IN ("open", "partially-answered"))
@@ -343,7 +345,7 @@ async def _find_research_gaps(
         evidence_sparql = f"""
         PREFIX res: <{_RES_NS}>
         SELECT (COUNT(?ev) AS ?count) WHERE {{
-          GRAPH <urn:sempkm:current> {{
+          GRAPH <{CURRENT_GRAPH}> {{
             ?ev a res:Evidence .
             ?ev res:addresses <{rq_iri}> .
           }}
@@ -579,7 +581,7 @@ async def detect_claims(
 
     # Make non-streaming LLM call
     try:
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        async with httpx.AsyncClient(timeout=TIMEOUT_LLM_SHORT) as client:
             resp = await client.post(
                 f"{base_url}/v1/chat/completions",
                 headers=headers,
@@ -665,11 +667,11 @@ async def match_claims(
         if matched_iris:
             values_clause = " ".join(f"(<{iri}>)" for iri in matched_iris)
             type_sparql = (
-                "SELECT ?s ?type WHERE { "
-                "GRAPH <urn:sempkm:current> { "
+                f"SELECT ?s ?type WHERE {{ "
+                f"GRAPH <{CURRENT_GRAPH}> {{ "
                 f"VALUES (?s) {{ {values_clause} }} "
                 "?s a ?type "
-                "} }"
+                f"}} }}"
             )
             try:
                 type_result = await triplestore.query(type_sparql)
@@ -688,11 +690,11 @@ async def match_claims(
             values_clause = " ".join(f"(<{iri}>)" for iri in claim_iris)
             conf_sparql = (
                 f"PREFIX res: <{_RES_NS}> "
-                "SELECT ?s ?confidence WHERE { "
-                "GRAPH <urn:sempkm:current> { "
+                f"SELECT ?s ?confidence WHERE {{ "
+                f"GRAPH <{CURRENT_GRAPH}> {{ "
                 f"VALUES (?s) {{ {values_clause} }} "
                 "?s res:confidence ?confidence "
-                "} }"
+                f"}} }}"
             )
             try:
                 conf_result = await triplestore.query(conf_sparql)
@@ -836,10 +838,10 @@ async def suggest_relationships(
     if has_url:
         escaped_url = sparql_escape_string(body.url.strip())
         url_sparql = (
-            "SELECT DISTINCT ?s WHERE { "
-            "GRAPH <urn:sempkm:current> { "
+            f"SELECT DISTINCT ?s WHERE {{ "
+            f"GRAPH <{CURRENT_GRAPH}> {{ "
             f'?s ?p ?val . FILTER(STR(?val) = "{escaped_url}") '
-            "} } LIMIT 20"
+            f"}} }} LIMIT 20"
         )
         try:
             url_result = await triplestore.query(url_sparql)
@@ -901,11 +903,11 @@ async def suggest_relationships(
         if fts_iris:
             values_clause = " ".join(f"(<{iri}>)" for iri in fts_iris)
             type_sparql = (
-                "SELECT ?s ?type WHERE { "
-                "GRAPH <urn:sempkm:current> { "
+                f"SELECT ?s ?type WHERE {{ "
+                f"GRAPH <{CURRENT_GRAPH}> {{ "
                 f"VALUES (?s) {{ {values_clause} }} "
                 "?s a ?type "
-                "} }"
+                f"}} }}"
             )
             try:
                 type_result = await triplestore.query(type_sparql)
@@ -1085,7 +1087,7 @@ async def summarize(
 
     # Make non-streaming LLM call
     try:
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        async with httpx.AsyncClient(timeout=TIMEOUT_LLM_SHORT) as client:
             resp = await client.post(
                 f"{base_url}/v1/chat/completions",
                 headers=headers,

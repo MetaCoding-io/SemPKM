@@ -19,6 +19,7 @@ from app.instance_config import (
     load_instance_config,
     save_instance_config,
 )
+from app.rdf.namespaces import CURRENT_GRAPH
 
 logger = logging.getLogger(__name__)
 
@@ -91,7 +92,7 @@ async def _check_user_data_exists(request: Request) -> bool:
     """
     client = request.app.state.triplestore_client
     sparql = (
-        "ASK { GRAPH <urn:sempkm:current> { ?s a ?type } }"
+        f"ASK {{ GRAPH <{CURRENT_GRAPH}> {{ ?s a ?type }} }}"
     )
     try:
         result = await client.query(sparql)

@@ -16,6 +16,7 @@ from typing import Any
 import yaml
 
 from ..models.manifest import ManifestSchema
+from app.rdf.namespaces import USER_TYPES_GRAPH
 
 logger = logging.getLogger(__name__)
 
@@ -184,7 +185,6 @@ class IconService:
 # Async loader for user-type icons from triplestore
 # ------------------------------------------------------------------
 
-USER_TYPES_GRAPH = "urn:sempkm:user-types"
 SEMPKM_NS = "urn:sempkm:"
 
 

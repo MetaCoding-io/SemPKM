@@ -28,6 +28,7 @@ from app.apps.models import AppInstance
 from app.apps.registry import AppRegistry
 from app.apps.tokens import generate_app_token, get_secret
 from app.config import Settings
+from app.rdf.namespaces import CURRENT_GRAPH
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -427,11 +428,11 @@ class AppManager:
             try:
                 # Delete triples where subject has app IRI prefix
                 await self._triplestore.update(
-                    f'DELETE WHERE {{ GRAPH <urn:sempkm:current> {{ ?s ?p ?o . FILTER(STRSTARTS(STR(?s), "urn:sempkm:app:{app_id}:")) }} }}'
+                    f'DELETE WHERE {{ GRAPH <{CURRENT_GRAPH}> {{ ?s ?p ?o . FILTER(STRSTARTS(STR(?s), "urn:sempkm:app:{app_id}:")) }} }}'
                 )
                 # Delete triples where object has app IRI prefix
                 await self._triplestore.update(
-                    f'DELETE WHERE {{ GRAPH <urn:sempkm:current> {{ ?s ?p ?o . FILTER(STRSTARTS(STR(?o), "urn:sempkm:app:{app_id}:")) }} }}'
+                    f'DELETE WHERE {{ GRAPH <{CURRENT_GRAPH}> {{ ?s ?p ?o . FILTER(STRSTARTS(STR(?o), "urn:sempkm:app:{app_id}:")) }} }}'
                 )
                 # Clear app state graph
                 await self._triplestore.update(

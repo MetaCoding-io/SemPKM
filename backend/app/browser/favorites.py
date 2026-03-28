@@ -15,6 +15,7 @@ from app.favorites.models import UserFavorite
 from app.services.icons import IconService
 from app.services.labels import LabelService
 from app.sparql.builder import safe_iri, values_clause as sparql_values_clause
+from app.rdf.namespaces import CURRENT_GRAPH
 
 from ._helpers import get_icon_service
 
@@ -146,7 +147,7 @@ async def list_favorites(
     sparql = f"""
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     SELECT ?iri ?typeIri
-    FROM <urn:sempkm:current>
+    FROM <{CURRENT_GRAPH}>
     WHERE {{
       {iri_values}
       ?iri rdf:type ?typeIri .

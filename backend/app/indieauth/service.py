@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.indieauth.models import IndieAuthCode, IndieAuthToken
 from app.indieauth.schemas import ClientInfo, IntrospectionResponse
+from app.config import TIMEOUT_SHORT
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +111,7 @@ class IndieAuthService:
             return ClientInfo(name=client_id, url=client_id)
 
         try:
-            async with httpx.AsyncClient(timeout=5.0, follow_redirects=True) as http:
+            async with httpx.AsyncClient(timeout=TIMEOUT_SHORT, follow_redirects=True) as http:
                 resp = await http.get(client_id)
                 resp.raise_for_status()
 

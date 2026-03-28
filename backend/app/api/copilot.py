@@ -24,6 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.dependencies import get_current_user_or_api, scope_required
 from app.auth.models import User
 from app.auth.rate_limit import limiter
+from app.config import TIMEOUT_LLM, TIMEOUT_LLM_SHORT
 from app.copilot.context import GraphContextService
 from app.copilot.conversation import ConversationService
 from app.copilot.personas import AIPersonaService
@@ -575,7 +576,7 @@ async def copilot_chat(
             )
 
         try:
-            async with httpx.AsyncClient(timeout=300.0) as client:
+            async with httpx.AsyncClient(timeout=TIMEOUT_LLM) as client:
                 async with client.stream(
                     "POST",
                     f"{base_url}/v1/chat/completions",
@@ -816,7 +817,7 @@ async def copilot_approve(
             llm_headers["Authorization"] = f"Bearer {api_key}"
 
         try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
+            async with httpx.AsyncClient(timeout=TIMEOUT_LLM_SHORT) as client:
                 resp = await client.post(
                     f"{base_url}/v1/chat/completions",
                     headers=llm_headers,

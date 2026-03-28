@@ -21,12 +21,11 @@ from rdflib.namespace import OWL, RDF, RDFS, SH, XSD
 
 from app.models.registry import MODELS_GRAPH, SEMPKM_NS
 from app.triplestore.client import TriplestoreClient
+from app.rdf.namespaces import CURRENT_GRAPH, GIST_GRAPH, USER_TYPES_GRAPH
 
 logger = logging.getLogger(__name__)
 
 # Named graphs for ontology data
-GIST_GRAPH = "urn:sempkm:ontology:gist"
-USER_TYPES_GRAPH = "urn:sempkm:user-types"
 
 # Gist IRIs
 GIST_ONTOLOGY_IRI = "https://w3id.org/semanticarts/ontology/gistCore"
@@ -1076,7 +1075,7 @@ WHERE {{
         values = " ".join(f"<{iri}>" for iri in class_labels)
         count_sparql = f"""SELECT ?type (COUNT(DISTINCT ?instance) AS ?count) WHERE {{
   {{
-    GRAPH <urn:sempkm:current> {{ ?instance a ?type . }}
+    GRAPH <{CURRENT_GRAPH}> {{ ?instance a ?type . }}
   }} UNION {{
     GRAPH <urn:sempkm:inferred> {{ ?instance a ?type . }}
   }}
@@ -1130,12 +1129,12 @@ PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 
 SELECT DISTINCT ?instance ?label WHERE {{
   {{
-    GRAPH <urn:sempkm:current> {{ ?instance a <{class_iri}> . }}
+    GRAPH <{CURRENT_GRAPH}> {{ ?instance a <{class_iri}> . }}
   }} UNION {{
     GRAPH <urn:sempkm:inferred> {{ ?instance a <{class_iri}> . }}
   }}
   OPTIONAL {{
-    GRAPH <urn:sempkm:current> {{
+    GRAPH <{CURRENT_GRAPH}> {{
       OPTIONAL {{ ?instance dcterms:title ?t }}
       OPTIONAL {{ ?instance rdfs:label ?rl }}
       OPTIONAL {{ ?instance skos:prefLabel ?sl }}

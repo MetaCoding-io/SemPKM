@@ -20,11 +20,11 @@ from app.lint.models import (
 )
 from app.services.labels import LabelService
 from app.triplestore.client import TriplestoreClient
+from app.rdf.namespaces import CURRENT_GRAPH, VALIDATIONS_GRAPH
 
 logger = logging.getLogger(__name__)
 
 # Named graph for validation report summaries and run pointers
-VALIDATIONS_GRAPH = "urn:sempkm:validations"
 
 
 class LintService:
@@ -211,7 +211,7 @@ class LintService:
         object_type_filter = ""
         if object_type:
             object_type_filter = f"""
-            GRAPH <urn:sempkm:current> {{
+            GRAPH <{CURRENT_GRAPH}> {{
               ?focusNode a <{object_type}> .
             }}
             """
@@ -553,7 +553,7 @@ class LintService:
         values_clause = " ".join(f"<{iri}>" for iri in unique_iris)
         query = f"""
         SELECT ?s ?type WHERE {{
-          GRAPH <urn:sempkm:current> {{
+          GRAPH <{CURRENT_GRAPH}> {{
             VALUES ?s {{ {values_clause} }}
             ?s a ?type .
           }}

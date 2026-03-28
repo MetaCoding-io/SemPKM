@@ -15,6 +15,7 @@ from typing import Any
 from app.services.labels import LabelService
 from app.services.prefixes import PrefixRegistry
 from app.triplestore.client import TriplestoreClient
+from app.rdf.namespaces import CURRENT_GRAPH
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +63,7 @@ class GraphContextService:
         SELECT ?p ?o ?inSubject ?inPredicate WHERE {{
           {{
             # Types
-            GRAPH <urn:sempkm:current> {{
+            GRAPH <{CURRENT_GRAPH}> {{
               <{iri}> rdf:type ?o .
             }}
             BIND(rdf:type AS ?p)
@@ -70,7 +71,7 @@ class GraphContextService:
           UNION
           {{
             # Literal properties
-            GRAPH <urn:sempkm:current> {{
+            GRAPH <{CURRENT_GRAPH}> {{
               <{iri}> ?p ?o .
               FILTER(isLiteral(?o))
               FILTER(?p != rdf:type)
@@ -79,7 +80,7 @@ class GraphContextService:
           UNION
           {{
             # Outbound object edges
-            GRAPH <urn:sempkm:current> {{
+            GRAPH <{CURRENT_GRAPH}> {{
               <{iri}> ?p ?o .
               FILTER(isIRI(?o))
               FILTER(?p != rdf:type)
@@ -88,7 +89,7 @@ class GraphContextService:
           UNION
           {{
             # Inbound edges
-            GRAPH <urn:sempkm:current> {{
+            GRAPH <{CURRENT_GRAPH}> {{
               ?inSubject ?inPredicate <{iri}> .
               FILTER(isIRI(?inSubject))
               FILTER(?inPredicate != rdf:type)

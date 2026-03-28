@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import os
 import re
 from datetime import date, datetime, timezone
 from typing import Any
@@ -40,7 +41,7 @@ APP_NS = "urn:sempkm:app:media-scheduler:"
 MEDIA_SOURCE_TYPE = f"{MS_NS}MediaSource"
 MEDIA_ITEM_TYPE = f"{MS_NS}MediaItem"
 
-YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3"
+YOUTUBE_API_BASE = os.environ.get("YOUTUBE_API_URL", "https://www.googleapis.com/youtube/v3")
 
 YOUTUBE_SOURCES_SPARQL = f"""
 SELECT ?source ?feedUrl ?title ?externalId ?errorCount ?lastError WHERE {{

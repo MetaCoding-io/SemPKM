@@ -23,6 +23,7 @@ from app.config import settings
 from app.services.icons import IconService
 from app.services.search import SearchService
 from app.sparql.builder import sparql_escape_string
+from app.rdf.namespaces import CURRENT_GRAPH
 
 logger = logging.getLogger(__name__)
 
@@ -391,10 +392,10 @@ async def context_query(
     if body.url:
         escaped_url = sparql_escape_string(body.url)
         url_sparql = (
-            "SELECT DISTINCT ?s WHERE { "
-            "GRAPH <urn:sempkm:current> { "
+            f"SELECT DISTINCT ?s WHERE {{ "
+            f"GRAPH <{CURRENT_GRAPH}> {{ "
             f'?s ?p ?val . FILTER(STR(?val) = "{escaped_url}") '
-            "} } LIMIT 20"
+            f"}} }} LIMIT 20"
         )
         try:
             url_result = await triplestore.query(url_sparql)
@@ -455,11 +456,11 @@ async def context_query(
     type_map: dict[str, str] = {}  # iri → type_iri
     values_clause = " ".join(f"(<{iri}>)" for iri in all_iris)
     type_sparql = (
-        "SELECT ?s ?type WHERE { "
-        "GRAPH <urn:sempkm:current> { "
+        f"SELECT ?s ?type WHERE {{ "
+        f"GRAPH <{CURRENT_GRAPH}> {{ "
         f"VALUES (?s) {{ {values_clause} }} "
         "?s a ?type "
-        "} }"
+        f"}} }}"
     )
     try:
         type_result = await triplestore.query(type_sparql)

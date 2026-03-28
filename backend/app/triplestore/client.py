@@ -9,6 +9,8 @@ protocol requirements (not raw SPARQL body).
 
 import httpx
 
+from app.config import TIMEOUT_DEFAULT
+
 
 class TriplestoreClient:
     """Async client for RDF4J triplestore operations."""
@@ -17,7 +19,7 @@ class TriplestoreClient:
         self.base_url = base_url.rstrip("/")
         self.repository_id = repository_id
         self._repo_url = f"{self.base_url}/repositories/{self.repository_id}"
-        self._client = httpx.AsyncClient(timeout=30.0)
+        self._client = httpx.AsyncClient(timeout=TIMEOUT_DEFAULT)
 
     async def is_healthy(self) -> bool:
         """Check if the triplestore repository is reachable.

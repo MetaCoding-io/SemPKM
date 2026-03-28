@@ -18,6 +18,7 @@ from pydantic import BaseModel, Field
 from app.auth.dependencies import get_current_user_or_api
 from app.auth.models import User
 from app.auth.rate_limit import limiter
+from app.config import TIMEOUT_DEFAULT
 from app.context.broadcast import ContextBroadcast
 from app.context.service import ContextService
 from app.dependencies import get_context_broadcast, get_context_service
@@ -227,7 +228,7 @@ async def context_stream(
                     shutdown_task = asyncio.ensure_future(shutdown_event.wait())
                     done, pending = await asyncio.wait(
                         {get_task, shutdown_task},
-                        timeout=30.0,
+                        timeout=TIMEOUT_DEFAULT,
                         return_when=asyncio.FIRST_COMPLETED,
                     )
                     for task in pending:

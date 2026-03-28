@@ -14,6 +14,7 @@ from fastapi.responses import StreamingResponse
 
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
+from app.config import TIMEOUT_DEFAULT
 from app.dependencies import get_lint_broadcast, get_lint_filter_service, get_lint_service
 from app.lint.broadcast import LintBroadcast
 from app.lint.filter_service import LintFilterService
@@ -126,7 +127,7 @@ async def lint_stream(
                     shutdown_task = asyncio.ensure_future(shutdown_event.wait())
                     done, pending = await asyncio.wait(
                         {get_task, shutdown_task},
-                        timeout=30.0,
+                        timeout=TIMEOUT_DEFAULT,
                         return_when=asyncio.FIRST_COMPLETED,
                     )
                     for task in pending:

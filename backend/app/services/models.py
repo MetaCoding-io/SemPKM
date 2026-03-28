@@ -30,6 +30,7 @@ from app.models.registry import (
 from app.models.validator import ArchiveValidationReport, validate_archive
 from app.services.prefixes import PrefixRegistry
 from app.triplestore.client import TriplestoreClient
+from app.rdf.namespaces import CURRENT_GRAPH
 
 logger = logging.getLogger(__name__)
 
@@ -976,7 +977,7 @@ class ModelService:
         # Batch instance counts
         values = " ".join(f"<{iri}>" for iri in type_iris)
         count_sparql = f"""SELECT ?type (COUNT(DISTINCT ?s) AS ?count) WHERE {{
-  GRAPH <urn:sempkm:current> {{
+  GRAPH <{CURRENT_GRAPH}> {{
     ?s a ?type .
   }}
   VALUES ?type {{ {values} }}
@@ -995,7 +996,7 @@ class ModelService:
             if analytics[iri]["count"] == 0:
                 continue
             top_sparql = f"""SELECT ?s (SAMPLE(?lbl) AS ?label) (COUNT(DISTINCT ?ref) AS ?linkCount) WHERE {{
-  GRAPH <urn:sempkm:current> {{
+  GRAPH <{CURRENT_GRAPH}> {{
     ?s a <{iri}> .
     OPTIONAL {{
       ?ref ?p ?s .
@@ -1023,7 +1024,7 @@ class ModelService:
             if inst_count == 0:
                 continue
             avg_conn_sparql = f"""SELECT (COUNT(?link) AS ?totalLinks) WHERE {{
-  GRAPH <urn:sempkm:current> {{
+  GRAPH <{CURRENT_GRAPH}> {{
     ?s a <{iri}> .
     {{
       ?s ?p ?o .
@@ -1051,7 +1052,7 @@ class ModelService:
                 continue
             # Primary: dcterms:modified on instances
             last_mod_sparql = f"""SELECT (MAX(?mod) AS ?lastMod) WHERE {{
-  GRAPH <urn:sempkm:current> {{
+  GRAPH <{CURRENT_GRAPH}> {{
     ?s a <{iri}> .
     ?s <http://purl.org/dc/terms/modified> ?mod .
   }}
@@ -1072,7 +1073,7 @@ class ModelService:
     FILTER(CONTAINS(STR(?op), "object"))
   }}
   FILTER(STRSTARTS(STR(?ev), "urn:sempkm:event:"))
-  GRAPH <urn:sempkm:current> {{
+  GRAPH <{CURRENT_GRAPH}> {{
     ?aff a <{iri}> .
   }}
 }}"""
@@ -1103,7 +1104,7 @@ SELECT ?ts WHERE {{
     FILTER(?ts >= "{cutoff_iso}"^^xsd:dateTime)
   }}
   FILTER(STRSTARTS(STR(?ev), "urn:sempkm:event:"))
-  GRAPH <urn:sempkm:current> {{
+  GRAPH <{CURRENT_GRAPH}> {{
     ?aff a <{iri}> .
   }}
 }}"""
@@ -1127,7 +1128,7 @@ SELECT ?ts WHERE {{
             if analytics[iri]["count"] == 0:
                 continue
             link_dist_sparql = f"""SELECT ?s (COUNT(?link) AS ?linkCount) WHERE {{
-  GRAPH <urn:sempkm:current> {{
+  GRAPH <{CURRENT_GRAPH}> {{
     ?s a <{iri}> .
     {{
       ?s ?p ?o .

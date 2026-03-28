@@ -30,6 +30,7 @@ from app.commands.schemas import (
 from app.config import settings
 from app.events.store import EventStore
 from app.triplestore.client import TriplestoreClient
+from app.rdf.namespaces import CURRENT_GRAPH
 
 from .broadcast import ScanBroadcast, SSEEvent
 from .models import ImportResult, MappingConfig, VaultScanResult
@@ -342,12 +343,12 @@ class ImportExecutor:
 
     async def _get_existing_import_sources(self) -> set[str]:
         """Query triplestore for existing sempkm:importSource values."""
-        sparql = """
-        SELECT ?source WHERE {
-            GRAPH <urn:sempkm:current> {
+        sparql = f"""
+        SELECT ?source WHERE {{
+            GRAPH <{CURRENT_GRAPH}> {{
                 ?s <urn:sempkm:importSource> ?source .
-            }
-        }
+            }}
+        }}
         """
         try:
             resp = await self.triplestore_client.query(sparql)
