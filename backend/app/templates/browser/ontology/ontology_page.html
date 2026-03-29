@@ -22,6 +22,16 @@
             hx-trigger="click once">
       RBox <span class="ontology-tab-hint">Properties</span>
     </button>
+    <button class="ontology-tab"
+            data-tab="abox"
+            data-testid="ontology-tab-abox"
+            onclick="switchOntologyTab(this, 'abox')"
+            hx-get="/browser/ontology/abox"
+            hx-target="#ontology-abox"
+            hx-swap="innerHTML"
+            hx-trigger="click once">
+      ABox <span class="ontology-tab-hint">Instances</span>
+    </button>
 
     {# Create Class button — right-aligned in tab bar #}
     <button class="btn-sm ccf-trigger-btn" data-testid="create-class-btn"
@@ -111,20 +121,10 @@
          hx-get="/browser/ontology/rbox"
          hx-trigger="propertyCreated from:body, propertyDeleted from:body, propertyEdited from:body"
          hx-swap="innerHTML">
-  </div>
-
-  <div class="ontology-tab-content">
-    <div id="ontology-tbox" class="ontology-pane ontology-pane--active" data-testid="tbox-tree"
-         hx-get="/browser/ontology/tbox"
-         hx-trigger="load, classCreated from:body, classDeleted from:body"
-         hx-swap="innerHTML">
-      <div class="ontology-loading">Loading TBox…</div>
+      <div class="ontology-loading">Click the RBox tab to load property data.</div>
     </div>
     <div id="ontology-abox" class="ontology-pane" data-testid="abox-browser">
       <div class="ontology-loading">Click the ABox tab to load instance data.</div>
-    </div>
-    <div id="ontology-rbox" class="ontology-pane" data-testid="rbox-legend">
-      <div class="ontology-loading">Click the RBox tab to load property data.</div>
     </div>
   </div>
 </div>
