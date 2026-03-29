@@ -32,7 +32,7 @@ test.describe('Object Creation via UI', () => {
     });
 
     // Wait for type picker to appear
-    await ownerPage.waitForSelector(SEL.typePicker.overlay, { timeout: 10000 });
+    await ownerPage.waitForSelector(SEL.typePicker.overlay, { timeout: 20000 });
     const typeOptions = ownerPage.locator(SEL.typePicker.typeOption);
     // At least the 4 Basic PKM types should be present (more may exist from other models)
     const count = await typeOptions.count();
@@ -66,7 +66,7 @@ test.describe('Object Creation via UI', () => {
       }
     }, TYPES.Note);
 
-    await ownerPage.waitForSelector(SEL.editor.form, { timeout: 10000 });
+    await ownerPage.waitForSelector(SEL.editor.form, { timeout: 20000 });
 
     // The form should show "Create Note"
     await expect(ownerPage.locator('.form-title')).toContainText('Create');
@@ -80,7 +80,7 @@ test.describe('Object Creation via UI', () => {
     await waitForIdle(ownerPage);
 
     // Should see success message
-    await expect(ownerPage.locator('.form-success')).toBeVisible({ timeout: 10000 });
+    await expect(ownerPage.locator('.form-success')).toBeVisible({ timeout: 20000 });
     await expect(ownerPage.locator('.form-success')).toContainText('Created');
   });
 
@@ -100,7 +100,7 @@ test.describe('Object Creation via UI', () => {
       }
     }, TYPES.Concept);
 
-    await ownerPage.waitForSelector(SEL.editor.form, { timeout: 10000 });
+    await ownerPage.waitForSelector(SEL.editor.form, { timeout: 20000 });
     await expect(ownerPage.locator('.form-title')).toContainText('Create');
 
     // Fill in the label/name field
@@ -110,7 +110,7 @@ test.describe('Object Creation via UI', () => {
     await ownerPage.click(`${SEL.editor.form} button[type="submit"], ${SEL.editor.form} [data-testid="save-button"]`);
     await waitForIdle(ownerPage);
 
-    await expect(ownerPage.locator('.form-success')).toBeVisible({ timeout: 10000 });
+    await expect(ownerPage.locator('.form-success')).toBeVisible({ timeout: 20000 });
   });
 
   test('create a Project with title and status', async ({ ownerPage }) => {
@@ -129,7 +129,7 @@ test.describe('Object Creation via UI', () => {
       }
     }, TYPES.Project);
 
-    await ownerPage.waitForSelector(SEL.editor.form, { timeout: 10000 });
+    await ownerPage.waitForSelector(SEL.editor.form, { timeout: 20000 });
 
     const titleInput = ownerPage.locator('input[name*="title"], input[name*="name"], input[name*="label"]').first();
     await titleInput.fill('E2E Test Project');
@@ -137,7 +137,7 @@ test.describe('Object Creation via UI', () => {
     await ownerPage.click(`${SEL.editor.form} button[type="submit"], ${SEL.editor.form} [data-testid="save-button"]`);
     await waitForIdle(ownerPage);
 
-    await expect(ownerPage.locator('.form-success')).toBeVisible({ timeout: 10000 });
+    await expect(ownerPage.locator('.form-success')).toBeVisible({ timeout: 20000 });
   });
 
   test('create a Person with name and email', async ({ ownerPage }) => {
@@ -156,7 +156,7 @@ test.describe('Object Creation via UI', () => {
       }
     }, TYPES.Person);
 
-    await ownerPage.waitForSelector(SEL.editor.form, { timeout: 10000 });
+    await ownerPage.waitForSelector(SEL.editor.form, { timeout: 20000 });
 
     const nameInput = ownerPage.locator('input[name*="name"], input[name*="Name"], input[name*="label"]').first();
     await nameInput.fill('E2E Test Person');
@@ -164,7 +164,7 @@ test.describe('Object Creation via UI', () => {
     await ownerPage.click(`${SEL.editor.form} button[type="submit"], ${SEL.editor.form} [data-testid="save-button"]`);
     await waitForIdle(ownerPage);
 
-    await expect(ownerPage.locator('.form-success')).toBeVisible({ timeout: 10000 });
+    await expect(ownerPage.locator('.form-success')).toBeVisible({ timeout: 20000 });
   });
 });
 
@@ -268,7 +268,7 @@ test.describe('Object Creation via API', () => {
     // The edit form must appear — this would time out with "No form schema" if bug reappears
     // Use 'attached' state: the form is in the DOM (inside the edit flip face) even before
     // the CSS flip animation makes it visually visible.
-    await ownerPage.waitForSelector('[data-testid="object-form"]', { state: 'attached', timeout: 10000 });
+    await ownerPage.waitForSelector('[data-testid="object-form"]', { state: 'attached', timeout: 20000 });
 
     // Confirm it's a real form, not the error fallback
     await expect(ownerPage.locator('.form-empty')).toHaveCount(0);

@@ -189,13 +189,14 @@ export async function openGenericViewTab(
   scopeQuery?: string,
   scopeLabel?: string,
   timeoutMs = 15000,
+  waitState?: 'visible' | 'attached' | 'hidden' | 'detached',
 ) {
   await page.evaluate(({ renderer, scopeQuery, scopeLabel }) => {
     if (typeof (window as any).SemPKM?.openGenericViewTab === 'function') {
       (window as any).SemPKM.openGenericViewTab(renderer, scopeQuery || '', scopeLabel || '');
     }
   }, { renderer, scopeQuery, scopeLabel });
-  await page.waitForSelector(waitSelector, { timeout: timeoutMs });
+  await page.waitForSelector(waitSelector, { timeout: timeoutMs, ...(waitState ? { state: waitState } : {}) });
 }
 
 /**

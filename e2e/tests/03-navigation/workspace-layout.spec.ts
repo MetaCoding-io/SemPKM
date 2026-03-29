@@ -76,7 +76,7 @@ test.describe('Workspace Layout', () => {
     await expect(rightPane.locator('.pane-title')).toContainText('Details');
 
     // Relations and Lint sections exist
-    await expect(rightPane.locator('summary')).toContainText(['Relations']);
+    await expect(rightPane.locator('summary')).toContainText(['RELATIONS']);
     await expect(rightPane.locator('#relations-content')).toBeVisible();
     await expect(rightPane.locator('#lint-content')).toBeVisible();
   });
@@ -86,11 +86,12 @@ test.describe('Workspace Layout', () => {
     await waitForWorkspace(ownerPage);
 
     const panelTabBar = ownerPage.locator('#panel-tab-bar');
-    await expect(panelTabBar.locator('.panel-tab')).toHaveCount(4);
+    await expect(panelTabBar.locator('.panel-tab')).toHaveCount(5);
     await expect(panelTabBar).toContainText('EVENT LOG');
     await expect(panelTabBar).toContainText('INFERENCE');
     await expect(panelTabBar).toContainText('AI COPILOT');
     await expect(panelTabBar).toContainText('LINT');
+    await expect(panelTabBar).toContainText('SPARQL');
   });
 
   test('command palette (ninja-keys) is present in DOM', async ({ ownerPage }) => {

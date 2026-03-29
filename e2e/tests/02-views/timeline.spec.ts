@@ -102,10 +102,10 @@ test.describe('Timeline View', () => {
       localStorage.setItem('sempkm_generic_type_timeline', taskType);
     }, TASK_TYPE);
 
-    await openGenericViewTab(ownerPage, 'timeline', SEL.views.timeline, undefined, undefined, 20000);
+    await openGenericViewTab(ownerPage, 'timeline', SEL.views.timeline, undefined, undefined, 20000, 'attached');
 
-    // The timeline container should be visible
-    await expect(ownerPage.locator(SEL.views.timeline)).toBeVisible({ timeout: 10000 });
+    // The timeline container should be in the DOM (may not be visible until Gantt CDN loads)
+    await expect(ownerPage.locator(SEL.views.timeline)).toBeAttached({ timeout: 10000 });
 
     // Wait for Frappe Gantt to bootstrap — CDN load is async
     await ownerPage.waitForSelector('.gantt-container', { timeout: 30000 });
@@ -148,7 +148,7 @@ test.describe('Timeline View', () => {
       localStorage.setItem('sempkm_generic_type_timeline', taskType);
     }, TASK_TYPE);
 
-    await openGenericViewTab(ownerPage, 'timeline', SEL.views.timeline, undefined, undefined, 20000);
+    await openGenericViewTab(ownerPage, 'timeline', SEL.views.timeline, undefined, undefined, 20000, 'attached');
 
     // Wait for Gantt to render
     await ownerPage.waitForSelector('.gantt-container', { timeout: 30000 });
@@ -181,7 +181,7 @@ test.describe('Timeline View', () => {
       localStorage.setItem('sempkm_generic_type_timeline', taskType);
     }, TASK_TYPE);
 
-    await openGenericViewTab(ownerPage, 'timeline', SEL.views.timeline, undefined, undefined, 20000);
+    await openGenericViewTab(ownerPage, 'timeline', SEL.views.timeline, undefined, undefined, 20000, 'attached');
 
     // Wait for Gantt to fully render
     await ownerPage.waitForSelector('.gantt-container', { timeout: 30000 });

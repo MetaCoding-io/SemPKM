@@ -37,16 +37,15 @@ test.describe('Keyboard Shortcuts', () => {
 
     // Alt+N calls showTypePicker() directly via keydown handler
     await ownerPage.keyboard.press('Alt+n');
-    await waitForIdle(ownerPage);
 
     // Type picker should appear in the editor area
     const picker = ownerPage.locator(SEL.typePicker.overlay);
-    await expect(picker).toBeVisible({ timeout: 5000 });
+    await expect(picker).toBeVisible({ timeout: 15000 });
 
-    // Should show all four Basic PKM types
+    // Should show at least four Basic PKM types (more may exist from other models)
     const typeOptions = ownerPage.locator(SEL.typePicker.typeOption);
     const count = await typeOptions.count();
-    expect(count).toBe(4);
+    expect(count).toBeGreaterThanOrEqual(4);
   });
 
   test('Alt+, opens settings page', async ({ ownerPage }) => {

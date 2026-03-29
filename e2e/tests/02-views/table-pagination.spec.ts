@@ -15,7 +15,7 @@ test.describe('Table View Pagination', () => {
     const specsResp = await ownerRequest.get(`${BASE_URL}/browser/views/available`);
     expect(specsResp.ok()).toBeTruthy();
     const specs = await specsResp.json();
-    const tableSpec = specs.find((s: any) => s.renderer_type === 'table');
+    const tableSpec = specs.find((s: any) => s.renderer_type === 'table' && s.target_class?.includes('Note'));
     expect(tableSpec).toBeDefined();
 
     const specIri = encodeURIComponent(tableSpec.spec_iri);

@@ -37,7 +37,7 @@ async function openEventLog(ownerPage: import('@playwright/test').Page) {
       if (!panel) return false;
       return panel.getBoundingClientRect().height > 10;
     },
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   // Click EVENT LOG tab

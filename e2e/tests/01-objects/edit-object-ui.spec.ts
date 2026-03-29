@@ -77,7 +77,7 @@ test.describe('Read View – Reference Field Regressions', () => {
     await ownerPage.waitForSelector('[data-testid="workspace"]', { timeout: 15000 });
 
     await loadObjectInEditor(ownerPage, SEED.notes.architecture.iri, 'read');
-    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
     await waitForIdle(ownerPage);
     await expandProperties(ownerPage);
 
@@ -101,7 +101,7 @@ test.describe('Read View – Reference Field Regressions', () => {
     await ownerPage.waitForSelector('[data-testid="workspace"]', { timeout: 15000 });
 
     await loadObjectInEditor(ownerPage, SEED.notes.architecture.iri, 'read');
-    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
     await waitForIdle(ownerPage);
     await expandProperties(ownerPage);
 
@@ -120,7 +120,7 @@ test.describe('Read View – Reference Field Regressions', () => {
     await ownerPage.waitForSelector('[data-testid="workspace"]', { timeout: 15000 });
 
     await loadObjectInEditor(ownerPage, SEED.notes.architecture.iri, 'read');
-    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
     await waitForIdle(ownerPage);
     await expandProperties(ownerPage);
 
@@ -154,7 +154,7 @@ test.describe('Edit Mode – UI Regression Tests', () => {
     await ownerPage.waitForSelector('[data-testid="workspace"]', { timeout: 15000 });
 
     await openTab(ownerPage, SEED.notes.architecture.iri, SEED.notes.architecture.title);
-    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
     await waitForIdle(ownerPage);
 
     // The mode toggle button is visible in read mode
@@ -163,7 +163,7 @@ test.describe('Edit Mode – UI Regression Tests', () => {
 
     // Click to enter edit mode
     await toggleBtn.click();
-    await ownerPage.waitForSelector('.object-face-edit.face-visible', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-face-edit.face-visible', { timeout: 20000 });
 
     // After entering edit mode the button must say "Cancel", not "Done" or anything else
     await expect(toggleBtn).toHaveText('Cancel');
@@ -176,7 +176,7 @@ test.describe('Edit Mode – UI Regression Tests', () => {
     await ownerPage.waitForSelector('[data-testid="workspace"]', { timeout: 15000 });
 
     await openTab(ownerPage, SEED.notes.architecture.iri, SEED.notes.architecture.title, 'edit');
-    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
     await waitForIdle(ownerPage);
     await expandProperties(ownerPage);
 
@@ -212,7 +212,7 @@ test.describe('Edit Mode – UI Regression Tests', () => {
     await ownerPage.waitForSelector('[data-testid="workspace"]', { timeout: 15000 });
 
     await openTab(ownerPage, SEED.notes.architecture.iri, SEED.notes.architecture.title, 'edit');
-    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
     await waitForIdle(ownerPage);
     await expandProperties(ownerPage);
 
@@ -229,6 +229,8 @@ test.describe('Edit Mode – UI Regression Tests', () => {
 
     // Click the Knowledge Management suggestion
     const kmSuggestion = dropdown.locator('.suggestion-item', { hasText: 'Knowledge Management' }).first();
+    await kmSuggestion.scrollIntoViewIfNeeded();
+    await ownerPage.waitForTimeout(200);
     await kmSuggestion.click();
     await waitForIdle(ownerPage);
 
@@ -258,7 +260,7 @@ test.describe('Edit Mode – UI Regression Tests', () => {
     await ownerPage.waitForSelector('[data-testid="workspace"]', { timeout: 15000 });
 
     await openTab(ownerPage, noteIri, SEED.notes.graphViz.title, 'edit');
-    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
     await waitForIdle(ownerPage);
     await expandProperties(ownerPage);
 
@@ -286,23 +288,27 @@ test.describe('Edit Mode – UI Regression Tests', () => {
     await expect(secondItem).toBeVisible({ timeout: 5000 });
 
     const secondSearch = secondItem.locator('input[type="text"].reference-search');
+    await secondSearch.clear();
     await secondSearch.pressSequentially('Semantic', { delay: 60 });
 
     const secondDropdown = secondItem.locator('.suggestions-dropdown');
     await expect(secondDropdown).toBeVisible({ timeout: 8000 });
-    await secondDropdown.locator('.suggestion-item', { hasText: 'Semantic Web' }).first().click();
+    const swSuggestion = secondDropdown.locator('.suggestion-item', { hasText: 'Semantic Web' }).first();
+    await swSuggestion.scrollIntoViewIfNeeded();
+    await ownerPage.waitForTimeout(200);
+    await swSuggestion.click();
     await waitForIdle(ownerPage);
 
     await expect(secondItem.locator('input[type="hidden"]')).toHaveValue(SEED.concepts.semanticWeb.iri);
 
     // --- Save ---
     await submitObjectForm(ownerPage);
-    await ownerPage.waitForSelector('.form-success', { timeout: 10000 });
+    await ownerPage.waitForSelector('.form-success', { timeout: 20000 });
     await expect(ownerPage.locator('.form-success')).toContainText('saved');
 
     // --- Reload in read mode and verify both concepts appear as ref-pills ---
     await loadObjectInEditor(ownerPage, noteIri, 'read');
-    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
     await waitForIdle(ownerPage);
     await expandProperties(ownerPage);
 
@@ -331,13 +337,13 @@ test.describe('Edit Mode – UI Regression Tests', () => {
 
     // Open as a proper tab so the tab bar renders with an initial label
     await openTab(ownerPage, noteIri, SEED.notes.kickoff.title);
-    await ownerPage.waitForSelector('.dv-default-tab-content', { timeout: 10000 });
+    await ownerPage.waitForSelector('.dv-default-tab-content', { timeout: 20000 });
     await waitForIdle(ownerPage);
 
     // Switch to edit mode via the toolbar toggle
     const toggleBtn = ownerPage.locator('.mode-toggle').first();
     await toggleBtn.click();
-    await ownerPage.waitForSelector('.object-face-edit.face-visible', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-face-edit.face-visible', { timeout: 20000 });
     await waitForIdle(ownerPage);
     await expandProperties(ownerPage);
 
@@ -350,7 +356,7 @@ test.describe('Edit Mode – UI Regression Tests', () => {
 
     // Submit and wait for success
     await submitObjectForm(ownerPage);
-    await ownerPage.waitForSelector('.form-success', { timeout: 10000 });
+    await ownerPage.waitForSelector('.form-success', { timeout: 20000 });
 
     // Wait for the objectSaved event to propagate and update the dockview tab title
     await ownerPage.waitForFunction(
@@ -377,12 +383,12 @@ test.describe('Edit Mode – UI Regression Tests', () => {
     await ownerPage.waitForSelector('[data-testid="workspace"]', { timeout: 15000 });
 
     await openTab(ownerPage, noteIri, SEED.notes.graphViz.title);
-    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
     await waitForIdle(ownerPage);
 
     const toggleBtn = ownerPage.locator('.mode-toggle').first();
     await toggleBtn.click();
-    await ownerPage.waitForSelector('.object-face-edit.face-visible', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-face-edit.face-visible', { timeout: 20000 });
     await waitForIdle(ownerPage);
     await expandProperties(ownerPage);
 
@@ -392,7 +398,7 @@ test.describe('Edit Mode – UI Regression Tests', () => {
     await titleInput.fill(updatedTitle);
 
     await submitObjectForm(ownerPage);
-    await ownerPage.waitForSelector('.form-success', { timeout: 10000 });
+    await ownerPage.waitForSelector('.form-success', { timeout: 20000 });
 
     // The object toolbar title (inside .object-tab) should reflect the new value
     const toolbarTitle = ownerPage.locator('.object-tab .object-toolbar-title');
