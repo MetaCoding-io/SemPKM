@@ -95,7 +95,7 @@
   - Estimate: 40m
   - Files: backend/app/security/zip_validator.py, backend/app/obsidian/router.py, backend/app/notion/router.py, backend/tests/test_zip_validator.py
   - Verify: cd backend && python -m pytest tests/test_zip_validator.py -v
-- [ ] **T03: SECRET_KEY startup rejection and per-app JWT key isolation** — Reject known weak SECRET_KEY values at startup when not in demo/test mode, and derive per-app HMAC signing keys instead of using the platform-wide key directly.
+- [x] **T03: Add weak SECRET_KEY startup rejection and per-app JWT key isolation via HMAC-SHA256 derivation** — Reject known weak SECRET_KEY values at startup when not in demo/test mode, and derive per-app HMAC signing keys instead of using the platform-wide key directly.
 
 ## Steps
 

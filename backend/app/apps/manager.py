@@ -26,7 +26,7 @@ from packaging.version import Version
 from app.apps.manifest import parse_app_manifest
 from app.apps.models import AppInstance
 from app.apps.registry import AppRegistry
-from app.apps.tokens import generate_app_token, get_secret
+from app.apps.tokens import generate_app_token, get_app_secret
 from app.config import Settings
 from app.rdf.namespaces import CURRENT_GRAPH
 
@@ -190,7 +190,7 @@ class AppManager:
             os.unlink(socket_path)
 
         # Build command
-        token = generate_app_token(app_id, {}, get_secret())
+        token = generate_app_token(app_id, {}, get_app_secret(app_id))
         self._tokens[app_id] = token
 
         cmd = [

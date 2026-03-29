@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-03-29T00:04:07.540Z",
+  "exported_at": "2026-03-29T00:06:41.930Z",
   "milestones": [
     {
       "id": "M001",
@@ -29523,19 +29523,27 @@
       "milestone_id": "M045",
       "slice_id": "S02",
       "id": "T03",
-      "title": "SECRET_KEY startup rejection and per-app JWT key isolation",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Add weak SECRET_KEY startup rejection and per-app JWT key isolation via HMAC-SHA256 derivation",
+      "status": "complete",
+      "one_liner": "Add weak SECRET_KEY startup rejection and per-app JWT key isolation via HMAC-SHA256 derivation",
+      "narrative": "Implemented two security hardening features: (1) Weak key rejection — added _WEAK_KEYS set to main.py Security Startup Warnings section; server raises SystemExit(1) when secret_key matches a known weak value and demo_mode is False. (2) Per-app JWT key isolation — added get_app_secret(app_id) to tokens.py using HMAC-SHA256(platform_key, app_id), updated manager.py and router.py to derive per-app signing keys instead of using the platform-wide key directly. A compromised app token can no longer forge tokens for other apps.",
+      "verification_result": "12 unit tests pass: 3 for key derivation properties, 2 for cross-app token isolation, 4 parametrized for weak key rejection, 3 for allowed keys. All 5 modified files pass syntax check via ast.parse. T02 zip validator tests also pass (16/16) when invoked via venv python.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-03-29T00:06:41.896Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "None.",
+      "known_issues": "Slice-level verification command uses bare 'python' which doesn't exist on this system — must use '.venv/bin/python -m pytest' instead.",
+      "key_files": [
+        "backend/app/main.py",
+        "backend/app/apps/tokens.py",
+        "backend/app/apps/manager.py",
+        "backend/app/apps/router.py",
+        "backend/tests/test_app_token_isolation.py"
+      ],
+      "key_decisions": [
+        "Per-app keys derived via HMAC-SHA256(platform_key, app_id) — deterministic, no extra storage, unique per app"
+      ],
+      "full_summary_md": "---\nid: T03\nparent: S02\nmilestone: M045\nkey_files:\n  - backend/app/main.py\n  - backend/app/apps/tokens.py\n  - backend/app/apps/manager.py\n  - backend/app/apps/router.py\n  - backend/tests/test_app_token_isolation.py\nkey_decisions:\n  - Per-app keys derived via HMAC-SHA256(platform_key, app_id) — deterministic, no extra storage, unique per app\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-03-29T00:06:41.897Z\nblocker_discovered: false\n---\n\n# T03: Add weak SECRET_KEY startup rejection and per-app JWT key isolation via HMAC-SHA256 derivation\n\n**Add weak SECRET_KEY startup rejection and per-app JWT key isolation via HMAC-SHA256 derivation**\n\n## What Happened\n\nImplemented two security hardening features: (1) Weak key rejection — added _WEAK_KEYS set to main.py Security Startup Warnings section; server raises SystemExit(1) when secret_key matches a known weak value and demo_mode is False. (2) Per-app JWT key isolation — added get_app_secret(app_id) to tokens.py using HMAC-SHA256(platform_key, app_id), updated manager.py and router.py to derive per-app signing keys instead of using the platform-wide key directly. A compromised app token can no longer forge tokens for other apps.\n\n## Verification\n\n12 unit tests pass: 3 for key derivation properties, 2 for cross-app token isolation, 4 parametrized for weak key rejection, 3 for allowed keys. All 5 modified files pass syntax check via ast.parse. T02 zip validator tests also pass (16/16) when invoked via venv python.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python -m pytest tests/test_app_token_isolation.py -v` | 0 | ✅ pass | 100ms |\n| 2 | `cd backend && .venv/bin/python -m pytest tests/test_zip_validator.py -v` | 0 | ✅ pass | 540ms |\n| 3 | `ast.parse syntax check on 5 modified files` | 0 | ✅ pass | 50ms |\n\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nSlice-level verification command uses bare 'python' which doesn't exist on this system — must use '.venv/bin/python -m pytest' instead.\n\n## Files Created/Modified\n\n- `backend/app/main.py`\n- `backend/app/apps/tokens.py`\n- `backend/app/apps/manager.py`\n- `backend/app/apps/router.py`\n- `backend/tests/test_app_token_isolation.py`\n",
       "description": "Reject known weak SECRET_KEY values at startup when not in demo/test mode, and derive per-app HMAC signing keys instead of using the platform-wide key directly.\n\n## Steps\n\n1. Edit `backend/app/main.py` in the `# --- Security Startup Warnings ---` section (around line 497):\n   - Define `_WEAK_KEYS = {\"changeme\", \"secret\", \"password\", \"admin\"}`\n   - After the existing localhost checks, add: if `settings.secret_key` is in `_WEAK_KEYS` and `settings.demo_mode` is `False`, log `logger.error(\"SECRET_KEY is a known weak value ('%s'). ...\", settings.secret_key)` and `raise SystemExit(1)`\n   - The demo key (`demo-secret-key-not-for-production`) and E2E test key (`e2e-test-secret-key-do-not-use-in-production`) are NOT in the weak list — they're intentional and clearly labeled\n   - An empty `secret_key` is fine because `_get_secret_key()` auto-generates a secure random key\n\n2. Edit `backend/app/apps/tokens.py`:\n   - Add `import hmac` and `import hashlib`\n   - Add function `get_app_secret(app_id: str) -> str` that calls `get_secret()` for the platform key, then returns `hmac.new(platform_key.encode(), app_id.encode(), hashlib.sha256).hexdigest()`\n   - Keep `get_secret()` as-is for backward compat (other callers may still use it)\n\n3. Edit `backend/app/apps/manager.py` line 193:\n   - Change `generate_app_token(app_id, {}, get_secret())` to `generate_app_token(app_id, {}, get_app_secret(app_id))`\n   - Update import to include `get_app_secret`\n\n4. Edit `backend/app/apps/router.py` lines 79-80:\n   - Change `secret = get_secret()` to `secret = get_app_secret(app_id)` — `app_id` is already available as a route parameter\n   - Update import to include `get_app_secret`\n   - Also update the `generate_app_token` call on the renewal path to use `get_app_secret(app_id)`\n\n5. Create `backend/tests/test_app_token_isolation.py`:\n   - Test: `get_app_secret('app-a')` != `get_app_secret('app-b')` (different apps get different keys)\n   - Test: `get_app_secret('app-a')` called twice returns same value (deterministic)\n   - Test: token signed with `get_app_secret('app-a')` validates with same key\n   - Test: token signed with `get_app_secret('app-a')` does NOT validate with `get_app_secret('app-b')`\n   - Test: startup rejection of weak key (mock settings, capture SystemExit)\n   - Test: startup allows demo key when demo_mode=True\n\n## Must-Haves\n\n- [ ] Startup exits with error on weak SECRET_KEY when demo_mode=False\n- [ ] Demo key passes when demo_mode=True\n- [ ] `get_app_secret(app_id)` derives per-app key via HMAC-SHA256\n- [ ] manager.py and router.py use `get_app_secret(app_id)` instead of `get_secret()`\n- [ ] Unit tests prove key isolation and startup rejection",
       "estimate": "45m",
       "files": [
@@ -35405,6 +35413,39 @@
       "verdict": "✅ pass",
       "duration_ms": 100,
       "created_at": "2026-03-29T00:04:07.512Z"
+    },
+    {
+      "id": 123,
+      "task_id": "T03",
+      "slice_id": "S02",
+      "milestone_id": "M045",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_app_token_isolation.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-03-29T00:06:41.896Z"
+    },
+    {
+      "id": 124,
+      "task_id": "T03",
+      "slice_id": "S02",
+      "milestone_id": "M045",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_zip_validator.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 540,
+      "created_at": "2026-03-29T00:06:41.897Z"
+    },
+    {
+      "id": 125,
+      "task_id": "T03",
+      "slice_id": "S02",
+      "milestone_id": "M045",
+      "command": "ast.parse syntax check on 5 modified files",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-03-29T00:06:41.897Z"
     }
   ]
 }

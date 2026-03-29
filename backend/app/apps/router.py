@@ -13,7 +13,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 from app.apps.proxy import AppNotReachableError
-from app.apps.tokens import generate_app_token, get_secret, validate_app_token
+from app.apps.tokens import generate_app_token, get_app_secret, validate_app_token
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +76,7 @@ async def renew_app_token(app_id: str, request: Request):
         )
 
     old_token = auth_header[len("Bearer "):]
-    secret = get_secret()
+    secret = get_app_secret(app_id)
 
     # Validate with 300s grace period for renewal
     claims = validate_app_token(old_token, secret, grace_seconds=300)

@@ -495,6 +495,15 @@ async def lifespan(app: FastAPI):
             logger.warning("Seed sample data failed (non-fatal)", exc_info=True)
 
     # --- Security Startup Warnings ---
+    _WEAK_KEYS = {"changeme", "secret", "password", "admin"}
+    if settings.secret_key in _WEAK_KEYS and not settings.demo_mode:
+        logger.error(
+            "SECRET_KEY is a known weak value ('%s'). "
+            "Set a strong random SECRET_KEY before running in production.",
+            settings.secret_key,
+        )
+        raise SystemExit(1)
+
     _is_localhost = (
         not settings.app_base_url
         or "localhost" in settings.app_base_url

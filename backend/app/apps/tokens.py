@@ -5,6 +5,8 @@ incoming requests, and can request renewal before expiry.  Uses PyJWT
 HS256 with the platform's existing secret key infrastructure.
 """
 
+import hashlib
+import hmac
 import logging
 from datetime import datetime, timedelta, timezone
 
@@ -21,6 +23,24 @@ def get_secret() -> str:
     from app.auth.tokens import _get_secret_key
 
     return _get_secret_key()
+
+
+def get_app_secret(app_id: str) -> str:
+    """Derive a per-app HMAC signing key from the platform secret.
+
+    Each app gets a unique key so that a compromised app token cannot
+    be used to forge tokens for other apps.
+
+    Args:
+        app_id: Unique app identifier used as the HMAC message.
+
+    Returns:
+        Hex-encoded HMAC-SHA256 digest, suitable for use as a JWT secret.
+    """
+    platform_key = get_secret()
+    return hmac.new(
+        platform_key.encode(), app_id.encode(), hashlib.sha256
+    ).hexdigest()
 
 
 def generate_app_token(
