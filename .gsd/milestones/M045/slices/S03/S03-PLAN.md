@@ -29,7 +29,7 @@
   - Estimate: 30m
   - Files: backend/tests/test_ssrf_guard.py, backend/tests/test_federation_integrity.py, backend/tests/test_model_audit.py, backend/tests/test_zip_validator.py, backend/tests/test_app_token_isolation.py, backend/tests/test_sparql_injection_regression.py, backend/tests/test_sparql_builder.py, backend/tests/test_magic_link_hardening.py, backend/tests/test_token_scopes.py, backend/tests/test_session_management.py, backend/tests/test_security_hardening.py, backend/Dockerfile, docker-compose.yml, Caddyfile.cloud
   - Verify: cd backend && .venv/bin/python -m pytest tests/test_ssrf_guard.py tests/test_federation_integrity.py tests/test_model_audit.py tests/test_zip_validator.py tests/test_app_token_isolation.py tests/test_sparql_injection_regression.py tests/test_sparql_builder.py tests/test_magic_link_hardening.py tests/test_token_scopes.py tests/test_session_management.py tests/test_security_hardening.py -v && echo '--- Docker checks ---' && grep -q 'USER sempkm' backend/Dockerfile && echo 'USER: OK' && grep -q 'Strict-Transport-Security' Caddyfile.cloud && echo 'HSTS: OK'
-- [ ] **T02: Rewrite security-model.md with complete 44-finding disposition and new security features** — Update `docs/security-model.md` to serve as the comprehensive security reference for SemPKM, documenting all 44 M042 findings with their dispositions and all new security features added in M043-M045.
+- [x] **T02: Rewrote security-model.md with complete 44-finding disposition table, 6 new security feature sections, and dependency scanning docs** — Update `docs/security-model.md` to serve as the comprehensive security reference for SemPKM, documenting all 44 M042 findings with their dispositions and all new security features added in M043-M045.
 
 ## Steps
 

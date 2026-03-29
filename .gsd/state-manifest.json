@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-03-29T00:17:28.721Z",
+  "exported_at": "2026-03-29T00:22:24.253Z",
   "milestones": [
     {
       "id": "M001",
@@ -29688,19 +29688,21 @@
       "milestone_id": "M045",
       "slice_id": "S03",
       "id": "T02",
-      "title": "Rewrite security-model.md with complete 44-finding disposition and new security features",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Rewrote security-model.md with complete 44-finding disposition table, 6 new security feature sections, and dependency scanning docs",
+      "status": "complete",
+      "one_liner": "Rewrote security-model.md with complete 44-finding disposition table, 6 new security feature sections, and dependency scanning docs",
+      "narrative": "Expanded docs/security-model.md from 123 lines to a comprehensive ~400-line security reference. Read all source material (M042 findings, M043/M044/M045 summaries) and restructured the document with updated authentication (single-use magic links, scoped API tokens, session management), updated audit trail (model_installed/uninstalled no longer future), 6 new sections (SSRF Protection, Federation Integrity, ZIP Upload Protection, Docker Hardening, Weak Key Rejection, Cloud Security Headers), per-app JWT isolation via HMAC-SHA256, dependency scanning guidance (pip-audit, npm audit, Dependabot), and a complete 44-finding disposition table mapping F-001 through F-044 to their resolution status (33 fixed, 5 by design, 2 positive/no action, 4 open).",
+      "verification_result": "All task verification checks passed: 44 unique F-XXX IDs present, all 6 new sections present, zero (future) markers remain, pip-audit documented, HMAC-SHA256 documented, no-new-privileges documented.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-03-29T00:22:24.226Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "docs/security-model.md"
+      ],
       "key_decisions": [],
-      "full_summary_md": "",
+      "full_summary_md": "---\nid: T02\nparent: S03\nmilestone: M045\nkey_files:\n  - docs/security-model.md\nkey_decisions:\n  - (none)\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-03-29T00:22:24.227Z\nblocker_discovered: false\n---\n\n# T02: Rewrote security-model.md with complete 44-finding disposition table, 6 new security feature sections, and dependency scanning docs\n\n**Rewrote security-model.md with complete 44-finding disposition table, 6 new security feature sections, and dependency scanning docs**\n\n## What Happened\n\nExpanded docs/security-model.md from 123 lines to a comprehensive ~400-line security reference. Read all source material (M042 findings, M043/M044/M045 summaries) and restructured the document with updated authentication (single-use magic links, scoped API tokens, session management), updated audit trail (model_installed/uninstalled no longer future), 6 new sections (SSRF Protection, Federation Integrity, ZIP Upload Protection, Docker Hardening, Weak Key Rejection, Cloud Security Headers), per-app JWT isolation via HMAC-SHA256, dependency scanning guidance (pip-audit, npm audit, Dependabot), and a complete 44-finding disposition table mapping F-001 through F-044 to their resolution status (33 fixed, 5 by design, 2 positive/no action, 4 open).\n\n## Verification\n\nAll task verification checks passed: 44 unique F-XXX IDs present, all 6 new sections present, zero (future) markers remain, pip-audit documented, HMAC-SHA256 documented, no-new-privileges documented.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `grep -c 'F-0' docs/security-model.md >= 44` | 0 | ✅ pass | 50ms |\n| 2 | `grep -oP 'F-0\\d+' docs/security-model.md | sort -u | wc -l → 44` | 0 | ✅ pass | 50ms |\n| 3 | `grep SSRF/ZIP/pip-audit/HMAC-SHA256/no-new-privileges` | 0 | ✅ pass | 50ms |\n| 4 | `grep -c '(future)' → 0` | 0 | ✅ pass | 50ms |\n\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `docs/security-model.md`\n",
       "description": "Update `docs/security-model.md` to serve as the comprehensive security reference for SemPKM, documenting all 44 M042 findings with their dispositions and all new security features added in M043-M045.\n\n## Steps\n\n1. Read the existing `docs/security-model.md` (123 lines) to understand current structure.\n2. Read `.gsd/milestones/M042/M042-SECURITY-FINDINGS.md` to get all 44 finding IDs and descriptions.\n3. Read S01 and S02 summaries (inlined in context) for details on M045 features.\n4. Update existing sections:\n   - Security Event Audit Trail: change model_installed/model_uninstalled from \"(future)\" to current — these are implemented in M045/S01\n   - App Platform Trust Model: add per-app JWT key isolation (HMAC-SHA256 derivation)\n   - Federation: add SSRF protection, SHA-256 hash integrity, namespace filtering\n5. Add new sections:\n   - **SSRF Protection**: `validate_outbound_url()` utility, 4 code paths protected (federation sync, inbox post, inbox discovery, webhook dispatch), DNS resolution + IP category checking\n   - **Federation Integrity**: SHA-256 content hash on exports, verification on imports, namespace filtering (urn:sempkm:* except shared, OWL/SHACL class injection prevention)\n   - **ZIP Upload Protection**: `validate_zip_contents()` checks (uncompressed size ≤2GB, file count ≤50k, compression ratio ≤100:1), wired into Obsidian and Notion importers\n   - **Docker Hardening**: non-root UID 1000, no-new-privileges, cap_drop ALL, no --reload in production\n   - **Weak Key Rejection**: startup guard rejects known weak SECRET_KEY values in non-demo mode\n   - **Cloud Security Headers**: HSTS (2-year max-age, includeSubDomains, preload), CSP without stale CDN domains\n6. Add **M042 Security Audit Findings Disposition** section with a table mapping all 44 F-XXX IDs to their resolution status (Fixed by M043/M044/M045, or By Design/Documented) with brief descriptions.\n7. Add **Dependency Scanning** section documenting:\n   - `pip-audit` for Python dependencies (install: `pip install pip-audit`, run: `pip-audit`)\n   - `npm audit` for JavaScript dependencies (run from frontend/)\n   - Recommendation for `.github/dependabot.yml` configuration\n   - Note that no CI pipeline currently exists — these are manual commands\n8. Verify the final document: all 44 F-XXX IDs present, all new M045 sections present, model audit events no longer marked \"future\".\n\n## Must-Haves\n\n- [ ] All 44 F-XXX finding IDs (F-001 through F-044) appear in the disposition table\n- [ ] New sections for: SSRF Protection, Federation Integrity, ZIP Upload Protection, Docker Hardening, Weak Key Rejection, Cloud Security Headers\n- [ ] Model install/uninstall audit events updated from future to current\n- [ ] Dependency scanning documented with pip-audit and npm audit commands\n- [ ] Per-app JWT isolation documented\n- [ ] Document is well-structured markdown with no broken formatting",
       "estimate": "45m",
       "files": [
@@ -35640,6 +35642,50 @@
       "verdict": "✅ pass",
       "duration_ms": 100,
       "created_at": "2026-03-29T00:17:28.696Z"
+    },
+    {
+      "id": 132,
+      "task_id": "T02",
+      "slice_id": "S03",
+      "milestone_id": "M045",
+      "command": "grep -c 'F-0' docs/security-model.md >= 44",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-03-29T00:22:24.227Z"
+    },
+    {
+      "id": 133,
+      "task_id": "T02",
+      "slice_id": "S03",
+      "milestone_id": "M045",
+      "command": "grep -oP 'F-0\\d+' docs/security-model.md | sort -u | wc -l → 44",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-03-29T00:22:24.227Z"
+    },
+    {
+      "id": 134,
+      "task_id": "T02",
+      "slice_id": "S03",
+      "milestone_id": "M045",
+      "command": "grep SSRF/ZIP/pip-audit/HMAC-SHA256/no-new-privileges",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-03-29T00:22:24.227Z"
+    },
+    {
+      "id": 135,
+      "task_id": "T02",
+      "slice_id": "S03",
+      "milestone_id": "M045",
+      "command": "grep -c '(future)' → 0",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-03-29T00:22:24.227Z"
     }
   ]
 }
