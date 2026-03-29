@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-03-29T01:29:22.445Z",
+  "exported_at": "2026-03-29T01:47:41.593Z",
   "milestones": [
     {
       "id": "M001",
@@ -7282,14 +7282,14 @@
       "milestone_id": "M046",
       "id": "S01",
       "title": "Auth Fixture — Session Caching & Member Login",
-      "status": "pending",
+      "status": "complete",
       "risk": "high",
       "depends": [],
       "demo": "Auth-dependent tests (admin-access-control, member-permissions, dark-mode, session-management) all pass without magic link failures",
       "created_at": "2026-03-29T01:16:09.469Z",
-      "completed_at": null,
-      "full_summary_md": "",
-      "full_uat_md": "",
+      "completed_at": "2026-03-29T01:32:27.971Z",
+      "full_summary_md": "---\nid: S01\nparent: M046\nmilestone: M046\nprovides:\n  - Working memberPage fixture — downstream tests (admin-access-control, member-permissions, dark-mode, debug-pages) all pass\n  - Session token caching — faster E2E runs for auth-dependent tests\nrequires:\n  []\naffects:\n  - S06\nkey_files:\n  - e2e/fixtures/auth.ts\nkey_decisions:\n  - Used example.com (RFC 2606 reserved) instead of test.local for member email — EmailStr accepts it\n  - Module-level token cache with /api/auth/me validation before reuse\n  - Invite error handling: throw on non-2xx/non-409 instead of silently producing null token\npatterns_established:\n  - Module-level token caching with /api/auth/me validation before reuse — pattern for eliminating redundant auth round-trips in E2E fixtures\nobservability_surfaces:\n  - none\ndrill_down_paths:\n  - .gsd/milestones/M046/slices/S01/tasks/T01-SUMMARY.md\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-03-29T01:32:27.972Z\nblocker_discovered: false\n---\n\n# S01: Auth Fixture — Session Caching & Member Login\n\n**Fixed member email domain (.local → example.com) and added session token caching, unblocking all 11 member-dependent E2E tests.**\n\n## What Happened\n\nAll 11 memberPage-dependent E2E tests were failing because `MEMBER_EMAIL = 'member@test.local'` was silently rejected by Pydantic `EmailStr` on the `/api/auth/invite` endpoint. The `.local` TLD is a special-use domain (RFC 6762) that EmailStr doesn't accept as a valid email domain. The invite returned 422, but the test fixture didn't check the response status — so the member user was never created, the magic-link endpoint returned `token: null`, and all downstream member tests failed.\n\nThe fix was straightforward: changed `MEMBER_EMAIL` to `'member@example.com'` (RFC 2606 reserved domain, universally accepted by email validators). `OWNER_EMAIL` remains `'owner@test.local'` because the setup/magic-link endpoints use plain `str`, not `EmailStr`.\n\nAdditionally, added module-level session token caching (`_cachedOwnerToken`, `_cachedMemberToken`) with an `isTokenValid()` helper that checks `/api/auth/me` before reuse. This eliminates redundant auth round-trips when multiple tests in the same worker share fixtures.\n\nImproved invite error handling: non-2xx, non-409 responses now throw with status code and body, making future fixture failures immediately diagnosable instead of silently producing null tokens.\n\n## Verification\n\nRan all 4 affected test files (admin-access-control, member-permissions, dark-mode, debug-pages) plus session-management path. 15 tests passed in 14.1s, 0 failures. All 11 previously-failing member-dependent tests now pass.\n\n## Requirements Advanced\n\nNone.\n\n## Requirements Validated\n\nNone.\n\n## New Requirements Surfaced\n\nNone.\n\n## Requirements Invalidated or Re-scoped\n\nNone.\n\n## Deviations\n\ntests/04-session/session-management.spec.ts does not exist — Playwright skips non-existent paths gracefully. The plan referenced it as a regression check target, but it was never created. No impact on verification.\n\n## Known Limitations\n\nOWNER_EMAIL still uses test.local — works because setup/magic-link use str not EmailStr. If those endpoints ever add EmailStr validation, OWNER_EMAIL will need the same fix.\n\n## Follow-ups\n\nNone.\n\n## Files Created/Modified\n\n- `e2e/fixtures/auth.ts` — Changed MEMBER_EMAIL from test.local to example.com, added module-level _cachedOwnerToken/_cachedMemberToken with isTokenValid() helper, improved invite error handling\n",
+      "full_uat_md": "# S01: Auth Fixture — Session Caching & Member Login — UAT\n\n**Milestone:** M046\n**Written:** 2026-03-29T01:32:27.972Z\n\n## UAT: Auth Fixture — Session Caching & Member Login\n\n### Preconditions\n- Docker test stack running at http://localhost:3901\n- Instance set up with owner account (owner@test.local)\n- E2E test dependencies installed (`cd e2e && npm install`)\n\n### Test 1: Member Email Domain Fix\n**Steps:**\n1. Run: `cd e2e && npx playwright test tests/07-multi-user/member-permissions.spec.ts --project=chromium --reporter=list`\n2. Observe: All 6 member-permissions tests pass (member workspace access, object create, object edit, admin restriction x3)\n\n**Expected:** 6 passed, 0 failed. Previously all 6 failed with null token from magic-link.\n\n### Test 2: Admin Access Control with Member\n**Steps:**\n1. Run: `cd e2e && npx playwright test tests/05-admin/admin-access-control.spec.ts --project=chromium --reporter=list`\n2. Observe: All 4 tests pass (3 member-cannot-access + 1 owner-can-access)\n\n**Expected:** 4 passed, 0 failed. Previously 3 member tests failed.\n\n### Test 3: Dark Mode Per-User Settings\n**Steps:**\n1. Run: `cd e2e && npx playwright test tests/06-settings/dark-mode.spec.ts --project=chromium --reporter=list`\n2. Observe: All 3 tests pass including \"per-user settings: owner dark mode does not affect member\"\n\n**Expected:** 3 passed, 0 failed. Previously the per-user test failed.\n\n### Test 4: Debug Pages Access Control\n**Steps:**\n1. Run: `cd e2e && npx playwright test tests/05-admin/debug-pages.spec.ts --project=chromium --reporter=list`\n2. Observe: Both tests pass (owner access + member restriction)\n\n**Expected:** 2 passed, 0 failed. Previously member restriction test failed.\n\n### Test 5: Full Auth-Dependent Suite Regression\n**Steps:**\n1. Run all 4 files together: `cd e2e && npx playwright test tests/05-admin/admin-access-control.spec.ts tests/07-multi-user/member-permissions.spec.ts tests/06-settings/dark-mode.spec.ts tests/05-admin/debug-pages.spec.ts --project=chromium --reporter=list`\n2. Observe: All 15 tests pass in a single run\n\n**Expected:** 15 passed, 0 failed, runtime under 30s.\n\n### Test 6: Token Caching Works (Performance)\n**Steps:**\n1. Run the full suite twice in sequence\n2. Compare timing: second run should be equal or faster (cached tokens skip setup)\n\n**Expected:** No auth fixture failures on second run — cached tokens validated via /api/auth/me.\n\n### Edge Case: Invite Already Exists (409)\n**Steps:**\n1. Run member-permissions tests twice without resetting the instance\n2. Second run's invite call returns 409 (already invited)\n\n**Expected:** 409 is treated as success — member login proceeds normally, all tests pass.\n",
       "goal": "All 11 memberPage-dependent E2E tests pass by fixing the auth fixture's member email domain and adding session token caching.",
       "success_criteria": "- `MEMBER_EMAIL` uses `@example.com` (RFC 2606 reserved, accepted by Pydantic `EmailStr`)\n- Module-level session token caching eliminates redundant magic-link round-trips across test runs\n- Invite endpoint errors (non-2xx, non-409) propagate instead of being silently swallowed\n- All 11 previously-failing tests pass: admin-access-control (3), member-permissions (6), dark-mode (1), debug-pages (1)\n- session-management tests continue passing (regression check)",
       "proof_level": "This slice proves: operational. Real runtime required: yes (Docker test stack + Playwright). Human/UAT required: no.",
@@ -7310,11 +7310,11 @@
       "completed_at": null,
       "full_summary_md": "",
       "full_uat_md": "",
-      "goal": "Fix CSS z-index stacking so bottom panel tab buttons are always above the editor-empty overlay",
-      "success_criteria": "All 5 copilot E2E tests pass. No `{ force: true }` workarounds.",
-      "proof_level": "Run copilot test file and confirm 0 failures",
-      "integration_closure": "CSS change must not break bottom panel visibility in other contexts (event log, SPARQL console)",
-      "observability_impact": "None",
+      "goal": "All 5 copilot E2E tests pass — the AI COPILOT tab button is clickable regardless of bottom panel collapsed state or editor-empty overlay position.",
+      "success_criteria": "`cd e2e && npx playwright test tests/46-copilot/copilot.spec.ts --project=chromium --reporter=list` exits 0 with 5/5 tests passing.",
+      "proof_level": "Integration — tests run against the Docker test stack with mock LLM server.",
+      "integration_closure": "No new wiring. The JS change affects the existing panel tab click handler. The CSS change is defensive hardening with no behavioral dependency.",
+      "observability_impact": "None — this is a UI interaction fix with no runtime state changes.",
       "sequence": 0,
       "replan_triggered_at": null
     },
@@ -29950,6 +29950,52 @@
       "observability_impact": "",
       "full_plan_md": "",
       "sequence": 0
+    },
+    {
+      "milestone_id": "M046",
+      "slice_id": "S02",
+      "id": "T01",
+      "title": "Fix copilot E2E test failures by auto-opening collapsed bottom panel on tab click, blocking pointer events on editor-empty watermark, and hardening the E2E helper",
+      "status": "complete",
+      "one_liner": "Fix copilot E2E test failures by auto-opening collapsed bottom panel on tab click, blocking pointer events on editor-empty watermark, and hardening the E2E helper",
+      "narrative": "Three surgical edits fixed the root cause of all 5 copilot E2E failures. workspace.js now auto-opens the bottom panel when a tab button is clicked while collapsed. workspace.css adds pointer-events:none to .editor-empty so the watermark overlay doesn't intercept clicks on sibling elements. copilot.spec.ts openCopilotTab() helper now ensures the bottom panel is open before clicking the tab button.",
+      "verification_result": "All 5 copilot E2E tests pass on chromium: basic chat flow, SPARQL generation and approval, conversation persistence, persona switching, and object creation from chat.",
+      "duration": "",
+      "completed_at": "2026-03-29T01:47:41.558Z",
+      "blocker_discovered": false,
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "frontend/static/js/workspace.js",
+        "frontend/static/css/workspace.css",
+        "e2e/tests/46-copilot/copilot.spec.ts"
+      ],
+      "key_decisions": [
+        "pointer-events:none on .editor-empty is safe because it contains no interactive elements"
+      ],
+      "full_summary_md": "---\nid: T01\nparent: S02\nmilestone: M046\nkey_files:\n  - frontend/static/js/workspace.js\n  - frontend/static/css/workspace.css\n  - e2e/tests/46-copilot/copilot.spec.ts\nkey_decisions:\n  - pointer-events:none on .editor-empty is safe because it contains no interactive elements\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-03-29T01:47:41.558Z\nblocker_discovered: false\n---\n\n# T01: Fix copilot E2E test failures by auto-opening collapsed bottom panel on tab click, blocking pointer events on editor-empty watermark, and hardening the E2E helper\n\n**Fix copilot E2E test failures by auto-opening collapsed bottom panel on tab click, blocking pointer events on editor-empty watermark, and hardening the E2E helper**\n\n## What Happened\n\nThree surgical edits fixed the root cause of all 5 copilot E2E failures. workspace.js now auto-opens the bottom panel when a tab button is clicked while collapsed. workspace.css adds pointer-events:none to .editor-empty so the watermark overlay doesn't intercept clicks on sibling elements. copilot.spec.ts openCopilotTab() helper now ensures the bottom panel is open before clicking the tab button.\n\n## Verification\n\nAll 5 copilot E2E tests pass on chromium: basic chat flow, SPARQL generation and approval, conversation persistence, persona switching, and object creation from chat.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd e2e && npx playwright test tests/46-copilot/copilot.spec.ts --project=chromium --reporter=list` | 0 | ✅ pass | 28300ms |\n\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `frontend/static/js/workspace.js`\n- `frontend/static/css/workspace.css`\n- `e2e/tests/46-copilot/copilot.spec.ts`\n",
+      "description": "Three targeted edits to fix the copilot E2E test failures:\n\n1. **workspace.js** — In `initPanelTabs()`, add `if (!panelState.open) { panelState.open = true; }` before `savePanelState()` in the tab click handler (~line 523). This makes clicking any bottom-panel tab auto-open the panel when it's collapsed, which is both the E2E fix and a UX improvement.\n\n2. **workspace.css** — Add `pointer-events: none` to the `.editor-empty` rule (~line 1933). The watermark overlay contains no interactive elements (just instructional text and kbd hints), so it should never intercept pointer events. This prevents the watermark from blocking clicks on sibling elements like the bottom panel tabs.\n\n3. **copilot.spec.ts** — In `openCopilotTab()`, add a `page.evaluate()` call before clicking the tab button that checks if the bottom panel is collapsed and opens it via `window.SemPKM.toggleBottomPanel()`. Belt-and-suspenders — the JS fix handles it app-side, this handles it test-side.\n\nThe root cause is that when the bottom panel starts collapsed (height: 0, overflow: hidden), the tab buttons exist in the DOM but are clipped. Playwright finds the button but can't deliver the click because the `.editor-empty` watermark (position: absolute, covering the full editor area) sits at the click coordinates and intercepts pointer events.",
+      "estimate": "20m",
+      "files": [
+        "frontend/static/js/workspace.js",
+        "frontend/static/css/workspace.css",
+        "e2e/tests/46-copilot/copilot.spec.ts"
+      ],
+      "verify": "cd e2e && npx playwright test tests/46-copilot/copilot.spec.ts --project=chromium --reporter=list 2>&1 | tail -20",
+      "inputs": [
+        "`frontend/static/js/workspace.js` — contains `initPanelTabs()` tab click handler at ~line 522",
+        "`frontend/static/css/workspace.css` — contains `.editor-empty` rule at ~line 1933",
+        "`e2e/tests/46-copilot/copilot.spec.ts` — contains `openCopilotTab()` helper at line 25",
+        "`e2e/helpers/selectors.ts` — contains `SEL.copilot.tabBtn` selector definition"
+      ],
+      "expected_output": [
+        "`frontend/static/js/workspace.js` — panel tab click handler auto-opens collapsed panel",
+        "`frontend/static/css/workspace.css` — `.editor-empty` has `pointer-events: none`",
+        "`e2e/tests/46-copilot/copilot.spec.ts` — `openCopilotTab()` opens bottom panel before clicking tab"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
     }
   ],
   "decisions": [
@@ -35926,6 +35972,17 @@
       "verdict": "✅ pass",
       "duration_ms": 13900,
       "created_at": "2026-03-29T01:29:22.420Z"
+    },
+    {
+      "id": 137,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M046",
+      "command": "cd e2e && npx playwright test tests/46-copilot/copilot.spec.ts --project=chromium --reporter=list",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 28300,
+      "created_at": "2026-03-29T01:47:41.558Z"
     }
   ]
 }

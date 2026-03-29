@@ -739,3 +739,13 @@ Instead of `rgba(255, 182, 43, 0.1)` for semi-transparent decorative colors, use
 Define primitive tokens in theme.css `:root` (e.g., `--_color-bmc-revenue: #59a14f`) and reference them via color-mix in component CSS. The `--_` prefix convention denotes internal/primitive tokens not intended for direct use by component authors.
 
 **Affected files:** `frontend/static/css/theme.css`, `frontend/static/css/bmc.css`, `frontend/static/css/quadrant.css`, `frontend/static/css/okr.css`, `frontend/static/css/decision-matrix.css`
+
+### Pydantic EmailStr rejects .local TLD — causes silent 422 on invite endpoints
+
+**Discovered:** M046/S01/T01
+
+Pydantic's `EmailStr` validator rejects the `.local` TLD (RFC 6762 multicast DNS special-use domain). An API endpoint using `EmailStr` for email validation returns 422 for addresses like `member@test.local`. If the caller doesn't check the response status, this fails silently — the downstream magic-link endpoint returns `token: null` and all auth-dependent tests break.
+
+**Fix:** Use `example.com` (RFC 2606 reserved domain, universally accepted by email validators) for test email addresses that pass through `EmailStr` validation. Note: `OWNER_EMAIL` uses `test.local` and still works because the setup/magic-link endpoints use plain `str`, not `EmailStr`.
+
+**Affected file:** `e2e/fixtures/auth.ts` — `MEMBER_EMAIL`

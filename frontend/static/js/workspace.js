@@ -521,6 +521,7 @@
     document.querySelectorAll('.panel-tab').forEach(function (btn) {
       btn.addEventListener('click', function () {
         panelState.activeTab = btn.dataset.panel;
+        if (!panelState.open) { panelState.open = true; }
         savePanelState();
         _applyPanelState();
 

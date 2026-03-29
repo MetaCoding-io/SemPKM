@@ -1941,6 +1941,7 @@ tr:hover .rbox-edit-btn {
     text-align: center;
     font-size: 0.9rem;
     position: relative;
+    pointer-events: none;
 }
 
 .editor-empty::before {

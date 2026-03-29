@@ -1,10 +1,12 @@
-# S02: Copilot Bottom Panel — Z-Index Fix
+---
+estimated_steps: 5
+estimated_files: 3
+skills_used: []
+---
 
-**Goal:** All 5 copilot E2E tests pass — the AI COPILOT tab button is clickable regardless of bottom panel collapsed state or editor-empty overlay position.
-**Demo:** After this: All 5 copilot tests pass — AI COPILOT tab button is clickable regardless of editor-empty overlay state
+# T01: Fix panel auto-open on tab click, harden watermark pointer-events, and update E2E helper
 
-## Tasks
-- [x] **T01: Fix copilot E2E test failures by auto-opening collapsed bottom panel on tab click, blocking pointer events on editor-empty watermark, and hardening the E2E helper** — Three targeted edits to fix the copilot E2E test failures:
+Three targeted edits to fix the copilot E2E test failures:
 
 1. **workspace.js** — In `initPanelTabs()`, add `if (!panelState.open) { panelState.open = true; }` before `savePanelState()` in the tab click handler (~line 523). This makes clicking any bottom-panel tab auto-open the panel when it's collapsed, which is both the E2E fix and a UX improvement.
 
@@ -13,6 +15,20 @@
 3. **copilot.spec.ts** — In `openCopilotTab()`, add a `page.evaluate()` call before clicking the tab button that checks if the bottom panel is collapsed and opens it via `window.SemPKM.toggleBottomPanel()`. Belt-and-suspenders — the JS fix handles it app-side, this handles it test-side.
 
 The root cause is that when the bottom panel starts collapsed (height: 0, overflow: hidden), the tab buttons exist in the DOM but are clipped. Playwright finds the button but can't deliver the click because the `.editor-empty` watermark (position: absolute, covering the full editor area) sits at the click coordinates and intercepts pointer events.
-  - Estimate: 20m
-  - Files: frontend/static/js/workspace.js, frontend/static/css/workspace.css, e2e/tests/46-copilot/copilot.spec.ts
-  - Verify: cd e2e && npx playwright test tests/46-copilot/copilot.spec.ts --project=chromium --reporter=list 2>&1 | tail -20
+
+## Inputs
+
+- ``frontend/static/js/workspace.js` — contains `initPanelTabs()` tab click handler at ~line 522`
+- ``frontend/static/css/workspace.css` — contains `.editor-empty` rule at ~line 1933`
+- ``e2e/tests/46-copilot/copilot.spec.ts` — contains `openCopilotTab()` helper at line 25`
+- ``e2e/helpers/selectors.ts` — contains `SEL.copilot.tabBtn` selector definition`
+
+## Expected Output
+
+- ``frontend/static/js/workspace.js` — panel tab click handler auto-opens collapsed panel`
+- ``frontend/static/css/workspace.css` — `.editor-empty` has `pointer-events: none``
+- ``e2e/tests/46-copilot/copilot.spec.ts` — `openCopilotTab()` opens bottom panel before clicking tab`
+
+## Verification
+
+cd e2e && npx playwright test tests/46-copilot/copilot.spec.ts --project=chromium --reporter=list 2>&1 | tail -20

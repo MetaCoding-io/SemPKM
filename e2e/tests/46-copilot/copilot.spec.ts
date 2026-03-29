@@ -27,6 +27,14 @@ async function openCopilotTab(page: Page) {
   await waitForWorkspace(page);
   await waitForIdle(page);
 
+  // Ensure the bottom panel is open before clicking the tab
+  await page.evaluate(() => {
+    const panel = document.getElementById('bottom-panel');
+    if (panel && panel.getBoundingClientRect().height < 10) {
+      (window as any).SemPKM.toggleBottomPanel();
+    }
+  });
+
   // Click the AI COPILOT tab button in the bottom panel
   const tabBtn = page.locator(SEL.copilot.tabBtn);
   await tabBtn.click();
