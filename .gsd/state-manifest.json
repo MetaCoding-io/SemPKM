@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-03-29T06:54:02.707Z",
+  "exported_at": "2026-03-29T07:04:59.013Z",
   "milestones": [
     {
       "id": "M001",
@@ -30505,19 +30505,27 @@
       "milestone_id": "M046",
       "slice_id": "S07",
       "id": "T02",
-      "title": "Bump .object-tab timeouts and replace waitForIdle with element-specific waits",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Bump 18 object-tab timeouts to 20s and replace 7 waitForIdle calls with element-specific waits across 4 E2E test files",
+      "status": "complete",
+      "one_liner": "Bump 18 object-tab timeouts to 20s and replace 7 waitForIdle calls with element-specific waits across 4 E2E test files",
+      "narrative": "Edited four test files: object-view-redesign.spec.ts (13 timeout bumps), bug-fixes.spec.ts (5 timeout bumps), admin-model-detail.spec.ts (6 waitForIdle→element waits, removed import), create-edge.spec.ts (1 waitForIdle→element wait + .object-tab pre-wait, removed import). All mechanical edits verified via grep. 18/19 specs pass — the one failure (create-edge \"edge appears in relations panel\") is a pre-existing app bug where workspace-layout.js references an undefined loadRightPaneSection variable instead of window.SemPKM.refreshRightPaneSection, causing relations panel to never populate on tab activation.",
+      "verification_result": "Ran full verification: cd e2e && npx playwright test tests/01-objects/object-view-redesign.spec.ts tests/12-bug-fixes/bug-fixes.spec.ts tests/05-admin/admin-model-detail.spec.ts tests/01-objects/create-edge.spec.ts --project=chromium --retries=1 --reporter=line — 18 passed, 1 failed (pre-existing app bug). Grep checks confirmed 0 remaining timeout:10000 in modified files and 0 remaining waitForIdle calls.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-03-29T07:04:58.982Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "Added .object-tab wait before #relations-content wait in create-edge.spec.ts. Used short waitForTimeout for webhook delete instead of content-specific wait since next step is a full page reload.",
+      "known_issues": "create-edge.spec.ts \"edge appears in relations panel\" fails due to pre-existing app bug: loadRightPaneSection undefined in workspace-layout.js scope — should be window.SemPKM.refreshRightPaneSection. T03 will address this.",
+      "key_files": [
+        "e2e/tests/01-objects/object-view-redesign.spec.ts",
+        "e2e/tests/12-bug-fixes/bug-fixes.spec.ts",
+        "e2e/tests/05-admin/admin-model-detail.spec.ts",
+        "e2e/tests/01-objects/create-edge.spec.ts"
+      ],
+      "key_decisions": [
+        "Removed waitForIdle import entirely from admin-model-detail and create-edge after eliminating all call sites",
+        "For webhook CRUD, combined waitForIdle+timeout+assertion into single toContainText with 20s timeout"
+      ],
+      "full_summary_md": "---\nid: T02\nparent: S07\nmilestone: M046\nkey_files:\n  - e2e/tests/01-objects/object-view-redesign.spec.ts\n  - e2e/tests/12-bug-fixes/bug-fixes.spec.ts\n  - e2e/tests/05-admin/admin-model-detail.spec.ts\n  - e2e/tests/01-objects/create-edge.spec.ts\nkey_decisions:\n  - Removed waitForIdle import entirely from admin-model-detail and create-edge after eliminating all call sites\n  - For webhook CRUD, combined waitForIdle+timeout+assertion into single toContainText with 20s timeout\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-03-29T07:04:58.982Z\nblocker_discovered: false\n---\n\n# T02: Bump 18 object-tab timeouts to 20s and replace 7 waitForIdle calls with element-specific waits across 4 E2E test files\n\n**Bump 18 object-tab timeouts to 20s and replace 7 waitForIdle calls with element-specific waits across 4 E2E test files**\n\n## What Happened\n\nEdited four test files: object-view-redesign.spec.ts (13 timeout bumps), bug-fixes.spec.ts (5 timeout bumps), admin-model-detail.spec.ts (6 waitForIdle→element waits, removed import), create-edge.spec.ts (1 waitForIdle→element wait + .object-tab pre-wait, removed import). All mechanical edits verified via grep. 18/19 specs pass — the one failure (create-edge \"edge appears in relations panel\") is a pre-existing app bug where workspace-layout.js references an undefined loadRightPaneSection variable instead of window.SemPKM.refreshRightPaneSection, causing relations panel to never populate on tab activation.\n\n## Verification\n\nRan full verification: cd e2e && npx playwright test tests/01-objects/object-view-redesign.spec.ts tests/12-bug-fixes/bug-fixes.spec.ts tests/05-admin/admin-model-detail.spec.ts tests/01-objects/create-edge.spec.ts --project=chromium --retries=1 --reporter=line — 18 passed, 1 failed (pre-existing app bug). Grep checks confirmed 0 remaining timeout:10000 in modified files and 0 remaining waitForIdle calls.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd e2e && npx playwright test tests/01-objects/object-view-redesign.spec.ts tests/12-bug-fixes/bug-fixes.spec.ts tests/05-admin/admin-model-detail.spec.ts tests/01-objects/create-edge.spec.ts --project=chromium --retries=1 --reporter=line` | 1 | ⚠️ 18/19 pass (1 pre-existing app bug) | 210600ms |\n\n\n## Deviations\n\nAdded .object-tab wait before #relations-content wait in create-edge.spec.ts. Used short waitForTimeout for webhook delete instead of content-specific wait since next step is a full page reload.\n\n## Known Issues\n\ncreate-edge.spec.ts \"edge appears in relations panel\" fails due to pre-existing app bug: loadRightPaneSection undefined in workspace-layout.js scope — should be window.SemPKM.refreshRightPaneSection. T03 will address this.\n\n## Files Created/Modified\n\n- `e2e/tests/01-objects/object-view-redesign.spec.ts`\n- `e2e/tests/12-bug-fixes/bug-fixes.spec.ts`\n- `e2e/tests/05-admin/admin-model-detail.spec.ts`\n- `e2e/tests/01-objects/create-edge.spec.ts`\n",
       "description": "Fix 4 test files covering Categories 3 (waitForIdle timeout) and 4 (object-tab loading timeout). These are repetitive mechanical edits — bumping `timeout: 10000` to `timeout: 20000` and replacing `waitForIdle` calls with element-specific waits.\n\n## Steps\n\n1. **object-view-redesign.spec.ts** — Bulk find-replace all `{ timeout: 10000 }` to `{ timeout: 20000 }` for `.object-tab`, `.object-face-edit.face-visible`, and `.object-face-read:not(.face-hidden)` waitForSelector calls. There are 13 instances.\n\n2. **bug-fixes.spec.ts** — Change all 5 `.object-tab` waitForSelector calls from `{ timeout: 10000 }` to `{ timeout: 20000 }`.\n\n3. **admin-model-detail.spec.ts** — Replace `waitForIdle(ownerPage)` calls that precede ontology diagram or relationship tab assertions with element-specific waits. For the ontology diagram section, replace `waitForIdle` with `await ownerPage.waitForSelector('.ontology-diagram, [data-testid=\"ontology-section\"], .mermaid', { timeout: 20000 });` or whichever element indicates the diagram loaded. For other sections, replace with appropriate content-specific waits. Read the file first to identify which `waitForIdle` calls are the problematic ones (the ones near Relationships tab or ontology diagram).\n\n4. **create-edge.spec.ts** — Replace the `waitForIdle` call after object loading with `await ownerPage.waitForSelector('.relations-section, #relations-content', { timeout: 20000 });` — wait for the relations panel content rather than all htmx to complete.\n\n## Must-Haves\n\n- [ ] object-view-redesign: all 13 timeout:10000 bumped to 20000\n- [ ] bug-fixes: all 5 .object-tab timeouts bumped to 20000\n- [ ] admin-model-detail: waitForIdle replaced with element-specific waits for diagram/relationship tests\n- [ ] create-edge: waitForIdle replaced with relations panel content wait",
       "estimate": "30m",
       "files": [
@@ -36941,6 +36949,17 @@
       "verdict": "✅ pass",
       "duration_ms": 398000,
       "created_at": "2026-03-29T06:54:02.670Z"
+    },
+    {
+      "id": 168,
+      "task_id": "T02",
+      "slice_id": "S07",
+      "milestone_id": "M046",
+      "command": "cd e2e && npx playwright test tests/01-objects/object-view-redesign.spec.ts tests/12-bug-fixes/bug-fixes.spec.ts tests/05-admin/admin-model-detail.spec.ts tests/01-objects/create-edge.spec.ts --project=chromium --retries=1 --reporter=line",
+      "exit_code": 1,
+      "verdict": "⚠️ 18/19 pass (1 pre-existing app bug)",
+      "duration_ms": 210600,
+      "created_at": "2026-03-29T07:04:58.982Z"
     }
   ]
 }

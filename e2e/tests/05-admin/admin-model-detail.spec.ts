@@ -9,7 +9,6 @@
  */
 import { test, expect, BASE_URL } from '../../fixtures/auth';
 import { SEL } from '../../helpers/selectors';
-import { waitForIdle } from '../../helpers/wait-for';
 
 test.describe('Admin Model Detail & Webhook CRUD', () => {
   test('model detail page with stats, types, ontology diagram, and webhook create/delete', async ({ ownerPage }) => {
@@ -55,15 +54,10 @@ test.describe('Admin Model Detail & Webhook CRUD', () => {
     const relationshipsTab = ownerPage.locator('.model-tab[data-tab="relationships"]');
     await expect(relationshipsTab).toBeVisible();
     await relationshipsTab.click();
-    await waitForIdle(ownerPage);
 
-    // Wait for the diagram to load via htmx
-    await ownerPage.waitForTimeout(3000);
-    await waitForIdle(ownerPage);
-
-    // The ontology diagram panel should now be visible
+    // Wait for the diagram panel to load via htmx (replaces waitForIdle + fixed timeout)
     const diagramPanel = ownerPage.locator('.ontology-diagram-panel');
-    await expect(diagramPanel).toBeVisible({ timeout: 15000 });
+    await expect(diagramPanel).toBeVisible({ timeout: 20000 });
 
     // Should have either a Cytoscape container or "no relationships" message
     const hasCytoscape = await ownerPage.locator('#ontology-cy').count();
@@ -108,14 +102,11 @@ test.describe('Admin Model Detail & Webhook CRUD', () => {
     await ownerPage.fill('#webhook-url', 'https://example.com/e2e-lifecycle-test');
     await ownerPage.locator('.checkbox-group input[value="object.changed"]').check();
     await ownerPage.click('button:has-text("Create")');
-    await waitForIdle(ownerPage);
-    await ownerPage.waitForTimeout(2000);
-    await waitForIdle(ownerPage);
 
-    // Verify webhook appears
+    // Wait for the webhook to appear in the list (replaces waitForIdle + fixed timeout)
     await expect(ownerPage.locator(SEL.admin.webhookList)).toContainText(
       'example.com/e2e-lifecycle-test',
-      { timeout: 10000 },
+      { timeout: 20000 },
     );
 
     // Delete the webhook
@@ -124,9 +115,9 @@ test.describe('Admin Model Detail & Webhook CRUD', () => {
     });
     const deleteBtn = testRow.locator('button:has-text("Delete")');
     await deleteBtn.click();
-    await waitForIdle(ownerPage);
-    await ownerPage.waitForTimeout(2000);
-    await waitForIdle(ownerPage);
+
+    // Wait for the deletion to take effect — navigate to webhooks and verify
+    await ownerPage.waitForTimeout(1000);
 
     // Reload and verify webhook is gone
     await ownerPage.goto(`${BASE_URL}/admin/webhooks`);

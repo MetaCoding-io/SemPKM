@@ -46,7 +46,7 @@
   - Estimate: 45m
   - Files: e2e/tests/03-navigation/workspace-layout.spec.ts, e2e/tests/03-navigation/keyboard-shortcuts.spec.ts, e2e/tests/02-views/table-pagination.spec.ts, e2e/helpers/dockview.ts, e2e/tests/02-views/timeline.spec.ts, e2e/tests/27-event-log-polish/event-log-polish.spec.ts, e2e/tests/01-objects/edit-object-ui.spec.ts, e2e/tests/01-objects/create-object.spec.ts
   - Verify: cd e2e && npx playwright test tests/03-navigation/workspace-layout.spec.ts tests/03-navigation/keyboard-shortcuts.spec.ts tests/02-views/table-pagination.spec.ts tests/02-views/timeline.spec.ts tests/27-event-log-polish/event-log-polish.spec.ts tests/01-objects/edit-object-ui.spec.ts tests/01-objects/create-object.spec.ts --project=chromium --retries=1 --reporter=line 2>&1 | tail -30
-- [ ] **T02: Bump .object-tab timeouts and replace waitForIdle with element-specific waits** — Fix 4 test files covering Categories 3 (waitForIdle timeout) and 4 (object-tab loading timeout). These are repetitive mechanical edits — bumping `timeout: 10000` to `timeout: 20000` and replacing `waitForIdle` calls with element-specific waits.
+- [x] **T02: Bump 18 object-tab timeouts to 20s and replace 7 waitForIdle calls with element-specific waits across 4 E2E test files** — Fix 4 test files covering Categories 3 (waitForIdle timeout) and 4 (object-tab loading timeout). These are repetitive mechanical edits — bumping `timeout: 10000` to `timeout: 20000` and replacing `waitForIdle` calls with element-specific waits.
 
 ## Steps
 

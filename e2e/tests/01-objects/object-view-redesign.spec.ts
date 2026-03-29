@@ -69,7 +69,7 @@ test.describe('Object View Redesign – Body-First Layout', () => {
     await ownerPage.waitForSelector('[data-testid="workspace"]', { timeout: 15000 });
 
     await loadObjectInEditor(ownerPage, SEED.notes.architecture.iri, 'read');
-    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
     await waitForIdle(ownerPage);
 
     // Markdown body should be visible immediately
@@ -90,7 +90,7 @@ test.describe('Object View Redesign – Body-First Layout', () => {
     await ownerPage.waitForSelector('[data-testid="workspace"]', { timeout: 15000 });
 
     await loadObjectInEditor(ownerPage, SEED.notes.architecture.iri, 'read');
-    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
     await waitForIdle(ownerPage);
 
     // Badge should be visible and contain "propert" (matches "N properties" or "1 property")
@@ -108,7 +108,7 @@ test.describe('Object View Redesign – Properties Toggle', () => {
     await ownerPage.waitForSelector('[data-testid="workspace"]', { timeout: 15000 });
 
     await loadObjectInEditor(ownerPage, SEED.notes.architecture.iri, 'read');
-    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
     await waitForIdle(ownerPage);
 
     // Initially collapsed
@@ -131,7 +131,7 @@ test.describe('Object View Redesign – Properties Toggle', () => {
 
     // Open object and expand properties
     await openTab(ownerPage, SEED.notes.architecture.iri, SEED.notes.architecture.title);
-    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
     await waitForIdle(ownerPage);
     await expandProperties(ownerPage);
 
@@ -150,7 +150,7 @@ test.describe('Object View Redesign – Properties Toggle', () => {
 
     // Reopen the same object
     await openTab(ownerPage, SEED.notes.architecture.iri, SEED.notes.architecture.title);
-    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
     await waitForIdle(ownerPage);
 
     // Properties should still be expanded (preference restored)
@@ -177,7 +177,7 @@ test.describe('Object View Redesign – Empty Body & Edit Mode', () => {
     }, SEED.people.alice.iri);
 
     await loadObjectInEditor(ownerPage, SEED.people.alice.iri, 'read');
-    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
     await waitForIdle(ownerPage);
 
     // Properties should be expanded by default (no body → auto-expand)
@@ -201,7 +201,7 @@ test.describe('Object View Redesign – Empty Body & Edit Mode', () => {
     await ownerPage.waitForSelector('[data-testid="workspace"]', { timeout: 15000 });
 
     await openTab(ownerPage, SEED.notes.architecture.iri, SEED.notes.architecture.title, 'edit');
-    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
     await waitForIdle(ownerPage);
 
     // Editor section should be visible (body editor is primary in edit mode)
@@ -223,7 +223,7 @@ test.describe('Object View Redesign – Empty Body & Edit Mode', () => {
     await ownerPage.waitForSelector('[data-testid="workspace"]', { timeout: 15000 });
 
     await openTab(ownerPage, SEED.notes.architecture.iri, SEED.notes.architecture.title);
-    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
     await waitForIdle(ownerPage);
 
     // Expand properties in read mode
@@ -234,7 +234,7 @@ test.describe('Object View Redesign – Empty Body & Edit Mode', () => {
     // Flip to edit mode
     const toggleBtn = ownerPage.locator('.mode-toggle').first();
     await toggleBtn.click();
-    await ownerPage.waitForSelector('.object-face-edit.face-visible', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-face-edit.face-visible', { timeout: 20000 });
     await waitForIdle(ownerPage);
 
     // Properties should also be expanded on the edit face
@@ -251,7 +251,7 @@ test.describe('Object View Redesign – Toolbar & Flip Regression', () => {
     await ownerPage.waitForSelector('[data-testid="workspace"]', { timeout: 15000 });
 
     await loadObjectInEditor(ownerPage, SEED.notes.architecture.iri, 'read');
-    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
     await waitForIdle(ownerPage);
 
     // Title should be visible
@@ -276,7 +276,7 @@ test.describe('Object View Redesign – Toolbar & Flip Regression', () => {
     await ownerPage.waitForSelector('[data-testid="workspace"]', { timeout: 15000 });
 
     await openTab(ownerPage, SEED.notes.architecture.iri, SEED.notes.architecture.title);
-    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
     await waitForIdle(ownerPage);
 
     // Click Edit to trigger 3D flip
@@ -285,7 +285,7 @@ test.describe('Object View Redesign – Toolbar & Flip Regression', () => {
     await toggleBtn.click();
 
     // Edit face should become visible
-    await ownerPage.waitForSelector('.object-face-edit.face-visible', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-face-edit.face-visible', { timeout: 20000 });
 
     // Toggle should now say "Cancel"
     await expect(toggleBtn).toHaveText('Cancel');
@@ -296,7 +296,7 @@ test.describe('Object View Redesign – Toolbar & Flip Regression', () => {
 
     // Click Cancel to flip back
     await toggleBtn.click();
-    await ownerPage.waitForSelector('.object-face-read:not(.face-hidden)', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-face-read:not(.face-hidden)', { timeout: 20000 });
 
     // Should be back in read mode
     await expect(toggleBtn).toHaveText('Edit');

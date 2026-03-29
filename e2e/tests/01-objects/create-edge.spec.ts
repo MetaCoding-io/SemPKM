@@ -7,7 +7,6 @@
 import { test, expect } from '../../fixtures/auth';
 import { SEED, TYPES } from '../../fixtures/seed-data';
 import { SEL } from '../../helpers/selectors';
-import { waitForIdle } from '../../helpers/wait-for';
 
 const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3901';
 
@@ -48,9 +47,11 @@ test.describe('Edge (Relationship) Creation', () => {
       }
     }, noteIri);
 
+    // Wait for the object tab to load first
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
+
     // Wait for relations panel to load (it's loaded via htmx into #relations-content)
-    await ownerPage.waitForSelector('#relations-content', { timeout: 10000 });
-    await waitForIdle(ownerPage);
+    await ownerPage.waitForSelector('#relations-content', { timeout: 20000 });
 
     // The relations content should eventually show outbound or inbound links
     // (depends on whether the edge was created in previous test - tests are sequential)

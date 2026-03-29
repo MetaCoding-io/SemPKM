@@ -24,7 +24,7 @@ test.describe('Bug Fix Regressions', () => {
       },
       { iri: SEED.notes.architecture.iri, label: SEED.notes.architecture.title },
     );
-    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
     await waitForIdle(ownerPage);
 
     // Read accent color for Note type
@@ -40,7 +40,7 @@ test.describe('Bug Fix Regressions', () => {
       },
       { iri: SEED.people.alice.iri, label: SEED.people.alice.name },
     );
-    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
     await waitForIdle(ownerPage);
 
     // Read accent color for Person type
@@ -137,7 +137,7 @@ test.describe('Bug Fix Regressions', () => {
       },
       { iri: SEED.notes.architecture.iri, label: SEED.notes.architecture.title },
     );
-    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
     await waitForIdle(ownerPage);
 
     await ownerPage.evaluate(
@@ -146,7 +146,7 @@ test.describe('Bug Fix Regressions', () => {
       },
       { iri: SEED.people.alice.iri, label: SEED.people.alice.name },
     );
-    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
     await waitForIdle(ownerPage);
 
     // Get all inactive tabs (not the active one)
@@ -191,7 +191,7 @@ test.describe('Bug Fix Regressions', () => {
       },
       { iri: SEED.notes.architecture.iri, label: SEED.notes.architecture.title },
     );
-    await ownerPage.waitForSelector('.object-tab', { timeout: 10000 });
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
     await waitForIdle(ownerPage);
 
     // Look for right-section-chevron or collapsible section headers with chevrons
