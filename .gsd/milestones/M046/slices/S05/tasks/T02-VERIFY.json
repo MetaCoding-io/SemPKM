@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T02",
+  "unitId": "M046/S05/T02",
+  "timestamp": 1774753841430,
+  "passed": false,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "npx playwright test e2e/tests/02-views/calendar-view.spec.ts e2e/tests/02-views/recurring-tasks.spec.ts e2e/tests/02-views/cross-view-drag.spec.ts e2e/tests/00-setup/01-setup-wizard.spec.ts --reporter=list exits with code 0",
+      "exitCode": 1,
+      "durationMs": 4037,
+      "verdict": "fail"
+    }
+  ],
+  "retryAttempt": 1,
+  "maxRetries": 2
+}

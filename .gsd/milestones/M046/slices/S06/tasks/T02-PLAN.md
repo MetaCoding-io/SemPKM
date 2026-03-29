@@ -1,32 +1,12 @@
-# S06: Miscellaneous Failures & Full Suite Verification
+---
+estimated_steps: 39
+estimated_files: 10
+skills_used: []
+---
 
-**Goal:** Full `npx playwright test` run passes with 0 failures across all 122 specs
-**Demo:** After this: Full `npx playwright test` run passes with 0 failures across all 122 specs
+# T02: Fix all identified failures — bare globals, template bugs, test adjustments
 
-## Tasks
-- [ ] **T01: Run full E2E suite and catalog all failures with error messages** — Run the complete 122-spec E2E suite against the Docker test stack and catalog every failure with its file path, test name, and error message. Group failures by likely root cause category. The partial research run (tests 1–118, chromium only) found 14 failures. This task completes the catalog by running all 122 files across both chromium and firefox.
-
-Steps:
-1. Ensure Docker test stack is healthy: `docker compose -f docker-compose.test.yml ps` and check all services are Up/healthy.
-2. Run the full suite from project root: `cd e2e && npx playwright test --reporter=list 2>&1 | tee /tmp/e2e-full-run.log`
-   - If the full run times out (>900s), run per-directory: `npx playwright test tests/00-setup/ tests/01-objects/ tests/02-views/` etc.
-3. Extract all failures: grep for 'FAILED\|Error\|Timeout\|expect(' in the output.
-4. Write a structured failure catalog to `.gsd/milestones/M046/slices/S06/failure-catalog.md` with columns: File, Test Name, Error Summary, Root Cause Category.
-5. Categorize failures into groups: A=bare-global refs (M044 migration), B=template testid mismatch, C=timing/flaky, D=assertion logic, E=missing feature/selector, F=other.
-
-Known failures from S06 research to expect:
-- Timeline view (3 tests) — bare globals in timeline_view.html
-- RBox ontology viewer — data-testid naming mismatch
-- Class creation — bare globals in onclick handlers
-- Type picker / keyboard shortcuts — timing
-- Object create/edit — timing/flaky
-- Table pagination — assertion
-- Markdown rendering — CDN timing
-- Magic-link member role — invite flow
-  - Estimate: 30m
-  - Files: e2e/tests/, .gsd/milestones/M046/slices/S06/failure-catalog.md
-  - Verify: test -f .gsd/milestones/M046/slices/S06/failure-catalog.md && grep -c '|' .gsd/milestones/M046/slices/S06/failure-catalog.md
-- [ ] **T02: Fix all identified failures — bare globals, template bugs, test adjustments** — Fix every failure cataloged in T01. The research and pre-exploration identified these root causes:
+Fix every failure cataloged in T01. The research and pre-exploration identified these root causes:
 
 **Category A: Bare-global references after M044 namespace migration**
 
@@ -80,25 +60,23 @@ Steps:
 4. Fix Category C/D/E/F based on T01 catalog.
 5. Run affected test files to verify fixes: `cd e2e && npx playwright test tests/02-views/timeline.spec.ts tests/22-ontology/ tests/23-class-creation/ tests/01-objects/ tests/02-views/table-pagination.spec.ts tests/01-objects/markdown-rendering.spec.ts tests/03-navigation/keyboard-shortcuts.spec.ts --project=chromium`
 6. Fix any remaining failures and re-run until all targeted files pass.
-  - Estimate: 2h
-  - Files: backend/app/templates/browser/timeline_view.html, backend/app/templates/browser/ontology/create_class_form.html, backend/app/templates/browser/ontology/rbox_legend.html, e2e/tests/22-ontology/ontology-viewer.spec.ts, e2e/tests/23-class-creation/class-creation.spec.ts, e2e/tests/01-objects/create-object.spec.ts, e2e/tests/01-objects/markdown-rendering.spec.ts, e2e/tests/02-views/table-pagination.spec.ts, e2e/tests/02-views/timeline.spec.ts, e2e/tests/03-navigation/keyboard-shortcuts.spec.ts
-  - Verify: cd e2e && npx playwright test tests/02-views/timeline.spec.ts tests/22-ontology/ tests/23-class-creation/ tests/01-objects/create-object.spec.ts tests/01-objects/markdown-rendering.spec.ts tests/02-views/table-pagination.spec.ts tests/03-navigation/keyboard-shortcuts.spec.ts --project=chromium 2>&1 | tail -5
-- [ ] **T03: Full suite green-light verification — 0 failures across all 122 specs** — Run the complete E2E suite and verify 0 failures. Fix any remaining failures discovered during this run.
 
-Steps:
-1. Run full suite: `cd e2e && npx playwright test --reporter=list 2>&1 | tee /tmp/e2e-greenlight.log`
-   - If timeout is an issue, run in batches by directory.
-2. If any tests fail:
-   a. Read the error output carefully.
-   b. Apply targeted fixes (template edits, test timeout increases, selector adjustments).
-   c. Re-run the failing tests to confirm the fix.
-   d. Re-run the full suite again to check for regressions.
-3. Repeat until 0 failures.
-4. Record the final pass count and any skipped tests in the verification output.
+## Inputs
 
-Expected: 122 spec files, majority passing, some skipped (setup wizard fresh-stack tests, demo mode tests, etc.), 0 failures.
+- `.gsd/milestones/M046/slices/S06/failure-catalog.md`
+- `backend/app/templates/browser/timeline_view.html`
+- `backend/app/templates/browser/ontology/create_class_form.html`
+- `backend/app/templates/browser/ontology/rbox_legend.html`
+- `e2e/tests/22-ontology/ontology-viewer.spec.ts`
+- `e2e/tests/23-class-creation/class-creation.spec.ts`
+- `frontend/static/js/workspace.js`
 
-Note: Tests that skip due to prerequisites (e.g., fresh Docker stack, demo mode, rate limiting) are acceptable — they're gated by `test.skip()` conditions. Only actual failures (assertion errors, timeouts, crashes) count.
-  - Estimate: 45m
-  - Files: e2e/tests/
-  - Verify: cd e2e && npx playwright test --reporter=list 2>&1 | grep -E 'failed|passed|skipped' | tail -3
+## Expected Output
+
+- `backend/app/templates/browser/timeline_view.html`
+- `backend/app/templates/browser/ontology/create_class_form.html`
+- `e2e/tests/22-ontology/ontology-viewer.spec.ts`
+
+## Verification
+
+cd e2e && npx playwright test tests/02-views/timeline.spec.ts tests/22-ontology/ tests/23-class-creation/ tests/01-objects/create-object.spec.ts tests/01-objects/markdown-rendering.spec.ts tests/02-views/table-pagination.spec.ts tests/03-navigation/keyboard-shortcuts.spec.ts --project=chromium 2>&1 | tail -5

@@ -144,13 +144,22 @@ test.describe('Recurring Tasks on Calendar', () => {
       };
     });
 
-    // Find a virtual recurring event for THIS task and click it
-    const recurringEvents = ownerPage.locator('.fc-event-recurring').filter({ hasText: taskTitle });
-    const rcCount = await recurringEvents.count();
+    // Find a virtual recurring event for THIS task and click it via DOM .click()
+    // Playwright's force:true click doesn't reliably trigger FullCalendar's event
+    // delegation. Using evaluate + DOM .click() dispatches a trusted-like event
+    // that bubbles correctly through FC's internal handlers.
+    const rcCount = await ownerPage.locator('.fc-event-recurring').filter({ hasText: taskTitle }).count();
     expect(rcCount).toBeGreaterThanOrEqual(1);
-    // force:true bypasses pointer-interception — the dockview editor pane
-    // can overlap the calendar panel in Playwright's actionability check
-    await recurringEvents.first().click({ force: true });
+
+    await ownerPage.evaluate((title) => {
+      const events = document.querySelectorAll('.fc-event-recurring');
+      for (const ev of events) {
+        if (ev.textContent?.includes(title)) {
+          (ev as HTMLElement).click();
+          break;
+        }
+      }
+    }, taskTitle);
     await ownerPage.waitForTimeout(1000);
 
     // --- Assert: openTab was called with the master IRI ---

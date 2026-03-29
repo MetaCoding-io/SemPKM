@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-03-29T03:10:21.853Z",
+  "exported_at": "2026-03-29T04:29:52.902Z",
   "milestones": [
     {
       "id": "M001",
@@ -7362,14 +7362,14 @@
       "milestone_id": "M046",
       "id": "S05",
       "title": "Calendar, Recurring Tasks & Setup Wizard Fixes",
-      "status": "pending",
+      "status": "complete",
       "risk": "medium",
       "depends": [],
       "demo": "Calendar view, recurring task, and setup wizard tests all pass",
       "created_at": "2026-03-29T01:16:09.470Z",
-      "completed_at": null,
-      "full_summary_md": "",
-      "full_uat_md": "",
+      "completed_at": "2026-03-29T03:31:38.789Z",
+      "full_summary_md": "---\nid: S05\nparent: M046\nmilestone: M046\nprovides:\n  - Calendar view, recurring tasks, cross-view drag, and setup wizard E2E tests all pass\n  - Root-level Playwright config for running e2e tests from project root\nrequires:\n  []\naffects:\n  - S06\nkey_files:\n  - backend/app/templates/browser/calendar_view.html\n  - frontend/static/js/calendar.js\n  - e2e/tests/00-setup/01-setup-wizard.spec.ts\n  - e2e/tests/02-views/recurring-tasks.spec.ts\n  - e2e/tests/02-views/calendar-view.spec.ts\n  - playwright.config.ts\nkey_decisions:\n  - DOM .click() for FullCalendar eventClick testing instead of Playwright force:true\n  - Root-level playwright.config.ts delegates to e2e/ config for running tests from project root\npatterns_established:\n  - FullCalendar eventClick: use page.evaluate + DOM .click() instead of Playwright locator.click({force:true})\nobservability_surfaces:\n  - none\ndrill_down_paths:\n  - .gsd/milestones/M046/slices/S05/tasks/T01-SUMMARY.md\n  - .gsd/milestones/M046/slices/S05/tasks/T02-SUMMARY.md\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-03-29T03:31:38.790Z\nblocker_discovered: false\n---\n\n# S05: Calendar, Recurring Tasks & Setup Wizard Fixes\n\n**Fixed 8 stale bare-global references in calendar files, added setup wizard skip logic, fixed recurring-tasks eventClick test, and added root-level Playwright config for running tests from project root.**\n\n## What Happened\n\nT01 replaced 8 bare-global references (initCalendar, openTab, showToast) with SemPKM.* namespace calls in calendar_view.html and calendar.js — these broke after M044/S03 shim removal. Added isSetupComplete() helper + test.skip() to 5 fresh-stack-only setup wizard tests so they skip gracefully on non-fresh Docker stacks. T02 ran all 4 test suites, fixed 3 pre-existing test bugs (calendar test expectations, FullCalendar visibility assertions), but left 2 recurring-tasks eventClick failures.\n\nThe closer fixed two remaining issues: (1) recurring-tasks \"clicking virtual event opens master task\" failed because Playwright's force:true click doesn't trigger FullCalendar's event delegation — switched to page.evaluate + DOM .click() which dispatches correctly through FC's internal handlers. (2) The verification gate command runs from the project root but Playwright was only installed in e2e/ — added a root-level playwright.config.ts that delegates to e2e config with corrected paths, plus a node_modules symlink to e2e/node_modules to resolve the dual-instance @playwright/test problem.\n\nFinal results: 20 passed, 10 skipped (fresh-stack setup wizard tests), 0 failed across both chromium and firefox.\n\n## Verification\n\nAll 30 test runs (4 spec files × 2 browsers + skips) pass with exit code 0. 20 passed, 10 skipped, 0 failed. Verified both from e2e/ directory and from project root via root-level playwright.config.ts.\n\n## Requirements Advanced\n\nNone.\n\n## Requirements Validated\n\nNone.\n\n## New Requirements Surfaced\n\nNone.\n\n## Requirements Invalidated or Re-scoped\n\nNone.\n\n## Deviations\n\nCloser fixed recurring-tasks eventClick test (DOM .click() instead of Playwright force:true) and added root-level playwright.config.ts + node_modules symlink — neither was in the original plan.\n\n## Known Limitations\n\nRoot node_modules is a symlink to e2e/node_modules — works for Playwright but git check-ignore doesn't match symlinks against the node_modules/ gitignore pattern. The symlink itself won't be staged by git add of specific files (per R06) so this is safe.\n\n## Follow-ups\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/templates/browser/calendar_view.html` — Replaced bare initCalendar calls with SemPKM.initCalendar namespace\n- `frontend/static/js/calendar.js` — Replaced bare openTab/showToast with SemPKM.openTab/SemPKM.showToast, updated JSDoc\n- `e2e/tests/00-setup/01-setup-wizard.spec.ts` — Added isSetupComplete helper + test.skip for 5 fresh-stack tests\n- `e2e/tests/02-views/recurring-tasks.spec.ts` — Fixed eventClick test to use DOM .click() instead of Playwright force:true\n- `e2e/tests/02-views/calendar-view.spec.ts` — Fixed test 2 expectation for merged-mode, test 3 uses state:attached\n- `playwright.config.ts` — New root-level config delegating to e2e/ for running tests from project root\n",
+      "full_uat_md": "# S05: Calendar, Recurring Tasks & Setup Wizard Fixes — UAT\n\n**Milestone:** M046\n**Written:** 2026-03-29T03:31:38.790Z\n\n## UAT: Calendar, Recurring Tasks & Setup Wizard Fixes\n\n### Preconditions\n- Docker test stack running (`docker compose -f docker-compose.test.yml up -d`)\n- Stack is NOT freshly created (setup already completed)\n\n### Test 1: Calendar View Renders\n1. Run: `cd e2e && npx playwright test tests/02-views/calendar-view.spec.ts --project=chromium --reporter=list`\n2. **Expected:** 3 passed, 0 failed\n3. Verify: FullCalendar `.fc` container renders, merged mode works without type filter, month/week/day switching works\n\n### Test 2: Recurring Tasks on Calendar\n1. Run: `cd e2e && npx playwright test tests/02-views/recurring-tasks.spec.ts --project=chromium --reporter=list`\n2. **Expected:** 2 passed, 0 failed\n3. Verify: RRULE FREQ=WEEKLY;COUNT=4 produces ≥2 visible events with `.fc-event-recurring` class, clicking virtual event opens master task tab\n\n### Test 3: Cross-View Drag\n1. Run: `cd e2e && npx playwright test tests/02-views/cross-view-drag.spec.ts --project=chromium --reporter=list`\n2. **Expected:** 3 passed, 0 failed\n3. Verify: Kanban card has drag data, external drop on calendar schedules task, scope change fires event\n\n### Test 4: Setup Wizard (Non-Fresh Stack)\n1. Run: `cd e2e && npx playwright test tests/00-setup/01-setup-wizard.spec.ts --project=chromium --reporter=list`\n2. **Expected:** 5 skipped, 2 passed, 0 failed\n3. Verify: Tests 1-5 skip with \"Setup already completed\" message, tests 6-7 pass\n\n### Test 5: All Four Suites Combined\n1. Run from project root: `npx playwright test e2e/tests/02-views/calendar-view.spec.ts e2e/tests/02-views/recurring-tasks.spec.ts e2e/tests/02-views/cross-view-drag.spec.ts e2e/tests/00-setup/01-setup-wizard.spec.ts --reporter=list`\n2. **Expected:** 20 passed, 10 skipped, 0 failed (both chromium + firefox)\n\n### Edge Cases\n- **Fresh stack:** Setup wizard tests 1-5 should pass (not skip) on `docker compose down -v && docker compose up -d`\n- **No bare globals:** `rg 'typeof initCalendar[^.]|typeof openTab[^.]|typeof showToast[^.]' frontend/static/js/calendar.js backend/app/templates/browser/calendar_view.html` returns 0 results\n",
       "goal": "Calendar view, recurring task, and setup wizard E2E tests all pass (or skip cleanly on non-fresh stacks)",
       "success_criteria": "- `calendar_view.html` calls `SemPKM.initCalendar` (not bare `initCalendar`)\n- `calendar.js` uses `SemPKM.openTab` and `SemPKM.showToast` (not bare globals)\n- `01-setup-wizard.spec.ts` tests 1-5 skip when `setup_complete=true`\n- `npx playwright test e2e/tests/02-views/calendar-view.spec.ts` — 0 failures\n- `npx playwright test e2e/tests/02-views/recurring-tasks.spec.ts` — 0 failures\n- `npx playwright test e2e/tests/00-setup/01-setup-wizard.spec.ts` — 0 failures (5 skipped on non-fresh stack)",
       "proof_level": "Operational — tests must pass against the live Docker test stack",
@@ -7396,11 +7396,11 @@
       "completed_at": null,
       "full_summary_md": "",
       "full_uat_md": "",
-      "goal": "Re-run full suite after S01-S05 fixes, identify remaining Category G failures, fix each individually, and verify the complete suite",
-      "success_criteria": "Full E2E suite: 122 specs, 0 failures, exit code 0.",
-      "proof_level": "Full suite run with exit code 0",
-      "integration_closure": "This is the final integration verification — confirms all prior slice fixes compose correctly",
-      "observability_impact": "None",
+      "goal": "Full `npx playwright test` run passes with 0 failures across all 122 specs",
+      "success_criteria": "- Full E2E suite (chromium + firefox, 122 spec files) exits with 0 failures\n- All tests from S01–S05 still pass (no regressions from fixes)\n- Timeline view renders in browser (CDN Frappe Gantt loads, tasks appear)\n- Class creation form works end-to-end (form submits, success message appears)\n- RBox ontology viewer shows property tables",
+      "proof_level": "operational — full suite run against live Docker test stack",
+      "integration_closure": "Upstream: S01–S05 fixes (auth, copilot z-index, app platform, ontology scoping, calendar/wizard). New wiring: none — this slice fixes residual bugs, doesn't add new integration surfaces. After this: milestone is complete — 0 failures across 122 specs.",
+      "observability_impact": "None — fixes are template/JS corrections and test adjustments, no new runtime surfaces.",
       "sequence": 0,
       "replan_triggered_at": null
     }
@@ -30267,6 +30267,128 @@
         "e2e/tests/02-views/recurring-tasks.spec.ts",
         "e2e/tests/02-views/cross-view-drag.spec.ts",
         "e2e/tests/00-setup/01-setup-wizard.spec.ts"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M046",
+      "slice_id": "S06",
+      "id": "T01",
+      "title": "Run full E2E suite and catalog all failures with error messages",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Run the complete 122-spec E2E suite against the Docker test stack and catalog every failure with its file path, test name, and error message. Group failures by likely root cause category. The partial research run (tests 1–118, chromium only) found 14 failures. This task completes the catalog by running all 122 files across both chromium and firefox.\n\nSteps:\n1. Ensure Docker test stack is healthy: `docker compose -f docker-compose.test.yml ps` and check all services are Up/healthy.\n2. Run the full suite from project root: `cd e2e && npx playwright test --reporter=list 2>&1 | tee /tmp/e2e-full-run.log`\n   - If the full run times out (>900s), run per-directory: `npx playwright test tests/00-setup/ tests/01-objects/ tests/02-views/` etc.\n3. Extract all failures: grep for 'FAILED\\|Error\\|Timeout\\|expect(' in the output.\n4. Write a structured failure catalog to `.gsd/milestones/M046/slices/S06/failure-catalog.md` with columns: File, Test Name, Error Summary, Root Cause Category.\n5. Categorize failures into groups: A=bare-global refs (M044 migration), B=template testid mismatch, C=timing/flaky, D=assertion logic, E=missing feature/selector, F=other.\n\nKnown failures from S06 research to expect:\n- Timeline view (3 tests) — bare globals in timeline_view.html\n- RBox ontology viewer — data-testid naming mismatch\n- Class creation — bare globals in onclick handlers\n- Type picker / keyboard shortcuts — timing\n- Object create/edit — timing/flaky\n- Table pagination — assertion\n- Markdown rendering — CDN timing\n- Magic-link member role — invite flow",
+      "estimate": "30m",
+      "files": [
+        "e2e/tests/",
+        ".gsd/milestones/M046/slices/S06/failure-catalog.md"
+      ],
+      "verify": "test -f .gsd/milestones/M046/slices/S06/failure-catalog.md && grep -c '|' .gsd/milestones/M046/slices/S06/failure-catalog.md",
+      "inputs": [
+        "e2e/tests/",
+        "e2e/fixtures/auth.ts",
+        ".gsd/milestones/M046/slices/S06/S06-RESEARCH.md"
+      ],
+      "expected_output": [
+        ".gsd/milestones/M046/slices/S06/failure-catalog.md"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M046",
+      "slice_id": "S06",
+      "id": "T02",
+      "title": "Fix all identified failures — bare globals, template bugs, test adjustments",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Fix every failure cataloged in T01. The research and pre-exploration identified these root causes:\n\n**Category A: Bare-global references after M044 namespace migration**\n\nThe M044/S03 migration moved all window globals to `window.SemPKM.*` and removed backward-compat shims. Several templates still use bare globals in `onclick=` handlers and inline `<script>` blocks:\n\n1. `backend/app/templates/browser/timeline_view.html` — Two `showToast` calls (lines with `if (typeof showToast === 'function') showToast(...)`) and one `openTab` call (line with `if (task && task.id && typeof openTab === 'function')`). Replace with `SemPKM.showToast` and `SemPKM.openTab` respectively. Keep the `typeof` guard but check `SemPKM.showToast`/`SemPKM.openTab`.\n\n2. `backend/app/templates/browser/ontology/create_class_form.html` — Multiple `onclick=` handlers use bare globals:\n   - `onclick=\"closeClassCreationForm()\"` → `onclick=\"SemPKM.closeClassCreationForm()\"`  (BUT check if this function exists on SemPKM — if not, it may be defined in the template's own script or another file)\n   - `onclick=\"filterIconPicker(this.value)\"` → `oninput=\"SemPKM.filterIconPicker(this.value)\"`\n   - `onclick=\"selectIcon(this, '{{ icon_name }}')\"` → `onclick=\"SemPKM.selectIcon(this, '{{ icon_name }}')\"`\n   - `onclick=\"selectIconColor(this, '...')\"` → `onclick=\"SemPKM.selectIconColor(this, '...')\"`\n   - `onclick=\"clearParentClass()\"` → `onclick=\"SemPKM.clearParentClass()\"`\n   - `onclick=\"addPropertyRow()\"` → `onclick=\"SemPKM.addPropertyRow()\"`\n   - `onclick=\"removePropertyRow('...')\"` → `onclick=\"SemPKM.removePropertyRow('...')\"`\n   - `onchange=\"handlePredicateChange(this)\"` → `onchange=\"SemPKM.handlePredicateChange(this)\"`\n   - The inline `<script>` block at the bottom: `if (typeof addPropertyRow === 'function') { addPropertyRow(); }` → `if (typeof SemPKM !== 'undefined' && typeof SemPKM.addPropertyRow === 'function') { SemPKM.addPropertyRow(); }`\n   - The `hx-on::config-request` attribute calls `serializeProperties()` → `SemPKM.serializeProperties()`\n   - `closeClassCreationForm` — check workspace.js for `SemPKM.closeClassCreationForm`. If it's defined there, use `SemPKM.closeClassCreationForm()`. If not, check if it's a local function in the template or in another file.\n\n**Category B: RBox data-testid mismatch**\n\n`backend/app/templates/browser/ontology/rbox_legend.html` — The macro `render_property_table(properties, testid)` produces `data-testid=\"{{ testid }}-{{ source }}\"` (e.g., `rbox-object-table-gist`). The E2E test `e2e/tests/22-ontology/ontology-viewer.spec.ts` expects `[data-testid=\"rbox-object-table\"]` without the source suffix. Two options:\n- Option 1: Fix the test to use a prefix-match selector: `[data-testid^=\"rbox-object-table\"]`\n- Option 2: Fix the template to use bare testid: `data-testid=\"{{ testid }}\"`\nPrefer Option 1 (test fix) since the per-source testid is more specific and useful for debugging.\n\n**Category C: Test timing and flakiness**\n\nAfter fixing A and B, re-run failing tests to see which are genuinely flaky vs fixed by the template repairs. Common timing fixes:\n- Increase timeouts on `.waitForSelector()` calls that are marginal (15s → 20s or 30s)\n- Add `waitForIdle()` before assertions that depend on htmx content loading\n- For create-object:17 (type picker shows 4 types), the test opens a dockview panel via `_dockview.addPanel()` which triggers htmx load of `/browser/types`. If the htmx load is slow, the type picker may not render in time. Add a longer timeout.\n\n**Category D: Table pagination assertion**\n\nThe table-pagination test fetches `/browser/views/table/{specIri}?page=1&page_size=5` and expects `Page 1 of` text. If the response format changed (e.g., pagination partial uses different text), fix the assertion to match reality. Run the endpoint manually to see what it returns.\n\n**Category E: Markdown rendering**\n\nThe markdown-rendering test creates a Note with markdown body, then checks for rendered `h1`/`h2`/`strong`/`pre` elements inside `.markdown-body`. The rendering depends on `marked.js` being loaded via the vendor bundle. In the Docker test stack, vendor.js is built by the frontend container. If it's a timing issue (CDN/script load order), add a `waitForFunction` with longer timeout.\n\n**Category F: Other failures from T01 catalog**\n\nFix any additional failures discovered by T01 that weren't in the research list.\n\nSteps:\n1. Read T01's failure catalog from `.gsd/milestones/M046/slices/S06/failure-catalog.md`.\n2. Fix Category A (bare globals) in timeline_view.html and create_class_form.html.\n3. Fix Category B (RBox testid) — update the test selectors to use prefix match.\n4. Fix Category C/D/E/F based on T01 catalog.\n5. Run affected test files to verify fixes: `cd e2e && npx playwright test tests/02-views/timeline.spec.ts tests/22-ontology/ tests/23-class-creation/ tests/01-objects/ tests/02-views/table-pagination.spec.ts tests/01-objects/markdown-rendering.spec.ts tests/03-navigation/keyboard-shortcuts.spec.ts --project=chromium`\n6. Fix any remaining failures and re-run until all targeted files pass.",
+      "estimate": "2h",
+      "files": [
+        "backend/app/templates/browser/timeline_view.html",
+        "backend/app/templates/browser/ontology/create_class_form.html",
+        "backend/app/templates/browser/ontology/rbox_legend.html",
+        "e2e/tests/22-ontology/ontology-viewer.spec.ts",
+        "e2e/tests/23-class-creation/class-creation.spec.ts",
+        "e2e/tests/01-objects/create-object.spec.ts",
+        "e2e/tests/01-objects/markdown-rendering.spec.ts",
+        "e2e/tests/02-views/table-pagination.spec.ts",
+        "e2e/tests/02-views/timeline.spec.ts",
+        "e2e/tests/03-navigation/keyboard-shortcuts.spec.ts"
+      ],
+      "verify": "cd e2e && npx playwright test tests/02-views/timeline.spec.ts tests/22-ontology/ tests/23-class-creation/ tests/01-objects/create-object.spec.ts tests/01-objects/markdown-rendering.spec.ts tests/02-views/table-pagination.spec.ts tests/03-navigation/keyboard-shortcuts.spec.ts --project=chromium 2>&1 | tail -5",
+      "inputs": [
+        ".gsd/milestones/M046/slices/S06/failure-catalog.md",
+        "backend/app/templates/browser/timeline_view.html",
+        "backend/app/templates/browser/ontology/create_class_form.html",
+        "backend/app/templates/browser/ontology/rbox_legend.html",
+        "e2e/tests/22-ontology/ontology-viewer.spec.ts",
+        "e2e/tests/23-class-creation/class-creation.spec.ts",
+        "frontend/static/js/workspace.js"
+      ],
+      "expected_output": [
+        "backend/app/templates/browser/timeline_view.html",
+        "backend/app/templates/browser/ontology/create_class_form.html",
+        "e2e/tests/22-ontology/ontology-viewer.spec.ts"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M046",
+      "slice_id": "S06",
+      "id": "T03",
+      "title": "Full suite green-light verification — 0 failures across all 122 specs",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Run the complete E2E suite and verify 0 failures. Fix any remaining failures discovered during this run.\n\nSteps:\n1. Run full suite: `cd e2e && npx playwright test --reporter=list 2>&1 | tee /tmp/e2e-greenlight.log`\n   - If timeout is an issue, run in batches by directory.\n2. If any tests fail:\n   a. Read the error output carefully.\n   b. Apply targeted fixes (template edits, test timeout increases, selector adjustments).\n   c. Re-run the failing tests to confirm the fix.\n   d. Re-run the full suite again to check for regressions.\n3. Repeat until 0 failures.\n4. Record the final pass count and any skipped tests in the verification output.\n\nExpected: 122 spec files, majority passing, some skipped (setup wizard fresh-stack tests, demo mode tests, etc.), 0 failures.\n\nNote: Tests that skip due to prerequisites (e.g., fresh Docker stack, demo mode, rate limiting) are acceptable — they're gated by `test.skip()` conditions. Only actual failures (assertion errors, timeouts, crashes) count.",
+      "estimate": "45m",
+      "files": [
+        "e2e/tests/"
+      ],
+      "verify": "cd e2e && npx playwright test --reporter=list 2>&1 | grep -E 'failed|passed|skipped' | tail -3",
+      "inputs": [
+        "backend/app/templates/browser/timeline_view.html",
+        "backend/app/templates/browser/ontology/create_class_form.html",
+        "e2e/tests/22-ontology/ontology-viewer.spec.ts",
+        "e2e/tests/"
+      ],
+      "expected_output": [
+        "e2e/tests/"
       ],
       "observability_impact": "",
       "full_plan_md": "",
