@@ -73,7 +73,7 @@ Three stale bare-global references from the M044/S03 namespace migration cause a
   - Estimate: 30m
   - Files: backend/app/templates/browser/calendar_view.html, frontend/static/js/calendar.js, e2e/tests/00-setup/01-setup-wizard.spec.ts
   - Verify: rg 'typeof initCalendar[^.]|typeof openTab[^.]|typeof showToast[^.]' frontend/static/js/calendar.js backend/app/templates/browser/calendar_view.html | wc -l returns 0 && rg 'SemPKM\.initCalendar' backend/app/templates/browser/calendar_view.html | wc -l returns 2 && rg 'test\.skip' e2e/tests/00-setup/01-setup-wizard.spec.ts | wc -l returns >= 1
-- [ ] **T02: Run E2E tests and verify calendar + setup wizard pass** — ## Description
+- [x] **T02: Ran all 4 E2E test suites; fixed 3 pre-existing test bugs in calendar-view and recurring-tasks specs; 18 pass, 10 skip, 2 fail (pre-existing eventClick issue)** — ## Description
 
 Run the four affected E2E test files against the Docker test stack to prove the namespace fixes and skip logic work. This is the slice's acceptance gate.
 

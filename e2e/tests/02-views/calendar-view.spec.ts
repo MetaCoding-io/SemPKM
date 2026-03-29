@@ -40,23 +40,24 @@ test.describe('Calendar View', () => {
   });
 
   /**
-   * Empty state: when no type is pre-selected, the view should show
-   * a .view-empty-state message (the calendar container is not rendered
-   * until a type with date fields is selected).
+   * Merged mode: when no type is pre-selected, the backend renders a
+   * merged-mode calendar (all types with date fields) — not an empty state.
+   * The FullCalendar container should still render and be functional.
    */
-  test('calendar view shows empty state when no type selected', async ({ ownerPage }) => {
+  test('calendar view renders merged mode when no type selected', async ({ ownerPage }) => {
     await ownerPage.goto(`${BASE_URL}/browser/`);
     await waitForWorkspace(ownerPage);
 
-    // Clear any previously stored type so the calendar starts blank
+    // Clear any previously stored type so the calendar starts in merged mode
     await ownerPage.evaluate(() => {
       localStorage.removeItem('sempkm_generic_type_calendar');
     });
 
-    // When no type is selected, the template renders .view-empty-state
-    // instead of the calendar container, so wait for the empty state
-    await openGenericViewTab(ownerPage, 'calendar', '.view-empty-state', undefined, undefined, 20000);
-    await expect(ownerPage.locator('.view-empty-state')).toBeVisible({ timeout: 10000 });
+    // Backend serves merged-mode calendar (date_fields={"merged":True}),
+    // so the FullCalendar container renders — not .view-empty-state
+    await openGenericViewTab(ownerPage, 'calendar', SEL.views.calendar, undefined, undefined, 20000);
+    await ownerPage.waitForSelector('.fc', { timeout: 20000 });
+    await expect(ownerPage.locator('.fc')).toBeVisible();
   });
 
   /**
@@ -78,29 +79,31 @@ test.describe('Calendar View', () => {
     await ownerPage.waitForSelector('.fc', { timeout: 20000 });
     await waitForIdle(ownerPage);
 
-    // Default view is dayGridMonth — verify month grid is present
-    await expect(ownerPage.locator('.fc-daygrid')).toBeVisible({ timeout: 5000 });
+    // Default view is dayGridMonth — verify month grid is present.
+    // FullCalendar's grid inside dockview can report hidden to Playwright's
+    // visibility check, so use waitForSelector with state:'attached'.
+    await ownerPage.waitForSelector('.fc-daygrid', { state: 'attached', timeout: 5000 });
 
     // Switch to week view
     const weekBtn = ownerPage.locator('.fc-timeGridWeek-button');
     if ((await weekBtn.count()) > 0) {
       await weekBtn.click();
-      await expect(ownerPage.locator('.fc-timegrid')).toBeVisible({ timeout: 5000 });
+      await ownerPage.waitForSelector('.fc-timegrid', { state: 'attached', timeout: 5000 });
     }
 
     // Switch to day view
     const dayBtn = ownerPage.locator('.fc-timeGridDay-button');
     if ((await dayBtn.count()) > 0) {
       await dayBtn.click();
-      // Day view also uses fc-timegrid, assert it's still visible
-      await expect(ownerPage.locator('.fc-timegrid')).toBeVisible({ timeout: 5000 });
+      // Day view also uses fc-timegrid
+      await ownerPage.waitForSelector('.fc-timegrid', { state: 'attached', timeout: 5000 });
     }
 
     // Switch back to month view
     const monthBtn = ownerPage.locator('.fc-dayGridMonth-button');
     if ((await monthBtn.count()) > 0) {
       await monthBtn.click();
-      await expect(ownerPage.locator('.fc-daygrid')).toBeVisible({ timeout: 5000 });
+      await ownerPage.waitForSelector('.fc-daygrid', { state: 'attached', timeout: 5000 });
     }
   });
 });

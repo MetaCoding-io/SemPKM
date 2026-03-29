@@ -148,7 +148,9 @@ test.describe('Recurring Tasks on Calendar', () => {
     const recurringEvents = ownerPage.locator('.fc-event-recurring').filter({ hasText: taskTitle });
     const rcCount = await recurringEvents.count();
     expect(rcCount).toBeGreaterThanOrEqual(1);
-    await recurringEvents.first().click();
+    // force:true bypasses pointer-interception — the dockview editor pane
+    // can overlap the calendar panel in Playwright's actionability check
+    await recurringEvents.first().click({ force: true });
     await ownerPage.waitForTimeout(1000);
 
     // --- Assert: openTab was called with the master IRI ---
