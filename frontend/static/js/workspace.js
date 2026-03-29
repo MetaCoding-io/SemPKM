@@ -4891,7 +4891,7 @@
       '</div>' +
       '<div class="prop-field">' +
         '<label>RDF Property</label>' +
-        '<select class="prop-predicate" onchange="handlePredicateChange(this)">' +
+        '<select class="prop-predicate" onchange="SemPKM.handlePredicateChange(this)">' +
           buildPredicateOptions() +
         '</select>' +
         '<input type="text" class="prop-custom-iri" placeholder="Custom IRI (http://…)" style="display:none; margin-top:4px;" autocomplete="off">' +
@@ -4902,7 +4902,7 @@
           buildDatatypeOptions() +
         '</select>' +
       '</div>' +
-      '<button type="button" class="prop-remove" onclick="removePropertyRow(\'' + rowId + '\')" title="Remove property">' +
+      '<button type="button" class="prop-remove" onclick="SemPKM.removePropertyRow(\'' + rowId + '\')" title="Remove property">' +
         '<i data-lucide="trash-2"></i>' +
       '</button>';
 

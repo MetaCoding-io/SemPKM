@@ -54,11 +54,11 @@
             return r.json();
         }).then(function (result) {
             SemPKM.debug('timeline', 'reschedule persisted, event_iri:', result.event_iri);
-            if (typeof showToast === 'function') showToast('Task rescheduled');
+            if (typeof SemPKM !== 'undefined' && typeof SemPKM.showToast === 'function') SemPKM.showToast('Task rescheduled');
             document.dispatchEvent(new CustomEvent('sempkm:command-executed'));
         }).catch(function (err) {
             console.error('[timeline] reschedule patch failed:', err);
-            if (typeof showToast === 'function') showToast('Failed to save dates');
+            if (typeof SemPKM !== 'undefined' && typeof SemPKM.showToast === 'function') SemPKM.showToast('Failed to save dates');
         });
     }
 
@@ -102,8 +102,8 @@
                         patchTimelineTask(task, start, end);
                     },
                     on_click: function (task) {
-                        if (task && task.id && typeof openTab === 'function') {
-                            openTab(task.id, task.name || '');
+                        if (task && task.id && typeof SemPKM !== 'undefined' && typeof SemPKM.openTab === 'function') {
+                            SemPKM.openTab(task.id, task.name || '');
                         }
                     }
                 });

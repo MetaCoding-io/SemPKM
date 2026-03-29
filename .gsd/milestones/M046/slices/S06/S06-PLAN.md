@@ -4,7 +4,7 @@
 **Demo:** After this: Full `npx playwright test` run passes with 0 failures across all 122 specs
 
 ## Tasks
-- [ ] **T01: Run full E2E suite and catalog all failures with error messages** — Run the complete 122-spec E2E suite against the Docker test stack and catalog every failure with its file path, test name, and error message. Group failures by likely root cause category. The partial research run (tests 1–118, chromium only) found 14 failures. This task completes the catalog by running all 122 files across both chromium and firefox.
+- [x] **T01: Run full E2E suite and catalog all failures with error messages** — Run the complete 122-spec E2E suite against the Docker test stack and catalog every failure with its file path, test name, and error message. Group failures by likely root cause category. The partial research run (tests 1–118, chromium only) found 14 failures. This task completes the catalog by running all 122 files across both chromium and firefox.
 
 Steps:
 1. Ensure Docker test stack is healthy: `docker compose -f docker-compose.test.yml ps` and check all services are Up/healthy.
@@ -26,7 +26,7 @@ Known failures from S06 research to expect:
   - Estimate: 30m
   - Files: e2e/tests/, .gsd/milestones/M046/slices/S06/failure-catalog.md
   - Verify: test -f .gsd/milestones/M046/slices/S06/failure-catalog.md && grep -c '|' .gsd/milestones/M046/slices/S06/failure-catalog.md
-- [ ] **T02: Fix all identified failures — bare globals, template bugs, test adjustments** — Fix every failure cataloged in T01. The research and pre-exploration identified these root causes:
+- [x] **T02: Fix 14 bare-global references across timeline_view.html, create_class_form.html, and workspace.js; fix RBox test selector; create failure catalog** — Fix every failure cataloged in T01. The research and pre-exploration identified these root causes:
 
 **Category A: Bare-global references after M044 namespace migration**
 

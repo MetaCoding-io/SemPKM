@@ -152,8 +152,8 @@ test.describe('Ontology Viewer', () => {
     await waitForIdle(ownerPage);
 
     // Check for property table(s) — at least one should be present (gist has many properties)
-    const objectTable = ownerPage.locator('[data-testid="rbox-object-table"]');
-    const datatypeTable = ownerPage.locator('[data-testid="rbox-datatype-table"]');
+    const objectTable = ownerPage.locator('[data-testid^="rbox-object-table"]').first();
+    const datatypeTable = ownerPage.locator('[data-testid^="rbox-datatype-table"]').first();
 
     const objectTableVisible = await objectTable.isVisible().catch(() => false);
     const datatypeTableVisible = await datatypeTable.isVisible().catch(() => false);

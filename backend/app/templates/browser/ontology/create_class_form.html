@@ -18,7 +18,7 @@
         hx-target="#ccf-result"
         hx-swap="innerHTML"
         hx-indicator="#ccf-spinner"
-        hx-on::config-request="serializeProperties(); event.detail.parameters['properties'] = document.getElementById('ccf-properties').value">
+        hx-on::config-request="SemPKM.serializeProperties(); event.detail.parameters['properties'] = document.getElementById('ccf-properties').value">
 
     {# ═══════════════════════════════════════════════
        Section 1: Class Identity
@@ -66,7 +66,7 @@
         <input type="hidden" id="ccf-icon" name="icon" value="">
         <div class="icon-picker" data-testid="icon-picker">
           <input type="text" class="icon-picker-search" placeholder="Search icons…"
-                 oninput="filterIconPicker(this.value)" autocomplete="off">
+                 oninput="SemPKM.filterIconPicker(this.value)" autocomplete="off">
           <div class="icon-picker-grid" id="icon-picker-grid">
             {% set icons = [
               'file-text', 'book', 'lightbulb', 'user', 'calendar', 'tag', 'folder',
@@ -78,7 +78,7 @@
             ] %}
             {% for icon_name in icons %}
             <button type="button" class="icon-picker-cell" data-icon="{{ icon_name }}"
-                    onclick="selectIcon(this, '{{ icon_name }}')" title="{{ icon_name }}">
+                    onclick="SemPKM.selectIcon(this, '{{ icon_name }}')" title="{{ icon_name }}">
               <i data-lucide="{{ icon_name }}"></i>
             </button>
             {% endfor %}
@@ -92,39 +92,39 @@
         <input type="hidden" id="ccf-icon-color" name="icon_color" value="">
         <div class="color-picker-row" id="color-picker-row">
           <button type="button" class="color-swatch color-swatch--selected" data-color=""
-                  onclick="selectIconColor(this, '')" title="Default">
+                  onclick="SemPKM.selectIconColor(this, '')" title="Default">
             <span style="background: var(--color-text-muted);"></span>
           </button>
           <button type="button" class="color-swatch" data-color="#6366f1"
-                  onclick="selectIconColor(this, '#6366f1')" title="Indigo">
+                  onclick="SemPKM.selectIconColor(this, '#6366f1')" title="Indigo">
             <span style="background: #6366f1;"></span>
           </button>
           <button type="button" class="color-swatch" data-color="#8b5cf6"
-                  onclick="selectIconColor(this, '#8b5cf6')" title="Purple">
+                  onclick="SemPKM.selectIconColor(this, '#8b5cf6')" title="Purple">
             <span style="background: #8b5cf6;"></span>
           </button>
           <button type="button" class="color-swatch" data-color="#ec4899"
-                  onclick="selectIconColor(this, '#ec4899')" title="Pink">
+                  onclick="SemPKM.selectIconColor(this, '#ec4899')" title="Pink">
             <span style="background: #ec4899;"></span>
           </button>
           <button type="button" class="color-swatch" data-color="#ef4444"
-                  onclick="selectIconColor(this, '#ef4444')" title="Red">
+                  onclick="SemPKM.selectIconColor(this, '#ef4444')" title="Red">
             <span style="background: #ef4444;"></span>
           </button>
           <button type="button" class="color-swatch" data-color="#f59e0b"
-                  onclick="selectIconColor(this, '#f59e0b')" title="Amber">
+                  onclick="SemPKM.selectIconColor(this, '#f59e0b')" title="Amber">
             <span style="background: #f59e0b;"></span>
           </button>
           <button type="button" class="color-swatch" data-color="#10b981"
-                  onclick="selectIconColor(this, '#10b981')" title="Emerald">
+                  onclick="SemPKM.selectIconColor(this, '#10b981')" title="Emerald">
             <span style="background: #10b981;"></span>
           </button>
           <button type="button" class="color-swatch" data-color="#3b82f6"
-                  onclick="selectIconColor(this, '#3b82f6')" title="Blue">
+                  onclick="SemPKM.selectIconColor(this, '#3b82f6')" title="Blue">
             <span style="background: #3b82f6;"></span>
           </button>
           <button type="button" class="color-swatch" data-color="#06b6d4"
-                  onclick="selectIconColor(this, '#06b6d4')" title="Cyan">
+                  onclick="SemPKM.selectIconColor(this, '#06b6d4')" title="Cyan">
             <span style="background: #06b6d4;"></span>
           </button>
         </div>
@@ -153,7 +153,7 @@
                  name="q">
           <div class="parent-class-selected" id="ccf-parent-label">
             <span class="parent-class-tag">owl:Thing</span>
-            <button type="button" class="parent-class-clear" onclick="clearParentClass()" title="Reset to owl:Thing">
+            <button type="button" class="parent-class-clear" onclick="SemPKM.clearParentClass()" title="Reset to owl:Thing">
               <i data-lucide="x"></i>
             </button>
           </div>
@@ -173,7 +173,7 @@
           <div class="property-rows" id="property-rows">
             {# Default description property — pre-populated via JS below #}
           </div>
-          <button type="button" class="btn-sm btn-add-property" onclick="addPropertyRow()">
+          <button type="button" class="btn-sm btn-add-property" onclick="SemPKM.addPropertyRow()">
             <i data-lucide="plus"></i> Add Property
           </button>
         </div>
@@ -202,8 +202,8 @@
   }
 
   // Add default "Description" property row pre-filled with rdfs:comment
-  if (typeof addPropertyRow === 'function') {
-    addPropertyRow();
+  if (typeof SemPKM !== 'undefined' && typeof SemPKM.addPropertyRow === 'function') {
+    SemPKM.addPropertyRow();
     var row = document.querySelector('.property-row:last-child');
     if (row) {
       var nameInput = row.querySelector('.prop-name');
