@@ -1,43 +1,12 @@
-# S03: App Platform — Subprocess Lifecycle in Test Container
+---
+estimated_steps: 90
+estimated_files: 2
+skills_used: []
+---
 
-**Goal:** Fix all infrastructure preventing sync app E2E tests from passing: backend bugs (scheduler datetime crash, wrong APP_BASE_URL), missing Docker mock services (todoist, asana, caldav, google-calendar, outlook), missing E2E selectors (6 app selector groups + 4 apps selectors), and admin template mismatch (install form needs <details> wrapper).
-**Demo:** After this: Sync app tests (linear, github, jira, monday, todoist, caldav, asana, app-platform) find running processes and render settings UI
+# T03: Add missing E2E selectors and fix admin install template
 
-## Tasks
-- [x] **T01: Fix naive/aware datetime crash in scheduler and add APP_BASE_URL to test compose for app subprocess startup** — Fix two backend bugs that prevent all app subprocesses from working in the test container:
-
-1. **Scheduler naive/aware datetime crash** — `backend/app/apps/scheduler.py` line 257: `now - last_run.started_at` crashes with TypeError because `now` is timezone-aware (UTC) but `last_run.started_at` from SQLite is naive. Apply the same pattern from Knowledge entry about SQLite naive datetimes: normalize `started_at` before subtraction.
-
-2. **APP_BASE_URL missing** — `docker-compose.test.yml` api service environment block has no `APP_BASE_URL`. The default in `backend/app/main.py` is `http://localhost:4000` which is wrong inside the test container (the API listens on port 8000). Add `APP_BASE_URL: http://localhost:8000` to the api service environment.
-  - Estimate: 15m
-  - Files: backend/app/apps/scheduler.py, docker-compose.test.yml
-  - Verify: cd backend && python -c "import ast; ast.parse(open('app/apps/scheduler.py').read())" && grep -q 'APP_BASE_URL' ../docker-compose.test.yml && echo 'PASS'
-- [ ] **T02: Wire 5 missing mock API services into docker-compose.test.yml** — Add 5 mock API Docker services and their corresponding environment variables to `docker-compose.test.yml`. Follow the exact pattern of the existing mock-linear/mock-github/mock-jira/mock-monday services.
-
-**Services to add (all use same pattern: python:3.12-slim, volume mount, python server.py, health check, sempkm-test network):**
-
-1. `mock-todoist` — volume `./e2e/mock-todoist-api:/app:ro`
-2. `mock-asana` — volume `./e2e/mock-asana-api:/app:ro`
-3. `mock-caldav` — volume `./e2e/mock-caldav-api:/app:ro`
-4. `mock-google-calendar` — volume `./e2e/mock-google-calendar-api:/app:ro`
-5. `mock-outlook` — volume `./e2e/mock-outlook-api:/app:ro`
-
-**Environment variables to add to the api service (apps inherit the API container's env):**
-- `TODOIST_API_URL: http://mock-todoist:8080`
-- `ASANA_API_URL: http://mock-asana:8080`
-- `ASANA_TOKEN_URL: http://mock-asana:8080/-/oauth_token`
-- `GCAL_API_URL: http://mock-google-calendar:8080`
-- `GOOGLE_TOKEN_URL: http://mock-google-calendar:8080/oauth/token`
-- `OUTLOOK_API_URL: http://mock-outlook:8080`
-- `OUTLOOK_TOKEN_URL: http://mock-outlook:8080/oauth2/v2.0/token`
-
-Note: CalDAV doesn't need an env var — the server URL is user-supplied via the connect form.
-
-**Add depends_on entries** for all 5 new mock services to the api service's depends_on block (with `condition: service_healthy`).
-  - Estimate: 20m
-  - Files: docker-compose.test.yml
-  - Verify: grep -c 'mock-todoist\|mock-asana\|mock-caldav\|mock-google-calendar\|mock-outlook' docker-compose.test.yml | grep -q '[5-9]' && grep -q 'TODOIST_API_URL' docker-compose.test.yml && grep -q 'GCAL_API_URL' docker-compose.test.yml && grep -q 'OUTLOOK_API_URL' docker-compose.test.yml && echo 'PASS'
-- [ ] **T03: Add missing E2E selectors and fix admin install template** — Add 6 missing selector groups and 4 missing `apps` selectors to `e2e/helpers/selectors.ts`, and fix the admin apps list template to match the test's expected `<details>` wrapper.
+Add 6 missing selector groups and 4 missing `apps` selectors to `e2e/helpers/selectors.ts`, and fix the admin apps list template to match the test's expected `<details>` wrapper.
 
 **Selector groups to add (derive values from app HTML templates):**
 
@@ -136,6 +105,40 @@ Note: CalDAV doesn't need an env var — the server URL is user-supplied via the
    - `appsTree: '#apps-tree'`
 
 **Admin template fix:** Wrap the install form section in `backend/app/templates/admin/apps/list.html` with a `<details class="install-details">` element and add a `<summary>` so the test's `installDetails.locator('summary').click()` works.
-  - Estimate: 30m
-  - Files: e2e/helpers/selectors.ts, backend/app/templates/admin/apps/list.html
-  - Verify: cd e2e && npx tsc --noEmit 2>&1 | grep -c 'todoistSync\|asanaSync\|caldavCalendarSync\|googleCalendarSync\|outlookCalendarSync\|SEL.rss' | grep -q '^0$' && echo 'PASS'
+
+## Inputs
+
+- ``e2e/helpers/selectors.ts` — existing selector definitions (linearSync, githubSync, jiraSync, mondaySync, apps as pattern reference)`
+- ``apps/todoist-sync/frontend/templates/connect.html` — HTML IDs and classes for todoist selectors`
+- ``apps/todoist-sync/frontend/templates/connect_status.html` — HTML IDs and classes for todoist status selectors`
+- ``apps/asana-sync/frontend/templates/connect.html` — HTML IDs and classes for asana selectors`
+- ``apps/asana-sync/frontend/templates/connect_status.html` — HTML IDs and classes for asana status selectors`
+- ``apps/caldav-calendar/frontend/templates/connect.html` — HTML IDs and classes for caldav selectors`
+- ``apps/caldav-calendar/frontend/templates/connect_status.html` — HTML IDs and classes for caldav status selectors`
+- ``apps/google-calendar/frontend/templates/connect.html` — HTML IDs and classes for google-calendar selectors`
+- ``apps/google-calendar/frontend/templates/connect_status.html` — HTML IDs and classes for google-calendar status selectors`
+- ``apps/outlook-calendar/frontend/templates/connect.html` — HTML IDs and classes for outlook selectors`
+- ``apps/outlook-calendar/frontend/templates/connect_status.html` — HTML IDs and classes for outlook status selectors`
+- ``apps/rss-reader/frontend/templates/reader.html` — HTML IDs and classes for rss selectors`
+- ``apps/rss-reader/frontend/templates/feed-sidebar.html` — HTML IDs and classes for rss feed sidebar`
+- ``apps/rss-reader/frontend/templates/subscribe-dialog.html` — HTML IDs and classes for rss subscribe dialog`
+- ``apps/rss-reader/frontend/templates/article-list.html` — HTML IDs and classes for rss article list`
+- ``apps/rss-reader/frontend/templates/settings.html` — HTML IDs and classes for rss settings`
+- ``apps/rss-reader/frontend/templates/opml-import.html` — HTML IDs and classes for rss OPML import`
+- ``apps/rss-reader/frontend/templates/star-button.html` — HTML for rss star button`
+- ``backend/app/templates/admin/apps/list.html` — admin apps list template needs <details> wrapper`
+- ``e2e/tests/31-rss-reader/rss-reader.spec.ts` — test file referencing SEL.rss and SEL.apps selectors`
+- ``e2e/tests/37-todoist-sync/todoist-sync.spec.ts` — test file referencing SEL.todoistSync`
+- ``e2e/tests/40-asana-sync/asana-sync.spec.ts` — test file referencing SEL.asanaSync`
+- ``e2e/tests/39-caldav-calendar/caldav-calendar-sync.spec.ts` — test file referencing SEL.caldavCalendarSync`
+- ``e2e/tests/36-google-calendar-sync/google-calendar-sync.spec.ts` — test file referencing SEL.googleCalendarSync`
+- ``e2e/tests/38-outlook-sync/outlook-calendar-sync.spec.ts` — test file referencing SEL.outlookCalendarSync`
+
+## Expected Output
+
+- ``e2e/helpers/selectors.ts` — 6 new selector groups (todoistSync, asanaSync, caldavCalendarSync, googleCalendarSync, outlookCalendarSync, rss) + 4 new apps selectors (installDetails, installPathInput, sidebarAppsSection, appsTree)`
+- ``backend/app/templates/admin/apps/list.html` — install form wrapped in <details class="install-details"> element`
+
+## Verification
+
+cd e2e && npx tsc --noEmit 2>&1 | grep -c 'todoistSync\|asanaSync\|caldavCalendarSync\|googleCalendarSync\|outlookCalendarSync\|SEL.rss' | grep -q '^0$' && echo 'PASS'

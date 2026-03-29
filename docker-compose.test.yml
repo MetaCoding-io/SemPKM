@@ -53,6 +53,7 @@ services:
       JIRA_API_URL: http://mock-jira:8080
       MONDAY_API_URL: http://mock-monday:8080
       LLM_API_URL: http://mock-llm:8080
+      APP_BASE_URL: http://localhost:8000
     depends_on:
       triplestore:
         condition: service_healthy

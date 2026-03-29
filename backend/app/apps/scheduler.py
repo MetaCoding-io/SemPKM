@@ -254,7 +254,11 @@ class AppScheduler:
         # Check last run
         last_run = await self._get_last_run(app_id, task_id)
         if last_run and last_run.started_at:
-            elapsed = (now - last_run.started_at).total_seconds()
+            started = last_run.started_at
+            # SQLite stores naive datetimes; normalize to UTC for subtraction
+            if started.tzinfo is None:
+                started = started.replace(tzinfo=timezone.utc)
+            elapsed = (now - started).total_seconds()
             if elapsed < interval_seconds:
                 return
 

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-03-29T01:47:41.593Z",
+  "exported_at": "2026-03-29T02:12:18.308Z",
   "milestones": [
     {
       "id": "M001",
@@ -7302,14 +7302,14 @@
       "milestone_id": "M046",
       "id": "S02",
       "title": "Copilot Bottom Panel — Z-Index Fix",
-      "status": "pending",
+      "status": "complete",
       "risk": "low",
       "depends": [],
       "demo": "All 5 copilot tests pass — AI COPILOT tab button is clickable regardless of editor-empty overlay state",
       "created_at": "2026-03-29T01:16:09.469Z",
-      "completed_at": null,
-      "full_summary_md": "",
-      "full_uat_md": "",
+      "completed_at": "2026-03-29T01:52:08.123Z",
+      "full_summary_md": "---\nid: S02\nparent: M046\nmilestone: M046\nprovides:\n  - All 5 copilot E2E tests passing on chromium\nrequires:\n  []\naffects:\n  - S06\nkey_files:\n  - frontend/static/js/workspace.js\n  - frontend/static/css/workspace.css\n  - e2e/tests/46-copilot/copilot.spec.ts\nkey_decisions:\n  - pointer-events:none on .editor-empty is safe because it contains no interactive elements — only instructional text and kbd hints\npatterns_established:\n  - Belt-and-suspenders pattern for E2E helpers: fix the app-side behavior AND add a test-side guard for the same condition\nobservability_surfaces:\n  - none\ndrill_down_paths:\n  - .gsd/milestones/M046/slices/S02/tasks/T01-SUMMARY.md\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-03-29T01:52:08.124Z\nblocker_discovered: false\n---\n\n# S02: Copilot Bottom Panel — Z-Index Fix\n\n**Three surgical edits fix all 5 copilot E2E failures — auto-open collapsed bottom panel on tab click, block pointer events on editor-empty watermark, and harden the E2E helper.**\n\n## What Happened\n\nAll 5 copilot E2E tests were failing because Playwright couldn't deliver clicks to the AI COPILOT tab button. The root cause was a two-part interaction:\n\n1. The bottom panel starts collapsed (height: 0, overflow: hidden), so the tab buttons exist in the DOM but are clipped to zero visual area.\n2. The `.editor-empty` watermark overlay (position: absolute, covering the full editor area) sat at the click coordinates and intercepted pointer events before they could reach the tab buttons.\n\nThree targeted edits fixed the problem:\n\n**workspace.js** — The `initPanelTabs()` tab click handler now checks `if (!panelState.open)` and sets `panelState.open = true` before saving state. This is both the E2E fix and a UX improvement — clicking a bottom-panel tab when the panel is collapsed now auto-opens it.\n\n**workspace.css** — Added `pointer-events: none` to the `.editor-empty` rule. The watermark contains only instructional text and kbd hints — no interactive elements — so it should never intercept pointer events. This prevents the watermark from blocking clicks on sibling elements like the bottom panel tabs.\n\n**copilot.spec.ts** — The `openCopilotTab()` helper now includes a `page.evaluate()` pre-check that detects if the bottom panel is collapsed (height < 10px) and calls `window.SemPKM.toggleBottomPanel()` to open it. Belt-and-suspenders — the JS fix handles it app-side, this handles it test-side.\n\n## Verification\n\nAll 5 copilot E2E tests pass on chromium (26.3s total):\n- basic chat flow — send message and receive streaming response ✓\n- SPARQL generation and approval flow ✓\n- conversation persistence across page reload ✓\n- persona switching ✓\n- object creation from chat ✓\n\n## Requirements Advanced\n\nNone.\n\n## Requirements Validated\n\nNone.\n\n## New Requirements Surfaced\n\nNone.\n\n## Requirements Invalidated or Re-scoped\n\nNone.\n\n## Deviations\n\nNone.\n\n## Known Limitations\n\nNone.\n\n## Follow-ups\n\nNone.\n\n## Files Created/Modified\n\n- `frontend/static/js/workspace.js` — Auto-open bottom panel when a tab button is clicked while panel is collapsed\n- `frontend/static/css/workspace.css` — Added pointer-events:none to .editor-empty watermark overlay\n- `e2e/tests/46-copilot/copilot.spec.ts` — openCopilotTab() helper now ensures bottom panel is open before clicking tab button\n",
+      "full_uat_md": "# S02: Copilot Bottom Panel — Z-Index Fix — UAT\n\n**Milestone:** M046\n**Written:** 2026-03-29T01:52:08.124Z\n\n## UAT: Copilot Bottom Panel — Z-Index Fix\n\n### Preconditions\n- Docker test stack running at localhost:3901\n- Mock LLM API server running\n- basic-pkm model installed\n- Authenticated as admin user\n\n### Test 1: AI COPILOT tab opens from collapsed bottom panel\n1. Navigate to `/browser/`\n2. Collapse the bottom panel via the toggle button (panel height goes to 0)\n3. Click the AI COPILOT tab button in the bottom panel bar\n4. **Expected:** Bottom panel auto-opens AND the copilot tab is active with the chat container visible\n\n### Test 2: Editor-empty watermark does not block bottom panel tabs\n1. Navigate to `/browser/` with no object tabs open (editor area shows the watermark with \"Open an item...\" text)\n2. Click the AI COPILOT tab button\n3. **Expected:** Click reaches the tab button — the copilot container loads. The watermark does not intercept the click.\n\n### Test 3: Basic chat flow\n1. Open the AI COPILOT tab\n2. Type a message in the chat input and press Enter\n3. **Expected:** User message appears in the conversation. Streaming response from mock LLM renders in the assistant message bubble.\n\n### Test 4: SPARQL generation and approval\n1. Open the AI COPILOT tab\n2. Send a message that triggers SPARQL generation (e.g., \"show me all tasks\")\n3. **Expected:** SPARQL code block renders with an approval button. Clicking approve executes the query.\n\n### Test 5: Conversation persistence\n1. Open the AI COPILOT tab, send a message\n2. Reload the page\n3. Re-open the AI COPILOT tab\n4. **Expected:** Previous conversation is listed and messages are preserved.\n\n### Test 6: Persona switching\n1. Open the AI COPILOT tab\n2. Switch the persona selector to a different persona\n3. **Expected:** Persona changes without error. The selected persona persists.\n\n### Test 7: Object creation from chat\n1. Open the AI COPILOT tab\n2. Send a message that triggers object creation\n3. **Expected:** Object is created and confirmed in the chat response.\n\n### Edge Cases\n- **Rapid tab switching:** Click AI COPILOT, then Event Log, then AI COPILOT again quickly — copilot should re-render without duplication or errors.\n- **Panel toggle during copilot use:** While copilot is active, collapse and re-expand the bottom panel — copilot content should remain intact.\n",
       "goal": "All 5 copilot E2E tests pass — the AI COPILOT tab button is clickable regardless of bottom panel collapsed state or editor-empty overlay position.",
       "success_criteria": "`cd e2e && npx playwright test tests/46-copilot/copilot.spec.ts --project=chromium --reporter=list` exits 0 with 5/5 tests passing.",
       "proof_level": "Integration — tests run against the Docker test stack with mock LLM server.",
@@ -7330,11 +7330,11 @@
       "completed_at": null,
       "full_summary_md": "",
       "full_uat_md": "",
-      "goal": "Fix app subprocess startup in the test Docker container so apps can install venvs and start processes",
-      "success_criteria": "All ~10 app platform test failures resolve. App status shows 'running' in test environment.",
-      "proof_level": "Run affected sync app test files and confirm 0 failures",
-      "integration_closure": "Docker compose changes must not break dev workflow hot-reload or production builds",
-      "observability_impact": "None",
+      "goal": "Fix all infrastructure preventing sync app E2E tests from passing: backend bugs (scheduler datetime crash, wrong APP_BASE_URL), missing Docker mock services (todoist, asana, caldav, google-calendar, outlook), missing E2E selectors (6 app selector groups + 4 apps selectors), and admin template mismatch (install form needs <details> wrapper).",
+      "success_criteria": "- `cd backend && python -c \"import ast; ast.parse(open('app/apps/scheduler.py').read())\"` passes\n- `grep -c 'APP_BASE_URL' docker-compose.test.yml` returns >= 1\n- `grep -c 'mock-todoist\\|mock-asana\\|mock-caldav\\|mock-google-calendar\\|mock-outlook' docker-compose.test.yml` returns >= 5\n- `cd e2e && npx tsc --noEmit 2>&1 | grep -c 'SEL\\.\\(todoistSync\\|asanaSync\\|caldavCalendarSync\\|googleCalendarSync\\|outlookCalendarSync\\|rss\\)'` returns 0 (zero TS compilation errors from missing selectors)\n- `grep -c 'todoistSync\\|asanaSync\\|caldavCalendarSync\\|googleCalendarSync\\|outlookCalendarSync\\|rss:' e2e/helpers/selectors.ts` returns >= 6",
+      "proof_level": "contract — fixes are verified by TS compilation and grep checks; full E2E runtime verification deferred to S06",
+      "integration_closure": "- Upstream: `backend/app/apps/scheduler.py`, `backend/app/main.py`, `docker-compose.test.yml`, `e2e/helpers/selectors.ts`, `backend/app/templates/admin/apps/list.html`\n- New wiring: 5 Docker mock service definitions + env vars on api service; 6+ selector groups in selectors.ts\n- What remains: S06 runs the full E2E suite against the rebuilt Docker stack to prove runtime behavior",
+      "observability_impact": "None — these are infrastructure/configuration fixes, not runtime behavior changes",
       "sequence": 0,
       "replan_triggered_at": null
     },
@@ -29996,6 +29996,143 @@
       "observability_impact": "",
       "full_plan_md": "",
       "sequence": 0
+    },
+    {
+      "milestone_id": "M046",
+      "slice_id": "S03",
+      "id": "T01",
+      "title": "Fix naive/aware datetime crash in scheduler and add APP_BASE_URL to test compose for app subprocess startup",
+      "status": "complete",
+      "one_liner": "Fix naive/aware datetime crash in scheduler and add APP_BASE_URL to test compose for app subprocess startup",
+      "narrative": "Fixed two bugs blocking app subprocesses in the test container: (1) scheduler.py crashed with TypeError when subtracting timezone-aware `now` from naive SQLite `started_at` — applied the established project pattern of normalizing naive datetimes to UTC before subtraction; (2) docker-compose.test.yml lacked APP_BASE_URL, causing the default http://localhost:4000 to be used when the test API listens on port 8000 — added APP_BASE_URL: http://localhost:8000.",
+      "verification_result": "AST parse of scheduler.py passed (no syntax errors). grep confirmed APP_BASE_URL present in docker-compose.test.yml.",
+      "duration": "",
+      "completed_at": "2026-03-29T02:12:18.282Z",
+      "blocker_discovered": false,
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/apps/scheduler.py",
+        "docker-compose.test.yml"
+      ],
+      "key_decisions": [],
+      "full_summary_md": "---\nid: T01\nparent: S03\nmilestone: M046\nkey_files:\n  - backend/app/apps/scheduler.py\n  - docker-compose.test.yml\nkey_decisions:\n  - (none)\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-03-29T02:12:18.282Z\nblocker_discovered: false\n---\n\n# T01: Fix naive/aware datetime crash in scheduler and add APP_BASE_URL to test compose for app subprocess startup\n\n**Fix naive/aware datetime crash in scheduler and add APP_BASE_URL to test compose for app subprocess startup**\n\n## What Happened\n\nFixed two bugs blocking app subprocesses in the test container: (1) scheduler.py crashed with TypeError when subtracting timezone-aware `now` from naive SQLite `started_at` — applied the established project pattern of normalizing naive datetimes to UTC before subtraction; (2) docker-compose.test.yml lacked APP_BASE_URL, causing the default http://localhost:4000 to be used when the test API listens on port 8000 — added APP_BASE_URL: http://localhost:8000.\n\n## Verification\n\nAST parse of scheduler.py passed (no syntax errors). grep confirmed APP_BASE_URL present in docker-compose.test.yml.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `python3 -c \"import ast; ast.parse(open('app/apps/scheduler.py').read())\"` | 0 | ✅ pass | 200ms |\n| 2 | `grep -q 'APP_BASE_URL' ../docker-compose.test.yml` | 0 | ✅ pass | 50ms |\n\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/apps/scheduler.py`\n- `docker-compose.test.yml`\n",
+      "description": "Fix two backend bugs that prevent all app subprocesses from working in the test container:\n\n1. **Scheduler naive/aware datetime crash** — `backend/app/apps/scheduler.py` line 257: `now - last_run.started_at` crashes with TypeError because `now` is timezone-aware (UTC) but `last_run.started_at` from SQLite is naive. Apply the same pattern from Knowledge entry about SQLite naive datetimes: normalize `started_at` before subtraction.\n\n2. **APP_BASE_URL missing** — `docker-compose.test.yml` api service environment block has no `APP_BASE_URL`. The default in `backend/app/main.py` is `http://localhost:4000` which is wrong inside the test container (the API listens on port 8000). Add `APP_BASE_URL: http://localhost:8000` to the api service environment.",
+      "estimate": "15m",
+      "files": [
+        "backend/app/apps/scheduler.py",
+        "docker-compose.test.yml"
+      ],
+      "verify": "cd backend && python -c \"import ast; ast.parse(open('app/apps/scheduler.py').read())\" && grep -q 'APP_BASE_URL' ../docker-compose.test.yml && echo 'PASS'",
+      "inputs": [
+        "`backend/app/apps/scheduler.py` — has datetime bug at line 257",
+        "`docker-compose.test.yml` — missing APP_BASE_URL env var",
+        "`backend/app/main.py` — reference for APP_BASE_URL default behavior (lines 398-404)"
+      ],
+      "expected_output": [
+        "`backend/app/apps/scheduler.py` — datetime normalization fix applied",
+        "`docker-compose.test.yml` — APP_BASE_URL added to api service environment"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M046",
+      "slice_id": "S03",
+      "id": "T02",
+      "title": "Wire 5 missing mock API services into docker-compose.test.yml",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Add 5 mock API Docker services and their corresponding environment variables to `docker-compose.test.yml`. Follow the exact pattern of the existing mock-linear/mock-github/mock-jira/mock-monday services.\n\n**Services to add (all use same pattern: python:3.12-slim, volume mount, python server.py, health check, sempkm-test network):**\n\n1. `mock-todoist` — volume `./e2e/mock-todoist-api:/app:ro`\n2. `mock-asana` — volume `./e2e/mock-asana-api:/app:ro`\n3. `mock-caldav` — volume `./e2e/mock-caldav-api:/app:ro`\n4. `mock-google-calendar` — volume `./e2e/mock-google-calendar-api:/app:ro`\n5. `mock-outlook` — volume `./e2e/mock-outlook-api:/app:ro`\n\n**Environment variables to add to the api service (apps inherit the API container's env):**\n- `TODOIST_API_URL: http://mock-todoist:8080`\n- `ASANA_API_URL: http://mock-asana:8080`\n- `ASANA_TOKEN_URL: http://mock-asana:8080/-/oauth_token`\n- `GCAL_API_URL: http://mock-google-calendar:8080`\n- `GOOGLE_TOKEN_URL: http://mock-google-calendar:8080/oauth/token`\n- `OUTLOOK_API_URL: http://mock-outlook:8080`\n- `OUTLOOK_TOKEN_URL: http://mock-outlook:8080/oauth2/v2.0/token`\n\nNote: CalDAV doesn't need an env var — the server URL is user-supplied via the connect form.\n\n**Add depends_on entries** for all 5 new mock services to the api service's depends_on block (with `condition: service_healthy`).",
+      "estimate": "20m",
+      "files": [
+        "docker-compose.test.yml"
+      ],
+      "verify": "grep -c 'mock-todoist\\|mock-asana\\|mock-caldav\\|mock-google-calendar\\|mock-outlook' docker-compose.test.yml | grep -q '[5-9]' && grep -q 'TODOIST_API_URL' docker-compose.test.yml && grep -q 'GCAL_API_URL' docker-compose.test.yml && grep -q 'OUTLOOK_API_URL' docker-compose.test.yml && echo 'PASS'",
+      "inputs": [
+        "`docker-compose.test.yml` — existing mock service definitions as pattern reference",
+        "`e2e/mock-todoist-api/server.py` — mock server exists on disk",
+        "`e2e/mock-asana-api/server.py` — mock server exists on disk",
+        "`e2e/mock-caldav-api/server.py` — mock server exists on disk",
+        "`e2e/mock-google-calendar-api/server.py` — mock server exists on disk",
+        "`e2e/mock-outlook-api/server.py` — mock server exists on disk"
+      ],
+      "expected_output": [
+        "`docker-compose.test.yml` — 5 new mock service definitions + env vars + depends_on entries"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M046",
+      "slice_id": "S03",
+      "id": "T03",
+      "title": "Add missing E2E selectors and fix admin install template",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Add 6 missing selector groups and 4 missing `apps` selectors to `e2e/helpers/selectors.ts`, and fix the admin apps list template to match the test's expected `<details>` wrapper.\n\n**Selector groups to add (derive values from app HTML templates):**\n\n1. **todoistSync** — from `apps/todoist-sync/frontend/templates/`:\n   - `patInput: '#todoist-token'`\n   - `connectBtn: '.api-key-form button[type=\"submit\"]'`\n   - `connectStatus: '.connection-status'`\n   - `tokenPreview: '.token-preview'`\n   - `projectCheckbox: '.project-checkbox-item input[type=\"checkbox\"]'`\n   - `saveProjectsBtn: '.projects-section button[type=\"submit\"]'`\n   - `syncDirectionBidirectional: 'input[name=\"sync_direction\"][value=\"bidirectional\"]'`\n   - `saveConfigBtn: '.sync-config-form button[type=\"submit\"]'`\n   - `syncNowBtn: '#sync-now-btn'`\n   - `syncStats: '.sync-stats'`\n   - `statValue: '.stat-value'`\n\n2. **asanaSync** — from `apps/asana-sync/frontend/templates/`:\n   - `patInput: '#asana-pat'`\n   - `connectBtn: '.api-key-form button[type=\"submit\"]'`\n   - `connectStatus: '.connection-status'`\n   - `projectCheckbox: '.project-checkbox-item input[type=\"checkbox\"]'`\n   - `saveProjectsBtn: '.projects-section button[type=\"submit\"]'`\n   - `discoverFieldsBtn: '.discover-section button[type=\"submit\"]'`\n   - `saveMappingBtn: '.field-mapping-form button[type=\"submit\"]'`\n   - `statusSourceSection: '.status-source-radios'`\n   - `syncDirectionBidirectional: 'input[name=\"sync_direction\"][value=\"bidirectional\"]'`\n   - `saveConfigBtn: '.sync-config-form button[type=\"submit\"]'`\n   - `syncNowBtn: '#sync-now-btn'`\n   - `syncStats: '.sync-stats'`\n\n3. **caldavCalendarSync** — from `apps/caldav-calendar/frontend/templates/`:\n   - `serverUrlInput: '#caldav-server-url'`\n   - `usernameInput: '#caldav-username'`\n   - `passwordInput: '#caldav-password'`\n   - `credentialsSubmitBtn: '.credentials-form button[type=\"submit\"]'`\n   - `connectStatus: '.connection-status'`\n   - `accountUsername: '.account-username'`\n   - `calendarCheckbox: '.calendar-checkbox-item input[type=\"checkbox\"]'`\n   - `saveCalendarsBtn: '.calendars-section button[type=\"submit\"]'`\n   - `syncDirectionBidirectional: 'input[name=\"sync_direction\"][value=\"bidirectional\"]'`\n   - `saveConfigBtn: '.sync-config-form button[type=\"submit\"]'`\n   - `syncNowBtn: '#sync-now-btn'`\n   - `syncStats: '.sync-stats'`\n\n4. **googleCalendarSync** — from `apps/google-calendar/frontend/templates/`:\n   - `clientIdInput: '#gcal-client-id'`\n   - `clientSecretInput: '#gcal-client-secret'`\n   - `credentialsSubmitBtn: '.credentials-form button[type=\"submit\"]'`\n   - `connectGoogleBtn: '.btn-google'`\n   - `connectStatus: '.connection-status'`\n   - `accountEmail: '.account-email'`\n   - `calendarCheckbox: '.calendar-checkbox-item input[type=\"checkbox\"]'`\n   - `saveCalendarsBtn: '.calendars-section button[type=\"submit\"]'`\n   - `syncDirectionBidirectional: 'input[name=\"sync_direction\"][value=\"bidirectional\"]'`\n   - `saveConfigBtn: '.sync-config-form button[type=\"submit\"]'`\n   - `syncNowBtn: '#sync-now-btn'`\n   - `syncStats: '.sync-stats'`\n\n5. **outlookCalendarSync** — from `apps/outlook-calendar/frontend/templates/`:\n   - `clientIdInput: '#outlook-client-id'`\n   - `clientSecretInput: '#outlook-client-secret'`\n   - `credentialsSubmitBtn: '.credentials-form button[type=\"submit\"]'`\n   - `connectMicrosoftBtn: '.btn-microsoft'`\n   - `connectStatus: '.connection-status'`\n   - `accountEmail: '.account-email'`\n   - `calendarCheckbox: '.calendar-checkbox-item input[type=\"checkbox\"]'`\n   - `saveCalendarsBtn: '.calendars-section button[type=\"submit\"]'`\n   - `syncDirectionBidirectional: 'input[name=\"sync_direction\"][value=\"bidirectional\"]'`\n   - `saveConfigBtn: '.sync-config-form button[type=\"submit\"]'`\n   - `syncNowBtn: '#sync-now-btn'`\n   - `syncStats: '.sync-stats'`\n\n6. **rss** — from `apps/rss-reader/frontend/templates/`:\n   - `readerContainer: '#rss-reader-container'`\n   - `feedSidebar: '#rss-feed-sidebar'`\n   - `articleList: '#rss-article-list'`\n   - `readingPane: '#rss-reading-pane'`\n   - `feedItem: '.rss-feed-item'`\n   - `articleItem: '.rss-article-item'`\n   - `subscribeBtn: '.rss-subscribe-btn'`\n   - `subscribeDialog: '#rss-subscribe-dialog'`\n   - `feedUrlInput: '#feed-url-input'`\n   - `emptyState: '.rss-empty-state'`\n   - `starBtn: '.rss-star-btn'`\n   - `opmlImportForm: '#rss-opml-import'`\n   - `opmlResult: '#opml-import-result'`\n   - `successMessage: '.alert-success, .success-box'`\n   - `settingsForm: '.rss-settings'`\n   - `settingsResult: '#rss-settings-result'`\n   - `sidebarIconBtn: '.rss-sidebar-actions button'`\n\n**Missing apps selectors:**\n   - `installDetails: 'details.install-details'`\n   - `installPathInput: '#app_path'`\n   - `sidebarAppsSection: '#section-apps'`\n   - `appsTree: '#apps-tree'`\n\n**Admin template fix:** Wrap the install form section in `backend/app/templates/admin/apps/list.html` with a `<details class=\"install-details\">` element and add a `<summary>` so the test's `installDetails.locator('summary').click()` works.",
+      "estimate": "30m",
+      "files": [
+        "e2e/helpers/selectors.ts",
+        "backend/app/templates/admin/apps/list.html"
+      ],
+      "verify": "cd e2e && npx tsc --noEmit 2>&1 | grep -c 'todoistSync\\|asanaSync\\|caldavCalendarSync\\|googleCalendarSync\\|outlookCalendarSync\\|SEL.rss' | grep -q '^0$' && echo 'PASS'",
+      "inputs": [
+        "`e2e/helpers/selectors.ts` — existing selector definitions (linearSync, githubSync, jiraSync, mondaySync, apps as pattern reference)",
+        "`apps/todoist-sync/frontend/templates/connect.html` — HTML IDs and classes for todoist selectors",
+        "`apps/todoist-sync/frontend/templates/connect_status.html` — HTML IDs and classes for todoist status selectors",
+        "`apps/asana-sync/frontend/templates/connect.html` — HTML IDs and classes for asana selectors",
+        "`apps/asana-sync/frontend/templates/connect_status.html` — HTML IDs and classes for asana status selectors",
+        "`apps/caldav-calendar/frontend/templates/connect.html` — HTML IDs and classes for caldav selectors",
+        "`apps/caldav-calendar/frontend/templates/connect_status.html` — HTML IDs and classes for caldav status selectors",
+        "`apps/google-calendar/frontend/templates/connect.html` — HTML IDs and classes for google-calendar selectors",
+        "`apps/google-calendar/frontend/templates/connect_status.html` — HTML IDs and classes for google-calendar status selectors",
+        "`apps/outlook-calendar/frontend/templates/connect.html` — HTML IDs and classes for outlook selectors",
+        "`apps/outlook-calendar/frontend/templates/connect_status.html` — HTML IDs and classes for outlook status selectors",
+        "`apps/rss-reader/frontend/templates/reader.html` — HTML IDs and classes for rss selectors",
+        "`apps/rss-reader/frontend/templates/feed-sidebar.html` — HTML IDs and classes for rss feed sidebar",
+        "`apps/rss-reader/frontend/templates/subscribe-dialog.html` — HTML IDs and classes for rss subscribe dialog",
+        "`apps/rss-reader/frontend/templates/article-list.html` — HTML IDs and classes for rss article list",
+        "`apps/rss-reader/frontend/templates/settings.html` — HTML IDs and classes for rss settings",
+        "`apps/rss-reader/frontend/templates/opml-import.html` — HTML IDs and classes for rss OPML import",
+        "`apps/rss-reader/frontend/templates/star-button.html` — HTML for rss star button",
+        "`backend/app/templates/admin/apps/list.html` — admin apps list template needs <details> wrapper",
+        "`e2e/tests/31-rss-reader/rss-reader.spec.ts` — test file referencing SEL.rss and SEL.apps selectors",
+        "`e2e/tests/37-todoist-sync/todoist-sync.spec.ts` — test file referencing SEL.todoistSync",
+        "`e2e/tests/40-asana-sync/asana-sync.spec.ts` — test file referencing SEL.asanaSync",
+        "`e2e/tests/39-caldav-calendar/caldav-calendar-sync.spec.ts` — test file referencing SEL.caldavCalendarSync",
+        "`e2e/tests/36-google-calendar-sync/google-calendar-sync.spec.ts` — test file referencing SEL.googleCalendarSync",
+        "`e2e/tests/38-outlook-sync/outlook-calendar-sync.spec.ts` — test file referencing SEL.outlookCalendarSync"
+      ],
+      "expected_output": [
+        "`e2e/helpers/selectors.ts` — 6 new selector groups (todoistSync, asanaSync, caldavCalendarSync, googleCalendarSync, outlookCalendarSync, rss) + 4 new apps selectors (installDetails, installPathInput, sidebarAppsSection, appsTree)",
+        "`backend/app/templates/admin/apps/list.html` — install form wrapped in <details class=\"install-details\"> element"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
     }
   ],
   "decisions": [
@@ -35983,6 +36120,28 @@
       "verdict": "✅ pass",
       "duration_ms": 28300,
       "created_at": "2026-03-29T01:47:41.558Z"
+    },
+    {
+      "id": 138,
+      "task_id": "T01",
+      "slice_id": "S03",
+      "milestone_id": "M046",
+      "command": "python3 -c \"import ast; ast.parse(open('app/apps/scheduler.py').read())\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 200,
+      "created_at": "2026-03-29T02:12:18.282Z"
+    },
+    {
+      "id": 139,
+      "task_id": "T01",
+      "slice_id": "S03",
+      "milestone_id": "M046",
+      "command": "grep -q 'APP_BASE_URL' ../docker-compose.test.yml",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-03-29T02:12:18.282Z"
     }
   ]
 }
