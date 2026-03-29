@@ -182,9 +182,14 @@ export const SEL = {
     adminDetail: '/admin/apps/test-app',
     installForm: 'form.install-form',
     installInput: '#app_path',
+    installDetails: 'details.install-details',
+    installPathInput: '#app_path',
     statusBadge: '.status-badge',
     appCard: '.dashboard-cards .card',
-    // Workspace
+    // Workspace sidebar
+    sidebarAppsSection: '#section-apps',
+    appsTree: '#apps-tree',
+    // Workspace panels
     workspaceAppMain: '#test-app-main',
     rightPaneSection: '#test-app-right-pane',
     commandDialog: '#test-app-command-dialog',
@@ -253,6 +258,106 @@ export const SEL = {
     saveConfigBtn: '.sync-config-form button[type="submit"]',
     syncNowBtn: '#sync-now-btn',
     syncStats: '.sync-stats',
+  },
+
+  // Todoist Sync E2E
+  todoistSync: {
+    patInput: '#todoist-token',
+    connectBtn: '.api-key-form button[type="submit"]',
+    connectStatus: '.connection-status',
+    tokenPreview: '.token-preview',
+    projectCheckbox: '.project-checkbox-item input[type="checkbox"]',
+    saveProjectsBtn: '.projects-section button[type="submit"]',
+    syncDirectionBidirectional: 'input[name="sync_direction"][value="bidirectional"]',
+    saveConfigBtn: '.sync-config-form button[type="submit"]',
+    syncNowBtn: '#sync-now-btn',
+    syncStats: '.sync-stats',
+    statValue: '.stat-value',
+  },
+
+  // Asana Sync E2E
+  asanaSync: {
+    patInput: '#asana-pat',
+    connectBtn: '.api-key-form button[type="submit"]',
+    connectStatus: '.connection-status',
+    projectCheckbox: '.project-checkbox-item input[type="checkbox"]',
+    saveProjectsBtn: '.projects-section button[type="submit"]',
+    discoverFieldsBtn: '.discover-section button[type="submit"]',
+    saveMappingBtn: '.field-mapping-form button[type="submit"]',
+    statusSourceSection: '.status-source-radios',
+    syncDirectionBidirectional: 'input[name="sync_direction"][value="bidirectional"]',
+    saveConfigBtn: '.sync-config-form button[type="submit"]',
+    syncNowBtn: '#sync-now-btn',
+    syncStats: '.sync-stats',
+  },
+
+  // CalDAV Calendar Sync E2E
+  caldavCalendarSync: {
+    serverUrlInput: '#caldav-server-url',
+    usernameInput: '#caldav-username',
+    passwordInput: '#caldav-password',
+    credentialsSubmitBtn: '.credentials-form button[type="submit"]',
+    connectStatus: '.connection-status',
+    accountUsername: '.account-username',
+    calendarCheckbox: '.calendar-checkbox-item input[type="checkbox"]',
+    saveCalendarsBtn: '.calendars-section button[type="submit"]',
+    syncDirectionBidirectional: 'input[name="sync_direction"][value="bidirectional"]',
+    saveConfigBtn: '.sync-config-form button[type="submit"]',
+    syncNowBtn: '#sync-now-btn',
+    syncStats: '.sync-stats',
+  },
+
+  // Google Calendar Sync E2E
+  googleCalendarSync: {
+    clientIdInput: '#gcal-client-id',
+    clientSecretInput: '#gcal-client-secret',
+    credentialsSubmitBtn: '.credentials-form button[type="submit"]',
+    connectGoogleBtn: '.btn-google',
+    connectStatus: '.connection-status',
+    accountEmail: '.account-email',
+    calendarCheckbox: '.calendar-checkbox-item input[type="checkbox"]',
+    saveCalendarsBtn: '.calendars-section button[type="submit"]',
+    syncDirectionBidirectional: 'input[name="sync_direction"][value="bidirectional"]',
+    saveConfigBtn: '.sync-config-form button[type="submit"]',
+    syncNowBtn: '#sync-now-btn',
+    syncStats: '.sync-stats',
+  },
+
+  // Outlook Calendar Sync E2E
+  outlookCalendarSync: {
+    clientIdInput: '#outlook-client-id',
+    clientSecretInput: '#outlook-client-secret',
+    credentialsSubmitBtn: '.credentials-form button[type="submit"]',
+    connectMicrosoftBtn: '.btn-microsoft',
+    connectStatus: '.connection-status',
+    accountEmail: '.account-email',
+    calendarCheckbox: '.calendar-checkbox-item input[type="checkbox"]',
+    saveCalendarsBtn: '.calendars-section button[type="submit"]',
+    syncDirectionBidirectional: 'input[name="sync_direction"][value="bidirectional"]',
+    saveConfigBtn: '.sync-config-form button[type="submit"]',
+    syncNowBtn: '#sync-now-btn',
+    syncStats: '.sync-stats',
+  },
+
+  // RSS Reader E2E
+  rss: {
+    readerContainer: '#rss-reader-container',
+    feedSidebar: '#rss-feed-sidebar',
+    articleList: '#rss-article-list',
+    readingPane: '#rss-reading-pane',
+    feedItem: '.rss-feed-item',
+    articleItem: '.rss-article-item',
+    subscribeBtn: '.rss-subscribe-btn',
+    subscribeDialog: '#rss-subscribe-dialog',
+    feedUrlInput: '#feed-url-input',
+    emptyState: '.rss-empty-state',
+    starBtn: '.rss-star-btn',
+    opmlImportForm: '#rss-opml-import',
+    opmlResult: '#opml-import-result',
+    successMessage: '.alert-success, .success-box',
+    settingsForm: '.rss-settings',
+    settingsResult: '#rss-settings-result',
+    sidebarIconBtn: '.rss-sidebar-actions button',
   },
 
   // Copilot chat

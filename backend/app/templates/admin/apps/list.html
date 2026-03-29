@@ -22,9 +22,9 @@
     {% endif %}
 
     <!-- Install form -->
-    <div class="detail-section">
-        <h2>Install App</h2>
-        <form method="post" action="/admin/apps/install" class="install-form" style="display: flex; gap: 8px; align-items: flex-end;">
+    <details class="install-details">
+        <summary><h2 style="display:inline;">Install App</h2></summary>
+        <form method="post" action="/admin/apps/install" class="install-form" style="display: flex; gap: 8px; align-items: flex-end; margin-top: 12px;">
             <div style="flex: 1;">
                 <label for="app_path">App directory path</label>
                 <input type="text" id="app_path" name="app_path" placeholder="/app/apps/my-app" required
@@ -32,7 +32,7 @@
             </div>
             <button type="submit" class="btn btn-primary">Install</button>
         </form>
-    </div>
+    </details>
 
     <!-- App cards -->
     {% if apps %}

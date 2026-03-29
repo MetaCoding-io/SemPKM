@@ -37,7 +37,7 @@ Note: CalDAV doesn't need an env var — the server URL is user-supplied via the
   - Estimate: 20m
   - Files: docker-compose.test.yml
   - Verify: grep -c 'mock-todoist\|mock-asana\|mock-caldav\|mock-google-calendar\|mock-outlook' docker-compose.test.yml | grep -q '[5-9]' && grep -q 'TODOIST_API_URL' docker-compose.test.yml && grep -q 'GCAL_API_URL' docker-compose.test.yml && grep -q 'OUTLOOK_API_URL' docker-compose.test.yml && echo 'PASS'
-- [ ] **T03: Add missing E2E selectors and fix admin install template** — Add 6 missing selector groups and 4 missing `apps` selectors to `e2e/helpers/selectors.ts`, and fix the admin apps list template to match the test's expected `<details>` wrapper.
+- [x] **T03: Add 6 E2E selector groups (todoistSync, asanaSync, caldavCalendarSync, googleCalendarSync, outlookCalendarSync, rss), 4 apps selectors, and wrap admin install form in details element** — Add 6 missing selector groups and 4 missing `apps` selectors to `e2e/helpers/selectors.ts`, and fix the admin apps list template to match the test's expected `<details>` wrapper.
 
 **Selector groups to add (derive values from app HTML templates):**
 
