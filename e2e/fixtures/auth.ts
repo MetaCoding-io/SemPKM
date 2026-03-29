@@ -15,7 +15,26 @@ import { ApiClient } from '../helpers/api-client';
 
 const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3901';
 const OWNER_EMAIL = 'owner@test.local';
-const MEMBER_EMAIL = 'member@test.local';
+const MEMBER_EMAIL = 'member@example.com';
+
+// Module-level session token cache — survives across fixtures within a worker
+let _cachedOwnerToken: string | null = null;
+let _cachedMemberToken: string | null = null;
+
+/** Validate a cached token is still usable */
+async function isTokenValid(token: string): Promise<boolean> {
+  try {
+    const ctx = await request.newContext({
+      baseURL: BASE_URL,
+      extraHTTPHeaders: { Cookie: `sempkm_session=${token}` },
+    });
+    const resp = await ctx.get(`${BASE_URL}/api/auth/me`);
+    await ctx.dispose();
+    return resp.status() === 200;
+  } catch {
+    return false;
+  }
+}
 
 /** Resolve the repo root (one level up from e2e/) */
 function repoRoot(): string {
@@ -175,6 +194,12 @@ export const test = base.extend<AuthFixtures>({
   },
 
   ownerSessionToken: async ({}, use) => {
+    // Check cache first
+    if (_cachedOwnerToken && await isTokenValid(_cachedOwnerToken)) {
+      await use(_cachedOwnerToken);
+      return;
+    }
+
     const ctx = await request.newContext({ baseURL: BASE_URL });
 
     // Ensure instance is set up
@@ -188,6 +213,7 @@ export const test = base.extend<AuthFixtures>({
       token = await loginViaApi(ctx, OWNER_EMAIL);
     }
 
+    _cachedOwnerToken = token;
     await use(token);
     await ctx.dispose();
   },
@@ -211,24 +237,39 @@ export const test = base.extend<AuthFixtures>({
   },
 
   memberPage: async ({ browser, ownerSessionToken }, use) => {
-    // First ensure the member exists by inviting them
-    const ownerCtx = await request.newContext({
-      baseURL: BASE_URL,
-      extraHTTPHeaders: {
-        Cookie: `sempkm_session=${ownerSessionToken}`,
-      },
-    });
+    let memberToken: string;
 
-    // Invite member (ignore if already invited)
-    await ownerCtx.post(`${BASE_URL}/api/auth/invite`, {
-      data: { email: MEMBER_EMAIL, role: 'member' },
-    });
-    await ownerCtx.dispose();
+    if (_cachedMemberToken && await isTokenValid(_cachedMemberToken)) {
+      memberToken = _cachedMemberToken;
+    } else {
+      // Ensure the member exists by inviting them
+      const ownerCtx = await request.newContext({
+        baseURL: BASE_URL,
+        extraHTTPHeaders: {
+          Cookie: `sempkm_session=${ownerSessionToken}`,
+        },
+      });
 
-    // Login as member
-    const memberCtx = await request.newContext({ baseURL: BASE_URL });
-    const memberToken = await loginViaApi(memberCtx, MEMBER_EMAIL);
-    await memberCtx.dispose();
+      const inviteResp = await ownerCtx.post(`${BASE_URL}/api/auth/invite`, {
+        data: { email: MEMBER_EMAIL, role: 'member' },
+      });
+
+      // 2xx = success, 409 = already invited — anything else is a real failure
+      if (inviteResp.status() >= 300 && inviteResp.status() !== 409) {
+        const body = await inviteResp.text();
+        await ownerCtx.dispose();
+        throw new Error(`Invite failed for ${MEMBER_EMAIL} (${inviteResp.status()}): ${body}`);
+      }
+
+      await ownerCtx.dispose();
+
+      // Login as member
+      const memberCtx = await request.newContext({ baseURL: BASE_URL });
+      memberToken = await loginViaApi(memberCtx, MEMBER_EMAIL);
+      await memberCtx.dispose();
+
+      _cachedMemberToken = memberToken;
+    }
 
     // Create authenticated browser context
     const context = await authenticatedContext(browser, memberToken);

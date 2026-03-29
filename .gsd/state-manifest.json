@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-03-29T00:33:56.451Z",
+  "exported_at": "2026-03-29T01:29:22.445Z",
   "milestones": [
     {
       "id": "M001",
@@ -1482,6 +1482,66 @@
       ],
       "requirement_coverage": "SEC-01 through SEC-05: already validated (M002/M043). SEC-06 (SSRF protection): covered by S01. SEC-07 (Docker non-root): covered by S02. SEC-08 (ZIP bomb protection): covered by S02. All Active security requirements have coverage or are already validated.",
       "boundary_map_markdown": "```\nS01 (SSRF + Federation + Audit) ──provides──▶ url_validator module, federation hash protocol, extended audit coverage\nS02 (Docker + Infrastructure)   ──provides──▶ non-root Dockerfiles, ZIP protection utility, config hardening\nS03 (Verification + Docs)       ──requires──▶ S01 + S02 complete; runs regression, updates docs\n```"
+    },
+    {
+      "id": "M046",
+      "title": "",
+      "status": "queued",
+      "depends_on": [],
+      "created_at": "2026-03-29T01:14:42.052Z",
+      "completed_at": null,
+      "vision": "Fix all 62 failing E2E tests across 7 failure categories. The test suite is the project's regression safety net — at 19% failure rate it provides false confidence. After this milestone, the full 122-spec suite passes reliably against the Docker test stack.",
+      "success_criteria": [
+        "All 122 E2E spec files pass against the Docker test stack (`npx playwright test` exits 0)",
+        "Zero test modifications that weaken assertions (no `.skip()`, no `{ force: true }` click hacks, no broadened timeouts beyond 60s)",
+        "Auth fixture caches session tokens per-worker to eliminate redundant magic link round-trips",
+        "App platform tests pass with working subprocess lifecycle in the test container",
+        "All fixes are structural — each addresses the root cause identified in the queue entry, not symptoms"
+      ],
+      "key_risks": [
+        {
+          "risk": "App platform subprocess venvs may require Docker image rebuild that breaks hot-reload dev workflow",
+          "whyItMatters": "The test compose mounts apps as read-only — if the fix requires writable mounts or pre-built venvs, it changes the Docker build pipeline"
+        },
+        {
+          "risk": "Auth fixture timing issues may be deeper than session caching — rate limiting, token collision, or DB contention",
+          "whyItMatters": "The queue entry identifies ~15 tests affected by auth failures. If the root cause is more complex than caching, the fix scope grows significantly"
+        },
+        {
+          "risk": "Category G miscellaneous failures (16 tests) may have diverse root causes requiring per-test investigation",
+          "whyItMatters": "If most Category G failures are independent rather than cascading from A-F fixes, the effort balloons"
+        }
+      ],
+      "proof_strategy": [
+        {
+          "riskOrUnknown": "Auth fixture reliability",
+          "retireIn": "S01",
+          "whatWillBeProven": "Session caching eliminates redundant magic link requests — auth-dependent tests pass on first run"
+        },
+        {
+          "riskOrUnknown": "App platform subprocess startup in test container",
+          "retireIn": "S03",
+          "whatWillBeProven": "Sync app tests find running app processes and render settings UI"
+        },
+        {
+          "riskOrUnknown": "Category G independence from A-F",
+          "retireIn": "S06",
+          "whatWillBeProven": "Re-run after S01-S05 fixes shows which G failures were cascading vs truly independent"
+        }
+      ],
+      "verification_contract": "Full `npx playwright test` run against Docker test stack — all 122 specs pass, exit code 0.",
+      "verification_integration": "No cross-slice integration beyond sequential execution — each slice fixes an independent failure category and re-runs the affected test subset.",
+      "verification_operational": "Docker test stack starts cleanly with `docker compose -f docker-compose.test.yml up -d --build` and all services reach healthy state.",
+      "verification_uat": "Full E2E suite passes: `cd e2e && npx playwright test` exits 0 with 0 failures.",
+      "definition_of_done": [
+        "All 122 E2E spec files pass (`npx playwright test` exit 0)",
+        "No `.skip()` added to any test",
+        "No `{ force: true }` click workarounds added",
+        "Docker test stack builds and starts without manual intervention",
+        "Auth fixture uses session caching (no per-test magic link requests)"
+      ],
+      "requirement_coverage": "No formal requirements — this milestone is infrastructure/test health. Indirectly supports all validated requirements by restoring regression coverage.",
+      "boundary_map_markdown": "```\\nE2E Test Suite (122 specs)\\n├── Auth fixture (session caching) ← S01\\n├── Copilot z-index (CSS fix) ← S02\\n├── App platform (subprocess venvs) ← S03\\n├── Ontology viewer (locator scoping) ← S04\\n├── Calendar/recurring (vendor check) ← S05\\n├── Setup wizard (selector/timing) ← S05\\n└── Miscellaneous (per-test fixes) ← S06\\n```"
     }
   ],
   "slices": [
@@ -7215,6 +7275,132 @@
       "proof_level": "This slice proves: operational. Real runtime required: no (unit tests + static file checks). Human/UAT required: no.",
       "integration_closure": "Upstream surfaces consumed: S01 test files (test_ssrf_guard.py, test_federation_integrity.py, test_model_audit.py), S02 test files (test_zip_validator.py, test_app_token_isolation.py), M043 test files (test_sparql_injection_regression.py, test_sparql_builder.py, test_magic_link_hardening.py, test_token_scopes.py, test_session_management.py, test_security_hardening.py), M042 findings report (.gsd/milestones/M042/M042-SECURITY-FINDINGS.md). New wiring: none. What remains: nothing — this is the final slice.",
       "observability_impact": "None — this slice is verification and documentation only, no runtime changes.",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M046",
+      "id": "S01",
+      "title": "Auth Fixture — Session Caching & Member Login",
+      "status": "pending",
+      "risk": "high",
+      "depends": [],
+      "demo": "Auth-dependent tests (admin-access-control, member-permissions, dark-mode, session-management) all pass without magic link failures",
+      "created_at": "2026-03-29T01:16:09.469Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "All 11 memberPage-dependent E2E tests pass by fixing the auth fixture's member email domain and adding session token caching.",
+      "success_criteria": "- `MEMBER_EMAIL` uses `@example.com` (RFC 2606 reserved, accepted by Pydantic `EmailStr`)\n- Module-level session token caching eliminates redundant magic-link round-trips across test runs\n- Invite endpoint errors (non-2xx, non-409) propagate instead of being silently swallowed\n- All 11 previously-failing tests pass: admin-access-control (3), member-permissions (6), dark-mode (1), debug-pages (1)\n- session-management tests continue passing (regression check)",
+      "proof_level": "This slice proves: operational. Real runtime required: yes (Docker test stack + Playwright). Human/UAT required: no.",
+      "integration_closure": "- Upstream surfaces consumed: `backend/app/auth/schemas.py` (InviteRequest uses EmailStr — not modified, test adapts to it), `backend/app/auth/router.py` (magic-link + verify endpoints)\n- New wiring introduced: module-level token cache variables in auth fixture\n- What remains: nothing — this slice is self-contained",
+      "observability_impact": "None — changes are in test fixtures only, no runtime code modified.",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M046",
+      "id": "S02",
+      "title": "Copilot Bottom Panel — Z-Index Fix",
+      "status": "pending",
+      "risk": "low",
+      "depends": [],
+      "demo": "All 5 copilot tests pass — AI COPILOT tab button is clickable regardless of editor-empty overlay state",
+      "created_at": "2026-03-29T01:16:09.469Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Fix CSS z-index stacking so bottom panel tab buttons are always above the editor-empty overlay",
+      "success_criteria": "All 5 copilot E2E tests pass. No `{ force: true }` workarounds.",
+      "proof_level": "Run copilot test file and confirm 0 failures",
+      "integration_closure": "CSS change must not break bottom panel visibility in other contexts (event log, SPARQL console)",
+      "observability_impact": "None",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M046",
+      "id": "S03",
+      "title": "App Platform — Subprocess Lifecycle in Test Container",
+      "status": "pending",
+      "risk": "high",
+      "depends": [],
+      "demo": "Sync app tests (linear, github, jira, monday, todoist, caldav, asana, app-platform) find running processes and render settings UI",
+      "created_at": "2026-03-29T01:16:09.469Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Fix app subprocess startup in the test Docker container so apps can install venvs and start processes",
+      "success_criteria": "All ~10 app platform test failures resolve. App status shows 'running' in test environment.",
+      "proof_level": "Run affected sync app test files and confirm 0 failures",
+      "integration_closure": "Docker compose changes must not break dev workflow hot-reload or production builds",
+      "observability_impact": "None",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M046",
+      "id": "S04",
+      "title": "Ontology Viewer — Locator Scoping for Dockview Panels",
+      "status": "pending",
+      "risk": "low",
+      "depends": [],
+      "demo": "Ontology viewer and class creation tests pass without 'resolved to 2 elements' strict mode errors",
+      "created_at": "2026-03-29T01:16:09.470Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Scope test locators to the active dockview panel or deduplicate panel instances",
+      "success_criteria": "All ~6 ontology/class-creation test failures resolve. No `.first()` workarounds that mask real issues.",
+      "proof_level": "Run ontology-viewer and class-creation test files and confirm 0 failures",
+      "integration_closure": "Locator pattern should be reusable by other tests that interact with dockview panels",
+      "observability_impact": "None",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M046",
+      "id": "S05",
+      "title": "Calendar, Recurring Tasks & Setup Wizard Fixes",
+      "status": "pending",
+      "risk": "medium",
+      "depends": [],
+      "demo": "Calendar view, recurring task, and setup wizard tests all pass",
+      "created_at": "2026-03-29T01:16:09.470Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Fix calendar CDN/vendor loading in test environment and setup wizard selector/timing issues",
+      "success_criteria": "All ~10 calendar + recurring + setup wizard test failures resolve.",
+      "proof_level": "Run affected test files and confirm 0 failures",
+      "integration_closure": "Calendar vendor changes must not break calendar in dev/production",
+      "observability_impact": "None",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M046",
+      "id": "S06",
+      "title": "Miscellaneous Failures & Full Suite Verification",
+      "status": "pending",
+      "risk": "medium",
+      "depends": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05"
+      ],
+      "demo": "Full `npx playwright test` run passes with 0 failures across all 122 specs",
+      "created_at": "2026-03-29T01:16:09.470Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Re-run full suite after S01-S05 fixes, identify remaining Category G failures, fix each individually, and verify the complete suite",
+      "success_criteria": "Full E2E suite: 122 specs, 0 failures, exit code 0.",
+      "proof_level": "Full suite run with exit code 0",
+      "integration_closure": "This is the final integration verification — confirms all prior slice fixes compose correctly",
+      "observability_impact": "None",
       "sequence": 0,
       "replan_triggered_at": null
     }
@@ -29721,6 +29907,49 @@
       "observability_impact": "",
       "full_plan_md": "",
       "sequence": 0
+    },
+    {
+      "milestone_id": "M046",
+      "slice_id": "S01",
+      "id": "T01",
+      "title": "Fix MEMBER_EMAIL domain from test.local to example.com and add module-level session token caching to E2E auth fixture",
+      "status": "complete",
+      "one_liner": "Fix MEMBER_EMAIL domain from test.local to example.com and add module-level session token caching to E2E auth fixture",
+      "narrative": "Changed MEMBER_EMAIL from 'member@test.local' to 'member@example.com' — the .local TLD was rejected by Pydantic EmailStr on the /api/auth/invite endpoint, causing silent 422 that prevented member user creation. Added module-level _cachedOwnerToken and _cachedMemberToken variables with isTokenValid() helper that checks /api/auth/me before reuse. Improved invite error handling to throw with status code and body on non-2xx/non-409 responses.",
+      "verification_result": "Ran all 4 existing test files (admin-access-control, member-permissions, dark-mode, debug-pages) plus the non-existent session-management path. 15 tests passed in 12.7s, 0 failures. All 11 previously-failing member-dependent tests now pass.",
+      "duration": "",
+      "completed_at": "2026-03-29T01:29:22.420Z",
+      "blocker_discovered": false,
+      "deviations": "tests/04-session/session-management.spec.ts does not exist — Playwright skips non-existent paths gracefully. 15 tests across 4 existing spec files all pass.",
+      "known_issues": "None.",
+      "key_files": [
+        "e2e/fixtures/auth.ts"
+      ],
+      "key_decisions": [
+        "Used example.com (RFC 2606 reserved) instead of test.local for member email — EmailStr accepts it",
+        "Module-level token cache with /api/auth/me validation before reuse"
+      ],
+      "full_summary_md": "---\nid: T01\nparent: S01\nmilestone: M046\nkey_files:\n  - e2e/fixtures/auth.ts\nkey_decisions:\n  - Used example.com (RFC 2606 reserved) instead of test.local for member email — EmailStr accepts it\n  - Module-level token cache with /api/auth/me validation before reuse\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-03-29T01:29:22.420Z\nblocker_discovered: false\n---\n\n# T01: Fix MEMBER_EMAIL domain from test.local to example.com and add module-level session token caching to E2E auth fixture\n\n**Fix MEMBER_EMAIL domain from test.local to example.com and add module-level session token caching to E2E auth fixture**\n\n## What Happened\n\nChanged MEMBER_EMAIL from 'member@test.local' to 'member@example.com' — the .local TLD was rejected by Pydantic EmailStr on the /api/auth/invite endpoint, causing silent 422 that prevented member user creation. Added module-level _cachedOwnerToken and _cachedMemberToken variables with isTokenValid() helper that checks /api/auth/me before reuse. Improved invite error handling to throw with status code and body on non-2xx/non-409 responses.\n\n## Verification\n\nRan all 4 existing test files (admin-access-control, member-permissions, dark-mode, debug-pages) plus the non-existent session-management path. 15 tests passed in 12.7s, 0 failures. All 11 previously-failing member-dependent tests now pass.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd e2e && npx playwright test tests/05-admin/admin-access-control.spec.ts tests/07-multi-user/member-permissions.spec.ts tests/06-settings/dark-mode.spec.ts tests/05-admin/debug-pages.spec.ts tests/04-session/session-management.spec.ts --project=chromium --reporter=list` | 0 | ✅ pass | 13900ms |\n\n\n## Deviations\n\ntests/04-session/session-management.spec.ts does not exist — Playwright skips non-existent paths gracefully. 15 tests across 4 existing spec files all pass.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `e2e/fixtures/auth.ts`\n",
+      "description": "## Description\n\nAll 11 memberPage-dependent E2E tests fail because `MEMBER_EMAIL = 'member@test.local'` is rejected by Pydantic `EmailStr` on the `/api/auth/invite` endpoint (`.local` is a special-use TLD). The invite silently fails (422), so the member user is never created, and the magic-link endpoint returns `token: null`.\n\nThis task fixes the email domain, adds module-level session token caching to eliminate redundant auth round-trips, and improves the invite error handling to propagate real failures.\n\n## Steps\n\n1. In `e2e/fixtures/auth.ts`, change `MEMBER_EMAIL` from `'member@test.local'` to `'member@example.com'` (RFC 2606 reserved domain, accepted by `EmailStr`).\n\n2. Add module-level cache variables above the fixture definitions:\n   ```typescript\n   let _cachedOwnerToken: string | null = null;\n   let _cachedMemberToken: string | null = null;\n   ```\n\n3. In the `ownerSessionToken` fixture, check `_cachedOwnerToken` first. On cache miss, do the existing setup/login flow and store the result. On cache hit, validate the token is still good with a quick `GET /api/auth/me` check — if it fails, clear cache and re-login.\n\n4. In the `memberPage` fixture, check `_cachedMemberToken` first. On cache miss, do the invite + login flow and store the result. On cache hit, validate with `/api/auth/me` — if it fails, clear cache and re-login.\n\n5. In the `memberPage` fixture, change the invite call to check the response status. If the response is not 2xx and not 409 (already invited), throw an error with the response body so future fixture failures are immediately diagnosable.\n\n6. Run all 4 affected test files plus session-management as regression check:\n   ```bash\n   cd e2e && npx playwright test tests/05-admin/admin-access-control.spec.ts tests/07-multi-user/member-permissions.spec.ts tests/06-settings/dark-mode.spec.ts tests/05-admin/debug-pages.spec.ts tests/04-session/session-management.spec.ts --project=chromium --reporter=list\n   ```\n\n## Must-Haves\n\n- [ ] `MEMBER_EMAIL` is `'member@example.com'`\n- [ ] `OWNER_EMAIL` remains `'owner@test.local'` (no change — it works because setup/magic-link use plain `str`, not `EmailStr`)\n- [ ] Module-level `_cachedOwnerToken` and `_cachedMemberToken` variables with `/api/auth/me` validation before reuse\n- [ ] Invite error handling: non-2xx, non-409 responses throw with descriptive error message\n- [ ] All 11 previously-failing tests pass\n- [ ] session-management tests still pass (regression)\n\n## Verification\n\n```bash\ncd e2e && npx playwright test tests/05-admin/admin-access-control.spec.ts tests/07-multi-user/member-permissions.spec.ts tests/06-settings/dark-mode.spec.ts tests/05-admin/debug-pages.spec.ts tests/04-session/session-management.spec.ts --project=chromium --reporter=list\n```\n\nExpected: all tests pass (11 previously-failing + 5 session-management = 16+ passing tests, 0 failures).",
+      "estimate": "30m",
+      "files": [
+        "e2e/fixtures/auth.ts"
+      ],
+      "verify": "cd e2e && npx playwright test tests/05-admin/admin-access-control.spec.ts tests/07-multi-user/member-permissions.spec.ts tests/06-settings/dark-mode.spec.ts tests/05-admin/debug-pages.spec.ts tests/04-session/session-management.spec.ts --project=chromium --reporter=list 2>&1 | tail -20",
+      "inputs": [
+        "`e2e/fixtures/auth.ts` — current auth fixture with MEMBER_EMAIL = 'member@test.local' and no session caching",
+        "`backend/app/auth/schemas.py` — reference only: confirms InviteRequest.email uses EmailStr (do not modify)",
+        "`e2e/tests/05-admin/admin-access-control.spec.ts` — imports MEMBER_EMAIL, uses memberPage fixture (3 tests)",
+        "`e2e/tests/07-multi-user/member-permissions.spec.ts` — imports MEMBER_EMAIL, uses memberPage fixture (6 tests)",
+        "`e2e/tests/06-settings/dark-mode.spec.ts` — imports MEMBER_EMAIL, uses memberPage fixture (1 test)",
+        "`e2e/tests/05-admin/debug-pages.spec.ts` — uses memberPage fixture (1 test)"
+      ],
+      "expected_output": [
+        "`e2e/fixtures/auth.ts` — updated with member@example.com email, module-level token caching, and invite error propagation"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
     }
   ],
   "decisions": [
@@ -35686,6 +35915,17 @@
       "verdict": "✅ pass",
       "duration_ms": 50,
       "created_at": "2026-03-29T00:22:24.227Z"
+    },
+    {
+      "id": 136,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M046",
+      "command": "cd e2e && npx playwright test tests/05-admin/admin-access-control.spec.ts tests/07-multi-user/member-permissions.spec.ts tests/06-settings/dark-mode.spec.ts tests/05-admin/debug-pages.spec.ts tests/04-session/session-management.spec.ts --project=chromium --reporter=list",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 13900,
+      "created_at": "2026-03-29T01:29:22.420Z"
     }
   ]
 }
