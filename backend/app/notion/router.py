@@ -22,6 +22,8 @@ from app.auth.models import User
 from app.dependencies import get_shapes_service
 from app.services.shapes import ShapesService
 
+from app.security.zip_validator import validate_zip_contents
+
 from .broadcast import ScanBroadcast, stream_sse
 from .models import MappingConfig, NotionScanResult, PropertyMapping, RelationMapping, TypeMapping
 from .scanner import NotionScanner
@@ -174,6 +176,9 @@ async def upload_notion(
                     break
                 f.write(chunk)
 
+        # Validate ZIP before extraction (ZIP bomb protection)
+        validate_zip_contents(zip_path)
+
         with zipfile.ZipFile(zip_path, "r") as zf:
             zf.extractall(extract_path)
 
@@ -192,6 +197,22 @@ async def upload_notion(
             'The uploaded file is not a valid ZIP archive.</p>'
             '<p style="margin-top: 0.5rem; color: var(--color-text-muted, #888);">'
             'Please select a valid .zip file exported from Notion and try again.</p>'
+            '<div class="import-existing-actions">'
+            '<button onclick="location.reload()" class="btn btn-primary">Try Again</button>'
+            '</div></div></div>'
+        )
+        return HTMLResponse(content=error_html, status_code=400)
+    except ValueError as exc:
+        zip_path.unlink(missing_ok=True)
+        shutil.rmtree(extract_path, ignore_errors=True)
+        error_html = (
+            '<div class="import-upload-wrapper">'
+            '<div class="import-existing-notice">'
+            '<p style="color: var(--color-danger, #e74c3c); font-weight: 600;">'
+            f'{exc}</p>'
+            '<p style="margin-top: 0.5rem; color: var(--color-text-muted, #888);">'
+            'The uploaded archive failed safety validation. '
+            'Please check the file and try again.</p>'
             '<div class="import-existing-actions">'
             '<button onclick="location.reload()" class="btn btn-primary">Try Again</button>'
             '</div></div></div>'

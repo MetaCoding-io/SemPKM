@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-03-29T00:01:11.402Z",
+  "exported_at": "2026-03-29T00:04:07.540Z",
   "milestones": [
     {
       "id": "M001",
@@ -29477,19 +29477,24 @@
       "milestone_id": "M045",
       "slice_id": "S02",
       "id": "T02",
-      "title": "ZIP bomb protection for Obsidian and Notion importers",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Added ZIP bomb protection to Obsidian and Notion importers with shared validate_zip_contents() utility checking uncompressed size, file count, and compression ratio",
+      "status": "complete",
+      "one_liner": "Added ZIP bomb protection to Obsidian and Notion importers with shared validate_zip_contents() utility checking uncompressed size, file count, and compression ratio",
+      "narrative": "Created backend/app/security/zip_validator.py with validate_zip_contents() that inspects ZIP central directory via infolist() without extracting. Checks uncompressed size (default 2048 MB), file count (default 50,000), and per-entry compression ratio (default 100:1). Wired into both obsidian and notion router _write_and_extract() functions before extractall(). Both routers catch ValueError and return styled 400 HTML error. 16 unit tests cover all rejection criteria, boundary conditions, custom limits, and error message quality.",
+      "verification_result": "All 16 unit tests pass (pytest tests/test_zip_validator.py -v). Both router files parse without syntax errors. validate_zip_contents import and call confirmed in both importers via grep. ValueError catch blocks confirmed in both routers.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-03-29T00:04:07.512Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/security/zip_validator.py",
+        "backend/app/obsidian/router.py",
+        "backend/app/notion/router.py",
+        "backend/tests/test_zip_validator.py"
+      ],
       "key_decisions": [],
-      "full_summary_md": "",
+      "full_summary_md": "---\nid: T02\nparent: S02\nmilestone: M045\nkey_files:\n  - backend/app/security/zip_validator.py\n  - backend/app/obsidian/router.py\n  - backend/app/notion/router.py\n  - backend/tests/test_zip_validator.py\nkey_decisions:\n  - (none)\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-03-29T00:04:07.513Z\nblocker_discovered: false\n---\n\n# T02: Added ZIP bomb protection to Obsidian and Notion importers with shared validate_zip_contents() utility checking uncompressed size, file count, and compression ratio\n\n**Added ZIP bomb protection to Obsidian and Notion importers with shared validate_zip_contents() utility checking uncompressed size, file count, and compression ratio**\n\n## What Happened\n\nCreated backend/app/security/zip_validator.py with validate_zip_contents() that inspects ZIP central directory via infolist() without extracting. Checks uncompressed size (default 2048 MB), file count (default 50,000), and per-entry compression ratio (default 100:1). Wired into both obsidian and notion router _write_and_extract() functions before extractall(). Both routers catch ValueError and return styled 400 HTML error. 16 unit tests cover all rejection criteria, boundary conditions, custom limits, and error message quality.\n\n## Verification\n\nAll 16 unit tests pass (pytest tests/test_zip_validator.py -v). Both router files parse without syntax errors. validate_zip_contents import and call confirmed in both importers via grep. ValueError catch blocks confirmed in both routers.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python -m pytest tests/test_zip_validator.py -v` | 0 | ✅ pass | 3300ms |\n| 2 | `python -c \"import ast; ast.parse(open('app/obsidian/router.py').read())\"` | 0 | ✅ pass | 100ms |\n| 3 | `python -c \"import ast; ast.parse(open('app/notion/router.py').read())\"` | 0 | ✅ pass | 100ms |\n| 4 | `grep -c 'validate_zip_contents' app/obsidian/router.py app/notion/router.py` | 0 | ✅ pass | 100ms |\n| 5 | `grep -c 'except ValueError' app/obsidian/router.py app/notion/router.py` | 0 | ✅ pass | 100ms |\n\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/security/zip_validator.py`\n- `backend/app/obsidian/router.py`\n- `backend/app/notion/router.py`\n- `backend/tests/test_zip_validator.py`\n",
       "description": "Create a shared ZIP validation utility and wire it into both importers to reject oversized or suspicious archives before extraction.\n\n## Steps\n\n1. Create `backend/app/security/zip_validator.py`:\n   - Function `validate_zip_contents(zip_path: Path, max_uncompressed_mb: int = 2048, max_files: int = 50000) -> None`\n   - Uses `zipfile.ZipFile(zip_path).infolist()` to sum `file_size` and count entries BEFORE calling extractall\n   - Raises `ValueError('ZIP archive uncompressed size ({size_mb:.1f} MB) exceeds limit ({max_uncompressed_mb} MB)')` if total `file_size` exceeds limit\n   - Raises `ValueError('ZIP archive contains {count} files, exceeding limit of {max_files}')` if file count exceeds limit\n   - Check compression ratio: if any single entry has `compress_size > 0` and `file_size / compress_size > 100`, raise `ValueError('Suspicious compression ratio ({ratio:.0f}:1) detected in {entry.filename}')`\n   - Log warnings at `logger.warning` for suspicious but passing archives (ratio > 50)\n\n2. Edit `backend/app/obsidian/router.py`:\n   - Import `validate_zip_contents` from `app.security.zip_validator`\n   - In `_write_and_extract()`, after writing the ZIP to disk and before `zf.extractall()`, call `validate_zip_contents(zip_path)`\n   - Catch `ValueError` from validation, clean up files, return 400 HTML error with the validation message\n\n3. Edit `backend/app/notion/router.py`:\n   - Same changes as obsidian router — import, validate before extract, catch ValueError\n\n4. Create `backend/tests/test_zip_validator.py`:\n   - Test: normal ZIP passes validation\n   - Test: ZIP exceeding uncompressed size limit raises ValueError\n   - Test: ZIP exceeding file count limit raises ValueError\n   - Test: ZIP with suspicious compression ratio raises ValueError\n   - Test: empty ZIP passes validation\n   - Test: custom limits are respected\n   - Use `zipfile.ZipFile` to create test fixtures in-memory or tmpdir\n\n## Failure Modes\n\n| Dependency | On error | On timeout | On malformed response |\n|------------|----------|-----------|----------------------|\n| zipfile.ZipFile.infolist() | Re-raise as ValueError with context | N/A (local I/O) | Caught by existing BadZipFile handler |\n\n## Negative Tests\n\n- Malformed inputs: corrupt ZIP file (caught by existing BadZipFile handler, not this code)\n- Error paths: ZIP with zero-byte compressed entries (ratio calculation division by zero — guard with `compress_size > 0`)\n- Boundary conditions: ZIP exactly at limit passes, ZIP 1 byte over limit fails\n\n## Must-Haves\n\n- [ ] `validate_zip_contents()` checks uncompressed size, file count, and compression ratio\n- [ ] Both Obsidian and Notion importers call validator before extractall\n- [ ] ValueError from validator returns 400 with descriptive error message\n- [ ] Unit tests cover all three rejection criteria plus happy path",
       "estimate": "40m",
       "files": [
@@ -35345,6 +35350,61 @@
       "verdict": "✅ pass",
       "duration_ms": 1000,
       "created_at": "2026-03-29T00:01:11.374Z"
+    },
+    {
+      "id": 118,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M045",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_zip_validator.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 3300,
+      "created_at": "2026-03-29T00:04:07.512Z"
+    },
+    {
+      "id": 119,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M045",
+      "command": "python -c \"import ast; ast.parse(open('app/obsidian/router.py').read())\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-03-29T00:04:07.512Z"
+    },
+    {
+      "id": 120,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M045",
+      "command": "python -c \"import ast; ast.parse(open('app/notion/router.py').read())\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-03-29T00:04:07.512Z"
+    },
+    {
+      "id": 121,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M045",
+      "command": "grep -c 'validate_zip_contents' app/obsidian/router.py app/notion/router.py",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-03-29T00:04:07.512Z"
+    },
+    {
+      "id": 122,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M045",
+      "command": "grep -c 'except ValueError' app/obsidian/router.py app/notion/router.py",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-03-29T00:04:07.512Z"
     }
   ]
 }

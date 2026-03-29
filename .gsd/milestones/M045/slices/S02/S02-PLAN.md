@@ -45,7 +45,7 @@
   - Estimate: 45m
   - Files: backend/Dockerfile, docker-compose.yml, docker-compose.test.yml, docker-compose.demo.yml, docker-compose.cloud.yml, docker-compose.federation-test.yml, docker-compose.test-ollama.yml
   - Verify: grep -q 'USER sempkm' backend/Dockerfile && ! grep -q '\-\-reload' backend/Dockerfile | tail -1 && grep -c 'no-new-privileges' docker-compose.yml docker-compose.test.yml docker-compose.demo.yml docker-compose.cloud.yml docker-compose.federation-test.yml docker-compose.test-ollama.yml | grep -v ':0$' | wc -l
-- [ ] **T02: ZIP bomb protection for Obsidian and Notion importers** — Create a shared ZIP validation utility and wire it into both importers to reject oversized or suspicious archives before extraction.
+- [x] **T02: Added ZIP bomb protection to Obsidian and Notion importers with shared validate_zip_contents() utility checking uncompressed size, file count, and compression ratio** — Create a shared ZIP validation utility and wire it into both importers to reject oversized or suspicious archives before extraction.
 
 ## Steps
 

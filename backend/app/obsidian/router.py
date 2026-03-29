@@ -22,6 +22,8 @@ from app.auth.models import User
 from app.dependencies import get_shapes_service
 from app.services.shapes import ShapesService
 
+from app.security.zip_validator import validate_zip_contents
+
 from .broadcast import ScanBroadcast, stream_sse
 from .executor import ImportExecutor
 from .models import ImportResult, MappingConfig, TypeMapping, PropertyMapping, VaultScanResult
@@ -145,6 +147,9 @@ async def upload_vault(
                     break
                 f.write(chunk)
 
+        # Validate ZIP before extraction (ZIP bomb protection)
+        validate_zip_contents(zip_path)
+
         # Extract ZIP
         with zipfile.ZipFile(zip_path, "r") as zf:
             zf.extractall(extract_path)
@@ -165,6 +170,22 @@ async def upload_vault(
             'The uploaded file is not a valid ZIP archive.</p>'
             '<p style="margin-top: 0.5rem; color: var(--color-text-muted, #888);">'
             'Please select a valid .zip file and try again.</p>'
+            '<div class="import-existing-actions">'
+            '<button onclick="location.reload()" class="btn btn-primary">Try Again</button>'
+            '</div></div></div>'
+        )
+        return HTMLResponse(content=error_html, status_code=400)
+    except ValueError as exc:
+        zip_path.unlink(missing_ok=True)
+        shutil.rmtree(extract_path, ignore_errors=True)
+        error_html = (
+            '<div class="import-upload-wrapper">'
+            '<div class="import-existing-notice">'
+            '<p style="color: var(--color-danger, #e74c3c); font-weight: 600;">'
+            f'{exc}</p>'
+            '<p style="margin-top: 0.5rem; color: var(--color-text-muted, #888);">'
+            'The uploaded archive failed safety validation. '
+            'Please check the file and try again.</p>'
             '<div class="import-existing-actions">'
             '<button onclick="location.reload()" class="btn btn-primary">Try Again</button>'
             '</div></div></div>'
