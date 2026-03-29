@@ -769,6 +769,10 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
+**In progress: M045 Security Remediation (remaining M042 audit findings) — S01 (SSRF/federation/audit) complete, S02 (Docker hardening/infrastructure) complete, S03 (regression verification/docs) pending.**
+
+M045/S02 shipped: Non-root Docker containers (UID 1000 sempkm, no-new-privileges, cap-drop ALL across 6 compose files), ZIP bomb protection for Obsidian/Notion importers (size/count/ratio checks), weak SECRET_KEY startup rejection, per-app JWT key isolation via HMAC-SHA256, Caddyfile HSTS + CSP cleanup.
+
 **Latest shipped: M044 Frontend Code Quality Execution (2026-03-25) — 6 slices, 175 files changed, net -587 lines. Centralized fetch wrapper (167 callers), event leak fixes, window.SemPKM namespace (228 exports), 100% CSS theme adoption, template deduplication, convention documentation. S07 E2E regression suite not executed.**
 
 **What shipped in M044:**
