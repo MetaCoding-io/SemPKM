@@ -137,7 +137,7 @@
   - Estimate: 45m
   - Files: backend/app/main.py, backend/app/apps/tokens.py, backend/app/apps/manager.py, backend/app/apps/router.py, backend/tests/test_app_token_isolation.py
   - Verify: cd backend && python -m pytest tests/test_app_token_isolation.py -v
-- [ ] **T04: Caddyfile CSP cleanup and HSTS header** — Remove stale CDN domains from Caddyfile.cloud CSP directives and add HSTS header for cloud deployments.
+- [x] **T04: Removed 3 stale CDN domains from Caddyfile.cloud CSP and added HSTS header with 2-year max-age** — Remove stale CDN domains from Caddyfile.cloud CSP directives and add HSTS header for cloud deployments.
 
 ## Steps
 
