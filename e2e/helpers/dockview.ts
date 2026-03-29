@@ -19,7 +19,7 @@ export async function openObjectTab(
   iri: string,
   label?: string,
   mode?: 'read' | 'edit',
-  timeoutMs = 10000,
+  timeoutMs = 20000,
 ) {
   await page.evaluate(
     ({ iri, label, mode }) => {

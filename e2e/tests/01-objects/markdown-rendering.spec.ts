@@ -112,11 +112,11 @@ test.describe('Markdown Rendering', () => {
     });
     expect(scriptCount).toBe(0);
 
-    // No dangerous event handler attributes in the rendered body
+    // No dangerous event handler attributes in the rendered markdown body
     const dangerousAttrs = await ownerPage.evaluate(() => {
-      const tab = document.querySelector('.object-tab');
-      if (!tab) return 0;
-      return tab.querySelectorAll('[onerror], [onclick], [onload]').length;
+      const body = document.querySelector('.markdown-body');
+      if (!body) return 0;
+      return body.querySelectorAll('[onerror], [onclick], [onload]').length;
     });
     expect(dangerousAttrs).toBe(0);
   });

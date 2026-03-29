@@ -34,7 +34,9 @@ test.describe('Object Creation via UI', () => {
     // Wait for type picker to appear
     await ownerPage.waitForSelector(SEL.typePicker.overlay, { timeout: 10000 });
     const typeOptions = ownerPage.locator(SEL.typePicker.typeOption);
-    await expect(typeOptions).toHaveCount(4);
+    // At least the 4 Basic PKM types should be present (more may exist from other models)
+    const count = await typeOptions.count();
+    expect(count).toBeGreaterThanOrEqual(4);
   });
 
   test('create a Note with title and body', async ({ ownerPage }) => {

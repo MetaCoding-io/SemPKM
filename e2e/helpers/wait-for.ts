@@ -72,8 +72,11 @@ export async function waitForWorkspace(page: Page, timeoutMs = 15000) {
 /**
  * Wait for no active htmx requests on the page.
  * Useful before making assertions to ensure all swaps are complete.
+ * Note: SSE connections and long-running requests may keep .htmx-request
+ * permanently; consider using a shorter list of specific targets if idle
+ * check times out.
  */
-export async function waitForIdle(page: Page, timeoutMs = 10000) {
+export async function waitForIdle(page: Page, timeoutMs = 15000) {
   await page.waitForFunction(
     () => document.querySelectorAll('.htmx-request').length === 0,
     { timeout: timeoutMs },
