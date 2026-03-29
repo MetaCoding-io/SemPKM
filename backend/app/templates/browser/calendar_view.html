@@ -17,11 +17,11 @@
 (function() {
     var dataUrl = {{ calendar_data_url | tojson }};
     function _boot() {
-        if (typeof initCalendar === 'function') {
-            initCalendar('calendar-container', dataUrl);
+        if (typeof SemPKM !== 'undefined' && typeof SemPKM.initCalendar === 'function') {
+            SemPKM.initCalendar('calendar-container', dataUrl);
         }
     }
-    if (typeof initCalendar === 'function') {
+    if (typeof SemPKM !== 'undefined' && typeof SemPKM.initCalendar === 'function') {
         _boot();
     } else {
         var s = document.createElement('script');

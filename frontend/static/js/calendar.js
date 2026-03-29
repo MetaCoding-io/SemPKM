@@ -3,8 +3,8 @@
  *
  * Extracted from the inline script in calendar_view.html.
  * Exports:
- *   window.initCalendar(containerId, dataUrl)  — boots the FullCalendar instance
- *   window._sempkmCalendar                     — reference for dev inspection
+ *   window.SemPKM.initCalendar(containerId, dataUrl)  — boots the FullCalendar instance
+ *   window.SemPKM._sempkmCalendar                     — reference for dev inspection
  */
 
 (function () {
@@ -44,12 +44,12 @@
       return r.json();
     }).then(function (result) {
       SemPKM.debug('calendar', actionLabel + ' persisted, event_iri:', result.event_iri);
-      if (typeof showToast === 'function') showToast(actionLabel === 'resize' ? 'Duration updated' : 'Task rescheduled');
+      if (typeof SemPKM !== 'undefined' && typeof SemPKM.showToast === 'function') SemPKM.showToast(actionLabel === 'resize' ? 'Duration updated' : 'Task rescheduled');
       document.dispatchEvent(new CustomEvent('sempkm:command-executed'));
     }).catch(function (err) {
       console.error('[calendar] ' + actionLabel + ' patch failed:', err);
       info.revert();
-      if (typeof showToast === 'function') showToast('Failed to save — reverted');
+      if (typeof SemPKM !== 'undefined' && typeof SemPKM.showToast === 'function') SemPKM.showToast('Failed to save — reverted');
     });
   }
 
@@ -96,11 +96,11 @@
         extendedProps: { iri: iri, sourceType: 'Task' },
         classNames: ['fc-event-task']
       });
-      if (typeof showToast === 'function') showToast('Task scheduled');
+      if (typeof SemPKM !== 'undefined' && typeof SemPKM.showToast === 'function') SemPKM.showToast('Task scheduled');
       document.dispatchEvent(new CustomEvent('sempkm:command-executed'));
     }).catch(function (err) {
       console.error('[calendar] external drop failed:', err);
-      if (typeof showToast === 'function') showToast('Failed to schedule — ' + err.message);
+      if (typeof SemPKM !== 'undefined' && typeof SemPKM.showToast === 'function') SemPKM.showToast('Failed to schedule — ' + err.message);
     });
   }
 
@@ -169,8 +169,8 @@
             var ep = info.event.extendedProps || {};
             var iri = ep.masterIri || ep.iri;  // virtual events point to master
             var title = info.event.title || '';
-            if (iri && typeof openTab === 'function') {
-              openTab(iri, title);
+            if (iri && typeof SemPKM !== 'undefined' && typeof SemPKM.openTab === 'function') {
+              SemPKM.openTab(iri, title);
             }
           },
 
