@@ -12,7 +12,7 @@
   - Estimate: 15m
   - Files: backend/app/apps/scheduler.py, docker-compose.test.yml
   - Verify: cd backend && python -c "import ast; ast.parse(open('app/apps/scheduler.py').read())" && grep -q 'APP_BASE_URL' ../docker-compose.test.yml && echo 'PASS'
-- [ ] **T02: Wire 5 missing mock API services into docker-compose.test.yml** — Add 5 mock API Docker services and their corresponding environment variables to `docker-compose.test.yml`. Follow the exact pattern of the existing mock-linear/mock-github/mock-jira/mock-monday services.
+- [x] **T02: Added 5 mock API services (todoist, asana, caldav, google-calendar, outlook) with env vars and depends_on entries to docker-compose.test.yml** — Add 5 mock API Docker services and their corresponding environment variables to `docker-compose.test.yml`. Follow the exact pattern of the existing mock-linear/mock-github/mock-jira/mock-monday services.
 
 **Services to add (all use same pattern: python:3.12-slim, volume mount, python server.py, health check, sempkm-test network):**
 

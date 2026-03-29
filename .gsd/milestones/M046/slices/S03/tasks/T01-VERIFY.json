@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T01",
+  "unitId": "M046/S03/T01",
+  "timestamp": 1774750341894,
+  "passed": false,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "cd backend",
+      "exitCode": 0,
+      "durationMs": 8,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -q 'APP_BASE_URL' ../docker-compose.test.yml",
+      "exitCode": 2,
+      "durationMs": 8,
+      "verdict": "fail"
+    },
+    {
+      "command": "echo 'PASS'",
+      "exitCode": 0,
+      "durationMs": 6,
+      "verdict": "pass"
+    }
+  ],
+  "retryAttempt": 1,
+  "maxRetries": 2
+}

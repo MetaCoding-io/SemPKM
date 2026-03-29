@@ -52,6 +52,13 @@ services:
       GITHUB_API_URL: http://mock-github:8080
       JIRA_API_URL: http://mock-jira:8080
       MONDAY_API_URL: http://mock-monday:8080
+      TODOIST_API_URL: http://mock-todoist:8080
+      ASANA_API_URL: http://mock-asana:8080
+      ASANA_TOKEN_URL: http://mock-asana:8080/-/oauth_token
+      GCAL_API_URL: http://mock-google-calendar:8080
+      GOOGLE_TOKEN_URL: http://mock-google-calendar:8080/oauth/token
+      OUTLOOK_API_URL: http://mock-outlook:8080
+      OUTLOOK_TOKEN_URL: http://mock-outlook:8080/oauth2/v2.0/token
       LLM_API_URL: http://mock-llm:8080
       APP_BASE_URL: http://localhost:8000
     depends_on:
@@ -66,6 +73,16 @@ services:
       mock-jira:
         condition: service_healthy
       mock-monday:
+        condition: service_healthy
+      mock-todoist:
+        condition: service_healthy
+      mock-asana:
+        condition: service_healthy
+      mock-caldav:
+        condition: service_healthy
+      mock-google-calendar:
+        condition: service_healthy
+      mock-outlook:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
@@ -135,6 +152,76 @@ services:
     image: python:3.12-slim
     volumes:
       - ./e2e/mock-monday-api:/app:ro
+    working_dir: /app
+    command: ["python", "server.py"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    networks:
+      - sempkm-test
+
+  mock-todoist:
+    image: python:3.12-slim
+    volumes:
+      - ./e2e/mock-todoist-api:/app:ro
+    working_dir: /app
+    command: ["python", "server.py"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    networks:
+      - sempkm-test
+
+  mock-asana:
+    image: python:3.12-slim
+    volumes:
+      - ./e2e/mock-asana-api:/app:ro
+    working_dir: /app
+    command: ["python", "server.py"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    networks:
+      - sempkm-test
+
+  mock-caldav:
+    image: python:3.12-slim
+    volumes:
+      - ./e2e/mock-caldav-api:/app:ro
+    working_dir: /app
+    command: ["python", "server.py"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    networks:
+      - sempkm-test
+
+  mock-google-calendar:
+    image: python:3.12-slim
+    volumes:
+      - ./e2e/mock-google-calendar-api:/app:ro
+    working_dir: /app
+    command: ["python", "server.py"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    networks:
+      - sempkm-test
+
+  mock-outlook:
+    image: python:3.12-slim
+    volumes:
+      - ./e2e/mock-outlook-api:/app:ro
     working_dir: /app
     command: ["python", "server.py"]
     healthcheck:

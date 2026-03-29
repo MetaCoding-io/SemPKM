@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-03-29T02:12:18.308Z",
+  "exported_at": "2026-03-29T02:14:02.259Z",
   "milestones": [
     {
       "id": "M001",
@@ -30041,19 +30041,21 @@
       "milestone_id": "M046",
       "slice_id": "S03",
       "id": "T02",
-      "title": "Wire 5 missing mock API services into docker-compose.test.yml",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Added 5 mock API services (todoist, asana, caldav, google-calendar, outlook) with env vars and depends_on entries to docker-compose.test.yml",
+      "status": "complete",
+      "one_liner": "Added 5 mock API services (todoist, asana, caldav, google-calendar, outlook) with env vars and depends_on entries to docker-compose.test.yml",
+      "narrative": "Added 5 new Docker service definitions to docker-compose.test.yml following the exact pattern of existing mock services: python:3.12-slim image, volume mount from e2e/mock-*-api, health check via urllib, sempkm-test network. Added 7 environment variables to the api service (TODOIST_API_URL, ASANA_API_URL, ASANA_TOKEN_URL, GCAL_API_URL, GOOGLE_TOKEN_URL, OUTLOOK_API_URL, OUTLOOK_TOKEN_URL). Added depends_on with service_healthy condition for all 5 new services. The original verification gate failure was a path resolution issue (../docker-compose.test.yml), not a content issue.",
+      "verification_result": "All 5 services present as top-level compose definitions. All 7 env vars present. All 5 depends_on entries present. docker compose config validates YAML. APP_BASE_URL confirmed present from T01.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-03-29T02:14:02.232Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "docker-compose.test.yml"
+      ],
       "key_decisions": [],
-      "full_summary_md": "",
+      "full_summary_md": "---\nid: T02\nparent: S03\nmilestone: M046\nkey_files:\n  - docker-compose.test.yml\nkey_decisions:\n  - (none)\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-03-29T02:14:02.232Z\nblocker_discovered: false\n---\n\n# T02: Added 5 mock API services (todoist, asana, caldav, google-calendar, outlook) with env vars and depends_on entries to docker-compose.test.yml\n\n**Added 5 mock API services (todoist, asana, caldav, google-calendar, outlook) with env vars and depends_on entries to docker-compose.test.yml**\n\n## What Happened\n\nAdded 5 new Docker service definitions to docker-compose.test.yml following the exact pattern of existing mock services: python:3.12-slim image, volume mount from e2e/mock-*-api, health check via urllib, sempkm-test network. Added 7 environment variables to the api service (TODOIST_API_URL, ASANA_API_URL, ASANA_TOKEN_URL, GCAL_API_URL, GOOGLE_TOKEN_URL, OUTLOOK_API_URL, OUTLOOK_TOKEN_URL). Added depends_on with service_healthy condition for all 5 new services. The original verification gate failure was a path resolution issue (../docker-compose.test.yml), not a content issue.\n\n## Verification\n\nAll 5 services present as top-level compose definitions. All 7 env vars present. All 5 depends_on entries present. docker compose config validates YAML. APP_BASE_URL confirmed present from T01.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `docker compose -f docker-compose.test.yml config > /dev/null 2>&1` | 0 | ✅ pass | 500ms |\n| 2 | `grep -q 'TODOIST_API_URL' docker-compose.test.yml` | 0 | ✅ pass | 10ms |\n| 3 | `grep -q 'GCAL_API_URL' docker-compose.test.yml` | 0 | ✅ pass | 10ms |\n| 4 | `grep -q 'OUTLOOK_API_URL' docker-compose.test.yml` | 0 | ✅ pass | 10ms |\n| 5 | `grep -q 'APP_BASE_URL' docker-compose.test.yml` | 0 | ✅ pass | 10ms |\n\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `docker-compose.test.yml`\n",
       "description": "Add 5 mock API Docker services and their corresponding environment variables to `docker-compose.test.yml`. Follow the exact pattern of the existing mock-linear/mock-github/mock-jira/mock-monday services.\n\n**Services to add (all use same pattern: python:3.12-slim, volume mount, python server.py, health check, sempkm-test network):**\n\n1. `mock-todoist` — volume `./e2e/mock-todoist-api:/app:ro`\n2. `mock-asana` — volume `./e2e/mock-asana-api:/app:ro`\n3. `mock-caldav` — volume `./e2e/mock-caldav-api:/app:ro`\n4. `mock-google-calendar` — volume `./e2e/mock-google-calendar-api:/app:ro`\n5. `mock-outlook` — volume `./e2e/mock-outlook-api:/app:ro`\n\n**Environment variables to add to the api service (apps inherit the API container's env):**\n- `TODOIST_API_URL: http://mock-todoist:8080`\n- `ASANA_API_URL: http://mock-asana:8080`\n- `ASANA_TOKEN_URL: http://mock-asana:8080/-/oauth_token`\n- `GCAL_API_URL: http://mock-google-calendar:8080`\n- `GOOGLE_TOKEN_URL: http://mock-google-calendar:8080/oauth/token`\n- `OUTLOOK_API_URL: http://mock-outlook:8080`\n- `OUTLOOK_TOKEN_URL: http://mock-outlook:8080/oauth2/v2.0/token`\n\nNote: CalDAV doesn't need an env var — the server URL is user-supplied via the connect form.\n\n**Add depends_on entries** for all 5 new mock services to the api service's depends_on block (with `condition: service_healthy`).",
       "estimate": "20m",
       "files": [
@@ -36142,6 +36144,61 @@
       "verdict": "✅ pass",
       "duration_ms": 50,
       "created_at": "2026-03-29T02:12:18.282Z"
+    },
+    {
+      "id": 140,
+      "task_id": "T02",
+      "slice_id": "S03",
+      "milestone_id": "M046",
+      "command": "docker compose -f docker-compose.test.yml config > /dev/null 2>&1",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 500,
+      "created_at": "2026-03-29T02:14:02.232Z"
+    },
+    {
+      "id": 141,
+      "task_id": "T02",
+      "slice_id": "S03",
+      "milestone_id": "M046",
+      "command": "grep -q 'TODOIST_API_URL' docker-compose.test.yml",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 10,
+      "created_at": "2026-03-29T02:14:02.232Z"
+    },
+    {
+      "id": 142,
+      "task_id": "T02",
+      "slice_id": "S03",
+      "milestone_id": "M046",
+      "command": "grep -q 'GCAL_API_URL' docker-compose.test.yml",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 10,
+      "created_at": "2026-03-29T02:14:02.232Z"
+    },
+    {
+      "id": 143,
+      "task_id": "T02",
+      "slice_id": "S03",
+      "milestone_id": "M046",
+      "command": "grep -q 'OUTLOOK_API_URL' docker-compose.test.yml",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 10,
+      "created_at": "2026-03-29T02:14:02.232Z"
+    },
+    {
+      "id": 144,
+      "task_id": "T02",
+      "slice_id": "S03",
+      "milestone_id": "M046",
+      "command": "grep -q 'APP_BASE_URL' docker-compose.test.yml",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 10,
+      "created_at": "2026-03-29T02:14:02.232Z"
     }
   ]
 }
