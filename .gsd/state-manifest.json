@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-03-28T23:32:58.469Z",
+  "exported_at": "2026-03-29T00:01:11.402Z",
   "milestones": [
     {
       "id": "M001",
@@ -7159,14 +7159,14 @@
       "milestone_id": "M045",
       "id": "S01",
       "title": "SSRF Guards, Federation Integrity & Audit Extension",
-      "status": "pending",
+      "status": "complete",
       "risk": "high",
       "depends": [],
       "demo": "Federation sync endpoint rejects loopback/private URLs with 400. Federation export includes SHA-256 hash. Namespace-filtered import rejects system-namespace triples. Model install/uninstall events appear in SecurityAuditLog.",
       "created_at": "2026-03-28T23:12:16.638Z",
-      "completed_at": null,
-      "full_summary_md": "",
-      "full_uat_md": "",
+      "completed_at": "2026-03-28T23:36:42.775Z",
+      "full_summary_md": "---\nid: S01\nparent: M045\nmilestone: M045\nprovides:\n  - SSRF guard utility (backend/app/security/ssrf.py) reusable by any new outbound HTTP code path\n  - Namespace filter utility (backend/app/federation/namespace_filter.py) for federation triple validation\n  - Security audit events for model lifecycle (model_installed, model_uninstalled)\nrequires:\n  []\naffects:\n  - S03\nkey_files:\n  - backend/app/security/__init__.py\n  - backend/app/security/ssrf.py\n  - backend/app/federation/schemas.py\n  - backend/app/federation/router.py\n  - backend/app/federation/service.py\n  - backend/app/federation/namespace_filter.py\n  - backend/app/admin/router.py\n  - backend/app/services/webhooks.py\n  - backend/tests/test_ssrf_guard.py\n  - backend/tests/test_federation_integrity.py\n  - backend/tests/test_model_audit.py\nkey_decisions:\n  - D372: Federation SHA-256 hash backward-compat — always include hash in exports, verify when present, warn when absent, never reject hashless patches\n  - SSRF check order: loopback → link-local → multicast → private → reserved for most specific error category\n  - Namespace filter applied to both inserts and deletes (not just inserts as originally planned)\n  - OWL/SHACL blocked type list covers 9 class IRIs for comprehensive ontology injection prevention\n  - Admin router uses local _client_ip + _security_audit helper pattern mirroring auth/router.py\npatterns_established:\n  - validate_outbound_url() in backend/app/security/ssrf.py — shared SSRF guard for any outbound HTTP call\n  - filter_federation_triples() in backend/app/federation/namespace_filter.py — namespace allow/deny filtering for incoming RDF triples\n  - _security_audit() fire-and-forget pattern in admin/router.py — mirrors auth/router.py pattern for audit logging without blocking the parent operation\nobservability_surfaces:\n  - SSRF blocks logged at WARNING level with reason and blocked URL\n  - Namespace-filtered triples logged at WARNING with count of rejected triples\n  - Federation hash mismatch logged at ERROR\n  - Missing federation hash logged at WARNING\n  - Model install/uninstall events written to SecurityAuditLog table\ndrill_down_paths:\n  - .gsd/milestones/M045/slices/S01/tasks/T01-SUMMARY.md\n  - .gsd/milestones/M045/slices/S01/tasks/T02-SUMMARY.md\n  - .gsd/milestones/M045/slices/S01/tasks/T03-SUMMARY.md\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-03-28T23:36:42.776Z\nblocker_discovered: false\n---\n\n# S01: SSRF Guards, Federation Integrity & Audit Extension\n\n**Closed SSRF vectors in all 4 outbound HTTP code paths, added SHA-256 integrity and namespace filtering to federation sync, and wired model install/uninstall security audit events — 50 tests prove all behaviors.**\n\n## What Happened\n\nThree tasks delivered three complementary security hardening layers:\n\n**T01 — SSRF Guard (23 tests):** Created `backend/app/security/ssrf.py` with `validate_outbound_url()` that parses URLs, rejects non-http(s) schemes, checks hostnames against a blocked list (localhost, 0.0.0.0, ::1), resolves DNS, and validates all resolved IPs against loopback/link-local/multicast/private/reserved categories. Wired into all 4 outbound HTTP code paths: `FederationService.sync_shared_graph()`, `_post_to_inbox()`, `_discover_inbox_from_profile()`, and `WebhookService.dispatch()`. The federation sync router catches ValueError and returns HTTP 400. Check order is loopback → link-local → multicast → private → reserved for most specific error messages.\n\n**T02 — Federation Integrity (17 tests):** Added optional `content_hash` field to `PatchExportResponse` (backward-compatible per D372). Export router computes SHA-256 of patch_text. `sync_shared_graph()` verifies hash if present (rejects on mismatch), logs WARNING if absent. Created `namespace_filter.py` with `filter_federation_triples()` that rejects triples in `urn:sempkm:*` (except `urn:sempkm:shared:*`), `owl:#`, `sh:#` namespaces, and `rdf:type` assertions for 9 OWL/SHACL class IRIs. Applied to both inserts AND deletes in sync (plan only mentioned inserts — deletes need filtering too to prevent malicious DELETE triples targeting system namespaces).\n\n**T03 — Model Audit Events (10 tests):** Added `log_security_event` import and `_client_ip`/`_security_audit` helper functions to the admin router, mirroring the auth router pattern. Wired fire-and-forget audit calls into `admin_models_install()` and `admin_models_remove()` success paths. Audit failures cannot break model operations — all calls wrapped in try/except.\n\n## Verification\n\nAll 50 slice tests pass: `cd backend && .venv/bin/python -m pytest tests/test_ssrf_guard.py tests/test_federation_integrity.py tests/test_model_audit.py -v` → 50 passed in 1.22s. Verified all modified modules import cleanly. SSRF guard wired into 4 outbound paths (confirmed by grep). Namespace filter wired into sync service for both inserts and deletes. Security audit wired into admin router install and uninstall handlers.\n\n## Requirements Advanced\n\nNone.\n\n## Requirements Validated\n\nNone.\n\n## New Requirements Surfaced\n\nNone.\n\n## Requirements Invalidated or Re-scoped\n\nNone.\n\n## Deviations\n\nT01: Added bare ::1 to blocked hostnames (urlparse strips IPv6 brackets). Reordered IP checks for more specific error messages. Used globally-routable test IPs instead of RFC 5737 documentation ranges which Python 3.14 classifies as private. T02: Applied namespace filtering to both inserts AND deletes (plan only mentioned inserts). T03: None.\n\n## Known Limitations\n\nSSRF guard resolves DNS at validation time — a DNS rebinding attack could return a safe IP during validation and a private IP during the actual HTTP request. Mitigation would require pinning the resolved IP for the connection (httpx does not support this natively). Documented as acceptable risk for the current threat model.\n\n## Follow-ups\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/security/__init__.py` — New package init for security utilities\n- `backend/app/security/ssrf.py` — SSRF validation utility — validate_outbound_url() resolves DNS and rejects loopback/private/reserved IPs\n- `backend/app/federation/schemas.py` — Added optional content_hash field to PatchExportResponse\n- `backend/app/federation/router.py` — Compute SHA-256 hash on federation export, HTTP 400 for SSRF-blocked URLs\n- `backend/app/federation/service.py` — SSRF validation on 3 outbound paths, hash verification on import, namespace filtering on sync\n- `backend/app/federation/namespace_filter.py` — New module — filter_federation_triples() rejects system-namespace triples\n- `backend/app/admin/router.py` — Added _security_audit helper, wired model_installed and model_uninstalled audit events\n- `backend/app/services/webhooks.py` — SSRF validation before webhook dispatch\n- `backend/tests/test_ssrf_guard.py` — 23 tests for SSRF guard\n- `backend/tests/test_federation_integrity.py` — 17 tests for federation integrity and namespace filtering\n- `backend/tests/test_model_audit.py` — 10 tests for model audit events\n",
+      "full_uat_md": "# S01: SSRF Guards, Federation Integrity & Audit Extension — UAT\n\n**Milestone:** M045\n**Written:** 2026-03-28T23:36:42.776Z\n\n## UAT: S01 — SSRF Guards, Federation Integrity & Audit Extension\n\n### Preconditions\n- Backend running with federation and webhook subsystems available\n- At least one Mental Model available for install/uninstall\n- Database with SecurityAuditLog table (M043 migration applied)\n\n---\n\n### UAT-1: SSRF Guard blocks loopback URLs in federation sync\n\n**Steps:**\n1. POST to `/api/federation/sync` with `remote_instance_url: \"http://127.0.0.1:8000/api/federation/export\"`\n2. Observe response\n\n**Expected:** HTTP 400 response with error message indicating the URL was blocked (loopback address)\n\n---\n\n### UAT-2: SSRF Guard blocks private network URLs in federation sync\n\n**Steps:**\n1. POST to `/api/federation/sync` with `remote_instance_url: \"http://192.168.1.100/api/federation/export\"`\n2. POST with `remote_instance_url: \"http://10.0.0.1/api/federation/export\"`\n3. POST with `remote_instance_url: \"http://172.16.0.1/api/federation/export\"`\n\n**Expected:** All three return HTTP 400 with error messages identifying the blocked private IP range\n\n---\n\n### UAT-3: SSRF Guard blocks AWS metadata endpoint\n\n**Steps:**\n1. POST to `/api/federation/sync` with `remote_instance_url: \"http://169.254.169.254/latest/meta-data/\"`\n\n**Expected:** HTTP 400 — link-local address blocked\n\n---\n\n### UAT-4: SSRF Guard blocks non-HTTP schemes\n\n**Steps:**\n1. POST to `/api/federation/sync` with `remote_instance_url: \"ftp://example.com/export\"`\n2. POST with `remote_instance_url: \"file:///etc/passwd\"`\n\n**Expected:** Both return HTTP 400 with error message about disallowed scheme\n\n---\n\n### UAT-5: SSRF Guard allows legitimate federation URLs\n\n**Steps:**\n1. POST to `/api/federation/sync` with `remote_instance_url: \"https://federation.example.org:8443/api/federation/export\"` (will fail at connection, not at validation)\n\n**Expected:** Request passes SSRF validation (may fail with connection error, which is expected — the SSRF guard should not block it)\n\n---\n\n### UAT-6: Federation export includes SHA-256 content hash\n\n**Steps:**\n1. GET `/api/federation/export?since=2020-01-01T00:00:00Z`\n2. Inspect response JSON\n\n**Expected:** Response includes `content_hash` field containing a 64-character hex string (SHA-256 of `patch_text`)\n\n---\n\n### UAT-7: Federation import verifies hash when present\n\n**Steps:**\n1. Construct a sync request to a remote instance that returns `content_hash` matching the patch content\n2. Construct a sync request where `content_hash` does not match patch content\n\n**Expected:** \n- Matching hash: sync proceeds normally\n- Mismatched hash: sync fails with integrity error in SyncResult, no triples applied\n\n---\n\n### UAT-8: Federation import warns on missing hash\n\n**Steps:**\n1. Sync with a remote instance running an older version that does not include `content_hash` in exports\n2. Check server logs\n\n**Expected:** WARNING log about missing integrity verification, sync proceeds normally (backward compatible)\n\n---\n\n### UAT-9: Namespace filter rejects system-namespace triples\n\n**Steps:**\n1. Attempt federation sync where remote payload includes triples with predicates in `urn:sempkm:` namespace (e.g., `urn:sempkm:internal:secret`)\n2. Include triples with `owl:Class` type assertions\n3. Include triples with `sh:` (SHACL) predicates\n\n**Expected:** All system-namespace triples rejected (logged at WARNING with count). Only allowed data triples applied.\n\n---\n\n### UAT-10: Namespace filter allows shared graph IRIs\n\n**Steps:**\n1. Attempt federation sync where remote payload includes triples with subjects in `urn:sempkm:shared:` namespace\n\n**Expected:** Triples with `urn:sempkm:shared:` subjects pass the filter (this is the federation graph namespace)\n\n---\n\n### UAT-11: Model install audit event\n\n**Steps:**\n1. Install a Mental Model via Admin > Models (e.g., basic-pkm)\n2. Query SecurityAuditLog table for `event_type = 'model_installed'`\n\n**Expected:** New audit row with event_type='model_installed', detail JSON including model_id and path, source_ip populated, user_id matching the admin user\n\n---\n\n### UAT-12: Model uninstall audit event\n\n**Steps:**\n1. Uninstall a Mental Model via Admin > Models\n2. Query SecurityAuditLog table for `event_type = 'model_uninstalled'`\n\n**Expected:** New audit row with event_type='model_uninstalled', detail JSON including model_id, source_ip populated\n\n---\n\n### UAT-13: Audit failure does not block model operations\n\n**Steps:**\n1. Simulate audit logging failure (e.g., temporarily make SecurityAuditLog table unavailable)\n2. Install a Mental Model\n\n**Expected:** Model installs successfully despite audit logging failure. Error logged at ERROR level but operation completes.\n\n---\n\n### UAT-14: Webhook dispatch SSRF guard\n\n**Steps:**\n1. Create a webhook configuration with `target_url: \"http://127.0.0.1:9999/hook\"`\n2. Trigger an event that would dispatch to this webhook\n\n**Expected:** Webhook dispatch blocked, WARNING log about SSRF-blocked URL. No HTTP request made to loopback address.\n\n---\n\n### Edge Cases\n\n- **DNS rebinding:** validate_outbound_url() resolves DNS at validation time. A DNS rebinding attack returning safe IP during validation and private IP during connection is a known accepted risk.\n- **IPv6 addresses:** `http://[::1]/` blocked. Both bracketed and bare `::1` handled.\n- **Empty/None URLs:** Return clear error messages, not unhandled exceptions.\n- **Multicast addresses:** Blocked (e.g., `http://224.0.0.1/`).\n- **Unresolvable hostnames:** Rejected with DNS resolution failure error.\n",
       "goal": "Close SSRF vectors in federation and webhook subsystems, add SHA-256 integrity verification and namespace filtering to federation imports, and extend security audit logging to model install/uninstall events.",
       "success_criteria": "- Federation sync endpoint rejects loopback/private/link-local/reserved URLs with 400\n- Federation outbound requests (_post_to_inbox, _discover_inbox_from_profile) validate URLs before connecting\n- Webhook dispatch validates target_url before POSTing\n- Federation patch export includes SHA-256 content_hash\n- Federation import verifies content_hash when present, warns when absent\n- Incoming federation triples with system-namespace predicates (sempkm:, owl:, sh:) are rejected\n- Model install/uninstall operations are recorded in SecurityAuditLog\n- All new behavior covered by unit tests",
       "proof_level": "Contract — unit tests prove each security guard in isolation. No real runtime or federation peers required.",
@@ -7187,11 +7187,11 @@
       "completed_at": null,
       "full_summary_md": "",
       "full_uat_md": "",
-      "goal": "Close Docker, ZIP, config, and infrastructure findings: F-023, F-024, F-026, F-035, F-034, F-015/F-018, CSP stale, HSTS.",
-      "success_criteria": "- Backend Dockerfile adds non-root user (UID 1000), removes --reload from CMD\n- docker-compose.yml adds no-new-privileges and cap_drop: ALL\n- docker compose up starts cleanly with non-root user and existing volume data\n- ZIP bomb protection validates size/count before extractall in both importers\n- Startup check refuses known weak SECRET_KEY in non-demo mode\n- Caddyfile.cloud CSP removes CDN domains, adds HSTS\n- Startup warnings for insecure cookie/config combinations",
-      "proof_level": "integration-tested",
-      "integration_closure": "Docker changes verified by compose up/down cycle. ZIP protection added to both Obsidian and Notion importers. Config changes are infrastructure-only, no API surface changes.",
-      "observability_impact": "Startup log messages for config security warnings. Clear error messages for ZIP bomb rejections.",
+      "goal": "Harden Docker containers (non-root, no-new-privileges, cap-drop), protect ZIP uploads against bomb attacks, reject weak SECRET_KEY on startup, isolate per-app JWT signing keys, and clean stale CDN domains from Caddyfile CSP.",
+      "success_criteria": "**Must-Haves:**\n- Backend Dockerfile creates non-root user (UID 1000), removes `--reload` from CMD, sets `USER sempkm` after all root operations\n- All 6 compose files add `security_opt: [no-new-privileges:true]` and `cap_drop: [ALL]` to api and frontend services\n- Dev compose overrides CMD with `--reload` for hot-reloading\n- `backend/app/security/zip_validator.py` validates uncompressed size, file count, and compression ratio before `extractall()`\n- Both Obsidian and Notion importers call zip validator before extraction\n- `main.py` startup rejects known weak SECRET_KEY values when `demo_mode=False`\n- `get_app_secret(app_id)` derives per-app HMAC signing keys from platform key\n- Caddyfile.cloud CSP removes `unpkg.com`, `cdn.jsdelivr.net`, `cdnjs.cloudflare.com`; adds HSTS header\n- Unit tests cover zip validation (bomb, oversized, excess files) and per-app JWT isolation",
+      "proof_level": "Contract — unit tests prove zip validation rejects bombs, per-app keys are distinct, startup rejects weak keys. Docker hardening verified by Dockerfile inspection (runtime compose-up tested in S03).",
+      "integration_closure": "Upstream: `backend/app/security/` package created in S01 (ssrf.py). This slice adds `zip_validator.py` to same package. `backend/app/apps/tokens.py` `get_secret()` callers updated to `get_app_secret(app_id)`. Downstream: S03 runs full E2E regression against hardened stack and documents all 44 finding dispositions.",
+      "observability_impact": "Startup logs ERROR + exits on weak SECRET_KEY. ZIP validator logs WARNING on suspicious compression ratio. App token generation logs include app_id for key derivation traceability.",
       "sequence": 0,
       "replan_triggered_at": null
     },
@@ -29411,6 +29411,185 @@
       "observability_impact": "",
       "full_plan_md": "",
       "sequence": 0
+    },
+    {
+      "milestone_id": "M045",
+      "slice_id": "S02",
+      "id": "T01",
+      "title": "Hardened backend Dockerfile to run as non-root UID 1000 (sempkm) and added security_opt/cap_drop to all 6 compose files",
+      "status": "complete",
+      "one_liner": "Hardened backend Dockerfile to run as non-root UID 1000 (sempkm) and added security_opt/cap_drop to all 6 compose files",
+      "narrative": "Added a sempkm system user (UID 1000) to the backend Dockerfile with USER directive after all root-requiring build steps. Removed --reload from production CMD. Added security_opt: no-new-privileges:true and cap_drop: ALL to every api and frontend service across all compose files. Dev compose restores hot-reload via command override. Cloud overlay inherits security directives from base compose.",
+      "verification_result": "Dockerfile builds successfully. Container runs as uid=1000(sempkm). /app/data owned by sempkm:sempkm. All 6 compose files validate cleanly. no-new-privileges present in all standalone compose files. Cloud overlay merged config confirmed with security directives on both services.",
+      "duration": "",
+      "completed_at": "2026-03-29T00:01:11.373Z",
+      "blocker_discovered": false,
+      "deviations": "Cloud compose overlay does not duplicate security_opt/cap_drop — it inherits from base compose. Adding duplicates caused validation error.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/Dockerfile",
+        "docker-compose.yml",
+        "docker-compose.test.yml",
+        "docker-compose.demo.yml",
+        "docker-compose.cloud.yml",
+        "docker-compose.federation-test.yml",
+        "docker-compose.test-ollama.yml"
+      ],
+      "key_decisions": [
+        "Cloud compose overlay inherits security_opt/cap_drop from base — no duplication to avoid compose validation error"
+      ],
+      "full_summary_md": "---\nid: T01\nparent: S02\nmilestone: M045\nkey_files:\n  - backend/Dockerfile\n  - docker-compose.yml\n  - docker-compose.test.yml\n  - docker-compose.demo.yml\n  - docker-compose.cloud.yml\n  - docker-compose.federation-test.yml\n  - docker-compose.test-ollama.yml\nkey_decisions:\n  - Cloud compose overlay inherits security_opt/cap_drop from base — no duplication to avoid compose validation error\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-03-29T00:01:11.374Z\nblocker_discovered: false\n---\n\n# T01: Hardened backend Dockerfile to run as non-root UID 1000 (sempkm) and added security_opt/cap_drop to all 6 compose files\n\n**Hardened backend Dockerfile to run as non-root UID 1000 (sempkm) and added security_opt/cap_drop to all 6 compose files**\n\n## What Happened\n\nAdded a sempkm system user (UID 1000) to the backend Dockerfile with USER directive after all root-requiring build steps. Removed --reload from production CMD. Added security_opt: no-new-privileges:true and cap_drop: ALL to every api and frontend service across all compose files. Dev compose restores hot-reload via command override. Cloud overlay inherits security directives from base compose.\n\n## Verification\n\nDockerfile builds successfully. Container runs as uid=1000(sempkm). /app/data owned by sempkm:sempkm. All 6 compose files validate cleanly. no-new-privileges present in all standalone compose files. Cloud overlay merged config confirmed with security directives on both services.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `grep -q 'USER sempkm' backend/Dockerfile` | 0 | ✅ pass | 100ms |\n| 2 | `! grep '\\-\\-reload' backend/Dockerfile` | 0 | ✅ pass | 100ms |\n| 3 | `grep -c 'no-new-privileges' docker-compose*.yml` | 0 | ✅ pass | 100ms |\n| 4 | `docker compose config --quiet (all 6 files)` | 0 | ✅ pass | 2000ms |\n| 5 | `docker build backend/ --no-cache` | 0 | ✅ pass | 45000ms |\n| 6 | `docker run --rm sempkm-test-build id` | 0 | ✅ pass | 1000ms |\n| 7 | `docker run --rm sempkm-test-build stat /app/data` | 0 | ✅ pass | 1000ms |\n\n\n## Deviations\n\nCloud compose overlay does not duplicate security_opt/cap_drop — it inherits from base compose. Adding duplicates caused validation error.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/Dockerfile`\n- `docker-compose.yml`\n- `docker-compose.test.yml`\n- `docker-compose.demo.yml`\n- `docker-compose.cloud.yml`\n- `docker-compose.federation-test.yml`\n- `docker-compose.test-ollama.yml`\n",
+      "description": "Harden the backend Dockerfile to run as non-root (UID 1000) and add security_opt/cap_drop to all compose files.\n\n## Steps\n\n1. Edit `backend/Dockerfile`:\n   - After the `WORKDIR /app` and before `COPY` commands, add `RUN groupadd -r sempkm && useradd -r -u 1000 -g sempkm sempkm`\n   - After `RUN mkdir -p /app/data`, add `RUN chown -R sempkm:sempkm /app/data`\n   - Remove `--reload --reload-dir /app/app` from the CMD line (production should not auto-reload)\n   - Add `USER sempkm` after all RUN commands that need root (after COPY steps)\n   - Final CMD: `[\"uvicorn\", \"app.main:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"]`\n\n2. Edit `docker-compose.yml` (dev):\n   - Add to `api` service: `security_opt: [\"no-new-privileges:true\"]` and `cap_drop: [ALL]`\n   - Add to `api` service: `command: [\"uvicorn\", \"app.main:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\", \"--reload\", \"--reload-dir\", \"/app/app\"]` to restore dev hot-reload\n   - Add to `frontend` service: `security_opt: [\"no-new-privileges:true\"]` and `cap_drop: [ALL]`\n\n3. Edit `docker-compose.test.yml`:\n   - Add `security_opt` and `cap_drop` to `api` and `frontend` services\n\n4. Edit `docker-compose.demo.yml`:\n   - Add `security_opt` and `cap_drop` to `api` and `frontend` services\n\n5. Edit `docker-compose.cloud.yml`:\n   - Add `security_opt` and `cap_drop` to the `frontend` override (api inherits from base compose)\n\n6. Edit `docker-compose.federation-test.yml`:\n   - Add `security_opt` and `cap_drop` to `api-a`, `api-b`, `frontend-a`, `frontend-b` services\n\n7. Edit `docker-compose.test-ollama.yml`:\n   - Add `security_opt` and `cap_drop` to `api` and `frontend` services\n\n## Must-Haves\n\n- [ ] Dockerfile has `USER sempkm` with UID 1000\n- [ ] Dockerfile CMD has no `--reload` flag\n- [ ] `/app/data` owned by sempkm user before USER directive\n- [ ] All 6 compose files have `security_opt: [\"no-new-privileges:true\"]` and `cap_drop: [ALL]` on api/frontend services\n- [ ] Dev compose restores `--reload` via command override",
+      "estimate": "45m",
+      "files": [
+        "backend/Dockerfile",
+        "docker-compose.yml",
+        "docker-compose.test.yml",
+        "docker-compose.demo.yml",
+        "docker-compose.cloud.yml",
+        "docker-compose.federation-test.yml",
+        "docker-compose.test-ollama.yml"
+      ],
+      "verify": "grep -q 'USER sempkm' backend/Dockerfile && ! grep -q '\\-\\-reload' backend/Dockerfile | tail -1 && grep -c 'no-new-privileges' docker-compose.yml docker-compose.test.yml docker-compose.demo.yml docker-compose.cloud.yml docker-compose.federation-test.yml docker-compose.test-ollama.yml | grep -v ':0$' | wc -l",
+      "inputs": [
+        "`backend/Dockerfile` — current Dockerfile running as root with --reload in CMD",
+        "`docker-compose.yml` — dev compose with no security_opt or cap_drop",
+        "`docker-compose.test.yml` — test compose",
+        "`docker-compose.demo.yml` — demo compose",
+        "`docker-compose.cloud.yml` — cloud compose (frontend override only)",
+        "`docker-compose.federation-test.yml` — federation test with api-a, api-b, frontend-a, frontend-b",
+        "`docker-compose.test-ollama.yml` — ollama test variant"
+      ],
+      "expected_output": [
+        "`backend/Dockerfile` — non-root user, no --reload in CMD",
+        "`docker-compose.yml` — security_opt, cap_drop, command override for dev reload",
+        "`docker-compose.test.yml` — security_opt, cap_drop on api + frontend",
+        "`docker-compose.demo.yml` — security_opt, cap_drop on api + frontend",
+        "`docker-compose.cloud.yml` — security_opt, cap_drop on frontend override",
+        "`docker-compose.federation-test.yml` — security_opt, cap_drop on all 4 services",
+        "`docker-compose.test-ollama.yml` — security_opt, cap_drop on api + frontend"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M045",
+      "slice_id": "S02",
+      "id": "T02",
+      "title": "ZIP bomb protection for Obsidian and Notion importers",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Create a shared ZIP validation utility and wire it into both importers to reject oversized or suspicious archives before extraction.\n\n## Steps\n\n1. Create `backend/app/security/zip_validator.py`:\n   - Function `validate_zip_contents(zip_path: Path, max_uncompressed_mb: int = 2048, max_files: int = 50000) -> None`\n   - Uses `zipfile.ZipFile(zip_path).infolist()` to sum `file_size` and count entries BEFORE calling extractall\n   - Raises `ValueError('ZIP archive uncompressed size ({size_mb:.1f} MB) exceeds limit ({max_uncompressed_mb} MB)')` if total `file_size` exceeds limit\n   - Raises `ValueError('ZIP archive contains {count} files, exceeding limit of {max_files}')` if file count exceeds limit\n   - Check compression ratio: if any single entry has `compress_size > 0` and `file_size / compress_size > 100`, raise `ValueError('Suspicious compression ratio ({ratio:.0f}:1) detected in {entry.filename}')`\n   - Log warnings at `logger.warning` for suspicious but passing archives (ratio > 50)\n\n2. Edit `backend/app/obsidian/router.py`:\n   - Import `validate_zip_contents` from `app.security.zip_validator`\n   - In `_write_and_extract()`, after writing the ZIP to disk and before `zf.extractall()`, call `validate_zip_contents(zip_path)`\n   - Catch `ValueError` from validation, clean up files, return 400 HTML error with the validation message\n\n3. Edit `backend/app/notion/router.py`:\n   - Same changes as obsidian router — import, validate before extract, catch ValueError\n\n4. Create `backend/tests/test_zip_validator.py`:\n   - Test: normal ZIP passes validation\n   - Test: ZIP exceeding uncompressed size limit raises ValueError\n   - Test: ZIP exceeding file count limit raises ValueError\n   - Test: ZIP with suspicious compression ratio raises ValueError\n   - Test: empty ZIP passes validation\n   - Test: custom limits are respected\n   - Use `zipfile.ZipFile` to create test fixtures in-memory or tmpdir\n\n## Failure Modes\n\n| Dependency | On error | On timeout | On malformed response |\n|------------|----------|-----------|----------------------|\n| zipfile.ZipFile.infolist() | Re-raise as ValueError with context | N/A (local I/O) | Caught by existing BadZipFile handler |\n\n## Negative Tests\n\n- Malformed inputs: corrupt ZIP file (caught by existing BadZipFile handler, not this code)\n- Error paths: ZIP with zero-byte compressed entries (ratio calculation division by zero — guard with `compress_size > 0`)\n- Boundary conditions: ZIP exactly at limit passes, ZIP 1 byte over limit fails\n\n## Must-Haves\n\n- [ ] `validate_zip_contents()` checks uncompressed size, file count, and compression ratio\n- [ ] Both Obsidian and Notion importers call validator before extractall\n- [ ] ValueError from validator returns 400 with descriptive error message\n- [ ] Unit tests cover all three rejection criteria plus happy path",
+      "estimate": "40m",
+      "files": [
+        "backend/app/security/zip_validator.py",
+        "backend/app/obsidian/router.py",
+        "backend/app/notion/router.py",
+        "backend/tests/test_zip_validator.py"
+      ],
+      "verify": "cd backend && python -m pytest tests/test_zip_validator.py -v",
+      "inputs": [
+        "`backend/app/security/__init__.py` — existing security package from S01",
+        "`backend/app/obsidian/router.py` — lines 140-170, _write_and_extract with bare extractall",
+        "`backend/app/notion/router.py` — lines 168-198, identical _write_and_extract pattern"
+      ],
+      "expected_output": [
+        "`backend/app/security/zip_validator.py` — ZIP validation utility with size, count, ratio checks",
+        "`backend/app/obsidian/router.py` — calls validate_zip_contents before extractall",
+        "`backend/app/notion/router.py` — calls validate_zip_contents before extractall",
+        "`backend/tests/test_zip_validator.py` — unit tests for all validation paths"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M045",
+      "slice_id": "S02",
+      "id": "T03",
+      "title": "SECRET_KEY startup rejection and per-app JWT key isolation",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Reject known weak SECRET_KEY values at startup when not in demo/test mode, and derive per-app HMAC signing keys instead of using the platform-wide key directly.\n\n## Steps\n\n1. Edit `backend/app/main.py` in the `# --- Security Startup Warnings ---` section (around line 497):\n   - Define `_WEAK_KEYS = {\"changeme\", \"secret\", \"password\", \"admin\"}`\n   - After the existing localhost checks, add: if `settings.secret_key` is in `_WEAK_KEYS` and `settings.demo_mode` is `False`, log `logger.error(\"SECRET_KEY is a known weak value ('%s'). ...\", settings.secret_key)` and `raise SystemExit(1)`\n   - The demo key (`demo-secret-key-not-for-production`) and E2E test key (`e2e-test-secret-key-do-not-use-in-production`) are NOT in the weak list — they're intentional and clearly labeled\n   - An empty `secret_key` is fine because `_get_secret_key()` auto-generates a secure random key\n\n2. Edit `backend/app/apps/tokens.py`:\n   - Add `import hmac` and `import hashlib`\n   - Add function `get_app_secret(app_id: str) -> str` that calls `get_secret()` for the platform key, then returns `hmac.new(platform_key.encode(), app_id.encode(), hashlib.sha256).hexdigest()`\n   - Keep `get_secret()` as-is for backward compat (other callers may still use it)\n\n3. Edit `backend/app/apps/manager.py` line 193:\n   - Change `generate_app_token(app_id, {}, get_secret())` to `generate_app_token(app_id, {}, get_app_secret(app_id))`\n   - Update import to include `get_app_secret`\n\n4. Edit `backend/app/apps/router.py` lines 79-80:\n   - Change `secret = get_secret()` to `secret = get_app_secret(app_id)` — `app_id` is already available as a route parameter\n   - Update import to include `get_app_secret`\n   - Also update the `generate_app_token` call on the renewal path to use `get_app_secret(app_id)`\n\n5. Create `backend/tests/test_app_token_isolation.py`:\n   - Test: `get_app_secret('app-a')` != `get_app_secret('app-b')` (different apps get different keys)\n   - Test: `get_app_secret('app-a')` called twice returns same value (deterministic)\n   - Test: token signed with `get_app_secret('app-a')` validates with same key\n   - Test: token signed with `get_app_secret('app-a')` does NOT validate with `get_app_secret('app-b')`\n   - Test: startup rejection of weak key (mock settings, capture SystemExit)\n   - Test: startup allows demo key when demo_mode=True\n\n## Must-Haves\n\n- [ ] Startup exits with error on weak SECRET_KEY when demo_mode=False\n- [ ] Demo key passes when demo_mode=True\n- [ ] `get_app_secret(app_id)` derives per-app key via HMAC-SHA256\n- [ ] manager.py and router.py use `get_app_secret(app_id)` instead of `get_secret()`\n- [ ] Unit tests prove key isolation and startup rejection",
+      "estimate": "45m",
+      "files": [
+        "backend/app/main.py",
+        "backend/app/apps/tokens.py",
+        "backend/app/apps/manager.py",
+        "backend/app/apps/router.py",
+        "backend/tests/test_app_token_isolation.py"
+      ],
+      "verify": "cd backend && python -m pytest tests/test_app_token_isolation.py -v",
+      "inputs": [
+        "`backend/app/main.py` — Security Startup Warnings section at line 497",
+        "`backend/app/apps/tokens.py` — get_secret() returns platform-wide key",
+        "`backend/app/apps/manager.py` — line 193 calls generate_app_token with get_secret()",
+        "`backend/app/apps/router.py` — line 79 calls get_secret() for token renewal"
+      ],
+      "expected_output": [
+        "`backend/app/main.py` — weak key rejection at startup",
+        "`backend/app/apps/tokens.py` — new get_app_secret(app_id) function using HMAC-SHA256",
+        "`backend/app/apps/manager.py` — uses get_app_secret(app_id)",
+        "`backend/app/apps/router.py` — uses get_app_secret(app_id)",
+        "`backend/tests/test_app_token_isolation.py` — unit tests for key isolation and startup check"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M045",
+      "slice_id": "S02",
+      "id": "T04",
+      "title": "Caddyfile CSP cleanup and HSTS header",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Remove stale CDN domains from Caddyfile.cloud CSP directives and add HSTS header for cloud deployments.\n\n## Steps\n\n1. Edit `Caddyfile.cloud` header block:\n   - In Content-Security-Policy, remove `https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com` from `script-src` directive\n   - Result: `script-src 'self' 'unsafe-inline'`\n   - Same removal from `style-src` directive\n   - Result: `style-src 'self' 'unsafe-inline'`\n   - Add `Strict-Transport-Security \"max-age=63072000; includeSubDomains; preload\"` to the header block\n\n## Must-Haves\n\n- [ ] CSP `script-src` contains no CDN domains\n- [ ] CSP `style-src` contains no CDN domains\n- [ ] HSTS header present with max-age >= 63072000",
+      "estimate": "10m",
+      "files": [
+        "Caddyfile.cloud"
+      ],
+      "verify": "! grep -q 'unpkg.com\\|cdn.jsdelivr.net\\|cdnjs.cloudflare.com' Caddyfile.cloud && grep -q 'Strict-Transport-Security' Caddyfile.cloud",
+      "inputs": [
+        "`Caddyfile.cloud` — current CSP with stale CDN domains on line 20, no HSTS"
+      ],
+      "expected_output": [
+        "`Caddyfile.cloud` — clean CSP without CDN domains, HSTS header added"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
     }
   ],
   "decisions": [
@@ -35089,6 +35268,83 @@
       "verdict": "✅ pass",
       "duration_ms": 1220,
       "created_at": "2026-03-28T23:32:58.433Z"
+    },
+    {
+      "id": 111,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M045",
+      "command": "grep -q 'USER sempkm' backend/Dockerfile",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-03-29T00:01:11.373Z"
+    },
+    {
+      "id": 112,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M045",
+      "command": "! grep '\\-\\-reload' backend/Dockerfile",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-03-29T00:01:11.373Z"
+    },
+    {
+      "id": 113,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M045",
+      "command": "grep -c 'no-new-privileges' docker-compose*.yml",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-03-29T00:01:11.373Z"
+    },
+    {
+      "id": 114,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M045",
+      "command": "docker compose config --quiet (all 6 files)",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 2000,
+      "created_at": "2026-03-29T00:01:11.373Z"
+    },
+    {
+      "id": 115,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M045",
+      "command": "docker build backend/ --no-cache",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 45000,
+      "created_at": "2026-03-29T00:01:11.373Z"
+    },
+    {
+      "id": 116,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M045",
+      "command": "docker run --rm sempkm-test-build id",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1000,
+      "created_at": "2026-03-29T00:01:11.374Z"
+    },
+    {
+      "id": 117,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M045",
+      "command": "docker run --rm sempkm-test-build stat /app/data",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1000,
+      "created_at": "2026-03-29T00:01:11.374Z"
     }
   ]
 }
