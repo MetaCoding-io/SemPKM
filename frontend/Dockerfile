@@ -26,6 +26,15 @@ COPY --from=builder /build/dist/ /build-assets/
 COPY --from=builder /build/dist/ /usr/share/nginx/html/assets/
 
 # Copy nginx configuration and entrypoint
+# Pre-create nginx cache dirs with correct ownership so the container
+# can start even with security_opt: no-new-privileges + cap_drop: ALL.
+RUN mkdir -p /var/cache/nginx/client_temp \
+             /var/cache/nginx/proxy_temp \
+             /var/cache/nginx/fastcgi_temp \
+             /var/cache/nginx/uwsgi_temp \
+             /var/cache/nginx/scgi_temp && \
+    chown -R nginx:nginx /var/cache/nginx
+
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 

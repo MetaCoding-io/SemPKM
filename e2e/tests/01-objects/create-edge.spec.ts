@@ -50,13 +50,22 @@ test.describe('Edge (Relationship) Creation', () => {
     // Wait for the object tab to load first
     await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
 
-    // Wait for relations panel to load (it's loaded via htmx into #relations-content)
-    await ownerPage.waitForSelector('#relations-content', { timeout: 20000 });
+    // The relations panel is loaded async by workspace-layout.js onDidActivePanelChange.
+    // Give a short delay for the tab activation event to fire, then explicitly
+    // trigger a refresh in case the initial one raced or was missed.
+    await ownerPage.waitForTimeout(1000);
+    await ownerPage.evaluate((iri) => {
+      if (typeof (window as any).SemPKM.refreshRightPaneSection === 'function') {
+        (window as any).SemPKM.refreshRightPaneSection(iri, 'relations');
+      }
+    }, noteIri);
 
-    // The relations content should eventually show outbound or inbound links
-    // (depends on whether the edge was created in previous test - tests are sequential)
+    // Wait for the relations-panel to render (appears after async fetch completes)
+    await ownerPage.waitForSelector('#relations-content .relations-panel', { timeout: 20000 });
+
+    // Verify outbound section exists (the edge created in previous test should show)
     const relationsContent = ownerPage.locator('#relations-content');
-    await expect(relationsContent).not.toContainText('No object selected', { timeout: 15000 });
+    await expect(relationsContent).toContainText('Outbound', { timeout: 10000 });
   });
 
   test('create edge between newly created objects', async ({ ownerPage, ownerSessionToken }) => {

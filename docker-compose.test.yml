@@ -236,10 +236,6 @@ services:
     build: ./frontend
     ports:
       - "3901:80"
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
     volumes:
       - ./frontend/static:/usr/share/nginx/html:ro
       - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro

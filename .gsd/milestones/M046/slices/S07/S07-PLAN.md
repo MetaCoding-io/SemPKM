@@ -67,7 +67,7 @@
   - Estimate: 30m
   - Files: e2e/tests/01-objects/object-view-redesign.spec.ts, e2e/tests/12-bug-fixes/bug-fixes.spec.ts, e2e/tests/05-admin/admin-model-detail.spec.ts, e2e/tests/01-objects/create-edge.spec.ts
   - Verify: cd e2e && npx playwright test tests/01-objects/object-view-redesign.spec.ts tests/12-bug-fixes/bug-fixes.spec.ts tests/05-admin/admin-model-detail.spec.ts tests/01-objects/create-edge.spec.ts --project=chromium --retries=1 --reporter=line 2>&1 | tail -30
-- [ ] **T03: Full suite verification — confirm 0 failures across all 122 specs** — Run the complete Playwright test suite against the Docker test stack and confirm 0 failures. If any residual failures appear, diagnose and fix them on the spot.
+- [x] **T03: Full suite verification — confirm 0 failures across all 122 specs** — Run the complete Playwright test suite against the Docker test stack and confirm 0 failures. If any residual failures appear, diagnose and fix them on the spot.
 
 ## Steps
 

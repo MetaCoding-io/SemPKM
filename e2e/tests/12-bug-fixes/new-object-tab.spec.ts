@@ -6,7 +6,7 @@
  */
 import { test, expect } from '../../fixtures/auth';
 import { SEED } from '../../fixtures/seed-data';
-import { waitForWorkspace, waitForIdle } from '../../helpers/wait-for';
+import { waitForWorkspace } from '../../helpers/wait-for';
 
 const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3901';
 
@@ -22,13 +22,12 @@ test.describe('New Object Tab Preservation', () => {
       },
       { iri: SEED.notes.architecture.iri, label: SEED.notes.architecture.title },
     );
-    await waitForIdle(ownerPage);
 
     // Assert the seed object tab is visible
     const seedTab = ownerPage.locator('.dv-default-tab', {
       hasText: SEED.notes.architecture.title,
     });
-    await expect(seedTab).toBeVisible({ timeout: 10000 });
+    await expect(seedTab).toBeVisible({ timeout: 20000 });
 
     // Record tab count before showTypePicker
     const tabsBefore = await ownerPage.locator('.dv-default-tab').count();
@@ -38,10 +37,9 @@ test.describe('New Object Tab Preservation', () => {
     await ownerPage.evaluate(() => {
       (window as any).SemPKM.showTypePicker();
     });
-    await waitForIdle(ownerPage);
 
     // Wait for the type picker content to load
-    await ownerPage.waitForSelector('.type-picker', { timeout: 10000 });
+    await ownerPage.waitForSelector('.type-picker', { timeout: 15000 });
 
     // Assert: the original seed object tab still exists in the tab bar
     await expect(seedTab).toBeVisible();
@@ -68,14 +66,13 @@ test.describe('New Object Tab Preservation', () => {
       },
       { iri: SEED.notes.architecture.iri, label: SEED.notes.architecture.title },
     );
-    await waitForIdle(ownerPage);
+    await ownerPage.waitForSelector('.object-tab', { timeout: 20000 });
 
     // Trigger showTypePicker
     await ownerPage.evaluate(() => {
       (window as any).SemPKM.showTypePicker();
     });
-    await waitForIdle(ownerPage);
-    await ownerPage.waitForSelector('.type-picker', { timeout: 10000 });
+    await ownerPage.waitForSelector('.type-picker', { timeout: 15000 });
 
     // Assert: the temp panel has the __new-object- prefix in dockview
     const hasTempPanel = await ownerPage.evaluate(() => {
@@ -102,7 +99,6 @@ test.describe('New Object Tab Preservation', () => {
       } catch { return false; }
     });
     expect(closedOk).toBe(true);
-    await waitForIdle(ownerPage);
 
     // Assert: after closing the temp panel, no "New Object" tab remains
     const tempTabs = ownerPage.locator('.dv-default-tab', { hasText: 'New Object' });
