@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-04T23:22:00.658Z",
+  "exported_at": "2026-04-04T23:27:11.388Z",
   "milestones": [
     {
       "id": "M001",
@@ -30942,19 +30942,26 @@
       "milestone_id": "M047",
       "slice_id": "S01",
       "id": "T03",
-      "title": "Comprehensive tests for v1 backward compat and v2 TBox install/uninstall lifecycle",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "43 unit tests proving v1 backward compat (8 models), v2 manifest parsing, TBox loader validation, source_model CRUD, and ModelService install/remove TBox lifecycle",
+      "status": "complete",
+      "one_liner": "43 unit tests proving v1 backward compat (8 models), v2 manifest parsing, TBox loader validation, source_model CRUD, and ModelService install/remove TBox lifecycle",
+      "narrative": "Created three test files: test_manifest_v2.py (16 tests parametrized over all 8 model dirs), test_tbox_loader.py (14 tests covering valid/invalid JSON, missing files, missing fields), and test_tbox_lifecycle.py (13 tests for DashboardService/WorkflowService source_model CRUD plus ModelService integration with mocked triplestore). Fixed initial mock format from CSV string to ASK-compatible dict. All 43 tests pass, existing 27 dashboard tests confirmed no regressions.",
+      "verification_result": "43/43 new tests pass (0.87s). 27/27 existing dashboard tests pass (0.76s). Slice-level verification (v2 manifest parse + TBox loader) passes.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-04T23:27:11.355Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "Plan said tbox_loader returns None on missing file — actual code raises ValueError. Adapted test. Plan said 6 models — there are 8. Parametrized over all 8.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/tests/test_manifest_v2.py",
+        "backend/tests/test_tbox_loader.py",
+        "backend/tests/test_tbox_lifecycle.py"
+      ],
+      "key_decisions": [
+        "Mocked TriplestoreClient.query with ASK-compatible dict format (not CSV)",
+        "Parametrized backward compat test over all 8 model dirs"
+      ],
+      "full_summary_md": "---\nid: T03\nparent: S01\nmilestone: M047\nkey_files:\n  - backend/tests/test_manifest_v2.py\n  - backend/tests/test_tbox_loader.py\n  - backend/tests/test_tbox_lifecycle.py\nkey_decisions:\n  - Mocked TriplestoreClient.query with ASK-compatible dict format (not CSV)\n  - Parametrized backward compat test over all 8 model dirs\nduration: \nverification_result: passed\ncompleted_at: 2026-04-04T23:27:11.354Z\nblocker_discovered: false\n---\n\n# T03: 43 unit tests proving v1 backward compat (8 models), v2 manifest parsing, TBox loader validation, source_model CRUD, and ModelService install/remove TBox lifecycle\n\n**43 unit tests proving v1 backward compat (8 models), v2 manifest parsing, TBox loader validation, source_model CRUD, and ModelService install/remove TBox lifecycle**\n\n## What Happened\n\nCreated three test files: test_manifest_v2.py (16 tests parametrized over all 8 model dirs), test_tbox_loader.py (14 tests covering valid/invalid JSON, missing files, missing fields), and test_tbox_lifecycle.py (13 tests for DashboardService/WorkflowService source_model CRUD plus ModelService integration with mocked triplestore). Fixed initial mock format from CSV string to ASK-compatible dict. All 43 tests pass, existing 27 dashboard tests confirmed no regressions.\n\n## Verification\n\n43/43 new tests pass (0.87s). 27/27 existing dashboard tests pass (0.76s). Slice-level verification (v2 manifest parse + TBox loader) passes.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python -m pytest tests/test_manifest_v2.py tests/test_tbox_loader.py tests/test_tbox_lifecycle.py -v --tb=short` | 0 | ✅ pass | 870ms |\n| 2 | `cd backend && .venv/bin/python -m pytest tests/test_dashboard.py -v --tb=short` | 0 | ✅ pass | 760ms |\n| 3 | `cd backend && .venv/bin/python -c \"from app.models.manifest import parse_manifest; ...\" (slice verification)` | 0 | ✅ pass | 200ms |\n\n## Deviations\n\nPlan said tbox_loader returns None on missing file — actual code raises ValueError. Adapted test. Plan said 6 models — there are 8. Parametrized over all 8.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/tests/test_manifest_v2.py`\n- `backend/tests/test_tbox_loader.py`\n- `backend/tests/test_tbox_lifecycle.py`\n",
       "description": "Write unit tests proving: (1) all 6 v1 models parse unchanged, (2) v2 manifests parse with new fields, (3) TBox loader reads/validates JSON dashboard/workflow files, (4) source_model column works in DashboardService and WorkflowService, (5) ModelService install creates TBox surfaces and uninstall removes them.\n\n## Steps\n\n1. Create `backend/tests/test_manifest_v2.py`:\n   - Test v1 manifests (no manifest_version) parse with manifest_version=None and dashboards/workflows=None\n   - Test all 6 existing models parse without error (parametrize over model dirs)\n   - Test v2 manifest with manifest_version='2.0' and dashboards entrypoint parses correctly\n   - Test {modelId} placeholder resolution in dashboards/workflows entrypoint paths\n   - Test v2 manifest without dashboards/workflows (optional fields) still parses\n\n2. Create `backend/tests/test_tbox_loader.py`:\n   - Test load_tbox_dashboards with valid JSON returns list of dicts\n   - Test load_tbox_dashboards with None entrypoint returns None\n   - Test load_tbox_dashboards with missing file returns None (graceful)\n   - Test load_tbox_dashboards with malformed JSON raises ValueError\n   - Test load_tbox_dashboards with missing 'name' field raises ValueError\n   - Same 5 tests for load_tbox_workflows\n   - Test with the real PPV dashboards/ppv.json file\n\n3. Create `backend/tests/test_tbox_lifecycle.py`:\n   - In-memory SQLite fixture with dashboard_specs and workflow_specs tables (include source_model column)\n   - Test DashboardService.create with source_model param stores it correctly\n   - Test DashboardService.delete_by_model deletes only model-sourced rows, not user rows\n   - Test DashboardService.list_by_model returns only model-sourced rows\n   - Same 3 tests for WorkflowService\n   - Test ModelService.install with a v2 manifest creates dashboards tagged with source_model\n   - Test ModelService.remove deletes model-sourced dashboards/workflows\n   - Test ModelService.install with v1 manifest creates zero dashboards/workflows (backward compat)\n   - Test ModelService.install with TBox creation failure still returns success with warning (degraded mode)\n\n4. Run all existing tests to verify no regressions:\n   - `cd backend && .venv/bin/python -m pytest tests/test_dashboard.py tests/test_manifest_v2.py tests/test_tbox_loader.py tests/test_tbox_lifecycle.py -v`",
       "estimate": "1.5h",
       "files": [
@@ -37525,6 +37532,39 @@
       "verdict": "✅ pass",
       "duration_ms": 2600,
       "created_at": "2026-04-04T23:22:00.612Z"
+    },
+    {
+      "id": 180,
+      "task_id": "T03",
+      "slice_id": "S01",
+      "milestone_id": "M047",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_manifest_v2.py tests/test_tbox_loader.py tests/test_tbox_lifecycle.py -v --tb=short",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 870,
+      "created_at": "2026-04-04T23:27:11.355Z"
+    },
+    {
+      "id": 181,
+      "task_id": "T03",
+      "slice_id": "S01",
+      "milestone_id": "M047",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_dashboard.py -v --tb=short",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 760,
+      "created_at": "2026-04-04T23:27:11.355Z"
+    },
+    {
+      "id": 182,
+      "task_id": "T03",
+      "slice_id": "S01",
+      "milestone_id": "M047",
+      "command": "cd backend && .venv/bin/python -c \"from app.models.manifest import parse_manifest; ...\" (slice verification)",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 200,
+      "created_at": "2026-04-04T23:27:11.355Z"
     }
   ]
 }

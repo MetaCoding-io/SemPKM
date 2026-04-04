@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T02",
+  "unitId": "M047/S01/T02",
+  "timestamp": 1775344927085,
+  "passed": false,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "cd backend",
+      "exitCode": 0,
+      "durationMs": 19,
+      "verdict": "pass"
+    },
+    {
+      "command": ".venv/bin/python -c \"\nfrom app.models.manifest import parse_manifest\nfrom pathlib import Path\nm = parse_manifest(Path('../models/ppv'))\nassert m.manifest_version == '2.0', f'Expected 2.0, got {m.manifest_version}'\nassert m.entrypoints.dashboards is not None, 'dashboards entrypoint missing'\nprint('v2 manifest parses OK')\nfrom app.models.tbox_loader import load_tbox_dashboards\ndashes = load_tbox_dashboards(Path('../models/ppv'), m)\nassert dashes is not None and len(dashes) >= 1, f'Expected >=1 dashboard, got {dashes}'\nprint(f'Loaded {len(dashes)} dashboard(s) from PPV v2')\n\"",
+      "exitCode": 127,
+      "durationMs": 19,
+      "verdict": "fail"
+    },
+    {
+      "command": "echo 'T02 verification passed'",
+      "exitCode": 0,
+      "durationMs": 20,
+      "verdict": "pass"
+    }
+  ],
+  "retryAttempt": 1,
+  "maxRetries": 2
+}

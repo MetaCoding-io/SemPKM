@@ -108,7 +108,7 @@ dashes = load_tbox_dashboards(Path('../models/ppv'), m)
 assert dashes is not None and len(dashes) >= 1, f'Expected >=1 dashboard, got {dashes}'
 print(f'Loaded {len(dashes)} dashboard(s) from PPV v2')
 " && echo 'T02 verification passed'
-- [ ] **T03: Comprehensive tests for v1 backward compat and v2 TBox install/uninstall lifecycle** — Write unit tests proving: (1) all 6 v1 models parse unchanged, (2) v2 manifests parse with new fields, (3) TBox loader reads/validates JSON dashboard/workflow files, (4) source_model column works in DashboardService and WorkflowService, (5) ModelService install creates TBox surfaces and uninstall removes them.
+- [x] **T03: 43 unit tests proving v1 backward compat (8 models), v2 manifest parsing, TBox loader validation, source_model CRUD, and ModelService install/remove TBox lifecycle** — Write unit tests proving: (1) all 6 v1 models parse unchanged, (2) v2 manifests parse with new fields, (3) TBox loader reads/validates JSON dashboard/workflow files, (4) source_model column works in DashboardService and WorkflowService, (5) ModelService install creates TBox surfaces and uninstall removes them.
 
 ## Steps
 
