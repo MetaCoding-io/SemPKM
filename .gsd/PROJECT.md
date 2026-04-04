@@ -769,6 +769,10 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
+**In progress: M047 PPV Model v2 — Versioned Manifests, TBox Dashboards/Workflows & Review System**
+- S01 complete: Manifest v2 infrastructure — manifest_version field, dashboards/workflows entrypoints, source_model column on dashboard_specs/workflow_specs, TBox loader module, ModelService install/remove/refresh lifecycle hooks. PPV bumped to v2.0.0 with test dashboard. All 8 v1 models install unchanged. 43 unit tests.
+- S02–S04 pending: PPV ontology expansion, real dashboards/workflows, seed data, E2E verification.
+
 **Latest shipped: M045 Security Remediation (2026-03-29) — 3 slices, all 44 M042 security audit findings resolved. 218 security tests pass (78 M045 + 140 M043). Comprehensive security-model.md documents all findings, features, and dependency scanning.**
 
 M045 shipped: SSRF guard (4 code paths), federation integrity (SHA-256 hash + namespace filtering), model install/uninstall audit events, non-root Docker containers (UID 1000, no-new-privileges, cap-drop ALL across 6 compose files), ZIP bomb protection, weak SECRET_KEY startup rejection, per-app JWT key isolation via HMAC-SHA256, Caddyfile HSTS + CSP cleanup. Complete 44-finding disposition table in docs/security-model.md.
@@ -1248,4 +1252,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-03-23 after M042 complete (Security Audit — OWASP Web Security & Backend Hardening. 44 severity-rated findings across all 10 OWASP Top 10:2021 categories. SPARQL injection classification of 33 modules (5 confirmed-exploitable, 4 likely-exploitable, 24 safe). Prioritized Top 10 remediation roadmap estimated at 19–35h. Analysis-only — no source code modified.)*
+*Last updated: 2026-04-04 after M047/S01 complete (Manifest v2 Infrastructure + TBox Install/Uninstall Lifecycle. Manifest v2 schema, source_model column, TBox loader, ModelService lifecycle hooks, PPV v2.0.0 manifest with test dashboard, 43 unit tests.)*

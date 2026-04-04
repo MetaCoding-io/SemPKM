@@ -712,6 +712,12 @@
       "sh:order": 4
     },
     {
+      "@id": "ppv:WeeklyReviewReflectionGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Reflection",
+      "sh:order": 5
+    },
+    {
       "@id": "ppv:WeeklyReviewShape",
       "@type": "sh:NodeShape",
       "sh:targetClass": { "@id": "ppv:WeeklyReview" },
@@ -783,6 +789,33 @@
           "sh:maxCount": 1,
           "sh:order": 7,
           "sh:group": { "@id": "ppv:WeeklyReviewMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:wins" },
+          "sh:name": "Wins",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 8,
+          "sh:group": { "@id": "ppv:WeeklyReviewReflectionGroup" },
+          "sempkm:editHelpText": "What went well this week?"
+        },
+        {
+          "sh:path": { "@id": "ppv:challenges" },
+          "sh:name": "Challenges",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 9,
+          "sh:group": { "@id": "ppv:WeeklyReviewReflectionGroup" },
+          "sempkm:editHelpText": "What were the biggest challenges?"
+        },
+        {
+          "sh:path": { "@id": "ppv:supportingPriorities" },
+          "sh:name": "Supporting Priorities",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 10,
+          "sh:group": { "@id": "ppv:WeeklyReviewReflectionGroup" },
+          "sempkm:editHelpText": "Which priorities are you supporting next week?"
         }
       ]
     },
@@ -877,6 +910,42 @@
           "sempkm:editHelpText": "What was your key learning this month?"
         },
         {
+          "sh:path": { "@id": "ppv:biggestWins" },
+          "sh:name": "Biggest Wins",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "ppv:MonthlyReviewReflectionGroup" },
+          "sempkm:editHelpText": "What were your most significant wins this month?"
+        },
+        {
+          "sh:path": { "@id": "ppv:biggestChallenges" },
+          "sh:name": "Biggest Challenges",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 8,
+          "sh:group": { "@id": "ppv:MonthlyReviewReflectionGroup" },
+          "sempkm:editHelpText": "What were the biggest challenges this month?"
+        },
+        {
+          "sh:path": { "@id": "ppv:focusAreas" },
+          "sh:name": "Focus Areas",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 9,
+          "sh:group": { "@id": "ppv:MonthlyReviewReflectionGroup" },
+          "sempkm:editHelpText": "What key areas will you focus on next month?"
+        },
+        {
+          "sh:path": { "@id": "ppv:habitsToAdjust" },
+          "sh:name": "Habits to Adjust",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 10,
+          "sh:group": { "@id": "ppv:MonthlyReviewReflectionGroup" },
+          "sempkm:editHelpText": "What habits should you start, stop, or adjust?"
+        },
+        {
           "sh:path": { "@id": "ppv:quarter" },
           "sh:name": "Quarter",
           "sh:class": { "@id": "ppv:QuarterlyReview" },
@@ -919,6 +988,12 @@
       "@type": "sh:PropertyGroup",
       "rdfs:label": "Metadata",
       "sh:order": 3
+    },
+    {
+      "@id": "ppv:QuarterlyReviewReflectionGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Reflection",
+      "sh:order": 4
     },
     {
       "@id": "ppv:QuarterlyReviewShape",
@@ -979,6 +1054,60 @@
           "sh:maxCount": 1,
           "sh:order": 6,
           "sh:group": { "@id": "ppv:QuarterlyReviewMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:accomplishments" },
+          "sh:name": "Accomplishments",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "ppv:QuarterlyReviewReflectionGroup" },
+          "sempkm:editHelpText": "What were your key accomplishments this quarter?"
+        },
+        {
+          "sh:path": { "@id": "ppv:disappointments" },
+          "sh:name": "Disappointments",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 8,
+          "sh:group": { "@id": "ppv:QuarterlyReviewReflectionGroup" },
+          "sempkm:editHelpText": "What disappointed you or fell short this quarter?"
+        },
+        {
+          "sh:path": { "@id": "ppv:whatWorked" },
+          "sh:name": "What Worked",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 9,
+          "sh:group": { "@id": "ppv:QuarterlyReviewReflectionGroup" },
+          "sempkm:editHelpText": "What strategies or approaches worked well?"
+        },
+        {
+          "sh:path": { "@id": "ppv:whatDidntWork" },
+          "sh:name": "What Didn't Work",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 10,
+          "sh:group": { "@id": "ppv:QuarterlyReviewReflectionGroup" },
+          "sempkm:editHelpText": "What strategies or approaches didn't work?"
+        },
+        {
+          "sh:path": { "@id": "ppv:howToImprove" },
+          "sh:name": "How to Improve",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 11,
+          "sh:group": { "@id": "ppv:QuarterlyReviewReflectionGroup" },
+          "sempkm:editHelpText": "What will you do differently next quarter?"
+        },
+        {
+          "sh:path": { "@id": "ppv:annualVisionNotes" },
+          "sh:name": "Annual Vision Notes",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 12,
+          "sh:group": { "@id": "ppv:QuarterlyReviewReflectionGroup" },
+          "sempkm:editHelpText": "How is your progress toward the annual vision?"
         }
       ]
     },
@@ -1000,6 +1129,12 @@
       "@type": "sh:PropertyGroup",
       "rdfs:label": "Metadata",
       "sh:order": 3
+    },
+    {
+      "@id": "ppv:YearlyReviewReflectionGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Reflection",
+      "sh:order": 4
     },
     {
       "@id": "ppv:YearlyReviewShape",
@@ -1052,6 +1187,220 @@
           "sh:maxCount": 1,
           "sh:order": 5,
           "sh:group": { "@id": "ppv:YearlyReviewMetadataGroup" }
+        },
+        {
+          "sh:path": { "@id": "ppv:intentionWord" },
+          "sh:name": "Intention Word",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "ppv:YearlyReviewReflectionGroup" },
+          "sempkm:editHelpText": "A single word capturing your intention for the year."
+        },
+        {
+          "sh:path": { "@id": "ppv:yearTheme" },
+          "sh:name": "Year Theme",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "ppv:YearlyReviewReflectionGroup" },
+          "sempkm:editHelpText": "Overarching theme or motto for the year."
+        }
+      ]
+    },
+
+    {
+      "@id": "ppv:PillarScoreBasicGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "ppv:PillarScoreRelationshipsGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Relationships",
+      "sh:order": 2
+    },
+    {
+      "@id": "ppv:PillarScoreMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 3
+    },
+    {
+      "@id": "ppv:PillarScoreShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "ppv:PillarScore" },
+      "rdfs:label": "Pillar Score Shape",
+      "sempkm:editHelpText": "Pillar Scores rate a single pillar (1-10) within a weekly review. Add qualitative notes about what went well and what needs attention.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "ppv:PillarScoreBasicGroup" },
+          "sempkm:editHelpText": "e.g., 'Health — Week of March 3'"
+        },
+        {
+          "sh:path": { "@id": "ppv:score" },
+          "sh:name": "Score",
+          "sh:datatype": { "@id": "xsd:integer" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:minInclusive": 1,
+          "sh:maxInclusive": 10,
+          "sh:order": 2,
+          "sh:group": { "@id": "ppv:PillarScoreBasicGroup" },
+          "sempkm:editHelpText": "Rate this pillar from 1 (needs urgent attention) to 10 (thriving)."
+        },
+        {
+          "sh:path": { "@id": "ppv:wentWell" },
+          "sh:name": "Went Well",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "ppv:PillarScoreBasicGroup" },
+          "sempkm:editHelpText": "What went well for this pillar this week?"
+        },
+        {
+          "sh:path": { "@id": "ppv:needsAttention" },
+          "sh:name": "Needs Attention",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "ppv:PillarScoreBasicGroup" },
+          "sempkm:editHelpText": "What needs attention or improvement for this pillar?"
+        },
+        {
+          "sh:path": { "@id": "ppv:weeklyReview" },
+          "sh:name": "Weekly Review",
+          "sh:class": { "@id": "ppv:WeeklyReview" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "ppv:PillarScoreRelationshipsGroup" },
+          "sempkm:editHelpText": "Which weekly review does this score belong to?"
+        },
+        {
+          "sh:path": { "@id": "ppv:pillar" },
+          "sh:name": "Pillar",
+          "sh:class": { "@id": "ppv:Pillar" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "ppv:PillarScoreRelationshipsGroup" },
+          "sempkm:editHelpText": "Which pillar is being scored?"
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "ppv:PillarScoreMetadataGroup" }
+        }
+      ]
+    },
+
+    {
+      "@id": "ppv:GuidingPrinciplesBasicGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Basic Info",
+      "sh:order": 1
+    },
+    {
+      "@id": "ppv:GuidingPrinciplesStatementGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Statements",
+      "sh:order": 2
+    },
+    {
+      "@id": "ppv:GuidingPrinciplesMetadataGroup",
+      "@type": "sh:PropertyGroup",
+      "rdfs:label": "Metadata",
+      "sh:order": 3
+    },
+    {
+      "@id": "ppv:GuidingPrinciplesShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "ppv:GuidingPrinciples" },
+      "rdfs:label": "Guiding Principles Shape",
+      "sempkm:editHelpText": "Guiding Principles capture your core values, purpose, and meaning — the foundational anchor for all decisions in your PPV system.",
+      "sh:property": [
+        {
+          "sh:path": { "@id": "dcterms:title" },
+          "sh:name": "Title",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1,
+          "sh:maxCount": 1,
+          "sh:order": 1,
+          "sh:group": { "@id": "ppv:GuidingPrinciplesBasicGroup" },
+          "sempkm:editHelpText": "e.g., 'My Guiding Principles'"
+        },
+        {
+          "sh:path": { "@id": "ppv:values" },
+          "sh:name": "Values",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 2,
+          "sh:group": { "@id": "ppv:GuidingPrinciplesBasicGroup" },
+          "sempkm:editHelpText": "What are your core values?"
+        },
+        {
+          "sh:path": { "@id": "ppv:purpose" },
+          "sh:name": "Purpose",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 3,
+          "sh:group": { "@id": "ppv:GuidingPrinciplesBasicGroup" },
+          "sempkm:editHelpText": "What is your life purpose?"
+        },
+        {
+          "sh:path": { "@id": "ppv:meaning" },
+          "sh:name": "Meaning",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 4,
+          "sh:group": { "@id": "ppv:GuidingPrinciplesBasicGroup" },
+          "sempkm:editHelpText": "What gives your life meaning?"
+        },
+        {
+          "sh:path": { "@id": "ppv:manifestation" },
+          "sh:name": "Manifestation",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 5,
+          "sh:group": { "@id": "ppv:GuidingPrinciplesBasicGroup" },
+          "sempkm:editHelpText": "How do your values and purpose manifest in daily life?"
+        },
+        {
+          "sh:path": { "@id": "ppv:foundationalStatement" },
+          "sh:name": "Foundational Statement",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 6,
+          "sh:group": { "@id": "ppv:GuidingPrinciplesStatementGroup" },
+          "sempkm:editHelpText": "A foundational statement anchoring all your guiding principles."
+        },
+        {
+          "sh:path": { "@id": "ppv:guidingWord" },
+          "sh:name": "Guiding Word",
+          "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1,
+          "sh:order": 7,
+          "sh:group": { "@id": "ppv:GuidingPrinciplesStatementGroup" },
+          "sempkm:editHelpText": "A single word or short phrase that encapsulates your guiding principle."
+        },
+        {
+          "sh:path": { "@id": "dcterms:created" },
+          "sh:name": "Created",
+          "sh:datatype": { "@id": "xsd:dateTime" },
+          "sh:maxCount": 1,
+          "sh:order": 8,
+          "sh:group": { "@id": "ppv:GuidingPrinciplesMetadataGroup" }
         }
       ]
     }

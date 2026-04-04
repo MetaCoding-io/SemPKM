@@ -401,6 +401,225 @@
       "rdfs:domain": { "@id": "ppv:YearlyReview" },
       "rdfs:range": { "@id": "ppv:QuarterlyReview" },
       "owl:inverseOf": { "@id": "ppv:yearLink" }
+    },
+
+    {
+      "@id": "ppv:PillarScore",
+      "@type": "owl:Class",
+      "rdfs:label": "Pillar Score",
+      "rdfs:comment": "Weekly pillar scoring mechanic — rates a single pillar (1-10) within a weekly review with qualitative reflection"
+    },
+    {
+      "@id": "ppv:GuidingPrinciples",
+      "@type": "owl:Class",
+      "rdfs:label": "Guiding Principles",
+      "rdfs:comment": "Values anchor document capturing purpose, meaning, manifestation, and guiding words for intentional living"
+    },
+
+    {
+      "@id": "ppv:score",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Score",
+      "rdfs:comment": "Numeric pillar score (1-10) for the week",
+      "rdfs:domain": { "@id": "ppv:PillarScore" },
+      "rdfs:range": { "@id": "xsd:integer" }
+    },
+    {
+      "@id": "ppv:wentWell",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Went Well",
+      "rdfs:comment": "What went well for this pillar during the week",
+      "rdfs:domain": { "@id": "ppv:PillarScore" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:needsAttention",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Needs Attention",
+      "rdfs:comment": "What needs attention for this pillar going forward",
+      "rdfs:domain": { "@id": "ppv:PillarScore" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:weeklyReview",
+      "@type": "owl:ObjectProperty",
+      "rdfs:label": "Weekly Review",
+      "rdfs:comment": "Links a PillarScore to the WeeklyReview it was recorded in",
+      "rdfs:domain": { "@id": "ppv:PillarScore" },
+      "rdfs:range": { "@id": "ppv:WeeklyReview" }
+    },
+
+    {
+      "@id": "ppv:values",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Values",
+      "rdfs:comment": "Core values statement",
+      "rdfs:domain": { "@id": "ppv:GuidingPrinciples" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:purpose",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Purpose",
+      "rdfs:comment": "Life purpose statement",
+      "rdfs:domain": { "@id": "ppv:GuidingPrinciples" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:meaning",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Meaning",
+      "rdfs:comment": "What gives life meaning",
+      "rdfs:domain": { "@id": "ppv:GuidingPrinciples" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:manifestation",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Manifestation",
+      "rdfs:comment": "How values and purpose manifest in daily life",
+      "rdfs:domain": { "@id": "ppv:GuidingPrinciples" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:foundationalStatement",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Foundational Statement",
+      "rdfs:comment": "Foundational statement anchoring all guiding principles",
+      "rdfs:domain": { "@id": "ppv:GuidingPrinciples" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:guidingWord",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Guiding Word",
+      "rdfs:comment": "A single word or short phrase that encapsulates the guiding principle",
+      "rdfs:domain": { "@id": "ppv:GuidingPrinciples" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+
+    {
+      "@id": "ppv:wins",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Wins",
+      "rdfs:comment": "What went well this week",
+      "rdfs:domain": { "@id": "ppv:WeeklyReview" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:challenges",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Challenges",
+      "rdfs:comment": "Biggest challenges faced this week",
+      "rdfs:domain": { "@id": "ppv:WeeklyReview" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:supportingPriorities",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Supporting Priorities",
+      "rdfs:comment": "Priorities to support in the coming week",
+      "rdfs:domain": { "@id": "ppv:WeeklyReview" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+
+    {
+      "@id": "ppv:biggestWins",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Biggest Wins",
+      "rdfs:comment": "Most significant wins for the month",
+      "rdfs:domain": { "@id": "ppv:MonthlyReview" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:biggestChallenges",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Biggest Challenges",
+      "rdfs:comment": "Most significant challenges for the month",
+      "rdfs:domain": { "@id": "ppv:MonthlyReview" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:focusAreas",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Focus Areas",
+      "rdfs:comment": "Key areas to focus on next month",
+      "rdfs:domain": { "@id": "ppv:MonthlyReview" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:habitsToAdjust",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Habits to Adjust",
+      "rdfs:comment": "Habits to start, stop, or adjust based on the month's review",
+      "rdfs:domain": { "@id": "ppv:MonthlyReview" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+
+    {
+      "@id": "ppv:accomplishments",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Accomplishments",
+      "rdfs:comment": "Key accomplishments for the quarter",
+      "rdfs:domain": { "@id": "ppv:QuarterlyReview" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:disappointments",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Disappointments",
+      "rdfs:comment": "Disappointments or unmet goals for the quarter",
+      "rdfs:domain": { "@id": "ppv:QuarterlyReview" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:whatWorked",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "What Worked",
+      "rdfs:comment": "Strategies and approaches that worked well this quarter",
+      "rdfs:domain": { "@id": "ppv:QuarterlyReview" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:whatDidntWork",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "What Didn't Work",
+      "rdfs:comment": "Strategies and approaches that didn't work this quarter",
+      "rdfs:domain": { "@id": "ppv:QuarterlyReview" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:howToImprove",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "How to Improve",
+      "rdfs:comment": "Action plan for improvement in the next quarter",
+      "rdfs:domain": { "@id": "ppv:QuarterlyReview" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:annualVisionNotes",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Annual Vision Notes",
+      "rdfs:comment": "Notes on progress toward the annual vision",
+      "rdfs:domain": { "@id": "ppv:QuarterlyReview" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+
+    {
+      "@id": "ppv:intentionWord",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Intention Word",
+      "rdfs:comment": "A single word capturing the year's intention",
+      "rdfs:domain": { "@id": "ppv:YearlyReview" },
+      "rdfs:range": { "@id": "xsd:string" }
+    },
+    {
+      "@id": "ppv:yearTheme",
+      "@type": "owl:DatatypeProperty",
+      "rdfs:label": "Year Theme",
+      "rdfs:comment": "Overarching theme or motto for the year",
+      "rdfs:domain": { "@id": "ppv:YearlyReview" },
+      "rdfs:range": { "@id": "xsd:string" }
     }
   ]
 }

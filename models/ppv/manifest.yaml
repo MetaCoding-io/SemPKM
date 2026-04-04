@@ -161,3 +161,31 @@ icons:
     graph:
       icon: "calendar-heart"
       color: "#ec4899"
+  - type: "ppv:PillarScore"
+    icon: "bar-chart-2"
+    color: "#f59e0b"
+    tree:
+      icon: "bar-chart-2"
+      color: "#f59e0b"
+      size: 16
+    tab:
+      icon: "bar-chart-2"
+      color: "#f59e0b"
+      size: 14
+    graph:
+      icon: "bar-chart-2"
+      color: "#f59e0b"
+  - type: "ppv:GuidingPrinciples"
+    icon: "heart-handshake"
+    color: "#8b5cf6"
+    tree:
+      icon: "heart-handshake"
+      color: "#8b5cf6"
+      size: 16
+    tab:
+      icon: "heart-handshake"
+      color: "#8b5cf6"
+      size: 14
+    graph:
+      icon: "heart-handshake"
+      color: "#8b5cf6"
