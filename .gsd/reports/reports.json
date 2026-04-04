@@ -2,7 +2,7 @@
   "version": 1,
   "projectName": "SemPKM",
   "projectPath": "/home/james/Code/SemPKM",
-  "gsdVersion": "2.44.0",
+  "gsdVersion": "2.62.0",
   "entries": [
     {
       "filename": "M012-2026-03-18T03-26-53.html",
@@ -499,6 +499,22 @@
       "doneMilestones": 44,
       "totalMilestones": 45,
       "phase": "complete"
+    },
+    {
+      "filename": "M046-2026-04-04T22-59-32.html",
+      "generatedAt": "2026-04-04T22:59:32.124Z",
+      "milestoneId": "M046",
+      "milestoneTitle": "M046: E2E Test Suite Remediation",
+      "label": "M046: M046: E2E Test Suite Remediation",
+      "kind": "milestone",
+      "totalCost": 1906.1557010000006,
+      "totalTokens": 2707005089,
+      "totalDuration": 361302458,
+      "doneSlices": 272,
+      "totalSlices": 274,
+      "doneMilestones": 46,
+      "totalMilestones": 47,
+      "phase": "pre-planning"
     }
   ]
 }

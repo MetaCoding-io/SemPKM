@@ -2,34 +2,11 @@
 id: T01
 parent: S04
 milestone: M046
-provides: []
-requires: []
-affects: []
-key_files: ["backend/app/templates/browser/ontology/ontology_page.html"]
-key_decisions: ["Placed ABox tab between RBox and Create Class buttons to match E2E selector expectations"]
-patterns_established: []
-drill_down_paths: []
-observability_surfaces: []
-duration: ""
-verification_result: "Duplicate check: all 7 data-testid/id attributes appear exactly 1 time. Exactly 1 ontology-tab-content block. Zero 'resolved to 2 elements' or 'strict mode' errors in E2E test output. TBox and ABox ontology-viewer tests pass."
-completed_at: 2026-03-29T02:35:18.031Z
-blocker_discovered: false
----
-
-# T01: Removed duplicate ontology-tab-content block, added ABox tab button and pane, fixed unclosed RBox div — eliminates all 'resolved to 2 elements' strict mode errors in ontology E2E tests
-
-> Removed duplicate ontology-tab-content block, added ABox tab button and pane, fixed unclosed RBox div — eliminates all 'resolved to 2 elements' strict mode errors in ontology E2E tests
-
-## What Happened
----
-id: T01
-parent: S04
-milestone: M046
 key_files:
   - backend/app/templates/browser/ontology/ontology_page.html
 key_decisions:
   - Placed ABox tab between RBox and Create Class buttons to match E2E selector expectations
-duration: ""
+duration: 
 verification_result: passed
 completed_at: 2026-03-29T02:35:18.031Z
 blocker_discovered: false
@@ -56,7 +33,6 @@ Duplicate check: all 7 data-testid/id attributes appear exactly 1 time. Exactly 
 | 3 | `grep -rl 'resolved to 2|strict mode' e2e/test-results/` | 1 | ✅ pass (no matches) | 500ms |
 | 4 | `cd e2e && npx playwright test tests/22-ontology/ --reporter=list` | 0 | ✅ pass (TBox+ABox pass) | 18000ms |
 
-
 ## Deviations
 
 Added placeholder content to RBox pane in first block (was empty/unclosed).
@@ -68,10 +44,3 @@ RBox E2E test fails due to pre-existing data-testid naming mismatch (template ap
 ## Files Created/Modified
 
 - `backend/app/templates/browser/ontology/ontology_page.html`
-
-
-## Deviations
-Added placeholder content to RBox pane in first block (was empty/unclosed).
-
-## Known Issues
-RBox E2E test fails due to pre-existing data-testid naming mismatch (template appends source suffix). Class creation test fails waiting for .success-message element (pre-existing).

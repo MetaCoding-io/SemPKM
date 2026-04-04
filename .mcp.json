@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "playwright-mcp-headed",
+      "args": []
+    }
+  }
+}

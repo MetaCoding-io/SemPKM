@@ -53,6 +53,8 @@ class ManifestEntrypoints(BaseModel):
     views: str = "views/{modelId}.jsonld"
     seed: str | None = "seed/{modelId}.jsonld"
     rules: str | None = None
+    dashboards: str | None = None
+    workflows: str | None = None
 
 
 class ManifestSchema(BaseModel):
@@ -61,6 +63,11 @@ class ManifestSchema(BaseModel):
     Validates all required fields including modelId format,
     semver version, namespace pattern, and entrypoint paths.
     """
+
+    manifest_version: str | None = Field(
+        default=None,
+        description="Manifest format version (e.g. '2.0'). None for v1 manifests.",
+    )
 
     modelId: str = Field(
         ...,
@@ -108,6 +115,10 @@ class ManifestSchema(BaseModel):
             ep.seed = ep.seed.replace("{modelId}", self.modelId)
         if ep.rules is not None:
             ep.rules = ep.rules.replace("{modelId}", self.modelId)
+        if ep.dashboards is not None:
+            ep.dashboards = ep.dashboards.replace("{modelId}", self.modelId)
+        if ep.workflows is not None:
+            ep.workflows = ep.workflows.replace("{modelId}", self.modelId)
         return self
 
 

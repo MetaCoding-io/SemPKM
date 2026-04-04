@@ -25,6 +25,7 @@ class WorkflowData:
     name: str
     description: str
     steps: list[dict] = field(default_factory=list)
+    source_model: str | None = None
     created_at: str = ""
     updated_at: str = ""
 
@@ -41,6 +42,7 @@ class WorkflowService:
         name: str,
         steps: list[dict] | None = None,
         description: str = "",
+        source_model: str | None = None,
     ) -> WorkflowData:
         """Create a new workflow.
 
@@ -68,6 +70,7 @@ class WorkflowService:
             name=name,
             description=description,
             steps_json=json.dumps(steps),
+            source_model=source_model,
         )
 
         async with self._session_factory() as session:
@@ -141,6 +144,42 @@ class WorkflowService:
             await session.commit()
             return result.rowcount > 0
 
+    async def delete_by_model(self, model_id: str) -> int:
+        """Delete all workflows sourced from a specific model.
+
+        Args:
+            model_id: The model identifier (e.g. 'basic-pkm').
+
+        Returns:
+            Number of workflows deleted.
+        """
+        async with self._session_factory() as session:
+            result = await session.execute(
+                delete(WorkflowSpec).where(
+                    WorkflowSpec.source_model == model_id
+                )
+            )
+            await session.commit()
+            return result.rowcount
+
+    async def list_by_model(self, model_id: str) -> list[WorkflowData]:
+        """List all workflows sourced from a specific model.
+
+        Args:
+            model_id: The model identifier (e.g. 'basic-pkm').
+
+        Returns:
+            List of workflow data for the given model.
+        """
+        async with self._session_factory() as session:
+            result = await session.execute(
+                select(WorkflowSpec)
+                .where(WorkflowSpec.source_model == model_id)
+                .order_by(WorkflowSpec.name)
+            )
+            specs = result.scalars().all()
+            return [self._to_data(s) for s in specs]
+
     @staticmethod
     def _to_data(spec: WorkflowSpec) -> WorkflowData:
         """Convert ORM instance to read model."""
@@ -155,6 +194,7 @@ class WorkflowService:
             name=spec.name,
             description=spec.description or "",
             steps=steps,
+            source_model=spec.source_model,
             created_at=spec.created_at.isoformat() if spec.created_at else "",
             updated_at=spec.updated_at.isoformat() if spec.updated_at else "",
         )

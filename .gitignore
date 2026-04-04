@@ -64,3 +64,6 @@ mobile/node_modules/
 mobile/android/
 mobile/ios/
 mobile/dist/
+
+# ── GSD baseline (auto-generated) ──
+.gsd-id

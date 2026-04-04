@@ -2,29 +2,6 @@
 id: T01
 parent: S07
 milestone: M046
-provides: []
-requires: []
-affects: []
-key_files: ["e2e/tests/03-navigation/workspace-layout.spec.ts", "e2e/tests/03-navigation/keyboard-shortcuts.spec.ts", "e2e/tests/02-views/table-pagination.spec.ts", "e2e/helpers/dockview.ts", "e2e/tests/02-views/timeline.spec.ts", "e2e/tests/27-event-log-polish/event-log-polish.spec.ts", "e2e/tests/01-objects/edit-object-ui.spec.ts", "e2e/tests/01-objects/create-object.spec.ts"]
-key_decisions: ["Timeline container visibility check changed to toBeAttached since CDN-loaded Gantt content renders asynchronously", "Multi-value reference field test made idempotent with clear() before typing"]
-patterns_established: []
-drill_down_paths: []
-observability_surfaces: []
-duration: ""
-verification_result: "Full 36-spec Playwright suite passed: npx playwright test [7 files] --project=chromium --retries=1 — 36 passed, 0 failed (6.6m)"
-completed_at: 2026-03-29T06:54:02.670Z
-blocker_discovered: false
----
-
-# T01: Fix 8 E2E test files — assertion mismatches, test logic bugs, timeout bumps, helper waitState param — all 36 specs pass
-
-> Fix 8 E2E test files — assertion mismatches, test logic bugs, timeout bumps, helper waitState param — all 36 specs pass
-
-## What Happened
----
-id: T01
-parent: S07
-milestone: M046
 key_files:
   - e2e/tests/03-navigation/workspace-layout.spec.ts
   - e2e/tests/03-navigation/keyboard-shortcuts.spec.ts
@@ -37,7 +14,7 @@ key_files:
 key_decisions:
   - Timeline container visibility check changed to toBeAttached since CDN-loaded Gantt content renders asynchronously
   - Multi-value reference field test made idempotent with clear() before typing
-duration: ""
+duration: 
 verification_result: passed
 completed_at: 2026-03-29T06:54:02.670Z
 blocker_discovered: false
@@ -61,7 +38,6 @@ Full 36-spec Playwright suite passed: npx playwright test [7 files] --project=ch
 |---|---------|-----------|---------|----------|
 | 1 | `npx playwright test [7 files] --project=chromium --retries=1` | 0 | ✅ pass | 398000ms |
 
-
 ## Deviations
 
 Timeline toBeVisible→toBeAttached on line 108 (plan only mentioned openGenericViewTab waitState). Multi-value test added clear() for idempotency and scrollIntoView+delay for second dropdown click.
@@ -80,10 +56,3 @@ None.
 - `e2e/tests/27-event-log-polish/event-log-polish.spec.ts`
 - `e2e/tests/01-objects/edit-object-ui.spec.ts`
 - `e2e/tests/01-objects/create-object.spec.ts`
-
-
-## Deviations
-Timeline toBeVisible→toBeAttached on line 108 (plan only mentioned openGenericViewTab waitState). Multi-value test added clear() for idempotency and scrollIntoView+delay for second dropdown click.
-
-## Known Issues
-None.

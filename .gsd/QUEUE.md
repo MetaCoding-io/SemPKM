@@ -776,3 +776,124 @@ Individual failures that don't cluster into a pattern:
 5. **Category E** (calendar) — check vendoring, unblocks 5 tests
 6. **Category F** (setup wizard) — investigate, unblocks 5 tests
 7. **Category G** (misc) — re-evaluate after A-F are done
+
+---
+
+## PPV Model v2 — Versioned Manifests, TBox Dashboards/Workflows & Review System
+
+**Queued:** 2026-04-04
+**Status:** Queued as M047 (depends on M046)
+
+Two-part milestone: (1) Extend the Mental Model manifest format to support TBox dashboards, workflows, and task templates that ship as part of the model definition — not as runtime-seeded user data. (2) Expand the PPV ontology with PillarScore, GuidingPrinciples, enriched review fields, and the full review system (daily through yearly) modeled as TBox operational surfaces.
+
+### Part 1: Versioned Model Manifests with TBox Operational Surfaces
+
+The model archive format currently supports ontology, shapes, views, rules, and seed data. Dashboards, workflows, and task templates are conceptually TBox — they define how a model operates — but they're currently hardcoded in `backend/app/dashboard/seed.py` as runtime user data.
+
+**Problem:** When someone installs PPV, the dashboards and workflows that make PPV a *system* don't travel with the model. They're seeded at first launch via Python code, not declared in the archive. This means they're non-portable, fragile, and conceptually wrong (ABox when they should be TBox).
+
+**Solution:** Extend `manifest.yaml` with new entrypoints:
+
+```yaml
+manifest_version: "2.0"  # Backward-compat: v1 manifests still work
+entrypoints:
+  ontology: "ontology/ppv.jsonld"
+  shapes: "shapes/ppv.jsonld"
+  views: "views/ppv.jsonld"
+  dashboards: "dashboards/ppv.jsonld"     # NEW — TBox operational surfaces
+  workflows: "workflows/ppv.jsonld"       # NEW — TBox operational processes
+  templates: "templates/ppv.jsonld"       # NEW — reusable creation blueprints
+  seed: "seed/ppv.jsonld"
+  rules: "rules/ppv.ttl"
+```
+
+Key requirements:
+- **Backward compatibility:** v1 manifests (no `manifest_version` field) continue to install exactly as before. The model installer detects the version and handles both paths.
+- **Install/uninstall lifecycle:** TBox dashboards/workflows are created on model install and removed on uninstall, distinct from user-created dashboards/workflows. Need a `source_model` or `is_model_tbox` flag to distinguish.
+- **Refresh support:** When a model's TBox dashboards/workflows are updated (new version), the installer can refresh them without affecting user data or user-created dashboards.
+- **Migration from seed.py:** The existing `seed.py` review workflows move into the PPV model archive. The seed.py "Getting Started" dashboard (non-PPV) stays as a platform seed.
+
+### Part 2: PPV Ontology Expansion — Review System & Operational Model
+
+**New classes:**
+
+| Class | Purpose |
+|---|---|
+| `ppv:PillarScore` | Per-pillar weekly scoring (1-10) with reflection — the core weekly review mechanic |
+| `ppv:GuidingPrinciples` | Values anchor (singleton per user): values, purpose, meaning, manifestation, foundational statement, guiding word |
+
+**Enriched review fields:**
+
+| Class | New Properties | Source (Bradley's Templates) |
+|---|---|---|
+| `WeeklyReview` | `wins`, `challenges`, `supportingPriorities` | Weekly template sections III, IV |
+| `MonthlyReview` | `biggestWins`, `biggestChallenges`, `focusAreas` | Monthly template Planning section |
+| `QuarterlyReview` | `accomplishments`, `disappointments`, `whatWorked`, `whatDidntWork`, `howToImprove` | Quarterly template Section I |
+| `YearlyReview` | `intentionWord`, `yearTheme` | Yearly template Visualize section |
+
+**New ViewSpecs:**
+
+| View | Renderer | Purpose |
+|---|---|---|
+| Pillar Scores Table | table | All PillarScores with pillar, score, week |
+| Action Items Kanban | kanban | Actions grouped by status — daily work view |
+| Projects Kanban | kanban | Projects grouped by status |
+| Action Items by Context | table | Filtered by context field — GTD context lists |
+
+**TBox Dashboards (5 — Bradley's Alignment Zone):**
+
+| Dashboard | Role | Cadence |
+|---|---|---|
+| Action Items | Daily driver — actions by priority, by context, waiting, completed today | Daily |
+| Life Dashboard | Strategic context — pillars, goals, projects, weekly focus, pillar score trends | Daily |
+| Projects Board | Pipeline view — projects by status (Future → Next Up → Active → On Hold → Completed) | Weekly |
+| Goals Overview | Strategic view — value goals by pillar, goal outcomes with progress, alignment checks | Monthly |
+| Review Hub | Meta-dashboard — recent reviews, review schedule, launch points | All cadences |
+
+**TBox Workflows (5 — the full review cycle):**
+
+| Workflow | Steps | Duration |
+|---|---|---|
+| Daily Check-in | (1) Life Dashboard context → (2) Action Items dashboard → (3) Quick-add ActionItem form | 3-5 min |
+| Weekly Review | (1) Guiding Principles dashboard → (2) Pillar Scoring form-group → (3) Work Review dashboard → (4) Life Maintenance checklist → (5) Plan Next Week dashboard + WeeklyReview form → (6) Confirm graph | 30-40 min |
+| Monthly Review | (1) Weekly Rollup dashboard (this month's weeklies + pillar score trend chart) → (2) Pillar Assessment → (3) Pipeline Review dashboard → (4) Create MonthlyReview form → (5) Plan Next Month | 45-60 min |
+| Quarterly Review | (1) Debrief dashboard (monthly reviews + pillar trends + accomplishments) → (2) Pipeline Audit → (3) Someday/Maybe triage → (4) Create QuarterlyReview form | 60-90 min |
+| Yearly Review | (1) Year in Review dashboard (quarterly reviews + year-long charts) → (2) Reflect/Interpret/Visualize → (3) System Audit → (4) Create YearlyReview form → (5) Update GuidingPrinciples form | 2-3 hrs |
+
+**TBox Task Template:**
+
+| Template | Purpose |
+|---|---|
+| Life Maintenance Checklist | Weekly recurring: email inbox, calendar review, downloads cleanup, paper filing, event booking |
+
+### Source Material
+
+The original PPV research and templates are available at:
+- **Schema Spec:** `/home/james/Documents/Vaults/PPV/System/Schema Spec.md` — the single source of truth for all property schemas, Notion provenance annotations, and query patterns
+- **Review Templates:** `/home/james/Documents/Vaults/PPV/Templates/Weekly Review.md`, `Monthly Review.md`, `Quarterly Review.md`, `Yearly Review.md` — full body structure with Bases queries and checklists
+- **Alignment Dashboards:** `/home/james/Documents/Vaults/PPV/Alignment/` — Action Items, Life Dashboard, Goals Overview, Projects Board, Review Hub
+- **How-To Guides:** `/home/james/Documents/Vaults/PPV/System/How-To Guides/Conduct Weekly Review.md` — step-by-step review process with troubleshooting
+- **System Guide:** `/home/james/Documents/Vaults/PPV/System/PPV System Guide.md` — daily/weekly/monthly/quarterly/yearly workflow descriptions
+- **Guiding Principles Template:** `/home/james/Documents/Vaults/PPV/System/Guiding Principles.md` — values, purpose, meaning, manifestation, foundational statement, guiding word
+- **M001 Research:** `.gsd/milestones/M001/M001-RESEARCH.md` (lines 4977-6277) — original full Turtle ontology translated from Schema Spec
+- **Current PPV Model:** `models/ppv/` — shipped ontology, shapes, views, rules, seed data
+- **Current Seed Workflows:** `backend/app/dashboard/seed.py` — the 5 workflows that should migrate to TBox
+- **Life Plan Seed Data:** `models/ppv/seed/james-life.jsonld` — real ABox data (9 pillars, 9 value goals, 12 goal outcomes, 13 projects, 28 action items, review scaffold). Needs Career and Mental Health filled in.
+
+### Key Design Decisions to Make During Planning
+
+1. **Dashboard/workflow serialization format** — JSON-LD matching the existing `DashboardService.create()` / `WorkflowService.create()` parameter shape? Or a new RDF vocabulary for dashboard/workflow definitions?
+2. **TBox vs user-created disambiguation** — `source_model` foreign key on dashboard/workflow rows? A `is_tbox` boolean? A separate table?
+3. **Manifest version detection** — Presence of `manifest_version` field? Or feature-detect based on which entrypoint keys exist?
+4. **Existing model migration** — Do all 6 existing models (basic-pkm, crm, zettelkasten, research, ppv, business-planning) get v2 manifests, or just PPV for now?
+5. **What NOT to model** — Vaults (handled by other models), Habits/Routines (separate domain), Accomplishments/Disappointments (free-text fields sufficient), Daily Tracking (separate domain). The daily review is a workflow + dashboard, not a data entry event.
+
+### What NOT to Include (Explicit Exclusions)
+
+- **Vaults** — Intentionally excluded. SemPKM's knowledge models (basic-pkm Notes, Zettelkasten, Research) handle note-taking better than PPV's vault concept.
+- **Habits & Routines database** — Separate domain. Could be its own mental model later.
+- **Daily Tracking database** — Separate domain. The daily review is operational (dashboard + workflow), not a formal data entry.
+- **Accomplishments/Disappointments databases** — Free-text fields on QuarterlyReview are sufficient.
+
+**Context:** To be written at `.gsd/milestones/M047/M047-CONTEXT.md` during planning
+**Depends on:** M046

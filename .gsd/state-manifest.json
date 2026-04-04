@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-03-30T00:26:57.501Z",
+  "exported_at": "2026-04-04T23:16:08.781Z",
   "milestones": [
     {
       "id": "M001",
@@ -1486,10 +1486,10 @@
     {
       "id": "M046",
       "title": "",
-      "status": "queued",
+      "status": "complete",
       "depends_on": [],
       "created_at": "2026-03-29T01:14:42.052Z",
-      "completed_at": null,
+      "completed_at": "2026-04-04T22:54:04.455Z",
       "vision": "Fix all 62 failing E2E tests across 7 failure categories. The test suite is the project's regression safety net — at 19% failure rate it provides false confidence. After this milestone, the full 122-spec suite passes reliably against the Docker test stack.",
       "success_criteria": [
         "All 122 E2E spec files pass against the Docker test stack (`npx playwright test` exits 0)",
@@ -1542,6 +1542,76 @@
       ],
       "requirement_coverage": "No formal requirements — this milestone is infrastructure/test health. Indirectly supports all validated requirements by restoring regression coverage.",
       "boundary_map_markdown": "```\\nE2E Test Suite (122 specs)\\n├── Auth fixture (session caching) ← S01\\n├── Copilot z-index (CSS fix) ← S02\\n├── App platform (subprocess venvs) ← S03\\n├── Ontology viewer (locator scoping) ← S04\\n├── Calendar/recurring (vendor check) ← S05\\n├── Setup wizard (selector/timing) ← S05\\n└── Miscellaneous (per-test fixes) ← S06\\n```"
+    },
+    {
+      "id": "M047",
+      "title": "PPV Model v2 — Versioned Manifests, TBox Dashboards/Workflows & Review System",
+      "status": "queued",
+      "depends_on": [],
+      "created_at": "2026-04-04T20:17:48.111Z",
+      "completed_at": null,
+      "vision": "Mental Model manifests carry their full operational definition — dashboards, workflows, and templates ship with the model and are managed through the install/uninstall lifecycle. PPV becomes the reference v2 model, shipping August Bradley's complete review system as TBox operational surfaces.",
+      "success_criteria": [
+        "All 6 existing models (basic-pkm, crm, zettelkasten, research, ppv, business-planning) install and uninstall without regression on v1 manifests",
+        "PPV v2 manifest installs with dashboards and workflows appearing in the user's workspace as model-sourced surfaces",
+        "PPV uninstall removes model-sourced dashboards and workflows while preserving user-created ones",
+        "PPV model refresh replaces model-sourced dashboards/workflows with updated versions",
+        "PillarScore and GuidingPrinciples types are createable via SHACL forms after PPV install",
+        "5 TBox dashboards (Action Items, Life Dashboard, Projects Board, Goals Overview, Review Hub) render with real SPARQL queries against PPV data",
+        "5 TBox workflows (Daily Check-in, Weekly Review, Monthly Review, Quarterly Review, Yearly Review) are launchable and functional",
+        "E2E tests verify install creates TBox surfaces and uninstall removes them"
+      ],
+      "key_risks": [
+        {
+          "risk": "Manifest v2 backward compatibility — Pydantic ManifestSchema rejects unknown fields, breaking v1 models",
+          "whyItMatters": "All 6 existing models must continue installing unchanged. A schema validation regression would block all model installs."
+        },
+        {
+          "risk": "Cross-storage-boundary consistency — triplestore (RDF4J transaction) and SQLite (dashboard/workflow tables) can fail independently during install",
+          "whyItMatters": "Partial install state (RDF committed but SQLite failed, or vice versa) leaves the system inconsistent. Recovery path must be clear."
+        },
+        {
+          "risk": "Dashboard SPARQL queries must be correct against PPV ontology — embedded queries reference model-specific IRIs",
+          "whyItMatters": "Incorrect SPARQL in stat-cards or view-embeds silently shows empty/error states. 5 dashboards × ~6 blocks each = ~30 queries to validate."
+        }
+      ],
+      "proof_strategy": [
+        {
+          "riskOrUnknown": "Manifest v2 backward compatibility",
+          "retireIn": "S01",
+          "whatWillBeProven": "All 6 v1 models install unchanged. PPV v2 manifest installs with dashboards/workflows created in SQLite. source_model column correctly tags model-sourced rows."
+        },
+        {
+          "riskOrUnknown": "Cross-storage-boundary consistency",
+          "retireIn": "S01",
+          "whatWillBeProven": "Install pipeline writes SQLite TBox after RDF4J transaction commits. Uninstall deletes model-sourced rows. Refresh replaces them. Partial failure logged as warning, not crash."
+        },
+        {
+          "riskOrUnknown": "Dashboard SPARQL correctness",
+          "retireIn": "S03",
+          "whatWillBeProven": "Each dashboard's SPARQL queries run without error against installed PPV data. Stat-cards show counts, view-embeds show tables/kanbans, charts show data."
+        }
+      ],
+      "verification_contract": "Unit tests for ManifestSchema v2 parsing (v1 compat, v2 new fields). Unit tests for source_model migration. Unit tests for install/uninstall/refresh TBox lifecycle. rdflib parse of expanded ontology and shapes.",
+      "verification_integration": "Model install pipeline creates dashboards/workflows from manifest JSON. Model uninstall removes model-sourced rows. Model refresh replaces model-sourced rows. Dashboard SPARQL queries execute against triplestore.",
+      "verification_operational": "Alembic migration adds source_model column without data loss. v1 manifests install unchanged after migration.",
+      "verification_uat": "Install PPV → see 5 dashboards and 5 workflows in workspace. Open Action Items dashboard → see stat-cards and view-embeds with data. Launch Weekly Review workflow → step through pillar scoring. Uninstall PPV → dashboards and workflows removed. User-created dashboards preserved.",
+      "definition_of_done": [
+        "All 6 v1 models install/uninstall without regression",
+        "PPV manifest.yaml is v2 with dashboards and workflows entrypoints",
+        "source_model column on DashboardSpec and WorkflowSpec with Alembic migration",
+        "ModelService.install() creates TBox dashboards/workflows from manifest JSON",
+        "ModelService.remove() deletes model-sourced dashboards/workflows",
+        "ModelService.refresh_artifacts() replaces model-sourced dashboards/workflows",
+        "PPV ontology expanded with PillarScore, GuidingPrinciples, enriched review fields",
+        "SHACL shapes for all new types and properties",
+        "5 TBox dashboards with working SPARQL queries",
+        "5 TBox workflows with correct step configurations",
+        "E2E test proving install → surfaces appear → uninstall → surfaces removed",
+        "Seed workflows in seed.py replaced by model-sourced TBox workflows"
+      ],
+      "requirement_coverage": "No Active requirements directly target M047 scope. PLAN-07 (PPV review workflows) is already validated from M034 — M047 migrates those workflows from seed.py to the model manifest as TBox definitions. DASH-01 and WKFL-01 are validated infrastructure that M047 extends with the source_model lifecycle. New requirements will be surfaced during slice execution if warranted.",
+      "boundary_map_markdown": "```\nmanifest.yaml (v2)  →  ManifestSchema (Pydantic)  →  ModelService.install()\n                                                         ├── RDF4J transaction (ontology, shapes, views, rules)\n                                                         └── SQLite (dashboards, workflows) via services\n                                                              ├── DashboardService.create(source_model=...)\n                                                              └── WorkflowService.create(source_model=...)\n\ndashboards/ppv.json  →  load as raw JSON  →  DashboardService.create() per entry\nworkflows/ppv.json   →  load as raw JSON  →  WorkflowService.create() per entry\n\nUninstall:  DELETE FROM dashboard_specs WHERE source_model = ?\n            DELETE FROM workflow_specs WHERE source_model = ?\n\nRefresh:    delete model-sourced  →  recreate from manifest JSON\n```"
     }
   ],
   "slices": [
@@ -7096,6 +7166,31 @@
       "replan_triggered_at": null
     },
     {
+      "milestone_id": "M043",
+      "id": "S05",
+      "title": "E2E Regression Suite",
+      "status": "pending",
+      "risk": "low",
+      "depends": [
+        "S01",
+        "S02",
+        "S03",
+        "S04"
+      ],
+      "demo": "Full Playwright E2E test suite passes against the Docker test stack with all M043 security changes applied — confirming zero functional regressions from injection fixes, auth hardening, CORS migration, and rate limiting.",
+      "created_at": "2026-04-04T22:52:42.109Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "",
+      "success_criteria": "",
+      "proof_level": "",
+      "integration_closure": "",
+      "observability_impact": "",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
       "milestone_id": "M044",
       "id": "S01",
       "title": "Centralized Fetch Wrapper & Migration",
@@ -7212,6 +7307,33 @@
       "proof_level": "Contract — verified by grep assertions (no runtime required)",
       "integration_closure": "No upstream surfaces consumed. No new wiring — purely additive debug utility and documentation. Nothing remains for milestone integration beyond S07 E2E regression suite.",
       "observability_impact": "SemPKM.debug() adds opt-in development tracing gated by localStorage flag. No production observability change.",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M044",
+      "id": "S07",
+      "title": "E2E Regression Suite",
+      "status": "pending",
+      "risk": "low",
+      "depends": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06"
+      ],
+      "demo": "Full Playwright E2E test suite passes against the Docker test stack with all M044 frontend changes applied — confirming zero functional regressions from fetch wrapper migration, event listener cleanup, namespace consolidation, CSS variable changes, and template refactoring.",
+      "created_at": "2026-04-04T22:52:42.113Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "",
+      "success_criteria": "",
+      "proof_level": "",
+      "integration_closure": "",
+      "observability_impact": "",
       "sequence": 0,
       "replan_triggered_at": null
     },
@@ -7423,6 +7545,95 @@
       "proof_level": "operational — tests run against the Docker test stack",
       "integration_closure": "Upstream: S01–S06 fixes (auth fixture, copilot z-index, app subprocess, ontology scoping, calendar/recurring/wizard, bare-global migration, timeouts). This slice consumes all prior fixes and validates the full suite end-to-end. After this slice, M046 is complete.",
       "observability_impact": "None — all changes are in test files and one test helper. No application code modified.",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M047",
+      "id": "S01",
+      "title": "Manifest v2 Infrastructure + TBox Install/Uninstall Lifecycle",
+      "status": "pending",
+      "risk": "high",
+      "depends": [],
+      "demo": "Install PPV with a v2 manifest carrying a test dashboard definition. Dashboard appears in workspace explorer tagged as model-sourced. Uninstall PPV — dashboard disappears. All 6 v1 models still install unchanged.",
+      "created_at": "2026-04-04T23:07:03.231Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Manifest v2 format with optional dashboards/workflows entrypoints, source_model tracking on dashboard/workflow SQLite rows, and install/uninstall lifecycle that creates and removes model-sourced TBox surfaces. All 6 existing v1 models install unchanged.",
+      "success_criteria": "- ManifestSchema accepts v2 manifests with `manifest_version` and `dashboards`/`workflows` entrypoints\n- v1 manifests (no `manifest_version`) continue to parse and install unchanged\n- Alembic migration adds nullable `source_model` column to `dashboard_specs` and `workflow_specs`\n- ModelService.install() loads JSON dashboard/workflow definitions from v2 manifests and creates them tagged with source_model\n- ModelService.remove() deletes all dashboards/workflows where source_model matches the model being removed\n- A test v2 PPV manifest with one dashboard installs and the dashboard appears; uninstall removes it\n- All existing unit tests continue to pass",
+      "proof_level": "Contract + integration. Proven by unit tests against in-memory SQLite with mocked triplestore, plus a v2 manifest parsing test using the real PPV model directory.",
+      "integration_closure": "- Upstream: ManifestSchema (manifest.py), ModelService (services/models.py), DashboardService/WorkflowService, DashboardSpec/WorkflowSpec models, Alembic migration chain\n- New wiring: ModelService.__init__ gains dashboard_service and workflow_service parameters; main.py passes them at construction; install()/remove() gain user_id parameter; router passes user.id through\n- What remains: S02 expands PPV ontology, S03 creates the full 5+5 TBox surface definitions, S04 does E2E verification",
+      "observability_impact": "- ModelService logs TBox dashboard/workflow creation counts during install\n- ModelService logs TBox dashboard/workflow deletion counts during uninstall\n- Install warnings include TBox creation failures (degraded mode, same as seed data pattern)",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M047",
+      "id": "S02",
+      "title": "PPV Ontology Expansion — PillarScore, GuidingPrinciples & Enriched Reviews",
+      "status": "pending",
+      "risk": "medium",
+      "depends": [
+        "S01"
+      ],
+      "demo": "After PPV install, create a PillarScore via SHACL form (linked to a pillar and weekly review, score 1-10). Create a GuidingPrinciples singleton. New enriched review fields (wins, challenges, supportingPriorities) appear on weekly/monthly/quarterly/yearly review forms.",
+      "created_at": "2026-04-04T23:07:03.231Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Add PillarScore and GuidingPrinciples classes to the PPV ontology, add enriched review properties, create SHACL shapes, and add new ViewSpecs.",
+      "success_criteria": "- PillarScore class with all properties in ontology and SHACL shapes\n- GuidingPrinciples class with all properties in ontology and SHACL shapes\n- Enriched review properties on Weekly/Monthly/Quarterly/Yearly reviews\n- New ViewSpecs: pillar-score table, action kanban, project kanban, action-by-context table\n- rdflib parses expanded ontology and shapes without error\n- PPV model version bumped to 2.0.0",
+      "proof_level": "rdflib parse of ontology and shapes. SHACL validation of seed data against expanded shapes.",
+      "integration_closure": "Expanded ontology with new types and ViewSpecs available for S03 dashboard SPARQL queries and workflow step configurations.",
+      "observability_impact": "New ViewSpecs discoverable in explorer. New types appear in type picker and TBox browser.",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M047",
+      "id": "S03",
+      "title": "TBox Dashboards & Workflows — PPV Operating System",
+      "status": "pending",
+      "risk": "medium",
+      "depends": [
+        "S01",
+        "S02"
+      ],
+      "demo": "Install PPV v2 → 5 dashboards and 5 workflows appear in workspace. Open Action Items dashboard → stat-cards show counts, view-embeds show priority-filtered action tables. Launch Weekly Review workflow → step through guided review with pillar scoring, work review, and planning dashboards. Seed.py PPV workflows replaced by model-sourced TBox.",
+      "created_at": "2026-04-04T23:07:03.231Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Author the 5 PPV dashboards and 5 workflows as TBox JSON files in the model archive. Migrate seed.py PPV workflows to the model manifest. Update manifest.yaml to v2 with all entrypoints.",
+      "success_criteria": "- dashboards/ppv.json with 5 dashboards (Action Items, Life Dashboard, Projects Board, Goals Overview, Review Hub)\n- workflows/ppv.json with 5 workflows (Daily Check-in, Weekly/Monthly/Quarterly/Yearly Review)\n- manifest.yaml updated to v2 with dashboards and workflows entrypoints\n- Seed.py PPV workflows removed (Getting Started dashboard stays)\n- All dashboard SPARQL queries valid against PPV ontology\n- Workflows reference correct dashboard UUIDs and ViewSpec IRIs",
+      "proof_level": "Dashboard SPARQL queries tested against PPV data. Workflow step configs validated. Install/uninstall cycle verified.",
+      "integration_closure": "PPV ships as a complete v2 model. The model archive is self-contained — no seed.py dependency for PPV-specific workflows.",
+      "observability_impact": "5 dashboards and 5 workflows appear in explorer sections. Dashboard stat-cards and charts render with live data.",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M047",
+      "id": "S04",
+      "title": "Seed Data Update & E2E Verification",
+      "status": "pending",
+      "risk": "low",
+      "depends": [
+        "S01",
+        "S02",
+        "S03"
+      ],
+      "demo": "E2E test installs PPV v2, verifies dashboards and workflows exist, opens a dashboard, launches a workflow, uninstalls PPV, and verifies surfaces are removed. Seed data includes GuidingPrinciples and PillarScore instances for realistic dashboard rendering.",
+      "created_at": "2026-04-04T23:07:03.231Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Update PPV seed data with new type instances. Write E2E tests proving the full TBox lifecycle. Add icon definitions for new types.",
+      "success_criteria": "- GuidingPrinciples seed instance in james-life.jsonld\n- PillarScore seed instances linked to existing weekly review\n- Icon definitions for PillarScore and GuidingPrinciples in manifest.yaml\n- E2E test: install → dashboards/workflows appear → dashboard renders → workflow launchable → uninstall → surfaces removed\n- All existing E2E tests pass without regression",
+      "proof_level": "E2E test with Playwright proving full install → use → uninstall lifecycle.",
+      "integration_closure": "M047 complete. PPV v2 model is self-contained with ontology, shapes, views, dashboards, workflows, seed data, and rules.",
+      "observability_impact": "E2E test provides regression safety for model TBox lifecycle.",
       "sequence": 0,
       "replan_triggered_at": null
     }
@@ -30608,6 +30819,157 @@
       "observability_impact": "",
       "full_plan_md": "",
       "sequence": 0
+    },
+    {
+      "milestone_id": "M047",
+      "slice_id": "S01",
+      "id": "T01",
+      "title": "Added manifest v2 schema, source_model migration, model-sourced CRUD methods, and tbox_loader module",
+      "status": "complete",
+      "one_liner": "Added manifest v2 schema, source_model migration, model-sourced CRUD methods, and tbox_loader module",
+      "narrative": "Extended ManifestSchema with manifest_version field and dashboards/workflows entrypoints on ManifestEntrypoints, both supporting {modelId} placeholder resolution. Created Alembic migration 025 adding nullable source_model column with index to dashboard_specs and workflow_specs. Extended DashboardService and WorkflowService with source_model parameter on create(), delete_by_model(), and list_by_model() methods. Created tbox_loader module with load_tbox_dashboards() and load_tbox_workflows() that read and validate JSON from model archives. All 8 existing v1 models parse unchanged.",
+      "verification_result": "Ran 7 verification checks: v2 manifest parses with manifest_version and dashboards entrypoint, v1 manifest parses with None defaults, tbox_loader imports cleanly, all 8 existing models parse unchanged, ORM models have source_model attribute, service methods exist with correct signatures, tbox_loader validates malformed input correctly.",
+      "duration": "",
+      "completed_at": "2026-04-04T23:16:08.746Z",
+      "blocker_discovered": false,
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/models/manifest.py",
+        "backend/app/models/tbox_loader.py",
+        "backend/migrations/versions/025_add_source_model.py",
+        "backend/app/dashboard/models.py",
+        "backend/app/dashboard/service.py",
+        "backend/app/workflow/models.py",
+        "backend/app/workflow/service.py"
+      ],
+      "key_decisions": [
+        "tbox_loader validates presence of 'name' for dashboards and 'name'+'steps' for workflows, raising ValueError with file path context"
+      ],
+      "full_summary_md": "---\nid: T01\nparent: S01\nmilestone: M047\nkey_files:\n  - backend/app/models/manifest.py\n  - backend/app/models/tbox_loader.py\n  - backend/migrations/versions/025_add_source_model.py\n  - backend/app/dashboard/models.py\n  - backend/app/dashboard/service.py\n  - backend/app/workflow/models.py\n  - backend/app/workflow/service.py\nkey_decisions:\n  - tbox_loader validates presence of 'name' for dashboards and 'name'+'steps' for workflows, raising ValueError with file path context\nduration: \nverification_result: passed\ncompleted_at: 2026-04-04T23:16:08.745Z\nblocker_discovered: false\n---\n\n# T01: Added manifest v2 schema, source_model migration, model-sourced CRUD methods, and tbox_loader module\n\n**Added manifest v2 schema, source_model migration, model-sourced CRUD methods, and tbox_loader module**\n\n## What Happened\n\nExtended ManifestSchema with manifest_version field and dashboards/workflows entrypoints on ManifestEntrypoints, both supporting {modelId} placeholder resolution. Created Alembic migration 025 adding nullable source_model column with index to dashboard_specs and workflow_specs. Extended DashboardService and WorkflowService with source_model parameter on create(), delete_by_model(), and list_by_model() methods. Created tbox_loader module with load_tbox_dashboards() and load_tbox_workflows() that read and validate JSON from model archives. All 8 existing v1 models parse unchanged.\n\n## Verification\n\nRan 7 verification checks: v2 manifest parses with manifest_version and dashboards entrypoint, v1 manifest parses with None defaults, tbox_loader imports cleanly, all 8 existing models parse unchanged, ORM models have source_model attribute, service methods exist with correct signatures, tbox_loader validates malformed input correctly.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `python -c \"ManifestSchema v2 test\"` | 0 | ✅ pass | 1000ms |\n| 2 | `python -c \"ManifestSchema v1 test\"` | 0 | ✅ pass | 1000ms |\n| 3 | `python -c \"tbox_loader import\"` | 0 | ✅ pass | 1000ms |\n| 4 | `python -c \"parse all 8 models\"` | 0 | ✅ pass | 1000ms |\n| 5 | `python -c \"service/model imports\"` | 0 | ✅ pass | 1000ms |\n| 6 | `python -c \"tbox_loader validation\"` | 0 | ✅ pass | 1000ms |\n| 7 | `python -c \"placeholder resolution\"` | 0 | ✅ pass | 1000ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/models/manifest.py`\n- `backend/app/models/tbox_loader.py`\n- `backend/migrations/versions/025_add_source_model.py`\n- `backend/app/dashboard/models.py`\n- `backend/app/dashboard/service.py`\n- `backend/app/workflow/models.py`\n- `backend/app/workflow/service.py`\n",
+      "description": "Add manifest_version field and optional dashboards/workflows entrypoints to ManifestSchema. Create Alembic migration adding nullable source_model column to dashboard_specs and workflow_specs. Extend DashboardService and WorkflowService with methods for model-sourced CRUD (create_for_model, delete_by_model, list_by_model). Add a TBox loader module that reads JSON dashboard/workflow files from model archives.\n\n## Steps\n\n1. Edit `backend/app/models/manifest.py`:\n   - Add `manifest_version: str | None = None` field to ManifestSchema (Optional, default None)\n   - Add `dashboards: str | None = None` and `workflows: str | None = None` to ManifestEntrypoints\n   - Add {modelId} placeholder resolution for the new entrypoint fields in the model_validator\n\n2. Create Alembic migration `backend/migrations/versions/025_add_source_model.py`:\n   - Revision 025, revises 024\n   - `op.add_column('dashboard_specs', sa.Column('source_model', sa.String(64), nullable=True))`\n   - `op.add_column('workflow_specs', sa.Column('source_model', sa.String(64), nullable=True))`\n   - Add index on source_model for both tables (efficient delete-by-model)\n   - downgrade: drop columns\n\n3. Edit `backend/app/dashboard/models.py`:\n   - Add `source_model: Mapped[str | None] = mapped_column(String(64), nullable=True, default=None, index=True)` to DashboardSpec\n\n4. Edit `backend/app/workflow/models.py`:\n   - Add `source_model: Mapped[str | None] = mapped_column(String(64), nullable=True, default=None, index=True)` to WorkflowSpec\n\n5. Extend `backend/app/dashboard/service.py`:\n   - Add `source_model` param to `create()` method (Optional[str] = None), pass to DashboardSpec constructor\n   - Add `source_model` field to DashboardData dataclass, populate in `_to_data()`\n   - Add `async def delete_by_model(self, model_id: str) -> int` — DELETE WHERE source_model = model_id, returns rowcount\n   - Add `async def list_by_model(self, model_id: str) -> list[DashboardData]` — SELECT WHERE source_model = model_id\n\n6. Extend `backend/app/workflow/service.py`:\n   - Same 3 additions as dashboard: source_model param on create, delete_by_model, list_by_model\n   - Add `source_model` field to WorkflowData dataclass\n\n7. Create `backend/app/models/tbox_loader.py`:\n   - `load_tbox_dashboards(model_dir: Path, manifest: ManifestSchema) -> list[dict] | None` — loads JSON file at entrypoints.dashboards path, returns list of dashboard dicts, or None if no entrypoint\n   - `load_tbox_workflows(model_dir: Path, manifest: ManifestSchema) -> list[dict] | None` — same for workflows\n   - JSON format: `{\"dashboards\": [...]}` where each item has name, description, layout, blocks (matching DashboardService.create params)\n   - Validation: check each dashboard has required 'name' field, each workflow has required 'name' and 'steps' fields\n   - Raise ValueError with clear message on malformed JSON",
+      "estimate": "1h",
+      "files": [
+        "backend/app/models/manifest.py",
+        "backend/migrations/versions/025_add_source_model.py",
+        "backend/app/dashboard/models.py",
+        "backend/app/workflow/models.py",
+        "backend/app/dashboard/service.py",
+        "backend/app/workflow/service.py",
+        "backend/app/models/tbox_loader.py"
+      ],
+      "verify": "cd backend && .venv/bin/python -c \"from app.models.manifest import ManifestSchema; m = ManifestSchema(modelId='test', version='1.0.0', name='Test', namespace='urn:sempkm:model:test:', manifest_version='2.0', entrypoints={'dashboards': 'dashboards/test.json'}); print('v2 OK:', m.manifest_version, m.entrypoints.dashboards)\" && .venv/bin/python -c \"from app.models.manifest import ManifestSchema; m = ManifestSchema(modelId='test', version='1.0.0', name='Test', namespace='urn:sempkm:model:test:'); print('v1 OK:', m.manifest_version is None, m.entrypoints.dashboards is None)\" && .venv/bin/python -c \"from app.models.tbox_loader import load_tbox_dashboards; print('loader imported OK')\"",
+      "inputs": [
+        "backend/app/models/manifest.py",
+        "backend/app/dashboard/models.py",
+        "backend/app/workflow/models.py",
+        "backend/app/dashboard/service.py",
+        "backend/app/workflow/service.py",
+        "backend/migrations/versions/024_add_security_audit_log.py"
+      ],
+      "expected_output": [
+        "backend/app/models/manifest.py",
+        "backend/migrations/versions/025_add_source_model.py",
+        "backend/app/dashboard/models.py",
+        "backend/app/workflow/models.py",
+        "backend/app/dashboard/service.py",
+        "backend/app/workflow/service.py",
+        "backend/app/models/tbox_loader.py"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M047",
+      "slice_id": "S01",
+      "id": "T02",
+      "title": "Wire TBox lifecycle into ModelService install/remove and create test v2 manifest",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Extend ModelService to create TBox dashboards/workflows on install and delete them on uninstall. Update the router to pass user_id. Create a minimal test v2 PPV manifest with one dashboard definition to prove the lifecycle.\n\n## Steps\n\n1. Edit `backend/app/services/models.py` — ModelService.__init__:\n   - Add `dashboard_service: DashboardService | None = None` and `workflow_service: WorkflowService | None = None` optional params\n   - Store as `self._dashboard_service` and `self._workflow_service`\n   - Making them optional preserves backward compat for tests that construct ModelService without them\n\n2. Edit `backend/app/services/models.py` — ModelService.install():\n   - Add `user_id: uuid.UUID | None = None` parameter\n   - After seed materialization (step 8), add TBox dashboard/workflow creation:\n     - Import and call `load_tbox_dashboards()` / `load_tbox_workflows()` from tbox_loader\n     - For each dashboard: call `self._dashboard_service.create(user_id=user_id, name=d['name'], layout=d.get('layout', 'gridstack'), blocks=d.get('blocks', []), description=d.get('description', ''), source_model=model_id)`\n     - Same pattern for workflows\n     - Wrap in try/except — TBox creation failure is a warning (degraded mode), not install failure, per D380\n     - Log count of created dashboards/workflows\n   - Add created counts to InstallResult (new optional fields: dashboards_created: int = 0, workflows_created: int = 0)\n\n3. Edit `backend/app/services/models.py` — ModelService.remove():\n   - Add `user_id: uuid.UUID | None = None` parameter (used for authorization check but model-sourced deletes don't need it)\n   - Before graph clearing (step 4), delete model-sourced dashboards/workflows:\n     - Call `self._dashboard_service.delete_by_model(model_id)` and `self._workflow_service.delete_by_model(model_id)`\n     - Log counts\n     - Wrap in try/except — deletion failure is a warning\n   - Add deleted counts to RemoveResult (new optional fields: dashboards_deleted: int = 0, workflows_deleted: int = 0)\n\n4. Edit `backend/app/services/models.py` — ModelService.refresh_artifacts():\n   - Add `user_id: uuid.UUID | None = None` parameter\n   - After artifact graph refresh, delete old model-sourced dashboards/workflows and recreate from disk\n   - This enables model updates to refresh TBox surfaces\n\n5. Edit `backend/app/models/router.py`:\n   - Pass `user.id` to `model_service.install(model_dir, user_id=user.id)`\n   - Pass `user.id` to `model_service.remove(model_id, user_id=user.id)` (not strictly needed but consistent)\n\n6. Edit `backend/app/main.py`:\n   - Pass `dashboard_service` and `workflow_service` to ModelService constructor\n\n7. Create `models/ppv/dashboards/ppv.json`:\n   - Minimal JSON with one test dashboard: 'PPV Test Dashboard' with a markdown block\n   - Format: `{\"dashboards\": [{\"name\": \"PPV Test Dashboard\", \"description\": \"Test TBox dashboard\", \"layout\": \"single\", \"blocks\": [{\"type\": \"markdown\", \"config\": {\"content\": \"# PPV Test\\n\\nThis dashboard was installed from the PPV model.\"}}]}]}`\n\n8. Edit `models/ppv/manifest.yaml`:\n   - Add `manifest_version: \"2.0\"` \n   - Add `dashboards: \"dashboards/ppv.json\"` to entrypoints\n   - Bump version to \"2.0.0\"\n\n9. Verify the complete lifecycle works by running the import chain end-to-end in a Python check.",
+      "estimate": "1.5h",
+      "files": [
+        "backend/app/services/models.py",
+        "backend/app/models/router.py",
+        "backend/app/main.py",
+        "models/ppv/dashboards/ppv.json",
+        "models/ppv/manifest.yaml"
+      ],
+      "verify": "cd backend && .venv/bin/python -c \"\nfrom app.models.manifest import parse_manifest\nfrom pathlib import Path\nm = parse_manifest(Path('../models/ppv'))\nassert m.manifest_version == '2.0', f'Expected 2.0, got {m.manifest_version}'\nassert m.entrypoints.dashboards is not None, 'dashboards entrypoint missing'\nprint('v2 manifest parses OK')\nfrom app.models.tbox_loader import load_tbox_dashboards\ndashes = load_tbox_dashboards(Path('../models/ppv'), m)\nassert dashes is not None and len(dashes) >= 1, f'Expected >=1 dashboard, got {dashes}'\nprint(f'Loaded {len(dashes)} dashboard(s) from PPV v2')\n\" && echo 'T02 verification passed'",
+      "inputs": [
+        "backend/app/models/manifest.py",
+        "backend/app/models/tbox_loader.py",
+        "backend/app/dashboard/service.py",
+        "backend/app/workflow/service.py",
+        "backend/app/services/models.py",
+        "backend/app/models/router.py",
+        "backend/app/main.py",
+        "models/ppv/manifest.yaml"
+      ],
+      "expected_output": [
+        "backend/app/services/models.py",
+        "backend/app/models/router.py",
+        "backend/app/main.py",
+        "models/ppv/dashboards/ppv.json",
+        "models/ppv/manifest.yaml"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M047",
+      "slice_id": "S01",
+      "id": "T03",
+      "title": "Comprehensive tests for v1 backward compat and v2 TBox install/uninstall lifecycle",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Write unit tests proving: (1) all 6 v1 models parse unchanged, (2) v2 manifests parse with new fields, (3) TBox loader reads/validates JSON dashboard/workflow files, (4) source_model column works in DashboardService and WorkflowService, (5) ModelService install creates TBox surfaces and uninstall removes them.\n\n## Steps\n\n1. Create `backend/tests/test_manifest_v2.py`:\n   - Test v1 manifests (no manifest_version) parse with manifest_version=None and dashboards/workflows=None\n   - Test all 6 existing models parse without error (parametrize over model dirs)\n   - Test v2 manifest with manifest_version='2.0' and dashboards entrypoint parses correctly\n   - Test {modelId} placeholder resolution in dashboards/workflows entrypoint paths\n   - Test v2 manifest without dashboards/workflows (optional fields) still parses\n\n2. Create `backend/tests/test_tbox_loader.py`:\n   - Test load_tbox_dashboards with valid JSON returns list of dicts\n   - Test load_tbox_dashboards with None entrypoint returns None\n   - Test load_tbox_dashboards with missing file returns None (graceful)\n   - Test load_tbox_dashboards with malformed JSON raises ValueError\n   - Test load_tbox_dashboards with missing 'name' field raises ValueError\n   - Same 5 tests for load_tbox_workflows\n   - Test with the real PPV dashboards/ppv.json file\n\n3. Create `backend/tests/test_tbox_lifecycle.py`:\n   - In-memory SQLite fixture with dashboard_specs and workflow_specs tables (include source_model column)\n   - Test DashboardService.create with source_model param stores it correctly\n   - Test DashboardService.delete_by_model deletes only model-sourced rows, not user rows\n   - Test DashboardService.list_by_model returns only model-sourced rows\n   - Same 3 tests for WorkflowService\n   - Test ModelService.install with a v2 manifest creates dashboards tagged with source_model\n   - Test ModelService.remove deletes model-sourced dashboards/workflows\n   - Test ModelService.install with v1 manifest creates zero dashboards/workflows (backward compat)\n   - Test ModelService.install with TBox creation failure still returns success with warning (degraded mode)\n\n4. Run all existing tests to verify no regressions:\n   - `cd backend && .venv/bin/python -m pytest tests/test_dashboard.py tests/test_manifest_v2.py tests/test_tbox_loader.py tests/test_tbox_lifecycle.py -v`",
+      "estimate": "1.5h",
+      "files": [
+        "backend/tests/test_manifest_v2.py",
+        "backend/tests/test_tbox_loader.py",
+        "backend/tests/test_tbox_lifecycle.py"
+      ],
+      "verify": "cd backend && .venv/bin/python -m pytest tests/test_manifest_v2.py tests/test_tbox_loader.py tests/test_tbox_lifecycle.py -v --tb=short 2>&1 | tail -20",
+      "inputs": [
+        "backend/app/models/manifest.py",
+        "backend/app/models/tbox_loader.py",
+        "backend/app/dashboard/service.py",
+        "backend/app/workflow/service.py",
+        "backend/app/services/models.py",
+        "models/ppv/manifest.yaml",
+        "models/ppv/dashboards/ppv.json"
+      ],
+      "expected_output": [
+        "backend/tests/test_manifest_v2.py",
+        "backend/tests/test_tbox_loader.py",
+        "backend/tests/test_tbox_lifecycle.py"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
     }
   ],
   "decisions": [
@@ -35110,6 +35472,78 @@
       "revisable": "Yes",
       "made_by": "agent",
       "superseded_by": null
+    },
+    {
+      "seq": 402,
+      "id": "D376",
+      "when_context": "M047 planning",
+      "scope": "architecture",
+      "decision": "Serialization format for TBox dashboards and workflows in model manifests",
+      "choice": "Plain JSON (not RDF/JSON-LD) matching DashboardService.create() and WorkflowService.create() parameter shapes",
+      "rationale": "Dashboards and workflows are UI constructs stored in SQLite, not RDF knowledge-domain concepts. Using RDF would create an impedance mismatch (serialize to RDF in manifest → parse to JSON → store in SQLite). The JSON format maps directly to the existing service CRUD methods with zero translation layer.",
+      "revisable": "Yes",
+      "made_by": "collaborative",
+      "superseded_by": null
+    },
+    {
+      "seq": 403,
+      "id": "D377",
+      "when_context": "M047 planning",
+      "scope": "architecture",
+      "decision": "How to distinguish model-sourced vs user-created dashboards and workflows",
+      "choice": "Add nullable source_model column to DashboardSpec and WorkflowSpec tables via Alembic migration. NULL = user-created, model_id string = model-sourced.",
+      "rationale": "Simple column addition enables clean install (INSERT with source_model), uninstall (DELETE WHERE source_model = ?), refresh (delete + recreate), and user customization (SET source_model = NULL to detach). SQLite ALTER TABLE ADD COLUMN is safe. No need for a separate junction table.",
+      "revisable": "Yes",
+      "made_by": "collaborative",
+      "superseded_by": null
+    },
+    {
+      "seq": 404,
+      "id": "D378",
+      "when_context": "M047 planning",
+      "scope": "architecture",
+      "decision": "Manifest version detection strategy for backward compatibility",
+      "choice": "Add optional manifest_version field to ManifestSchema (default None). Absence = v1. Value '2.0' = v2 with new entrypoints. New entrypoint fields (dashboards, workflows) are Optional[str] defaulting to None in ManifestEntrypoints.",
+      "rationale": "Minimum-change approach. Pydantic optional fields naturally handle v1 manifests that omit the new fields — they default to None and the loader skips them. No migration of existing manifests needed. All 6 v1 models continue working unchanged.",
+      "revisable": "Yes",
+      "made_by": "collaborative",
+      "superseded_by": null
+    },
+    {
+      "seq": 405,
+      "id": "D379",
+      "when_context": "M047 planning",
+      "scope": "scope",
+      "decision": "Whether to build task template infrastructure in M047",
+      "choice": "Defer templates to a follow-up milestone. The Life Maintenance Checklist will be approximated as a workflow step with a create-form step pre-filled with defaults.",
+      "rationale": "No existing TemplateSpec model, service, or UI infrastructure exists. Building it from scratch adds significant scope with low marginal value — the core PPV value is in dashboards and workflows, not templates. A workflow create-form step achieves the same user experience.",
+      "revisable": "Yes — if template infrastructure is built in a later milestone, the Life Maintenance Checklist can migrate from workflow step to proper template.",
+      "made_by": "agent",
+      "superseded_by": null
+    },
+    {
+      "seq": 406,
+      "id": "D380",
+      "when_context": "M047 planning",
+      "scope": "architecture",
+      "decision": "Where TBox SQLite writes happen relative to RDF4J transaction in the install pipeline",
+      "choice": "Write SQLite TBox (dashboards/workflows) after the RDF4J transaction commits, following the same pattern as seed data materialization — degraded failure mode, not full rollback.",
+      "rationale": "The model installer already uses this pattern for seed data (step 10 in the 12-step pipeline). RDF4J transaction is the critical path. If SQLite creation fails after RDF commits, the model is installed but missing operational surfaces — a degraded but recoverable state. Full two-phase commit across RDF4J + SQLite would add complexity without proportional benefit.",
+      "revisable": "Yes",
+      "made_by": "agent",
+      "superseded_by": null
+    },
+    {
+      "seq": 407,
+      "id": "D381",
+      "when_context": "M047/S01",
+      "scope": "architecture",
+      "decision": "How user_id is threaded through ModelService for TBox dashboard/workflow creation",
+      "choice": "Add optional user_id parameter to ModelService.install(), remove(), and refresh_artifacts(). The router passes user.id from the authenticated request. ModelService constructor gains optional dashboard_service and workflow_service parameters (None = no TBox support, preserving backward compat for tests).",
+      "rationale": "The model install endpoint already authenticates the user (require_role('owner')). Threading user_id through the service layer is the minimal change — no new dependency injection needed. Making dashboard/workflow services optional on the constructor preserves backward compatibility for existing tests that construct ModelService without them.",
+      "revisable": "Yes",
+      "made_by": "agent",
+      "superseded_by": null
     }
   ],
   "verification_evidence": [
@@ -36960,6 +37394,83 @@
       "verdict": "⚠️ 18/19 pass (1 pre-existing app bug)",
       "duration_ms": 210600,
       "created_at": "2026-03-29T07:04:58.982Z"
+    },
+    {
+      "id": 169,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M047",
+      "command": "python -c \"ManifestSchema v2 test\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1000,
+      "created_at": "2026-04-04T23:16:08.746Z"
+    },
+    {
+      "id": 170,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M047",
+      "command": "python -c \"ManifestSchema v1 test\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1000,
+      "created_at": "2026-04-04T23:16:08.746Z"
+    },
+    {
+      "id": 171,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M047",
+      "command": "python -c \"tbox_loader import\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1000,
+      "created_at": "2026-04-04T23:16:08.746Z"
+    },
+    {
+      "id": 172,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M047",
+      "command": "python -c \"parse all 8 models\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1000,
+      "created_at": "2026-04-04T23:16:08.746Z"
+    },
+    {
+      "id": 173,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M047",
+      "command": "python -c \"service/model imports\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1000,
+      "created_at": "2026-04-04T23:16:08.746Z"
+    },
+    {
+      "id": 174,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M047",
+      "command": "python -c \"tbox_loader validation\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1000,
+      "created_at": "2026-04-04T23:16:08.746Z"
+    },
+    {
+      "id": 175,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M047",
+      "command": "python -c \"placeholder resolution\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1000,
+      "created_at": "2026-04-04T23:16:08.746Z"
     }
   ]
 }

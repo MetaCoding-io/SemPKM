@@ -63,6 +63,9 @@ class DashboardSpec(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+    source_model: Mapped[str | None] = mapped_column(
+        String(64), nullable=True, default=None, index=True
+    )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )

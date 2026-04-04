@@ -2,35 +2,12 @@
 id: T03
 parent: S03
 milestone: M046
-provides: []
-requires: []
-affects: []
-key_files: ["e2e/helpers/selectors.ts", "backend/app/templates/admin/apps/list.html"]
-key_decisions: []
-patterns_established: []
-drill_down_paths: []
-observability_surfaces: []
-duration: ""
-verification_result: "TypeScript compilation (npx tsc --noEmit) reports zero errors for any of the 6 new selector groups. Admin template grep confirms details.install-details wrapper is present."
-completed_at: 2026-03-29T02:17:13.316Z
-blocker_discovered: false
----
-
-# T03: Add 6 E2E selector groups (todoistSync, asanaSync, caldavCalendarSync, googleCalendarSync, outlookCalendarSync, rss), 4 apps selectors, and wrap admin install form in details element
-
-> Add 6 E2E selector groups (todoistSync, asanaSync, caldavCalendarSync, googleCalendarSync, outlookCalendarSync, rss), 4 apps selectors, and wrap admin install form in details element
-
-## What Happened
----
-id: T03
-parent: S03
-milestone: M046
 key_files:
   - e2e/helpers/selectors.ts
   - backend/app/templates/admin/apps/list.html
 key_decisions:
   - (none)
-duration: ""
+duration: 
 verification_result: passed
 completed_at: 2026-03-29T02:17:13.316Z
 blocker_discovered: false
@@ -55,7 +32,6 @@ TypeScript compilation (npx tsc --noEmit) reports zero errors for any of the 6 n
 | 1 | `cd e2e && npx tsc --noEmit 2>&1 | grep -c 'todoistSync|asanaSync|caldavCalendarSync|googleCalendarSync|outlookCalendarSync|SEL.rss' | grep -q '^0$'` | 0 | ✅ pass | 8000ms |
 | 2 | `grep -A5 'install-details' backend/app/templates/admin/apps/list.html` | 0 | ✅ pass | 50ms |
 
-
 ## Deviations
 
 None.
@@ -68,10 +44,3 @@ None.
 
 - `e2e/helpers/selectors.ts`
 - `backend/app/templates/admin/apps/list.html`
-
-
-## Deviations
-None.
-
-## Known Issues
-None.

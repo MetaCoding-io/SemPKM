@@ -2,34 +2,11 @@
 id: T02
 parent: S03
 milestone: M046
-provides: []
-requires: []
-affects: []
-key_files: ["docker-compose.test.yml"]
-key_decisions: []
-patterns_established: []
-drill_down_paths: []
-observability_surfaces: []
-duration: ""
-verification_result: "All 5 services present as top-level compose definitions. All 7 env vars present. All 5 depends_on entries present. docker compose config validates YAML. APP_BASE_URL confirmed present from T01."
-completed_at: 2026-03-29T02:14:02.232Z
-blocker_discovered: false
----
-
-# T02: Added 5 mock API services (todoist, asana, caldav, google-calendar, outlook) with env vars and depends_on entries to docker-compose.test.yml
-
-> Added 5 mock API services (todoist, asana, caldav, google-calendar, outlook) with env vars and depends_on entries to docker-compose.test.yml
-
-## What Happened
----
-id: T02
-parent: S03
-milestone: M046
 key_files:
   - docker-compose.test.yml
 key_decisions:
   - (none)
-duration: ""
+duration: 
 verification_result: passed
 completed_at: 2026-03-29T02:14:02.232Z
 blocker_discovered: false
@@ -57,7 +34,6 @@ All 5 services present as top-level compose definitions. All 7 env vars present.
 | 4 | `grep -q 'OUTLOOK_API_URL' docker-compose.test.yml` | 0 | ✅ pass | 10ms |
 | 5 | `grep -q 'APP_BASE_URL' docker-compose.test.yml` | 0 | ✅ pass | 10ms |
 
-
 ## Deviations
 
 None.
@@ -69,10 +45,3 @@ None.
 ## Files Created/Modified
 
 - `docker-compose.test.yml`
-
-
-## Deviations
-None.
-
-## Known Issues
-None.

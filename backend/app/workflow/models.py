@@ -51,6 +51,9 @@ class WorkflowSpec(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(Text(), default="", server_default="")
     steps_json: Mapped[str] = mapped_column(Text(), default="[]", server_default="[]")
+    source_model: Mapped[str | None] = mapped_column(
+        String(64), nullable=True, default=None, index=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

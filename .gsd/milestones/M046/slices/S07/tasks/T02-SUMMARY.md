@@ -2,29 +2,6 @@
 id: T02
 parent: S07
 milestone: M046
-provides: []
-requires: []
-affects: []
-key_files: ["e2e/tests/01-objects/object-view-redesign.spec.ts", "e2e/tests/12-bug-fixes/bug-fixes.spec.ts", "e2e/tests/05-admin/admin-model-detail.spec.ts", "e2e/tests/01-objects/create-edge.spec.ts"]
-key_decisions: ["Removed waitForIdle import entirely from admin-model-detail and create-edge after eliminating all call sites", "For webhook CRUD, combined waitForIdle+timeout+assertion into single toContainText with 20s timeout"]
-patterns_established: []
-drill_down_paths: []
-observability_surfaces: []
-duration: ""
-verification_result: "Ran full verification: cd e2e && npx playwright test tests/01-objects/object-view-redesign.spec.ts tests/12-bug-fixes/bug-fixes.spec.ts tests/05-admin/admin-model-detail.spec.ts tests/01-objects/create-edge.spec.ts --project=chromium --retries=1 --reporter=line — 18 passed, 1 failed (pre-existing app bug). Grep checks confirmed 0 remaining timeout:10000 in modified files and 0 remaining waitForIdle calls."
-completed_at: 2026-03-29T07:04:58.982Z
-blocker_discovered: false
----
-
-# T02: Bump 18 object-tab timeouts to 20s and replace 7 waitForIdle calls with element-specific waits across 4 E2E test files
-
-> Bump 18 object-tab timeouts to 20s and replace 7 waitForIdle calls with element-specific waits across 4 E2E test files
-
-## What Happened
----
-id: T02
-parent: S07
-milestone: M046
 key_files:
   - e2e/tests/01-objects/object-view-redesign.spec.ts
   - e2e/tests/12-bug-fixes/bug-fixes.spec.ts
@@ -33,7 +10,7 @@ key_files:
 key_decisions:
   - Removed waitForIdle import entirely from admin-model-detail and create-edge after eliminating all call sites
   - For webhook CRUD, combined waitForIdle+timeout+assertion into single toContainText with 20s timeout
-duration: ""
+duration: 
 verification_result: passed
 completed_at: 2026-03-29T07:04:58.982Z
 blocker_discovered: false
@@ -57,7 +34,6 @@ Ran full verification: cd e2e && npx playwright test tests/01-objects/object-vie
 |---|---------|-----------|---------|----------|
 | 1 | `cd e2e && npx playwright test tests/01-objects/object-view-redesign.spec.ts tests/12-bug-fixes/bug-fixes.spec.ts tests/05-admin/admin-model-detail.spec.ts tests/01-objects/create-edge.spec.ts --project=chromium --retries=1 --reporter=line` | 1 | ⚠️ 18/19 pass (1 pre-existing app bug) | 210600ms |
 
-
 ## Deviations
 
 Added .object-tab wait before #relations-content wait in create-edge.spec.ts. Used short waitForTimeout for webhook delete instead of content-specific wait since next step is a full page reload.
@@ -72,10 +48,3 @@ create-edge.spec.ts "edge appears in relations panel" fails due to pre-existing 
 - `e2e/tests/12-bug-fixes/bug-fixes.spec.ts`
 - `e2e/tests/05-admin/admin-model-detail.spec.ts`
 - `e2e/tests/01-objects/create-edge.spec.ts`
-
-
-## Deviations
-Added .object-tab wait before #relations-content wait in create-edge.spec.ts. Used short waitForTimeout for webhook delete instead of content-specific wait since next step is a full page reload.
-
-## Known Issues
-create-edge.spec.ts "edge appears in relations panel" fails due to pre-existing app bug: loadRightPaneSection undefined in workspace-layout.js scope — should be window.SemPKM.refreshRightPaneSection. T03 will address this.
