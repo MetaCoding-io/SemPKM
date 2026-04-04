@@ -196,6 +196,46 @@
     },
 
     {
+      "@id": "ppv:view-pillarscore-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Pillar Scores",
+      "sempkm:targetClass": { "@id": "ppv:PillarScore" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?score ?pillarTitle ?weekTitle ?wentWell ?needsAttention WHERE { ?s a <urn:sempkm:model:ppv:PillarScore> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:ppv:score> ?score } . OPTIONAL { ?s <urn:sempkm:model:ppv:pillar> ?p . ?p <http://purl.org/dc/terms/title> ?pillarTitle } . OPTIONAL { ?s <urn:sempkm:model:ppv:weeklyReview> ?wr . ?wr <http://purl.org/dc/terms/title> ?weekTitle } . OPTIONAL { ?s <urn:sempkm:model:ppv:wentWell> ?wentWell } . OPTIONAL { ?s <urn:sempkm:model:ppv:needsAttention> ?needsAttention } } ORDER BY ?pillarTitle",
+      "sempkm:columns": "title,score,pillarTitle,weekTitle,wentWell,needsAttention",
+      "sempkm:sortDefault": "pillarTitle"
+    },
+
+    {
+      "@id": "ppv:view-action-kanban",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Action Kanban",
+      "sempkm:targetClass": { "@id": "ppv:ActionItem" },
+      "sempkm:rendererType": "kanban",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?status ?priority ?doDate ?context WHERE { ?s a <urn:sempkm:model:ppv:ActionItem> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:ppv:status> ?status } . OPTIONAL { ?s <urn:sempkm:model:ppv:priority> ?priority } . OPTIONAL { ?s <urn:sempkm:model:ppv:doDate> ?doDate } . OPTIONAL { ?s <urn:sempkm:model:ppv:context> ?context } }"
+    },
+
+    {
+      "@id": "ppv:view-project-kanban",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Project Kanban",
+      "sempkm:targetClass": { "@id": "ppv:Project" },
+      "sempkm:rendererType": "kanban",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?status ?priority ?progress WHERE { ?s a <urn:sempkm:model:ppv:Project> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:ppv:status> ?status } . OPTIONAL { ?s <urn:sempkm:model:ppv:priority> ?priority } . OPTIONAL { ?s <urn:sempkm:model:ppv:progress> ?progress } }"
+    },
+
+    {
+      "@id": "ppv:view-action-by-context",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Actions by Context",
+      "sempkm:targetClass": { "@id": "ppv:ActionItem" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?status ?priority ?doDate ?context ?energy WHERE { ?s a <urn:sempkm:model:ppv:ActionItem> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:ppv:status> ?status } . OPTIONAL { ?s <urn:sempkm:model:ppv:priority> ?priority } . OPTIONAL { ?s <urn:sempkm:model:ppv:doDate> ?doDate } . OPTIONAL { ?s <urn:sempkm:model:ppv:context> ?context } . OPTIONAL { ?s <urn:sempkm:model:ppv:energy> ?energy } } ORDER BY ?context",
+      "sempkm:columns": "title,status,priority,doDate,context,energy",
+      "sempkm:sortDefault": "context"
+    },
+
+    {
       "@id": "ppv:view-hierarchy-graph",
       "@type": "sempkm:ViewSpec",
       "rdfs:label": "Full Hierarchy",

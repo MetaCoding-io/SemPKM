@@ -72,7 +72,7 @@
   - Estimate: 45m
   - Files: models/ppv/ontology/ppv.jsonld, models/ppv/shapes/ppv.jsonld, models/ppv/manifest.yaml
   - Verify: python3 -c "import json; [json.load(open(f)) for f in ['models/ppv/ontology/ppv.jsonld','models/ppv/shapes/ppv.jsonld']]; print('JSON valid')" && python3 -c "import yaml; yaml.safe_load(open('models/ppv/manifest.yaml')); print('YAML valid')" && python3 -c "from rdflib import Graph; g=Graph(); g.parse('models/ppv/ontology/ppv.jsonld', format='json-ld'); assert (None, None, None) in g; classes=[str(s) for s,_,_ in g.triples((None, None, None)) if 'PillarScore' in str(s) or 'GuidingPrinciples' in str(s)]; assert len(classes) > 0, 'New classes not found'; print(f'Ontology OK: {len(g)} triples, new classes found')"
-- [ ] **T02: Add ViewSpecs, SHACL-AF denorm rule, and write validation test** — Add 4 new ViewSpecs to the PPV views file, add a PillarScore date denormalization rule to the rules file (with schema prefix), and write a comprehensive unit test that validates all new model artifacts parse correctly and cross-reference each other.
+- [x] **T02: Added 4 new ViewSpecs, PillarScoreDateDenormRule with schema prefix, and 99-test validation suite for all PPV ontology expansion artifacts** — Add 4 new ViewSpecs to the PPV views file, add a PillarScore date denormalization rule to the rules file (with schema prefix), and write a comprehensive unit test that validates all new model artifacts parse correctly and cross-reference each other.
 
 ## Steps
 

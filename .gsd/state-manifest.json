@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-04T23:39:38.967Z",
+  "exported_at": "2026-04-04T23:43:13.178Z",
   "milestones": [
     {
       "id": "M001",
@@ -31038,19 +31038,26 @@
       "milestone_id": "M047",
       "slice_id": "S02",
       "id": "T02",
-      "title": "Add ViewSpecs, SHACL-AF denorm rule, and write validation test",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Added 4 new ViewSpecs, PillarScoreDateDenormRule with schema prefix, and 99-test validation suite for all PPV ontology expansion artifacts",
+      "status": "complete",
+      "one_liner": "Added 4 new ViewSpecs, PillarScoreDateDenormRule with schema prefix, and 99-test validation suite for all PPV ontology expansion artifacts",
+      "narrative": "Added 4 new ViewSpecs to the PPV views file (pillarscore table, action kanban, project kanban, action-by-context table) bringing total to 23. Added schema prefix and PillarScoreDateDenormRule to the rules file — a SHACL-AF SPARQLRule that derives schema:startDate on PillarScore from linked WeeklyReview. Created comprehensive test_ppv_ontology.py with 99 tests across 9 test classes covering ontology classes, 25 properties, SHACL shapes, score constraints, PropertyGroups, ViewSpecs, rules, manifest icons, combined graph parse, and cross-reference validation.",
+      "verification_result": "Rules file parses as valid Turtle (63 triples). All 99 pytest tests pass in 0.29s covering ontology, shapes, views, rules, manifest, and cross-references.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-04T23:43:13.146Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "models/ppv/views/ppv.jsonld",
+        "models/ppv/rules/ppv.ttl",
+        "backend/tests/test_ppv_ontology.py"
+      ],
+      "key_decisions": [
+        "Kanban ViewSpecs omit columns/sortDefault since kanban renderer auto-detects status field via SHACL sh:in",
+        "PillarScoreDateDenormRule uses schema:startDate to enable calendar/timeline views for PillarScore"
+      ],
+      "full_summary_md": "---\nid: T02\nparent: S02\nmilestone: M047\nkey_files:\n  - models/ppv/views/ppv.jsonld\n  - models/ppv/rules/ppv.ttl\n  - backend/tests/test_ppv_ontology.py\nkey_decisions:\n  - Kanban ViewSpecs omit columns/sortDefault since kanban renderer auto-detects status field via SHACL sh:in\n  - PillarScoreDateDenormRule uses schema:startDate to enable calendar/timeline views for PillarScore\nduration: \nverification_result: passed\ncompleted_at: 2026-04-04T23:43:13.145Z\nblocker_discovered: false\n---\n\n# T02: Added 4 new ViewSpecs, PillarScoreDateDenormRule with schema prefix, and 99-test validation suite for all PPV ontology expansion artifacts\n\n**Added 4 new ViewSpecs, PillarScoreDateDenormRule with schema prefix, and 99-test validation suite for all PPV ontology expansion artifacts**\n\n## What Happened\n\nAdded 4 new ViewSpecs to the PPV views file (pillarscore table, action kanban, project kanban, action-by-context table) bringing total to 23. Added schema prefix and PillarScoreDateDenormRule to the rules file — a SHACL-AF SPARQLRule that derives schema:startDate on PillarScore from linked WeeklyReview. Created comprehensive test_ppv_ontology.py with 99 tests across 9 test classes covering ontology classes, 25 properties, SHACL shapes, score constraints, PropertyGroups, ViewSpecs, rules, manifest icons, combined graph parse, and cross-reference validation.\n\n## Verification\n\nRules file parses as valid Turtle (63 triples). All 99 pytest tests pass in 0.29s covering ontology, shapes, views, rules, manifest, and cross-references.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python3 -c \"from rdflib import Graph; g=Graph(); g.parse('../models/ppv/rules/ppv.ttl', format='turtle'); print(f'Rules OK: {len(g)} triples')\"` | 0 | ✅ pass | 500ms |\n| 2 | `cd backend && .venv/bin/python -m pytest tests/test_ppv_ontology.py -v` | 0 | ✅ pass | 290ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `models/ppv/views/ppv.jsonld`\n- `models/ppv/rules/ppv.ttl`\n- `backend/tests/test_ppv_ontology.py`\n",
       "description": "Add 4 new ViewSpecs to the PPV views file, add a PillarScore date denormalization rule to the rules file (with schema prefix), and write a comprehensive unit test that validates all new model artifacts parse correctly and cross-reference each other.\n\n## Steps\n\n1. **ViewSpecs** (`models/ppv/views/ppv.jsonld`): Add 4 new entries to the `@graph` array following the exact JSON-LD format of existing ViewSpecs. Each needs @id, @type sempkm:ViewSpec, rdfs:label, sempkm:targetClass, sempkm:rendererType, sempkm:sparqlQuery, and for tables: sempkm:columns and sempkm:sortDefault.\n\n   **ppv:view-pillarscore-table** — PillarScore table:\n   - label: 'Pillar Scores'\n   - target: ppv:PillarScore\n   - renderer: table\n   - SPARQL: `SELECT ?s ?title ?score ?pillarTitle ?weekTitle ?wentWell ?needsAttention WHERE { ?s a <urn:sempkm:model:ppv:PillarScore> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:ppv:score> ?score } . OPTIONAL { ?s <urn:sempkm:model:ppv:pillar> ?p . ?p <http://purl.org/dc/terms/title> ?pillarTitle } . OPTIONAL { ?s <urn:sempkm:model:ppv:weeklyReview> ?wr . ?wr <http://purl.org/dc/terms/title> ?weekTitle } . OPTIONAL { ?s <urn:sempkm:model:ppv:wentWell> ?wentWell } . OPTIONAL { ?s <urn:sempkm:model:ppv:needsAttention> ?needsAttention } } ORDER BY ?pillarTitle`\n   - columns: title,score,pillarTitle,weekTitle,wentWell,needsAttention\n   - sortDefault: pillarTitle\n\n   **ppv:view-action-kanban** — ActionItem kanban by status:\n   - label: 'Action Kanban'\n   - target: ppv:ActionItem\n   - renderer: kanban\n   - SPARQL: `SELECT ?s ?title ?status ?priority ?doDate ?context WHERE { ?s a <urn:sempkm:model:ppv:ActionItem> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:ppv:status> ?status } . OPTIONAL { ?s <urn:sempkm:model:ppv:priority> ?priority } . OPTIONAL { ?s <urn:sempkm:model:ppv:doDate> ?doDate } . OPTIONAL { ?s <urn:sempkm:model:ppv:context> ?context } }`\n   Note: kanban renderer auto-detects status field via SHACL sh:in — no columns/sortDefault needed.\n\n   **ppv:view-project-kanban** — Project kanban by status:\n   - label: 'Project Kanban'\n   - target: ppv:Project\n   - renderer: kanban\n   - SPARQL: `SELECT ?s ?title ?status ?priority ?progress WHERE { ?s a <urn:sempkm:model:ppv:Project> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:ppv:status> ?status } . OPTIONAL { ?s <urn:sempkm:model:ppv:priority> ?priority } . OPTIONAL { ?s <urn:sempkm:model:ppv:progress> ?progress } }`\n\n   **ppv:view-action-by-context** — ActionItem table by context:\n   - label: 'Actions by Context'\n   - target: ppv:ActionItem\n   - renderer: table\n   - SPARQL: `SELECT ?s ?title ?status ?priority ?doDate ?context ?energy WHERE { ?s a <urn:sempkm:model:ppv:ActionItem> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:ppv:status> ?status } . OPTIONAL { ?s <urn:sempkm:model:ppv:priority> ?priority } . OPTIONAL { ?s <urn:sempkm:model:ppv:doDate> ?doDate } . OPTIONAL { ?s <urn:sempkm:model:ppv:context> ?context } . OPTIONAL { ?s <urn:sempkm:model:ppv:energy> ?energy } } ORDER BY ?context`\n   - columns: title,status,priority,doDate,context,energy\n   - sortDefault: context\n\n2. **Rules** (`models/ppv/rules/ppv.ttl`): Add `schema` prefix declaration at the top: `@prefix schema: <https://schema.org/> .` Add `schema` to `ppv:PrefixDeclarations` (new sh:declare block with prefix 'schema', namespace 'https://schema.org/'). Then add the PillarScoreDateDenormRule:\n   ```turtle\n   ppv:PillarScoreDateDenormRule\n       a sh:NodeShape ;\n       sh:targetClass ppv:PillarScore ;\n       sh:rule [\n           a sh:SPARQLRule ;\n           sh:order 2 ;\n           rdfs:label \"Derive pillar score date from weekly review\" ;\n           sh:prefixes ppv:PrefixDeclarations ;\n           sh:construct \"\"\"\n               CONSTRUCT { $this schema:startDate ?startDate . }\n               WHERE {\n                   $this ppv:weeklyReview ?wr .\n                   ?wr schema:startDate ?startDate .\n                   FILTER NOT EXISTS { $this schema:startDate ?existing }\n               }\n           \"\"\" ;\n       ] .\n   ```\n\n3. **Validation test** (`backend/tests/test_ppv_ontology.py`): Write a comprehensive test file that:\n   - Loads ontology JSON-LD and verifies PillarScore and GuidingPrinciples classes exist as owl:Class\n   - Verifies all new properties exist (ppv:score, ppv:weeklyReview, ppv:values, ppv:purpose, ppv:meaning, ppv:manifestation, ppv:foundationalStatement, ppv:guidingWord, ppv:wentWell, ppv:needsAttention, ppv:wins, ppv:challenges, ppv:supportingPriorities, ppv:biggestWins, ppv:biggestChallenges, ppv:focusAreas, ppv:habitsToAdjust, ppv:accomplishments, ppv:disappointments, ppv:whatWorked, ppv:whatDidntWork, ppv:howToImprove, ppv:annualVisionNotes, ppv:intentionWord, ppv:yearTheme)\n   - Loads shapes JSON-LD and verifies PillarScoreShape and GuidingPrinciplesShape NodeShapes exist with correct sh:targetClass\n   - Verifies PillarScoreShape has sh:minInclusive 1 and sh:maxInclusive 10 on the score property\n   - Verifies new reflection PropertyGroups exist (WeeklyReviewReflectionGroup, QuarterlyReviewReflectionGroup, YearlyReviewReflectionGroup)\n   - Loads views JSON-LD and verifies 4 new ViewSpec IRIs exist\n   - Loads rules Turtle and verifies PillarScoreDateDenormRule exists\n   - Loads all files into a combined graph to verify parse success\n   - Verifies manifest YAML parses and contains new icon entries\n   - Uses pytest parametrize for property existence checks\n\n## Key constraints\n- ViewSpec SPARQL queries must use full IRI expansion (not prefixed) matching existing ViewSpec patterns\n- Rules file prefix declarations must include the schema prefix in ppv:PrefixDeclarations for the SPARQL rule to work\n- Test file should use `pathlib.Path(__file__).resolve().parent.parent.parent / 'models' / 'ppv'` to locate model files (standard pattern in existing tests)",
       "estimate": "40m",
       "files": [
@@ -37707,6 +37714,28 @@
       "verdict": "✅ pass",
       "duration_ms": 100,
       "created_at": "2026-04-04T23:39:38.931Z"
+    },
+    {
+      "id": 188,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M047",
+      "command": "cd backend && .venv/bin/python3 -c \"from rdflib import Graph; g=Graph(); g.parse('../models/ppv/rules/ppv.ttl', format='turtle'); print(f'Rules OK: {len(g)} triples')\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 500,
+      "created_at": "2026-04-04T23:43:13.146Z"
+    },
+    {
+      "id": 189,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M047",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_ppv_ontology.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 290,
+      "created_at": "2026-04-04T23:43:13.146Z"
     }
   ]
 }

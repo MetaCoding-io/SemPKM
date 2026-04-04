@@ -5,6 +5,7 @@
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
 
 # Rule: Derive ppv:pillar on Projects from the GoalOutcome -> ValueGoal -> Pillar chain
 # This populates the denormalized shortcut so dashboard queries can filter by pillar directly.
@@ -54,6 +55,27 @@ ppv:ActionItemPillarDenormRule
         """ ;
     ] .
 
+# Rule: Derive schema:startDate on PillarScore from the linked WeeklyReview's startDate
+# This denormalizes the date so calendar/timeline views can render PillarScores directly.
+
+ppv:PillarScoreDateDenormRule
+    a sh:NodeShape ;
+    sh:targetClass ppv:PillarScore ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:order 2 ;
+        rdfs:label "Derive pillar score date from weekly review" ;
+        sh:prefixes ppv:PrefixDeclarations ;
+        sh:construct """
+            CONSTRUCT { $this schema:startDate ?startDate . }
+            WHERE {
+                $this ppv:weeklyReview ?wr .
+                ?wr schema:startDate ?startDate .
+                FILTER NOT EXISTS { $this schema:startDate ?existing }
+            }
+        """ ;
+    ] .
+
 # Prefix declarations for SPARQL rules
 ppv:PrefixDeclarations
     a owl:Ontology ;
@@ -68,6 +90,10 @@ ppv:PrefixDeclarations
     sh:declare [
         sh:prefix "xsd" ;
         sh:namespace "http://www.w3.org/2001/XMLSchema#"^^xsd:anyURI ;
+    ] ;
+    sh:declare [
+        sh:prefix "schema" ;
+        sh:namespace "https://schema.org/"^^xsd:anyURI ;
     ] .
 
 # ============================================================
