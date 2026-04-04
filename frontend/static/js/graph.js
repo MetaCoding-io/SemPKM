@@ -413,9 +413,9 @@
     // Click to select -- load details in right pane
     cy.on('tap', 'node', function (evt) {
       var nodeId = evt.target.id();
-      if (typeof window.SemPKM.loadRightPaneSection === 'function') {
-        window.SemPKM.loadRightPaneSection(nodeId, 'relations');
-        window.SemPKM.loadRightPaneSection(nodeId, 'lint');
+      if (typeof window.SemPKM.refreshRightPaneSection === 'function') {
+        window.SemPKM.refreshRightPaneSection(nodeId, 'relations');
+        window.SemPKM.refreshRightPaneSection(nodeId, 'lint');
       }
     });
 

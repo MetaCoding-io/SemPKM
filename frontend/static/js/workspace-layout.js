@@ -357,11 +357,11 @@
       document.dispatchEvent(new CustomEvent('sempkm:tab-activated', {
         detail: { tabId: panel.id, groupId: groupId, isObjectTab: isObjectTab }
       }));
-      if (isObjectTab && typeof loadRightPaneSection === 'function' &&
+      if (isObjectTab && typeof window.SemPKM.refreshRightPaneSection === 'function' &&
           !panel.id.startsWith('__new-object-')) {
-        loadRightPaneSection(panel.id, 'relations');
-        loadRightPaneSection(panel.id, 'lint');
-        loadRightPaneSection(panel.id, 'comments');
+        window.SemPKM.refreshRightPaneSection(panel.id, 'relations');
+        window.SemPKM.refreshRightPaneSection(panel.id, 'lint');
+        window.SemPKM.refreshRightPaneSection(panel.id, 'comments');
       } else if (panel.id.startsWith('__new-object-')) {
         // Create tabs have no object yet — clear stale panel content
         var emptyMsg = '<div class="right-empty">No object selected</div>';
