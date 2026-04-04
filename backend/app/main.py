@@ -347,6 +347,10 @@ async def lifespan(app: FastAPI):
     from app.workflow.service import WorkflowService
     app.state.workflow_service = WorkflowService(async_session_factory)
 
+    # Inject dashboard/workflow services into ModelService for TBox lifecycle
+    model_service._dashboard_service = app.state.dashboard_service
+    model_service._workflow_service = app.state.workflow_service
+
     # Create TaskTemplateService and store on app state
     from app.task_templates.service import TaskTemplateService
     app.state.template_service = TaskTemplateService(client)

@@ -87,7 +87,7 @@ async def install_model(
             detail={"errors": [f"Directory does not exist: {body.path}"]},
         )
 
-    result = await model_service.install(model_dir)
+    result = await model_service.install(model_dir, user_id=user.id)
     if not result.success:
         raise HTTPException(
             status_code=400,
@@ -123,7 +123,7 @@ async def remove_model(
     Checks for user data before removal. If instances of model types
     exist in the current state graph, removal is blocked with 409 Conflict.
     """
-    result = await model_service.remove(model_id)
+    result = await model_service.remove(model_id, user_id=user.id)
     if not result.success:
         # Determine appropriate status code
         error_text = " ".join(result.errors)

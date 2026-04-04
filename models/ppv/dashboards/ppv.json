@@ -1,0 +1,17 @@
+{
+  "dashboards": [
+    {
+      "name": "PPV Test Dashboard",
+      "description": "Test TBox dashboard from the PPV model",
+      "layout": "single",
+      "blocks": [
+        {
+          "type": "markdown",
+          "config": {
+            "content": "# PPV Test\n\nThis dashboard was installed from the PPV model."
+          }
+        }
+      ]
+    }
+  ]
+}

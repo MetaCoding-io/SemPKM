@@ -47,3 +47,4 @@
 {"cmd":"plan-milestone","params":{"milestoneId":"M047"},"ts":"2026-04-04T23:07:03.284Z","actor":"agent","hash":"47c164f4d2df8fa2","session_id":"ee193e83-e34e-4d88-be04-57a485eb2088"}
 {"cmd":"plan-slice","params":{"milestoneId":"M047","sliceId":"S01"},"ts":"2026-04-04T23:11:55.621Z","actor":"agent","hash":"3f32113f5e8c1e38","session_id":"ee193e83-e34e-4d88-be04-57a485eb2088"}
 {"cmd":"complete-task","params":{"milestoneId":"M047","sliceId":"S01","taskId":"T01"},"ts":"2026-04-04T23:16:08.796Z","actor":"agent","hash":"d85bdd0ac036ac53","session_id":"ee193e83-e34e-4d88-be04-57a485eb2088"}
+{"cmd":"complete-task","params":{"milestoneId":"M047","sliceId":"S01","taskId":"T02"},"ts":"2026-04-04T23:22:00.673Z","actor":"agent","hash":"852435f74245a141","session_id":"ee193e83-e34e-4d88-be04-57a485eb2088"}

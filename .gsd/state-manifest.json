@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-04T23:16:08.781Z",
+  "exported_at": "2026-04-04T23:22:00.658Z",
   "milestones": [
     {
       "id": "M001",
@@ -30884,19 +30884,29 @@
       "milestone_id": "M047",
       "slice_id": "S01",
       "id": "T02",
-      "title": "Wire TBox lifecycle into ModelService install/remove and create test v2 manifest",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Wire TBox dashboard/workflow lifecycle into ModelService install/remove/refresh and create PPV v2 manifest with test dashboard",
+      "status": "complete",
+      "one_liner": "Wire TBox dashboard/workflow lifecycle into ModelService install/remove/refresh and create PPV v2 manifest with test dashboard",
+      "narrative": "Extended ModelService with optional dashboard_service and workflow_service params. Added user_id parameter to install(), remove(), and refresh_artifacts() — all optional with None default for backward compatibility. In install(): after seed materialization, loads TBox dashboards/workflows from manifest via tbox_loader and creates them tagged with source_model. In remove(): before graph clearing, deletes model-sourced surfaces. In refresh_artifacts(): deletes old and recreates from disk. Updated router to pass user.id, main.py to inject services via late property assignment. Created PPV v2 manifest with test dashboard definition.",
+      "verification_result": "Ran task verification script: PPV parses as v2 with dashboards entrypoint, tbox_loader loads 1 dashboard. All 8 existing models parse unchanged. 21 existing model refresh tests pass. LSP diagnostics show no new errors. Install/remove/refresh method signatures backward compatible (all new params have defaults).",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-04T23:22:00.612Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "Dashboard/workflow services injected via late property assignment in main.py rather than at constructor time, because ModelService is created before DB initialization. Plan suggested constructor params, which are accepted but None at construction time.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/services/models.py",
+        "backend/app/models/router.py",
+        "backend/app/main.py",
+        "models/ppv/manifest.yaml",
+        "models/ppv/dashboards/ppv.json"
+      ],
+      "key_decisions": [
+        "Dashboard/workflow services injected into ModelService via late property assignment because ModelService is created before DB init in the lifespan",
+        "TBox creation requires user_id; None skips TBox silently (covers starter model auto-install)",
+        "TBox creation/deletion failure is warning-level, not install/remove failure (D380 degraded mode)"
+      ],
+      "full_summary_md": "---\nid: T02\nparent: S01\nmilestone: M047\nkey_files:\n  - backend/app/services/models.py\n  - backend/app/models/router.py\n  - backend/app/main.py\n  - models/ppv/manifest.yaml\n  - models/ppv/dashboards/ppv.json\nkey_decisions:\n  - Dashboard/workflow services injected into ModelService via late property assignment because ModelService is created before DB init in the lifespan\n  - TBox creation requires user_id; None skips TBox silently (covers starter model auto-install)\n  - TBox creation/deletion failure is warning-level, not install/remove failure (D380 degraded mode)\nduration: \nverification_result: passed\ncompleted_at: 2026-04-04T23:22:00.611Z\nblocker_discovered: false\n---\n\n# T02: Wire TBox dashboard/workflow lifecycle into ModelService install/remove/refresh and create PPV v2 manifest with test dashboard\n\n**Wire TBox dashboard/workflow lifecycle into ModelService install/remove/refresh and create PPV v2 manifest with test dashboard**\n\n## What Happened\n\nExtended ModelService with optional dashboard_service and workflow_service params. Added user_id parameter to install(), remove(), and refresh_artifacts() — all optional with None default for backward compatibility. In install(): after seed materialization, loads TBox dashboards/workflows from manifest via tbox_loader and creates them tagged with source_model. In remove(): before graph clearing, deletes model-sourced surfaces. In refresh_artifacts(): deletes old and recreates from disk. Updated router to pass user.id, main.py to inject services via late property assignment. Created PPV v2 manifest with test dashboard definition.\n\n## Verification\n\nRan task verification script: PPV parses as v2 with dashboards entrypoint, tbox_loader loads 1 dashboard. All 8 existing models parse unchanged. 21 existing model refresh tests pass. LSP diagnostics show no new errors. Install/remove/refresh method signatures backward compatible (all new params have defaults).\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `python -c 'parse PPV v2 manifest + load dashboards'` | 0 | ✅ pass | 1200ms |\n| 2 | `python -c 'parse all 8 models'` | 0 | ✅ pass | 800ms |\n| 3 | `python -c 'verify signatures backward compat'` | 0 | ✅ pass | 500ms |\n| 4 | `pytest tests/test_model_refresh.py -x -q` | 0 | ✅ pass | 2600ms |\n\n## Deviations\n\nDashboard/workflow services injected via late property assignment in main.py rather than at constructor time, because ModelService is created before DB initialization. Plan suggested constructor params, which are accepted but None at construction time.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/services/models.py`\n- `backend/app/models/router.py`\n- `backend/app/main.py`\n- `models/ppv/manifest.yaml`\n- `models/ppv/dashboards/ppv.json`\n",
       "description": "Extend ModelService to create TBox dashboards/workflows on install and delete them on uninstall. Update the router to pass user_id. Create a minimal test v2 PPV manifest with one dashboard definition to prove the lifecycle.\n\n## Steps\n\n1. Edit `backend/app/services/models.py` — ModelService.__init__:\n   - Add `dashboard_service: DashboardService | None = None` and `workflow_service: WorkflowService | None = None` optional params\n   - Store as `self._dashboard_service` and `self._workflow_service`\n   - Making them optional preserves backward compat for tests that construct ModelService without them\n\n2. Edit `backend/app/services/models.py` — ModelService.install():\n   - Add `user_id: uuid.UUID | None = None` parameter\n   - After seed materialization (step 8), add TBox dashboard/workflow creation:\n     - Import and call `load_tbox_dashboards()` / `load_tbox_workflows()` from tbox_loader\n     - For each dashboard: call `self._dashboard_service.create(user_id=user_id, name=d['name'], layout=d.get('layout', 'gridstack'), blocks=d.get('blocks', []), description=d.get('description', ''), source_model=model_id)`\n     - Same pattern for workflows\n     - Wrap in try/except — TBox creation failure is a warning (degraded mode), not install failure, per D380\n     - Log count of created dashboards/workflows\n   - Add created counts to InstallResult (new optional fields: dashboards_created: int = 0, workflows_created: int = 0)\n\n3. Edit `backend/app/services/models.py` — ModelService.remove():\n   - Add `user_id: uuid.UUID | None = None` parameter (used for authorization check but model-sourced deletes don't need it)\n   - Before graph clearing (step 4), delete model-sourced dashboards/workflows:\n     - Call `self._dashboard_service.delete_by_model(model_id)` and `self._workflow_service.delete_by_model(model_id)`\n     - Log counts\n     - Wrap in try/except — deletion failure is a warning\n   - Add deleted counts to RemoveResult (new optional fields: dashboards_deleted: int = 0, workflows_deleted: int = 0)\n\n4. Edit `backend/app/services/models.py` — ModelService.refresh_artifacts():\n   - Add `user_id: uuid.UUID | None = None` parameter\n   - After artifact graph refresh, delete old model-sourced dashboards/workflows and recreate from disk\n   - This enables model updates to refresh TBox surfaces\n\n5. Edit `backend/app/models/router.py`:\n   - Pass `user.id` to `model_service.install(model_dir, user_id=user.id)`\n   - Pass `user.id` to `model_service.remove(model_id, user_id=user.id)` (not strictly needed but consistent)\n\n6. Edit `backend/app/main.py`:\n   - Pass `dashboard_service` and `workflow_service` to ModelService constructor\n\n7. Create `models/ppv/dashboards/ppv.json`:\n   - Minimal JSON with one test dashboard: 'PPV Test Dashboard' with a markdown block\n   - Format: `{\"dashboards\": [{\"name\": \"PPV Test Dashboard\", \"description\": \"Test TBox dashboard\", \"layout\": \"single\", \"blocks\": [{\"type\": \"markdown\", \"config\": {\"content\": \"# PPV Test\\n\\nThis dashboard was installed from the PPV model.\"}}]}]}`\n\n8. Edit `models/ppv/manifest.yaml`:\n   - Add `manifest_version: \"2.0\"` \n   - Add `dashboards: \"dashboards/ppv.json\"` to entrypoints\n   - Bump version to \"2.0.0\"\n\n9. Verify the complete lifecycle works by running the import chain end-to-end in a Python check.",
       "estimate": "1.5h",
       "files": [
@@ -37471,6 +37481,50 @@
       "verdict": "✅ pass",
       "duration_ms": 1000,
       "created_at": "2026-04-04T23:16:08.746Z"
+    },
+    {
+      "id": 176,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M047",
+      "command": "python -c 'parse PPV v2 manifest + load dashboards'",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1200,
+      "created_at": "2026-04-04T23:22:00.612Z"
+    },
+    {
+      "id": 177,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M047",
+      "command": "python -c 'parse all 8 models'",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 800,
+      "created_at": "2026-04-04T23:22:00.612Z"
+    },
+    {
+      "id": 178,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M047",
+      "command": "python -c 'verify signatures backward compat'",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 500,
+      "created_at": "2026-04-04T23:22:00.612Z"
+    },
+    {
+      "id": 179,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M047",
+      "command": "pytest tests/test_model_refresh.py -x -q",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 2600,
+      "created_at": "2026-04-04T23:22:00.612Z"
     }
   ]
 }

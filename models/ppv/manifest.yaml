@@ -1,5 +1,6 @@
 modelId: ppv
-version: "1.0.0"
+version: "2.0.0"
+manifest_version: "2.0"
 name: "Pillars, Pipelines & Vaults"
 description: "August Bradley's PPV productivity system with five-level goal hierarchy (Pillar > Value Goal > Goal Outcome > Project > Action Item), four-tier review cycles (Weekly > Monthly > Quarterly > Yearly), and rich dashboards for life management."
 namespace: "urn:sempkm:model:ppv:"
@@ -11,6 +12,7 @@ entrypoints:
   views: "views/ppv.jsonld"
   seed: "seed/ppv.jsonld"
   rules: "rules/ppv.ttl"
+  dashboards: "dashboards/ppv.json"
 entailment_defaults:
   owl_inverseOf: true
   rdfs_subClassOf: false

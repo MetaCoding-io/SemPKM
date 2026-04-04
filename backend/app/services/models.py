@@ -2,11 +2,13 @@
 
 Coordinates manifest validation, JSON-LD loading, archive validation,
 transactional named graph writes, seed data materialization via EventStore,
+TBox surface creation (dashboards/workflows from v2 manifests),
 and prefix registration. Provides the real shapes loader and starter model
 auto-install for application startup.
 """
 
 import logging
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -195,6 +197,8 @@ class InstallResult:
     model_id: str | None = None
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
+    dashboards_created: int = 0
+    workflows_created: int = 0
 
 
 @dataclass
@@ -204,6 +208,8 @@ class RemoveResult:
     success: bool
     model_id: str
     errors: list[str] = field(default_factory=list)
+    dashboards_deleted: int = 0
+    workflows_deleted: int = 0
 
 
 def _rdf_term_to_sparql(term) -> str:
@@ -284,7 +290,9 @@ class ModelService:
 
     Uses RDF4J transactions for atomic model graph writes. Seed data
     is materialized via EventStore after the model graph transaction
-    to maintain event sourcing consistency.
+    to maintain event sourcing consistency. For v2 manifests, creates
+    model-sourced TBox surfaces (dashboards/workflows) after install
+    and removes them on uninstall.
     """
 
     def __init__(
@@ -292,20 +300,29 @@ class ModelService:
         triplestore_client: TriplestoreClient,
         event_store: EventStore,
         prefix_registry: PrefixRegistry,
+        dashboard_service=None,
+        workflow_service=None,
     ) -> None:
         self._client = triplestore_client
         self._event_store = event_store
         self._prefix_registry = prefix_registry
+        self._dashboard_service = dashboard_service
+        self._workflow_service = workflow_service
 
-    async def install(self, model_dir: Path) -> InstallResult:
+    async def install(
+        self, model_dir: Path, user_id: uuid.UUID | None = None
+    ) -> InstallResult:
         """Install a Mental Model from a directory.
 
         Full pipeline: parse manifest -> check duplicates -> load JSON-LD ->
         validate archive -> write named graphs in transaction -> register
-        model metadata -> materialize seed data -> register prefixes.
+        model metadata -> materialize seed data -> create TBox surfaces
+        -> register prefixes.
 
         Args:
             model_dir: Path to the model archive directory.
+            user_id: Owner UUID for model-sourced dashboards/workflows.
+                If None, TBox surface creation is skipped.
 
         Returns:
             InstallResult with success status, model_id, and any errors/warnings.
@@ -443,6 +460,58 @@ class ModelService:
                     f"Seed data materialization failed: {e}"
                 )
 
+        # 9b. Create TBox surfaces (dashboards/workflows) from v2 manifest
+        dashboards_created = 0
+        workflows_created = 0
+        if user_id is not None:
+            try:
+                from app.models.tbox_loader import load_tbox_dashboards, load_tbox_workflows
+
+                if self._dashboard_service is not None:
+                    tbox_dashboards = load_tbox_dashboards(model_dir, manifest)
+                    if tbox_dashboards:
+                        for dash_def in tbox_dashboards:
+                            await self._dashboard_service.create(
+                                user_id=user_id,
+                                name=dash_def["name"],
+                                layout=dash_def.get("layout", "single"),
+                                blocks=dash_def.get("blocks", []),
+                                description=dash_def.get("description", ""),
+                                source_model=model_id,
+                            )
+                            dashboards_created += 1
+                        logger.info(
+                            "Created %d TBox dashboard(s) for model '%s'",
+                            dashboards_created,
+                            model_id,
+                        )
+
+                if self._workflow_service is not None:
+                    tbox_workflows = load_tbox_workflows(model_dir, manifest)
+                    if tbox_workflows:
+                        for wf_def in tbox_workflows:
+                            await self._workflow_service.create(
+                                user_id=user_id,
+                                name=wf_def["name"],
+                                steps=wf_def.get("steps", []),
+                                description=wf_def.get("description", ""),
+                                source_model=model_id,
+                            )
+                            workflows_created += 1
+                        logger.info(
+                            "Created %d TBox workflow(s) for model '%s'",
+                            workflows_created,
+                            model_id,
+                        )
+            except Exception as e:
+                # TBox creation failure is degraded mode, not install failure (D380)
+                logger.warning(
+                    "TBox surface creation failed for model '%s': %s",
+                    model_id,
+                    e,
+                )
+                warning_messages.append(f"TBox surface creation failed: {e}")
+
         # 10. Register model prefixes
         if manifest.prefixes:
             self._prefix_registry.register_model_prefixes(manifest.prefixes)
@@ -458,17 +527,24 @@ class ModelService:
             success=True,
             model_id=model_id,
             warnings=warning_messages,
+            dashboards_created=dashboards_created,
+            workflows_created=workflows_created,
         )
 
-    async def refresh_artifacts(self, model_id: str) -> RefreshResult:
+    async def refresh_artifacts(
+        self, model_id: str, user_id: uuid.UUID | None = None
+    ) -> RefreshResult:
         """Refresh a model's artifact graphs from disk without touching seed or user data.
 
         Clears and reloads the 4 artifact graphs (ontology, shapes, views, rules)
         from the on-disk model archive in a single RDF4J transaction. The seed graph
-        and registry entry are explicitly excluded.
+        and registry entry are explicitly excluded. Also refreshes TBox surfaces
+        (dashboards/workflows) by deleting old ones and recreating from disk.
 
         Args:
             model_id: The model identifier to refresh.
+            user_id: Owner UUID for refreshed TBox surfaces. If None, TBox
+                refresh is skipped.
 
         Returns:
             RefreshResult with success status, refreshed graph names, and any errors.
@@ -571,6 +647,43 @@ class ModelService:
                 errors=[f"Transaction error during refresh: {e}"],
             )
 
+        # Refresh TBox surfaces (delete old, recreate from disk)
+        if user_id is not None:
+            try:
+                from app.models.tbox_loader import load_tbox_dashboards, load_tbox_workflows
+
+                if self._dashboard_service is not None:
+                    await self._dashboard_service.delete_by_model(model_id)
+                    tbox_dashboards = load_tbox_dashboards(model_dir, manifest)
+                    if tbox_dashboards:
+                        for dash_def in tbox_dashboards:
+                            await self._dashboard_service.create(
+                                user_id=user_id,
+                                name=dash_def["name"],
+                                layout=dash_def.get("layout", "single"),
+                                blocks=dash_def.get("blocks", []),
+                                description=dash_def.get("description", ""),
+                                source_model=model_id,
+                            )
+                if self._workflow_service is not None:
+                    await self._workflow_service.delete_by_model(model_id)
+                    tbox_workflows = load_tbox_workflows(model_dir, manifest)
+                    if tbox_workflows:
+                        for wf_def in tbox_workflows:
+                            await self._workflow_service.create(
+                                user_id=user_id,
+                                name=wf_def["name"],
+                                steps=wf_def.get("steps", []),
+                                description=wf_def.get("description", ""),
+                                source_model=model_id,
+                            )
+            except Exception as e:
+                logger.warning(
+                    "TBox surface refresh failed for model '%s': %s",
+                    model_id,
+                    e,
+                )
+
         logger.info(
             "Model '%s' artifacts refreshed: %s",
             model_id,
@@ -582,14 +695,20 @@ class ModelService:
             graphs_refreshed=graphs_refreshed,
         )
 
-    async def remove(self, model_id: str) -> RemoveResult:
+    async def remove(
+        self, model_id: str, user_id: uuid.UUID | None = None
+    ) -> RemoveResult:
         """Remove an installed Mental Model.
 
         Checks for user data before removing. If instances of model types
-        exist in the current state graph, removal is blocked.
+        exist in the current state graph, removal is blocked. Deletes any
+        model-sourced TBox surfaces (dashboards/workflows) before clearing
+        named graphs.
 
         Args:
             model_id: The model identifier to remove.
+            user_id: Not used for authorization on model-sourced deletes,
+                but kept for API consistency.
 
         Returns:
             RemoveResult with success status and any errors.
@@ -649,6 +768,34 @@ class ModelService:
                 errors=[f"Failed to check user data: {e}"],
             )
 
+        # 3b. Delete model-sourced TBox surfaces (dashboards/workflows)
+        dashboards_deleted = 0
+        workflows_deleted = 0
+        try:
+            if self._dashboard_service is not None:
+                dashboards_deleted = await self._dashboard_service.delete_by_model(model_id)
+                if dashboards_deleted:
+                    logger.info(
+                        "Deleted %d TBox dashboard(s) for model '%s'",
+                        dashboards_deleted,
+                        model_id,
+                    )
+            if self._workflow_service is not None:
+                workflows_deleted = await self._workflow_service.delete_by_model(model_id)
+                if workflows_deleted:
+                    logger.info(
+                        "Deleted %d TBox workflow(s) for model '%s'",
+                        workflows_deleted,
+                        model_id,
+                    )
+        except Exception as e:
+            # TBox deletion failure is a warning, not a removal blocker
+            logger.warning(
+                "TBox surface deletion failed for model '%s': %s",
+                model_id,
+                e,
+            )
+
         # 4. Clear all model named graphs
         try:
             await clear_model_graphs(self._client, model_id)
@@ -673,7 +820,12 @@ class ModelService:
 
         # 7. Return success
         logger.info("Model '%s' removed successfully", model_id)
-        return RemoveResult(success=True, model_id=model_id)
+        return RemoveResult(
+            success=True,
+            model_id=model_id,
+            dashboards_deleted=dashboards_deleted,
+            workflows_deleted=workflows_deleted,
+        )
 
     async def list_models(self) -> list[InstalledModel]:
         """List all installed Mental Models.

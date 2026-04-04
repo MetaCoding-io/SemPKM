@@ -45,7 +45,7 @@
   - Estimate: 1h
   - Files: backend/app/models/manifest.py, backend/migrations/versions/025_add_source_model.py, backend/app/dashboard/models.py, backend/app/workflow/models.py, backend/app/dashboard/service.py, backend/app/workflow/service.py, backend/app/models/tbox_loader.py
   - Verify: cd backend && .venv/bin/python -c "from app.models.manifest import ManifestSchema; m = ManifestSchema(modelId='test', version='1.0.0', name='Test', namespace='urn:sempkm:model:test:', manifest_version='2.0', entrypoints={'dashboards': 'dashboards/test.json'}); print('v2 OK:', m.manifest_version, m.entrypoints.dashboards)" && .venv/bin/python -c "from app.models.manifest import ManifestSchema; m = ManifestSchema(modelId='test', version='1.0.0', name='Test', namespace='urn:sempkm:model:test:'); print('v1 OK:', m.manifest_version is None, m.entrypoints.dashboards is None)" && .venv/bin/python -c "from app.models.tbox_loader import load_tbox_dashboards; print('loader imported OK')"
-- [ ] **T02: Wire TBox lifecycle into ModelService install/remove and create test v2 manifest** — Extend ModelService to create TBox dashboards/workflows on install and delete them on uninstall. Update the router to pass user_id. Create a minimal test v2 PPV manifest with one dashboard definition to prove the lifecycle.
+- [x] **T02: Wire TBox dashboard/workflow lifecycle into ModelService install/remove/refresh and create PPV v2 manifest with test dashboard** — Extend ModelService to create TBox dashboards/workflows on install and delete them on uninstall. Update the router to pass user_id. Create a minimal test v2 PPV manifest with one dashboard definition to prove the lifecycle.
 
 ## Steps
 
