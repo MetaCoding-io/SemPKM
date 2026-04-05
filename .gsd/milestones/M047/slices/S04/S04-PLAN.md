@@ -33,7 +33,7 @@
   - Estimate: 30m
   - Files: models/ppv/seed/ppv.jsonld
   - Verify: python3 -c "import json; data=json.load(open('models/ppv/seed/ppv.jsonld')); types={}; [types.__setitem__(i.get('@type','?'), types.get(i.get('@type','?'),0)+1) for i in data['@graph']]; assert types.get('ppv:GuidingPrinciples')==1; assert types.get('ppv:PillarScore')==3; print('Seed data OK')"
-- [ ] **T02: Write E2E test for PPV v2 install/dashboard/workflow/uninstall lifecycle** — Write a Playwright E2E test that exercises the full PPV v2 lifecycle: install the model, verify dashboards and workflows were created, open a dashboard in the workspace, launch a workflow, then attempt uninstall.
+- [x] **T02: Created Playwright E2E test covering PPV v2 model install, dashboard/workflow verification, UI rendering, and graceful uninstall handling** — Write a Playwright E2E test that exercises the full PPV v2 lifecycle: install the model, verify dashboards and workflows were created, open a dashboard in the workspace, launch a workflow, then attempt uninstall.
 
 The test uses API endpoints for verification and dockview helpers for UI interaction. Model uninstall will likely return 409 (seed data blocks removal) — handle this gracefully.
 
