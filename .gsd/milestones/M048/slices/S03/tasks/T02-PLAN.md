@@ -1,44 +1,12 @@
-# S03: Object Delete UI
+---
+estimated_steps: 104
+estimated_files: 4
+skills_used: []
+---
 
-**Goal:** Single-object delete works from three UI surfaces (object toolbar, explorer tree hover, command palette), with backend inbound edge cleanup so no dangling references remain.
-**Demo:** After this: Click delete button on object toolbar → confirmation dialog → object removed from explorer tree, views, and SPARQL. Also accessible via command palette 'Delete Object' command.
+# T02: Add deleteObject() function, toolbar button, command palette entry, and explorer tree action
 
-## Tasks
-- [x] **T01: Added inbound edge SPARQL query to bulk_delete_objects() so deleting an object also removes all triples referencing it, preventing dangling references** — ## Why
-
-The existing `bulk_delete_objects()` endpoint only queries and deletes triples where the deleted IRI is the **subject** (`<iri> ?p ?o`). It does NOT delete triples where the IRI is the **object** (`?s ?p <iri>`), leaving dangling references. Decision D384 requires fixing this.
-
-## Steps
-
-1. Open `backend/app/browser/objects.py`, find the `bulk_delete_objects()` function (starts at line 1014).
-
-2. Inside the `for iri in iris:` loop, after the existing outbound SPARQL query and binding processing (which collects triples matching `<iri> ?p ?o`), add a second SPARQL query for inbound edges:
-   ```sparql
-   SELECT ?s ?p WHERE {
-     GRAPH <urn:sempkm:current> {
-       ?s ?p <{iri}> .
-     }
-   }
-   ```
-
-3. Process the inbound bindings: for each result, create `(URIRef(s_value), URIRef(p_value), URIRef(iri))` and append to `materialize_deletes`. The subject (`?s`) will always be a URI since blank nodes don't typically reference other resources by IRI.
-
-4. Wrap in the same try/except pattern as the outbound query (log warning on failure, continue).
-
-5. Create `backend/tests/test_object_delete_inbound.py` with tests:
-   - Test that inbound edge triples are included in `materialize_deletes` when present
-   - Test that outbound triples are still included (no regression)
-   - Test that when no inbound edges exist, delete still works
-   - Mock the triplestore client's `query()` to return controlled bindings
-
-6. Run: `cd backend && .venv/bin/python -m pytest tests/test_object_delete_inbound.py -v`
-
-## Key constraint
-The inbound triples must be appended to the SAME `materialize_deletes` list as the outbound triples, so they're part of the same `Operation` and same event audit trail.
-  - Estimate: 25m
-  - Files: backend/app/browser/objects.py, backend/tests/test_object_delete_inbound.py
-  - Verify: cd backend && .venv/bin/python -m pytest tests/test_object_delete_inbound.py -v
-- [ ] **T02: Add deleteObject() function, toolbar button, command palette entry, and explorer tree action** — ## Why
+## Why
 
 The UI currently has no way to delete a single object. This task adds the shared `deleteObject(iri, label)` JS function and wires it into three surfaces: the object toolbar, the command palette, and the explorer tree hover action.
 
@@ -150,6 +118,22 @@ The UI currently has no way to delete a single object. This task adds the shared
    - `grep -q 'delete-object' frontend/static/js/workspace.js` — command palette entry exists
    - `grep -q 'deleteObject' backend/app/templates/browser/tree_children.html` — tree action exists
    - `grep -q '.delete-btn' frontend/static/css/workspace.css` — CSS exists
-  - Estimate: 30m
-  - Files: frontend/static/js/workspace.js, backend/app/templates/browser/object_tab.html, backend/app/templates/browser/tree_children.html, frontend/static/css/workspace.css
-  - Verify: grep -q 'function deleteObject' frontend/static/js/workspace.js && grep -q 'delete-btn' backend/app/templates/browser/object_tab.html && grep -q 'delete-object' frontend/static/js/workspace.js && grep -q 'deleteObject' backend/app/templates/browser/tree_children.html && grep -q '.delete-btn' frontend/static/css/workspace.css && echo 'All checks pass'
+
+## Inputs
+
+- ``frontend/static/js/workspace.js` — existing workspace JS with bulkDeleteSelected(), showConfirmDialog(), closeTab(), refreshNavTree(), showToast(), getActiveTabIri(), SemPKM exports`
+- ``backend/app/templates/browser/object_tab.html` — object tab template with .object-toolbar-actions div and star button`
+- ``backend/app/templates/browser/tree_children.html` — tree leaf template with .tree-leaf divs`
+- ``frontend/static/css/workspace.css` — existing .star-btn CSS (line 2342) and .tree-leaf-action CSS (line 8855)`
+- ``backend/app/templates/browser/dashboard_explorer.html` — reference pattern for tree-leaf-action button (line 13)`
+
+## Expected Output
+
+- ``frontend/static/js/workspace.js` — modified with deleteObject() function, SemPKM.deleteObject export, and 'Delete Object' command palette entry`
+- ``backend/app/templates/browser/object_tab.html` — modified with delete-btn in toolbar`
+- ``backend/app/templates/browser/tree_children.html` — modified with tree-leaf-action delete button`
+- ``frontend/static/css/workspace.css` — modified with .delete-btn styles`
+
+## Verification
+
+grep -q 'function deleteObject' frontend/static/js/workspace.js && grep -q 'delete-btn' backend/app/templates/browser/object_tab.html && grep -q 'delete-object' frontend/static/js/workspace.js && grep -q 'deleteObject' backend/app/templates/browser/tree_children.html && grep -q '.delete-btn' frontend/static/css/workspace.css && echo 'All checks pass'

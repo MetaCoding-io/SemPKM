@@ -1022,9 +1022,10 @@ async def bulk_delete_objects(
     """Bulk delete objects by removing all their triples from the current graph.
 
     Accepts a JSON body with {"iris": ["iri1", "iri2", ...]}. For each IRI,
-    queries all triples where that IRI is the subject in urn:sempkm:current,
-    then creates an Operation with materialize_deletes to remove them via
-    the event store (maintaining immutable audit trail).
+    queries all outbound triples (IRI as subject) and inbound triples (IRI as
+    object) in urn:sempkm:current, then creates an Operation with
+    materialize_deletes to remove them via the event store (maintaining
+    immutable audit trail). Inbound edge cleanup prevents dangling references.
     """
     body = await request.json()
     iris = body.get("iris", [])
@@ -1058,9 +1059,6 @@ async def bulk_delete_objects(
             logger.warning("Failed to query triples for %s during bulk delete", iri, exc_info=True)
             bindings = []
 
-        if not bindings:
-            continue
-
         materialize_deletes = []
         subject = URIRef(iri)
         for b in bindings:
@@ -1085,6 +1083,31 @@ async def bulk_delete_objects(
                     obj = Literal(obj_binding["value"])
 
             materialize_deletes.append((subject, pred, obj))
+
+        # Query inbound edges: triples where this IRI is the object (?s ?p <iri>)
+        # These are references FROM other objects TO this one — must be cleaned
+        # up to avoid dangling references after deletion.
+        inbound_sparql = f"""
+        SELECT ?s ?p WHERE {{
+          GRAPH <{CURRENT_GRAPH}> {{
+            ?s ?p <{iri}> .
+          }}
+        }}
+        """
+        try:
+            inbound_result = await client.query(inbound_sparql)
+            inbound_bindings = inbound_result.get("results", {}).get("bindings", [])
+        except Exception:
+            logger.warning("Failed to query inbound triples for %s during bulk delete", iri, exc_info=True)
+            inbound_bindings = []
+
+        for ib in inbound_bindings:
+            s_val = ib["s"]["value"]
+            p_val = ib["p"]["value"]
+            materialize_deletes.append((URIRef(s_val), URIRef(p_val), URIRef(iri)))
+
+        if not materialize_deletes:
+            continue
 
         operation = Operation(
             operation_type="object.delete",

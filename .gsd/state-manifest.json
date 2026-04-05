@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-05T18:28:00.621Z",
+  "exported_at": "2026-04-05T18:40:16.415Z",
   "milestones": [
     {
       "id": "M001",
@@ -7923,14 +7923,14 @@
       "milestone_id": "M048",
       "id": "S02",
       "title": "Diff-Based Save — No Phantom Events",
-      "status": "pending",
+      "status": "complete",
       "risk": "medium",
       "depends": [],
       "demo": "Open an object, change one property field, save. Check the event log — only the changed property appears. Change nothing and save — no event is created.",
       "created_at": "2026-04-05T17:54:07.578Z",
-      "completed_at": null,
-      "full_summary_md": "",
-      "full_uat_md": "",
+      "completed_at": "2026-04-05T18:29:38.363Z",
+      "full_summary_md": "---\nid: S02\nparent: M048\nmilestone: M048\nprovides:\n  - Phantom-event-free save_object() endpoint\n  - _normalize_value_for_compare() and _compute_changed_properties() helper functions importable from app.browser.objects\nrequires:\n  []\naffects:\n  []\nkey_files:\n  - backend/app/browser/objects.py\n  - frontend/static/js/workspace.js\n  - backend/tests/test_save_diff.py\nkey_decisions:\n  - Extracted diff logic into testable module-level functions (_normalize_value_for_compare, _compute_changed_properties) rather than inlining in save_object()\n  - Excluded rdf:type and urn:sempkm:body from current-value comparison as they are not form-managed\n  - dcterms:modified only stamped when changed_properties is non-empty — prevents phantom modification timestamps\n  - Tests are synchronous since both helpers are pure functions with no I/O\npatterns_established:\n  - Diff-based save pattern: query current triplestore values → normalize → compare sorted lists → patch only changes\n  - Datetime normalization for form↔triplestore comparison: strip timezone, truncate to minute precision to match HTML datetime-local input\nobservability_surfaces:\n  - none\ndrill_down_paths:\n  - .gsd/milestones/M048/slices/S02/tasks/T01-SUMMARY.md\n  - .gsd/milestones/M048/slices/S02/tasks/T02-SUMMARY.md\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-04-05T18:29:38.364Z\nblocker_discovered: false\n---\n\n# S02: Diff-Based Save — No Phantom Events\n\n**Eliminated phantom save events by adding diff-based property filtering to save_object() — only actually-changed properties generate events, and no-op saves create no events at all.**\n\n## What Happened\n\nThe save_object() endpoint unconditionally created an object.patch event recording every form property as changed, even when values hadn't changed. This produced phantom events cluttering the event log timeline.\n\n**T01 — Diff-based filtering implementation:** Added two module-level helper functions to objects.py: `_normalize_value_for_compare()` normalizes datetime strings to minute-precision YYYY-MM-DDTHH:MM format to match HTML datetime-local input truncation (strips timezone suffixes and truncates to 16 chars). `_compute_changed_properties()` compares form values against current triplestore values using normalized sorted lists, returning only differing properties. In save_object(), a SPARQL query now fetches current values from the triplestore before building the patch. rdf:type and urn:sempkm:body are excluded from comparison (not form-managed). dcterms:modified is only stamped when real property changes exist. On the client side, saveCurrentObject() in workspace.js now short-circuits the body POST when editor content matches _sempkmSavedContent, avoiding a no-op network call.\n\n**T02 — Unit tests:** Created backend/tests/test_save_diff.py with 22 tests across 3 test classes: TestNormalizeValueForCompare (10 tests covering ISO datetime variants, plain dates, URIs, empty strings), TestComputeChangedProperties (10 tests covering unchanged/changed properties, datetime format normalization, multi-value ordering, new/deleted properties, empty inputs), and TestDctermsModifiedIntegration (2 tests confirming dcterms:modified is only injected when real changes exist). All tests are synchronous since both helpers are pure functions.\n\n## Verification\n\nAll slice-level verifications passed:\n\n1. `rg -n '_normalize_value_for_compare' backend/app/browser/objects.py` — found at 3 locations (definition + 2 usages) ✅\n2. `rg -n 'changed_properties' backend/app/browser/objects.py` — found at 5 locations ✅\n3. `rg -n '_sempkmSavedContent' frontend/static/js/workspace.js | grep -v '= content' | grep -c '_sempkmSavedContent'` — count=1 ✅\n4. `python3 -c \"import ast; ast.parse(open('backend/app/browser/objects.py').read())\"` — syntax OK ✅\n5. `cd backend && .venv/bin/python -m pytest tests/test_save_diff.py -v` — 22 passed in 0.64s ✅\n\n## Requirements Advanced\n\nNone.\n\n## Requirements Validated\n\nNone.\n\n## New Requirements Surfaced\n\nNone.\n\n## Requirements Invalidated or Re-scoped\n\nNone.\n\n## Deviations\n\nNone.\n\n## Known Limitations\n\nThe diff compares only form-submitted properties against the triplestore. Properties present in the triplestore but not rendered in the form (e.g., properties from a different shape or manually added via SPARQL) are not treated as deletions — the form only manages fields it renders. This is intentional to prevent accidental data loss.\n\n## Follow-ups\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/browser/objects.py` — Added _normalize_value_for_compare(), _compute_changed_properties() helpers and modified save_object() to use diff-based filtering with SPARQL current-value query\n- `frontend/static/js/workspace.js` — Added _sempkmSavedContent short-circuit in saveCurrentObject() to skip body POST when content unchanged\n- `backend/tests/test_save_diff.py` — New file: 22 unit tests covering datetime normalization, multi-value comparison, new/deleted properties, and dcterms:modified injection guard\n",
+      "full_uat_md": "# S02: Diff-Based Save — No Phantom Events — UAT\n\n**Milestone:** M048\n**Written:** 2026-04-05T18:29:38.364Z\n\n## UAT: Diff-Based Save — No Phantom Events\n\n### Preconditions\n- SemPKM running via Docker Compose with at least one Mental Model installed\n- At least one object exists with multiple properties (including a datetime property)\n- Browser dev tools open to Network tab and event log panel accessible\n\n### Test 1: Single Property Change Creates Minimal Event\n1. Open an existing object in the workspace editor\n2. Note the current values of all properties\n3. Change exactly one text property (e.g., a title or description field)\n4. Click Save\n5. Open the Event Log panel\n6. **Expected:** The most recent event is `object.patch` and lists ONLY the changed property + `dcterms:modified`. No other properties appear in the event diff.\n\n### Test 2: No-Op Save Creates No Event\n1. Open an existing object in the workspace editor\n2. Do not change any property values\n3. Click Save\n4. Open the Event Log panel\n5. **Expected:** No new `object.patch` event was created. The most recent event timestamp is older than the save action.\n\n### Test 3: DateTime Property Unchanged Across Formats\n1. Open an object that has a datetime property (e.g., `dcterms:created` or a custom date field)\n2. Note the datetime value displayed in the form (HTML datetime-local shows `YYYY-MM-DDTHH:MM`)\n3. Without changing anything, click Save\n4. **Expected:** No event created — the datetime normalization correctly identifies `2026-04-05T12:30:45.123+00:00` (triplestore) as equal to `2026-04-05T12:30` (form)\n\n### Test 4: Multi-Valued Property Change\n1. Open an object with a multi-valued property (e.g., tags or categories)\n2. Add one new value to the multi-valued field\n3. Click Save\n4. **Expected:** Event log shows only that property changed, with the full new value set\n\n### Test 5: Body Content No-Op Short-Circuit\n1. Open an object that has body/markdown content\n2. Observe the Network tab in browser dev tools\n3. Do not change the body content, click Save\n4. **Expected:** No POST request for body content is sent (the `_sempkmSavedContent` short-circuit prevents it). Only the properties form POST fires (which itself may be a no-op per Test 2).\n\n### Test 6: Body Content Actual Change\n1. Open an object with body/markdown content\n2. Add a line of text to the body editor\n3. Click Save\n4. **Expected:** A POST request for body content IS sent. The body.set event appears in the event log.\n\n### Test 7: Multiple Properties Changed\n1. Open an object and change 2-3 different properties\n2. Click Save\n3. **Expected:** The event log shows an `object.patch` with exactly those 2-3 properties + `dcterms:modified`. Properties that were not changed do NOT appear.\n\n### Edge Cases\n\n### Test 8: New Property Added to Object\n1. If the object's shape has an optional property that currently has no value\n2. Enter a value for that property\n3. Click Save\n4. **Expected:** Event shows the new property as added. dcterms:modified is present.\n\n### Test 9: Property Value Cleared\n1. Open an object with a filled optional property\n2. Clear the property value (empty the field)\n3. Click Save\n4. **Expected:** Event shows the property as changed (deletion). dcterms:modified is present.\n\n### Unit Test Verification\n1. Run: `cd backend && .venv/bin/python -m pytest tests/test_save_diff.py -v`\n2. **Expected:** 22 tests pass covering _normalize_value_for_compare (10 tests) and _compute_changed_properties (10 tests) and dcterms:modified integration (2 tests)\n",
       "goal": "Eliminate phantom save events: form saves only create events for actually-changed properties, and no-op saves create no events at all.",
       "success_criteria": "- Open an object, change one property, save → event log shows ONLY that property changed\n- Open an object, change nothing, save → no new event created\n- DateTime properties that haven't changed don't trigger phantom events\n- Multi-valued properties compared correctly (set equality, not order-dependent)\n- Body save skips network call when content hasn't changed (client-side check)\n- `cd backend && python -m pytest tests/test_save_diff.py -v` passes",
       "proof_level": "Contract — unit tests prove diff logic correctness (normalization, filtering, no-op detection). Integration proof deferred to manual/E2E testing.",
@@ -7953,11 +7953,11 @@
       "completed_at": null,
       "full_summary_md": "",
       "full_uat_md": "",
-      "goal": "Add single-object delete UI (toolbar button, command palette entry) with confirmation dialog, inbound edge cleanup, and post-delete housekeeping (close tab, refresh tree, toast).",
-      "success_criteria": "Delete button visible on object toolbar. Clicking it shows confirmation dialog. Confirming removes the object from all surfaces. Inbound edges are cleaned up. Tab is closed and explorer refreshed.",
-      "proof_level": "integration — delete exercised through the browser UI with verification in explorer and SPARQL",
-      "integration_closure": "Completes the CRUD cycle (create → edit → delete) that the platform's core loop depends on",
-      "observability_impact": "object.delete events in the event log now include inbound edge cleanup",
+      "goal": "Single-object delete works from three UI surfaces (object toolbar, explorer tree hover, command palette), with backend inbound edge cleanup so no dangling references remain.",
+      "success_criteria": "- Delete button visible on object toolbar, triggers confirmation dialog, removes object on confirm\n- Explorer tree leaf shows trash icon on hover, triggers same delete flow\n- Command palette \"Delete Object\" command deletes the active tab's object\n- Backend deletes both outbound (`<iri> ?p ?o`) AND inbound (`?s ?p <iri>`) triples\n- After delete: tab closes, explorer tree refreshes, toast confirms deletion\n- Unit test for inbound edge cleanup passes",
+      "proof_level": "Integration — real backend endpoint + UI wiring, but no E2E browser test (project has no frontend test framework)",
+      "integration_closure": "- Upstream: S01 provides working Table/Cards views that list objects (delete should remove objects from those views via refreshNavTree)\n- New wiring: `deleteObject()` JS function → `POST /browser/objects/delete` → tab close + tree refresh\n- Remaining for milestone: S04 (Docker permissions) is independent",
+      "observability_impact": "None — delete events already produce audit trail via EventStore. No new observability surfaces needed.",
       "sequence": 0,
       "replan_triggered_at": null
     },
@@ -31926,6 +31926,89 @@
       "sequence": 0
     },
     {
+      "milestone_id": "M048",
+      "slice_id": "S03",
+      "id": "T01",
+      "title": "Added inbound edge SPARQL query to bulk_delete_objects() so deleting an object also removes all triples referencing it, preventing dangling references",
+      "status": "complete",
+      "one_liner": "Added inbound edge SPARQL query to bulk_delete_objects() so deleting an object also removes all triples referencing it, preventing dangling references",
+      "narrative": "Added a second SPARQL query inside bulk_delete_objects() that selects inbound edges (?s ?p <iri>) and appends them to the same materialize_deletes list as outbound triples. Fixed the empty-bindings guard to check after both queries so objects with only inbound references are still cleaned up. Wrapped in the same try/except pattern for graceful degradation. Created 7 unit tests covering inbound edge inclusion, outbound regression, query failure handling, and edge cases.",
+      "verification_result": "Ran cd backend && .venv/bin/python -m pytest tests/test_object_delete_inbound.py -v — all 7 tests passed in 0.66s. LSP diagnostics showed no new errors from the changes.",
+      "duration": "",
+      "completed_at": "2026-04-05T18:40:16.375Z",
+      "blocker_discovered": false,
+      "deviations": "Moved the empty-bindings guard from after the outbound query to after both queries (if not materialize_deletes: continue), ensuring objects with only inbound references are cleaned up. This is a correctness improvement beyond the task plan.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/browser/objects.py",
+        "backend/tests/test_object_delete_inbound.py"
+      ],
+      "key_decisions": [
+        "Moved empty-bindings guard to check combined materialize_deletes list instead of early-exiting on empty outbound bindings alone"
+      ],
+      "full_summary_md": "---\nid: T01\nparent: S03\nmilestone: M048\nkey_files:\n  - backend/app/browser/objects.py\n  - backend/tests/test_object_delete_inbound.py\nkey_decisions:\n  - Moved empty-bindings guard to check combined materialize_deletes list instead of early-exiting on empty outbound bindings alone\nduration: \nverification_result: passed\ncompleted_at: 2026-04-05T18:40:16.374Z\nblocker_discovered: false\n---\n\n# T01: Added inbound edge SPARQL query to bulk_delete_objects() so deleting an object also removes all triples referencing it, preventing dangling references\n\n**Added inbound edge SPARQL query to bulk_delete_objects() so deleting an object also removes all triples referencing it, preventing dangling references**\n\n## What Happened\n\nAdded a second SPARQL query inside bulk_delete_objects() that selects inbound edges (?s ?p <iri>) and appends them to the same materialize_deletes list as outbound triples. Fixed the empty-bindings guard to check after both queries so objects with only inbound references are still cleaned up. Wrapped in the same try/except pattern for graceful degradation. Created 7 unit tests covering inbound edge inclusion, outbound regression, query failure handling, and edge cases.\n\n## Verification\n\nRan cd backend && .venv/bin/python -m pytest tests/test_object_delete_inbound.py -v — all 7 tests passed in 0.66s. LSP diagnostics showed no new errors from the changes.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python -m pytest tests/test_object_delete_inbound.py -v` | 0 | ✅ pass | 660ms |\n\n## Deviations\n\nMoved the empty-bindings guard from after the outbound query to after both queries (if not materialize_deletes: continue), ensuring objects with only inbound references are cleaned up. This is a correctness improvement beyond the task plan.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/browser/objects.py`\n- `backend/tests/test_object_delete_inbound.py`\n",
+      "description": "## Why\n\nThe existing `bulk_delete_objects()` endpoint only queries and deletes triples where the deleted IRI is the **subject** (`<iri> ?p ?o`). It does NOT delete triples where the IRI is the **object** (`?s ?p <iri>`), leaving dangling references. Decision D384 requires fixing this.\n\n## Steps\n\n1. Open `backend/app/browser/objects.py`, find the `bulk_delete_objects()` function (starts at line 1014).\n\n2. Inside the `for iri in iris:` loop, after the existing outbound SPARQL query and binding processing (which collects triples matching `<iri> ?p ?o`), add a second SPARQL query for inbound edges:\n   ```sparql\n   SELECT ?s ?p WHERE {\n     GRAPH <urn:sempkm:current> {\n       ?s ?p <{iri}> .\n     }\n   }\n   ```\n\n3. Process the inbound bindings: for each result, create `(URIRef(s_value), URIRef(p_value), URIRef(iri))` and append to `materialize_deletes`. The subject (`?s`) will always be a URI since blank nodes don't typically reference other resources by IRI.\n\n4. Wrap in the same try/except pattern as the outbound query (log warning on failure, continue).\n\n5. Create `backend/tests/test_object_delete_inbound.py` with tests:\n   - Test that inbound edge triples are included in `materialize_deletes` when present\n   - Test that outbound triples are still included (no regression)\n   - Test that when no inbound edges exist, delete still works\n   - Mock the triplestore client's `query()` to return controlled bindings\n\n6. Run: `cd backend && .venv/bin/python -m pytest tests/test_object_delete_inbound.py -v`\n\n## Key constraint\nThe inbound triples must be appended to the SAME `materialize_deletes` list as the outbound triples, so they're part of the same `Operation` and same event audit trail.",
+      "estimate": "25m",
+      "files": [
+        "backend/app/browser/objects.py",
+        "backend/tests/test_object_delete_inbound.py"
+      ],
+      "verify": "cd backend && .venv/bin/python -m pytest tests/test_object_delete_inbound.py -v",
+      "inputs": [
+        "`backend/app/browser/objects.py` — existing bulk_delete_objects() function starting at line 1014"
+      ],
+      "expected_output": [
+        "`backend/app/browser/objects.py` — modified with inbound edge SPARQL query in bulk_delete_objects()",
+        "`backend/tests/test_object_delete_inbound.py` — new test file verifying inbound edge cleanup"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M048",
+      "slice_id": "S03",
+      "id": "T02",
+      "title": "Add deleteObject() function, toolbar button, command palette entry, and explorer tree action",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "## Why\n\nThe UI currently has no way to delete a single object. This task adds the shared `deleteObject(iri, label)` JS function and wires it into three surfaces: the object toolbar, the command palette, and the explorer tree hover action.\n\n## Steps\n\n1. **Add `deleteObject()` to `frontend/static/js/workspace.js`:**\n   - Place it near the existing `bulkDeleteSelected()` function (around line 1460).\n   - Implementation:\n     ```javascript\n     function deleteObject(iri, label) {\n       showConfirmDialog(\n         'Delete object',\n         'Delete \"' + (label || iri) + '\"? This cannot be undone.',\n         null,\n         function() {\n           apiFetch('/browser/objects/delete', {\n             method: 'POST',\n             headers: { 'Content-Type': 'application/json' },\n             body: JSON.stringify({ iris: [iri] }),\n             silent: true\n           })\n           .then(function(resp) { return resp.json(); })\n           .then(function() {\n             closeTab(iri);\n             refreshNavTree();\n             showToast('Object deleted');\n           })\n           .catch(function(err) {\n             showToast('Failed to delete: ' + err.message);\n           });\n         }\n       );\n     }\n     ```\n   - Export: Add `window.SemPKM.deleteObject = deleteObject;` near the other exports (around line 3811).\n\n2. **Add delete button to object toolbar in `backend/app/templates/browser/object_tab.html`:**\n   - Inside `.object-toolbar-actions` div, after the star button and before the properties-toggle-badge, add:\n     ```html\n     <button class=\"delete-btn\"\n             onclick=\"event.stopPropagation(); SemPKM.deleteObject('{{ object_iri }}', '{{ object_label | e }}')\"\n             title=\"Delete object\">\n       <i data-lucide=\"trash-2\"></i>\n     </button>\n     ```\n\n3. **Add `.delete-btn` CSS to `frontend/static/css/workspace.css`:**\n   - Place after the `.star-btn` block (after line ~2372). Follow the `.star-btn` pattern:\n     ```css\n     .delete-btn {\n         display: inline-flex;\n         align-items: center;\n         justify-content: center;\n         padding: 4px;\n         border: none;\n         background: transparent;\n         color: var(--color-text-muted);\n         cursor: pointer;\n         border-radius: 4px;\n         transition: color 0.2s;\n     }\n     .delete-btn:hover {\n         color: var(--color-error);\n     }\n     .delete-btn svg {\n         width: 16px;\n         height: 16px;\n         flex-shrink: 0;\n         stroke: currentColor;\n     }\n     ```\n   - Per CLAUDE.md: size via CSS not inline styles, include `flex-shrink: 0`, use `stroke: currentColor`.\n\n4. **Add command palette entry in `frontend/static/js/workspace.js`:**\n   - In the `commands` array (around line 1635), after the `toggle-edit-mode` entry, add:\n     ```javascript\n     {\n       id: 'delete-object',\n       title: 'Delete Object',\n       section: 'Objects',\n       handler: function () {\n         var iri = getActiveTabIri();\n         if (!iri || iri.indexOf('view:') === 0) {\n           showToast('No object selected');\n           return;\n         }\n         var meta = window.SemPKM._tabMeta ? window.SemPKM._tabMeta[iri] : null;\n         var label = meta ? meta.label : iri;\n         deleteObject(iri, label);\n       }\n     },\n     ```\n   - Uses `getActiveTabIri()` (line 218) to get active panel IRI. Skips `view:` prefixed tabs. Gets label from `_tabMeta`.\n\n5. **Add explorer tree hover delete action in `backend/app/templates/browser/tree_children.html`:**\n   - Inside each `.tree-leaf` div, after the `<span class=\"tree-leaf-label\">` element, add:\n     ```html\n     <button class=\"tree-leaf-action btn-icon\" title=\"Delete object\"\n             onclick=\"event.stopPropagation(); SemPKM.deleteObject('{{ obj.iri }}', '{{ obj.label | e }}')\">\n       <i data-lucide=\"trash-2\"></i>\n     </button>\n     ```\n   - CSS already exists at `.tree-leaf .tree-leaf-action` (workspace.css line 8855): opacity 0 by default, opacity 1 on hover, red on action hover. SVG sizing at line 8877.\n   - Pattern matches `dashboard_explorer.html` (line 13).\n\n6. **Verify:**\n   - `grep -q 'deleteObject' frontend/static/js/workspace.js` — function exists\n   - `grep -q 'delete-btn' backend/app/templates/browser/object_tab.html` — toolbar button exists\n   - `grep -q 'delete-object' frontend/static/js/workspace.js` — command palette entry exists\n   - `grep -q 'deleteObject' backend/app/templates/browser/tree_children.html` — tree action exists\n   - `grep -q '.delete-btn' frontend/static/css/workspace.css` — CSS exists",
+      "estimate": "30m",
+      "files": [
+        "frontend/static/js/workspace.js",
+        "backend/app/templates/browser/object_tab.html",
+        "backend/app/templates/browser/tree_children.html",
+        "frontend/static/css/workspace.css"
+      ],
+      "verify": "grep -q 'function deleteObject' frontend/static/js/workspace.js && grep -q 'delete-btn' backend/app/templates/browser/object_tab.html && grep -q 'delete-object' frontend/static/js/workspace.js && grep -q 'deleteObject' backend/app/templates/browser/tree_children.html && grep -q '.delete-btn' frontend/static/css/workspace.css && echo 'All checks pass'",
+      "inputs": [
+        "`frontend/static/js/workspace.js` — existing workspace JS with bulkDeleteSelected(), showConfirmDialog(), closeTab(), refreshNavTree(), showToast(), getActiveTabIri(), SemPKM exports",
+        "`backend/app/templates/browser/object_tab.html` — object tab template with .object-toolbar-actions div and star button",
+        "`backend/app/templates/browser/tree_children.html` — tree leaf template with .tree-leaf divs",
+        "`frontend/static/css/workspace.css` — existing .star-btn CSS (line 2342) and .tree-leaf-action CSS (line 8855)",
+        "`backend/app/templates/browser/dashboard_explorer.html` — reference pattern for tree-leaf-action button (line 13)"
+      ],
+      "expected_output": [
+        "`frontend/static/js/workspace.js` — modified with deleteObject() function, SemPKM.deleteObject export, and 'Delete Object' command palette entry",
+        "`backend/app/templates/browser/object_tab.html` — modified with delete-btn in toolbar",
+        "`backend/app/templates/browser/tree_children.html` — modified with tree-leaf-action delete button",
+        "`frontend/static/css/workspace.css` — modified with .delete-btn styles"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
       "milestone_id": "M049",
       "slice_id": "S01",
       "id": "T01",
@@ -39042,6 +39125,17 @@
       "verdict": "✅ pass",
       "duration_ms": 100,
       "created_at": "2026-04-05T18:28:00.584Z"
+    },
+    {
+      "id": 219,
+      "task_id": "T01",
+      "slice_id": "S03",
+      "milestone_id": "M048",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_object_delete_inbound.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 660,
+      "created_at": "2026-04-05T18:40:16.375Z"
     }
   ]
 }
