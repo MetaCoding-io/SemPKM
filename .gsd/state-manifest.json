@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-05T21:43:26.812Z",
+  "exported_at": "2026-04-05T21:45:10.565Z",
   "milestones": [
     {
       "id": "M001",
@@ -32742,19 +32742,24 @@
       "milestone_id": "M050",
       "slice_id": "S02",
       "id": "T02",
-      "title": "Add timeline popover dismiss on Escape and click-outside with cleanup registration",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Added click-outside and Escape dismiss handlers for Frappe Gantt popup in timeline view with dockview cleanup registration",
+      "status": "complete",
+      "one_liner": "Added click-outside and Escape dismiss handlers for Frappe Gantt popup in timeline view with dockview cleanup registration",
+      "narrative": "Added two document-level event listeners inside the initTimeline() .then() callback after the Gantt instantiation: a click-outside handler that dismisses the popup when clicking outside .popup-wrapper and .bar-wrapper, and an Escape keydown handler that dismisses when the popup is visible. Both are cleaned up via window.registerCleanup('timeline-container', ...) for dockview panel lifecycle.",
+      "verification_result": "All task-level grep checks pass: hide_popup=2, Escape=2, registerCleanup=2. All slice-level checks pass: fc-button-text-color=1, fc-button-bg-color=1, fc-button-active-text-color=1.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-05T21:45:10.517Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/templates/browser/timeline_view.html"
+      ],
+      "key_decisions": [
+        "Used gantt.hide_popup() API for popup dismissal — Frappe Gantt 1.x built-in method",
+        "Document-level listeners with registerCleanup matching calendar.js/canvas.js pattern"
+      ],
+      "full_summary_md": "---\nid: T02\nparent: S02\nmilestone: M050\nkey_files:\n  - backend/app/templates/browser/timeline_view.html\nkey_decisions:\n  - Used gantt.hide_popup() API for popup dismissal — Frappe Gantt 1.x built-in method\n  - Document-level listeners with registerCleanup matching calendar.js/canvas.js pattern\nduration: \nverification_result: passed\ncompleted_at: 2026-04-05T21:45:10.516Z\nblocker_discovered: false\n---\n\n# T02: Added click-outside and Escape dismiss handlers for Frappe Gantt popup in timeline view with dockview cleanup registration\n\n**Added click-outside and Escape dismiss handlers for Frappe Gantt popup in timeline view with dockview cleanup registration**\n\n## What Happened\n\nAdded two document-level event listeners inside the initTimeline() .then() callback after the Gantt instantiation: a click-outside handler that dismisses the popup when clicking outside .popup-wrapper and .bar-wrapper, and an Escape keydown handler that dismisses when the popup is visible. Both are cleaned up via window.registerCleanup('timeline-container', ...) for dockview panel lifecycle.\n\n## Verification\n\nAll task-level grep checks pass: hide_popup=2, Escape=2, registerCleanup=2. All slice-level checks pass: fc-button-text-color=1, fc-button-bg-color=1, fc-button-active-text-color=1.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `grep -c 'hide_popup' backend/app/templates/browser/timeline_view.html` | 0 | ✅ pass (2) | 100ms |\n| 2 | `grep -c 'Escape' backend/app/templates/browser/timeline_view.html` | 0 | ✅ pass (2) | 100ms |\n| 3 | `grep -c 'registerCleanup' backend/app/templates/browser/timeline_view.html` | 0 | ✅ pass (2) | 100ms |\n| 4 | `grep -c 'fc-button-text-color' frontend/static/css/views.css` | 0 | ✅ pass (1) | 100ms |\n| 5 | `grep -c 'fc-button-bg-color' frontend/static/css/views.css` | 0 | ✅ pass (1) | 100ms |\n| 6 | `grep -c 'fc-button-active-text-color' frontend/static/css/views.css` | 0 | ✅ pass (1) | 100ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/templates/browser/timeline_view.html`\n",
       "description": "## Description\n\nFrappe Gantt 1.2.2 shows a `.popup-wrapper` on bar click but has no built-in dismiss mechanism. Users must click another bar to close the popup — there's no Escape or click-outside support. The fix adds document-level event listeners after `new Gantt(...)` and registers cleanup via `window.registerCleanup` for the dockview panel destroy lifecycle.\n\nThe Gantt instance is a local variable inside the `initTimeline()` function's `.then()` callback, so the dismiss handlers must be added in that same scope, after the `new Gantt(...)` call.\n\n## Steps\n\n1. Read `backend/app/templates/browser/timeline_view.html` to confirm the Gantt init location and popup structure.\n2. After the `new Gantt(...)` call (around line 93) and the `SemPKM.debug(...)` log line, add:\n   ```javascript\n   // Dismiss popup on click-outside\n   function onDocClick(e) {\n       var pw = el.querySelector('.popup-wrapper');\n       if (pw && !pw.classList.contains('hide') && !pw.contains(e.target) && !e.target.closest('.bar-wrapper')) {\n           gantt.hide_popup();\n       }\n   }\n   // Dismiss popup on Escape\n   function onDocKeydown(e) {\n       if (e.key === 'Escape') {\n           var pw = el.querySelector('.popup-wrapper');\n           if (pw && !pw.classList.contains('hide')) {\n               gantt.hide_popup();\n           }\n       }\n   }\n   document.addEventListener('click', onDocClick);\n   document.addEventListener('keydown', onDocKeydown);\n   ```\n3. After the event listeners, add cleanup registration:\n   ```javascript\n   if (typeof window.registerCleanup === 'function') {\n       window.registerCleanup('timeline-container', function() {\n           document.removeEventListener('click', onDocClick);\n           document.removeEventListener('keydown', onDocKeydown);\n       });\n   }\n   ```\n4. The click handler excludes `.bar-wrapper` clicks to avoid immediately dismissing the popup when clicking a bar (which opens it). The Escape handler checks that the popup is visible before calling `hide_popup()` to avoid no-op calls.\n5. Verify with grep that `hide_popup`, `Escape`, and `registerCleanup` all appear in the template.\n\n## Must-Haves\n\n- [ ] Document `click` listener calls `gantt.hide_popup()` when clicking outside `.popup-wrapper` and outside `.bar-wrapper`\n- [ ] Document `keydown` listener calls `gantt.hide_popup()` on Escape when popup is visible\n- [ ] Both listeners registered via `document.addEventListener`\n- [ ] Cleanup registered via `window.registerCleanup('timeline-container', ...)` to remove both listeners\n\n## Verification\n\n- `grep -c 'hide_popup' backend/app/templates/browser/timeline_view.html` returns >= 2 (click + Escape handlers)\n- `grep -c 'Escape' backend/app/templates/browser/timeline_view.html` returns >= 1\n- `grep -c 'registerCleanup' backend/app/templates/browser/timeline_view.html` returns >= 1",
       "estimate": "15m",
       "files": [
@@ -40501,6 +40506,72 @@
       "verdict": "✅ pass (no matches = direct overrides removed)",
       "duration_ms": 50,
       "created_at": "2026-04-05T21:43:26.769Z"
+    },
+    {
+      "id": 278,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M050",
+      "command": "grep -c 'hide_popup' backend/app/templates/browser/timeline_view.html",
+      "exit_code": 0,
+      "verdict": "✅ pass (2)",
+      "duration_ms": 100,
+      "created_at": "2026-04-05T21:45:10.517Z"
+    },
+    {
+      "id": 279,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M050",
+      "command": "grep -c 'Escape' backend/app/templates/browser/timeline_view.html",
+      "exit_code": 0,
+      "verdict": "✅ pass (2)",
+      "duration_ms": 100,
+      "created_at": "2026-04-05T21:45:10.517Z"
+    },
+    {
+      "id": 280,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M050",
+      "command": "grep -c 'registerCleanup' backend/app/templates/browser/timeline_view.html",
+      "exit_code": 0,
+      "verdict": "✅ pass (2)",
+      "duration_ms": 100,
+      "created_at": "2026-04-05T21:45:10.517Z"
+    },
+    {
+      "id": 281,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M050",
+      "command": "grep -c 'fc-button-text-color' frontend/static/css/views.css",
+      "exit_code": 0,
+      "verdict": "✅ pass (1)",
+      "duration_ms": 100,
+      "created_at": "2026-04-05T21:45:10.517Z"
+    },
+    {
+      "id": 282,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M050",
+      "command": "grep -c 'fc-button-bg-color' frontend/static/css/views.css",
+      "exit_code": 0,
+      "verdict": "✅ pass (1)",
+      "duration_ms": 100,
+      "created_at": "2026-04-05T21:45:10.517Z"
+    },
+    {
+      "id": 283,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M050",
+      "command": "grep -c 'fc-button-active-text-color' frontend/static/css/views.css",
+      "exit_code": 0,
+      "verdict": "✅ pass (1)",
+      "duration_ms": 100,
+      "created_at": "2026-04-05T21:45:10.517Z"
     }
   ]
 }

@@ -44,7 +44,7 @@ The FullCalendar 6.1.17 prev/next nav buttons use an icon font (`fcicons`) where
   - Estimate: 15m
   - Files: frontend/static/css/views.css
   - Verify: grep -c 'fc-button-text-color' frontend/static/css/views.css && grep -c 'fc-button-bg-color' frontend/static/css/views.css && grep -c 'fc-button-active-text-color' frontend/static/css/views.css
-- [ ] **T02: Add timeline popover dismiss on Escape and click-outside with cleanup registration** — ## Description
+- [x] **T02: Added click-outside and Escape dismiss handlers for Frappe Gantt popup in timeline view with dockview cleanup registration** — ## Description
 
 Frappe Gantt 1.2.2 shows a `.popup-wrapper` on bar click but has no built-in dismiss mechanism. Users must click another bar to close the popup — there's no Escape or click-outside support. The fix adds document-level event listeners after `new Gantt(...)` and registers cleanup via `window.registerCleanup` for the dockview panel destroy lifecycle.
 

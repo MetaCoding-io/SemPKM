@@ -110,6 +110,31 @@
 
                 SemPKM.debug('timeline', 'rendered with', ganttTasks.length,
                     'tasks,', (data.dependency_count || 0), 'dependencies');
+
+                /* --- Popup dismiss on click-outside and Escape --- */
+                function onDocClick(e) {
+                    var pw = el.querySelector('.popup-wrapper');
+                    if (pw && !pw.classList.contains('hide') && !pw.contains(e.target) && !e.target.closest('.bar-wrapper')) {
+                        gantt.hide_popup();
+                    }
+                }
+                function onDocKeydown(e) {
+                    if (e.key === 'Escape') {
+                        var pw = el.querySelector('.popup-wrapper');
+                        if (pw && !pw.classList.contains('hide')) {
+                            gantt.hide_popup();
+                        }
+                    }
+                }
+                document.addEventListener('click', onDocClick);
+                document.addEventListener('keydown', onDocKeydown);
+
+                if (typeof window.registerCleanup === 'function') {
+                    window.registerCleanup('timeline-container', function() {
+                        document.removeEventListener('click', onDocClick);
+                        document.removeEventListener('keydown', onDocKeydown);
+                    });
+                }
             })
             .catch(function (err) {
                 console.error('[timeline] data fetch failed:', err);

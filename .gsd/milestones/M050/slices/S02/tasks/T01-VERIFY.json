@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T01",
+  "unitId": "M050/S02/T01",
+  "timestamp": 1775425412426,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "grep -c 'fc-button-text-color' frontend/static/css/views.css",
+      "exitCode": 0,
+      "durationMs": 30,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -c 'fc-button-bg-color' frontend/static/css/views.css",
+      "exitCode": 0,
+      "durationMs": 29,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -c 'fc-button-active-text-color' frontend/static/css/views.css",
+      "exitCode": 0,
+      "durationMs": 28,
+      "verdict": "pass"
+    }
+  ]
+}
