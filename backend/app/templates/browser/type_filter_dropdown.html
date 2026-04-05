@@ -1,0 +1,22 @@
+{# Type filter dropdown: shown above generic views to filter by RDF type.
+   Context: types (list of dicts with 'iri' and 'label'), selected_type (str or empty),
+   renderer (str — "table"/"card"/"graph"/etc.), scope_query (str or empty). #}
+
+<div class="type-filter-dropdown">
+    <select class="type-filter-select"
+            onchange="(function(sel){
+                var renderer = '{{ renderer }}';
+                var url = '/browser/views/generic/' + renderer + '?type=' + encodeURIComponent(sel.value);
+                var toolbar = sel.closest('.view-flex-column, .group-editor-area');
+                var scopeSelect = toolbar ? toolbar.querySelector('.view-scope-select') : null;
+                var scopeQuery = scopeSelect ? scopeSelect.value : '{{ scope_query | default('') }}';
+                if (scopeQuery) url += '&scope_query=' + encodeURIComponent(scopeQuery);
+                localStorage.setItem('sempkm_generic_type_' + renderer, sel.value);
+                htmx.ajax('GET', url, {target: 'closest .group-editor-area', swap: 'innerHTML'});
+            })(this)">
+        <option value="">All Types</option>
+        {% for t in types %}
+        <option value="{{ t.iri }}"{% if selected_type == t.iri %} selected{% endif %}>{{ t.label }}</option>
+        {% endfor %}
+    </select>
+</div>

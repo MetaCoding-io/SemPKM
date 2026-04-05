@@ -31,7 +31,7 @@ Then add a new endpoint `GET /browser/views/compatible-types?renderer=kanban` th
   - Estimate: 1h
   - Files: backend/app/views/service.py, backend/app/views/router.py, backend/tests/test_compatible_types.py
   - Verify: cd backend && .venv/bin/python -m pytest tests/test_compatible_types.py -v
-- [ ] **T02: Replace pill bar with type dropdown and remove View Variants** — Replace the `type_filter_pills.html` template (37 buttons across 4 rows) with a `<select>` dropdown in a new `type_filter_dropdown.html` partial. Remove the View Variants dropdown from `view_toolbar.html` (D389). Update all 7 view templates. Update CSS.
+- [x] **T02: Replace 37-pill type bar with compact select dropdown across all 11 view templates and remove View Variants dropdown** — Replace the `type_filter_pills.html` template (37 buttons across 4 rows) with a `<select>` dropdown in a new `type_filter_dropdown.html` partial. Remove the View Variants dropdown from `view_toolbar.html` (D389). Update all 7 view templates. Update CSS.
 
 **Steps:**
 1. Create `backend/app/templates/browser/type_filter_dropdown.html`:

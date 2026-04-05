@@ -80,47 +80,15 @@
     color: var(--color-text);
 }
 
-/* --- Type Filter Pills --- */
+/* --- Type Filter Dropdown --- */
 
-.type-filter-pills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding: 8px 12px;
+.type-filter-dropdown {
+    padding: 6px 12px;
     border-bottom: 1px solid var(--color-border);
     background: var(--color-surface);
 }
 
-.type-pill {
-    display: inline-flex;
-    align-items: center;
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-size: 0.78rem;
-    font-weight: 500;
-    background: var(--color-surface-hover, rgba(128, 128, 128, 0.08));
-    color: var(--color-text-muted);
-    border: 1px solid var(--color-border);
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background 0.15s, color 0.15s, border-color 0.15s;
-}
-
-.type-pill:hover {
-    background: var(--color-accent-muted, rgba(0, 120, 212, 0.12));
-    color: var(--color-text);
-    border-color: var(--color-accent-border, rgba(0, 120, 212, 0.3));
-}
-
-.type-pill.active {
-    background: var(--color-primary);
-    color: var(--color-on-accent);
-    border-color: var(--color-primary);
-}
-
-/* --- View Variant Dropdown --- */
-
-.view-variant-select {
+.type-filter-select {
     padding: 4px 8px;
     font-size: 0.8rem;
     border: 1px solid var(--color-border);
@@ -128,7 +96,7 @@
     background: var(--color-surface);
     color: var(--color-text);
     cursor: pointer;
-    margin-left: 8px;
+    max-width: 280px;
 }
 
 .view-scope-select {
