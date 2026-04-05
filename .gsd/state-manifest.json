@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-05T18:40:16.415Z",
+  "exported_at": "2026-04-05T18:42:51.467Z",
   "milestones": [
     {
       "id": "M001",
@@ -31969,19 +31969,26 @@
       "milestone_id": "M048",
       "slice_id": "S03",
       "id": "T02",
-      "title": "Add deleteObject() function, toolbar button, command palette entry, and explorer tree action",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Added deleteObject() JS function with confirmation dialog, wired into object toolbar button, command palette 'Delete Object' entry, and explorer tree hover action",
+      "status": "complete",
+      "one_liner": "Added deleteObject() JS function with confirmation dialog, wired into object toolbar button, command palette 'Delete Object' entry, and explorer tree hover action",
+      "narrative": "Implemented the shared deleteObject(iri, label) function in workspace.js that shows a confirmation dialog, calls /browser/objects/delete with a single IRI, then closes the tab, refreshes the nav tree, and shows a toast. Wired it into three UI surfaces: (1) object toolbar .delete-btn with trash-2 icon, (2) command palette 'Delete Object' entry using getActiveTabIri(), and (3) explorer tree .tree-leaf-action hover button. Added .delete-btn CSS following the .star-btn pattern per CLAUDE.md conventions.",
+      "verification_result": "All five grep checks pass: function deleteObject in workspace.js, delete-btn in object_tab.html, delete-object command ID in workspace.js, deleteObject in tree_children.html, .delete-btn in workspace.css. Backend inbound-edge tests pass 7/7 via backend/.venv/bin/python -m pytest backend/tests/test_object_delete_inbound.py -v.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-05T18:42:51.432Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "None.",
+      "known_issues": "The slice verification gate uses .venv/bin/python which doesn't exist — the correct path is backend/.venv/bin/python.",
+      "key_files": [
+        "frontend/static/js/workspace.js",
+        "backend/app/templates/browser/object_tab.html",
+        "backend/app/templates/browser/tree_children.html",
+        "frontend/static/css/workspace.css"
+      ],
+      "key_decisions": [
+        "Placed delete button between star-btn and properties-toggle for consistent toolbar grouping"
+      ],
+      "full_summary_md": "---\nid: T02\nparent: S03\nmilestone: M048\nkey_files:\n  - frontend/static/js/workspace.js\n  - backend/app/templates/browser/object_tab.html\n  - backend/app/templates/browser/tree_children.html\n  - frontend/static/css/workspace.css\nkey_decisions:\n  - Placed delete button between star-btn and properties-toggle for consistent toolbar grouping\nduration: \nverification_result: passed\ncompleted_at: 2026-04-05T18:42:51.432Z\nblocker_discovered: false\n---\n\n# T02: Added deleteObject() JS function with confirmation dialog, wired into object toolbar button, command palette 'Delete Object' entry, and explorer tree hover action\n\n**Added deleteObject() JS function with confirmation dialog, wired into object toolbar button, command palette 'Delete Object' entry, and explorer tree hover action**\n\n## What Happened\n\nImplemented the shared deleteObject(iri, label) function in workspace.js that shows a confirmation dialog, calls /browser/objects/delete with a single IRI, then closes the tab, refreshes the nav tree, and shows a toast. Wired it into three UI surfaces: (1) object toolbar .delete-btn with trash-2 icon, (2) command palette 'Delete Object' entry using getActiveTabIri(), and (3) explorer tree .tree-leaf-action hover button. Added .delete-btn CSS following the .star-btn pattern per CLAUDE.md conventions.\n\n## Verification\n\nAll five grep checks pass: function deleteObject in workspace.js, delete-btn in object_tab.html, delete-object command ID in workspace.js, deleteObject in tree_children.html, .delete-btn in workspace.css. Backend inbound-edge tests pass 7/7 via backend/.venv/bin/python -m pytest backend/tests/test_object_delete_inbound.py -v.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `grep -q 'function deleteObject' frontend/static/js/workspace.js && grep -q 'delete-btn' backend/app/templates/browser/object_tab.html && grep -q 'delete-object' frontend/static/js/workspace.js && grep -q 'deleteObject' backend/app/templates/browser/tree_children.html && grep -q '.delete-btn' frontend/static/css/workspace.css` | 0 | ✅ pass | 50ms |\n| 2 | `backend/.venv/bin/python -m pytest backend/tests/test_object_delete_inbound.py -v` | 0 | ✅ pass | 640ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nThe slice verification gate uses .venv/bin/python which doesn't exist — the correct path is backend/.venv/bin/python.\n\n## Files Created/Modified\n\n- `frontend/static/js/workspace.js`\n- `backend/app/templates/browser/object_tab.html`\n- `backend/app/templates/browser/tree_children.html`\n- `frontend/static/css/workspace.css`\n",
       "description": "## Why\n\nThe UI currently has no way to delete a single object. This task adds the shared `deleteObject(iri, label)` JS function and wires it into three surfaces: the object toolbar, the command palette, and the explorer tree hover action.\n\n## Steps\n\n1. **Add `deleteObject()` to `frontend/static/js/workspace.js`:**\n   - Place it near the existing `bulkDeleteSelected()` function (around line 1460).\n   - Implementation:\n     ```javascript\n     function deleteObject(iri, label) {\n       showConfirmDialog(\n         'Delete object',\n         'Delete \"' + (label || iri) + '\"? This cannot be undone.',\n         null,\n         function() {\n           apiFetch('/browser/objects/delete', {\n             method: 'POST',\n             headers: { 'Content-Type': 'application/json' },\n             body: JSON.stringify({ iris: [iri] }),\n             silent: true\n           })\n           .then(function(resp) { return resp.json(); })\n           .then(function() {\n             closeTab(iri);\n             refreshNavTree();\n             showToast('Object deleted');\n           })\n           .catch(function(err) {\n             showToast('Failed to delete: ' + err.message);\n           });\n         }\n       );\n     }\n     ```\n   - Export: Add `window.SemPKM.deleteObject = deleteObject;` near the other exports (around line 3811).\n\n2. **Add delete button to object toolbar in `backend/app/templates/browser/object_tab.html`:**\n   - Inside `.object-toolbar-actions` div, after the star button and before the properties-toggle-badge, add:\n     ```html\n     <button class=\"delete-btn\"\n             onclick=\"event.stopPropagation(); SemPKM.deleteObject('{{ object_iri }}', '{{ object_label | e }}')\"\n             title=\"Delete object\">\n       <i data-lucide=\"trash-2\"></i>\n     </button>\n     ```\n\n3. **Add `.delete-btn` CSS to `frontend/static/css/workspace.css`:**\n   - Place after the `.star-btn` block (after line ~2372). Follow the `.star-btn` pattern:\n     ```css\n     .delete-btn {\n         display: inline-flex;\n         align-items: center;\n         justify-content: center;\n         padding: 4px;\n         border: none;\n         background: transparent;\n         color: var(--color-text-muted);\n         cursor: pointer;\n         border-radius: 4px;\n         transition: color 0.2s;\n     }\n     .delete-btn:hover {\n         color: var(--color-error);\n     }\n     .delete-btn svg {\n         width: 16px;\n         height: 16px;\n         flex-shrink: 0;\n         stroke: currentColor;\n     }\n     ```\n   - Per CLAUDE.md: size via CSS not inline styles, include `flex-shrink: 0`, use `stroke: currentColor`.\n\n4. **Add command palette entry in `frontend/static/js/workspace.js`:**\n   - In the `commands` array (around line 1635), after the `toggle-edit-mode` entry, add:\n     ```javascript\n     {\n       id: 'delete-object',\n       title: 'Delete Object',\n       section: 'Objects',\n       handler: function () {\n         var iri = getActiveTabIri();\n         if (!iri || iri.indexOf('view:') === 0) {\n           showToast('No object selected');\n           return;\n         }\n         var meta = window.SemPKM._tabMeta ? window.SemPKM._tabMeta[iri] : null;\n         var label = meta ? meta.label : iri;\n         deleteObject(iri, label);\n       }\n     },\n     ```\n   - Uses `getActiveTabIri()` (line 218) to get active panel IRI. Skips `view:` prefixed tabs. Gets label from `_tabMeta`.\n\n5. **Add explorer tree hover delete action in `backend/app/templates/browser/tree_children.html`:**\n   - Inside each `.tree-leaf` div, after the `<span class=\"tree-leaf-label\">` element, add:\n     ```html\n     <button class=\"tree-leaf-action btn-icon\" title=\"Delete object\"\n             onclick=\"event.stopPropagation(); SemPKM.deleteObject('{{ obj.iri }}', '{{ obj.label | e }}')\">\n       <i data-lucide=\"trash-2\"></i>\n     </button>\n     ```\n   - CSS already exists at `.tree-leaf .tree-leaf-action` (workspace.css line 8855): opacity 0 by default, opacity 1 on hover, red on action hover. SVG sizing at line 8877.\n   - Pattern matches `dashboard_explorer.html` (line 13).\n\n6. **Verify:**\n   - `grep -q 'deleteObject' frontend/static/js/workspace.js` — function exists\n   - `grep -q 'delete-btn' backend/app/templates/browser/object_tab.html` — toolbar button exists\n   - `grep -q 'delete-object' frontend/static/js/workspace.js` — command palette entry exists\n   - `grep -q 'deleteObject' backend/app/templates/browser/tree_children.html` — tree action exists\n   - `grep -q '.delete-btn' frontend/static/css/workspace.css` — CSS exists",
       "estimate": "30m",
       "files": [
@@ -39136,6 +39143,28 @@
       "verdict": "✅ pass",
       "duration_ms": 660,
       "created_at": "2026-04-05T18:40:16.375Z"
+    },
+    {
+      "id": 220,
+      "task_id": "T02",
+      "slice_id": "S03",
+      "milestone_id": "M048",
+      "command": "grep -q 'function deleteObject' frontend/static/js/workspace.js && grep -q 'delete-btn' backend/app/templates/browser/object_tab.html && grep -q 'delete-object' frontend/static/js/workspace.js && grep -q 'deleteObject' backend/app/templates/browser/tree_children.html && grep -q '.delete-btn' frontend/static/css/workspace.css",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-04-05T18:42:51.433Z"
+    },
+    {
+      "id": 221,
+      "task_id": "T02",
+      "slice_id": "S03",
+      "milestone_id": "M048",
+      "command": "backend/.venv/bin/python -m pytest backend/tests/test_object_delete_inbound.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 640,
+      "created_at": "2026-04-05T18:42:51.433Z"
     }
   ]
 }

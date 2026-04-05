@@ -18,6 +18,10 @@
        class="tree-leaf-icon"
        style="color: {{ obj_icon.color }}; width: {{ obj_icon.size or 14 }}px; height: {{ obj_icon.size or 14 }}px; flex-shrink: 0;"></i>
     <span class="tree-leaf-label">{{ obj.label }}</span>
+    <button class="tree-leaf-action btn-icon" title="Delete object"
+            onclick="event.stopPropagation(); SemPKM.deleteObject('{{ obj.iri }}', '{{ obj.label | e }}')">
+      <i data-lucide="trash-2"></i>
+    </button>
 </div>
 {% endfor %}
 {% else %}

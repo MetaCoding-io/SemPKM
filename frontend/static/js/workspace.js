@@ -1456,6 +1456,31 @@
     );
   }
 
+  function deleteObject(iri, label) {
+    showConfirmDialog(
+      'Delete object',
+      'Delete "' + (label || iri) + '"? This cannot be undone.',
+      null,
+      function() {
+        apiFetch('/browser/objects/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ iris: [iri] }),
+          silent: true
+        })
+        .then(function(resp) { return resp.json(); })
+        .then(function() {
+          closeTab(iri);
+          refreshNavTree();
+          showToast('Object deleted');
+        })
+        .catch(function(err) {
+          showToast('Failed to delete: ' + err.message);
+        });
+      }
+    );
+  }
+
   // --- Nav Tree Refresh ---
 
   function refreshNavTree() {
@@ -1626,6 +1651,21 @@
                 }
               }
             }
+          }
+        },
+        {
+          id: 'delete-object',
+          title: 'Delete Object',
+          section: 'Objects',
+          handler: function () {
+            var iri = getActiveTabIri();
+            if (!iri || iri.indexOf('view:') === 0) {
+              showToast('No object selected');
+              return;
+            }
+            var meta = window.SemPKM._tabMeta ? window.SemPKM._tabMeta[iri] : null;
+            var label = meta ? meta.label : iri;
+            deleteObject(iri, label);
           }
         },
         // --- Layout Management ---
@@ -3809,6 +3849,7 @@
     });
   };
   window.SemPKM.bulkDeleteSelected = bulkDeleteSelected;
+  window.SemPKM.deleteObject = deleteObject;
   window.SemPKM.toggleEdgeDetail = toggleEdgeDetail;
   window.SemPKM.showEventInLog = showEventInLog;
   window.SemPKM.showConfirmDialog = showConfirmDialog;

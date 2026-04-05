@@ -38,7 +38,7 @@ The inbound triples must be appended to the SAME `materialize_deletes` list as t
   - Estimate: 25m
   - Files: backend/app/browser/objects.py, backend/tests/test_object_delete_inbound.py
   - Verify: cd backend && .venv/bin/python -m pytest tests/test_object_delete_inbound.py -v
-- [ ] **T02: Add deleteObject() function, toolbar button, command palette entry, and explorer tree action** — ## Why
+- [x] **T02: Added deleteObject() JS function with confirmation dialog, wired into object toolbar button, command palette 'Delete Object' entry, and explorer tree hover action** — ## Why
 
 The UI currently has no way to delete a single object. This task adds the shared `deleteObject(iri, label)` JS function and wires it into three surfaces: the object toolbar, the command palette, and the explorer tree hover action.
 

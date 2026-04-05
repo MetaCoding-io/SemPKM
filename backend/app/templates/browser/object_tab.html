@@ -21,6 +21,12 @@
         <i data-lucide="star"></i>
       </button>
 
+      <button class="delete-btn"
+              onclick="event.stopPropagation(); SemPKM.deleteObject('{{ object_iri }}', '{{ object_label | e }}')"
+              title="Delete object">
+        <i data-lucide="trash-2"></i>
+      </button>
+
       {% if property_count > 0 %}
       <button class="btn btn-sm properties-toggle-badge"
               id="props-toggle-{{ safe_id }}"
