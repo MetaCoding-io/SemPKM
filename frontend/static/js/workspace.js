@@ -1194,6 +1194,11 @@
       var editor = window.SemPKM.getEditor(activeIri);
       if (editor) {
         var content = editor.state.doc.toString();
+        // Short-circuit: skip body POST when content is unchanged
+        if (content === editor._sempkmSavedContent) {
+          markClean(activeIri);
+          return;
+        }
         var bodyContainer = activeTab ? activeTab.querySelector('.codemirror-container') : null;
         var bodyPredicate = bodyContainer && bodyContainer.dataset.bodyPredicate ? bodyContainer.dataset.bodyPredicate : '';
         var bodyUrl = '/browser/objects/' + encodeURIComponent(activeIri) + '/body';

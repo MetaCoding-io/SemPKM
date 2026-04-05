@@ -6,6 +6,7 @@ and create/save object flows.
 """
 
 import logging
+import re
 from datetime import datetime, timezone
 from urllib.parse import unquote
 
@@ -54,6 +55,46 @@ _SKIP_PATHS_STATIC = frozenset([
     "http://purl.org/dc/terms/created",
     "http://purl.org/dc/terms/modified",
 ])
+
+# Regex: matches YYYY-MM-DDTHH:MM (with optional seconds/fractional/timezone)
+_DATETIME_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}")
+
+
+def _normalize_value_for_compare(value: str) -> str:
+    """Normalize a property value for comparison between form and triplestore.
+
+    For datetime-like strings, strips timezone suffix and truncates to
+    minute precision (YYYY-MM-DDTHH:MM) to match the HTML datetime-local
+    input truncation applied in _field.html.
+    Non-datetime strings are returned unchanged.
+    """
+    if _DATETIME_RE.match(value):
+        # Strip timezone: remove trailing Z, or +HH:MM / -HH:MM offset
+        stripped = re.sub(r"[Zz]$", "", value)
+        stripped = re.sub(r"[+\-]\d{2}:\d{2}$", "", stripped)
+        # Truncate to minute precision (first 16 chars: YYYY-MM-DDTHH:MM)
+        return stripped[:16] if len(stripped) >= 16 else stripped
+    return value
+
+
+def _compute_changed_properties(
+    form_properties: dict[str, list[str]],
+    current_values: dict[str, list[str]],
+) -> dict[str, list[str]]:
+    """Compare form-submitted properties against current triplestore values.
+
+    Returns only properties whose normalized values differ — additions,
+    modifications, and deletions (form sent empty but current had values).
+    Properties whose values match after normalization are excluded.
+    """
+    changed: dict[str, list[str]] = {}
+    for key, form_vals in form_properties.items():
+        norm_form = sorted(_normalize_value_for_compare(v) for v in form_vals)
+        current_vals = current_values.get(key, [])
+        norm_current = sorted(_normalize_value_for_compare(v) for v in current_vals)
+        if norm_form != norm_current:
+            changed[key] = form_vals
+    return changed
 
 
 def _partition_form_properties(
@@ -1369,14 +1410,37 @@ async def save_object(
                 split_values.extend(split_tag_values(v))
             properties[prop_key] = split_values
 
-    # Auto-set dcterms:modified to current UTC timestamp
-    properties[dcterms_modified] = [datetime.now(timezone.utc).isoformat()]
+    # --- Diff-based filtering: only patch actually-changed properties ---
+    # Query current values from triplestore for comparison
+    _diff_exclude = frozenset([
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+        "urn:sempkm:body",
+    ])
+    current_sparql = f"""SELECT ?p ?o WHERE {{
+      GRAPH <{CURRENT_GRAPH}> {{ <{decoded_iri}> ?p ?o }}
+    }}"""
+    current_result = await client.query(current_sparql)
+    current_bindings = current_result.get("results", {}).get("bindings", [])
+    current_values: dict[str, list[str]] = {}
+    for binding in current_bindings:
+        pred = binding["p"]["value"]
+        if pred in _diff_exclude:
+            continue
+        obj_val = binding["o"]["value"]
+        current_values.setdefault(pred, []).append(obj_val)
+
+    # Compute changed properties (form vs current)
+    changed_properties = _compute_changed_properties(properties, current_values)
+
+    # Only stamp dcterms:modified when real property changes exist
+    if changed_properties:
+        changed_properties[dcterms_modified] = [datetime.now(timezone.utc).isoformat()]
 
     try:
-        if properties:
+        if changed_properties:
             params = ObjectPatchParams(
                 iri=decoded_iri,
-                properties=properties,
+                properties=changed_properties,
             )
             operation = await handle_object_patch(params, settings.base_namespace)
             user_iri = URIRef(f"urn:sempkm:user:{user.id}")

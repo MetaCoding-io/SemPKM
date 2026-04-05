@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-05T18:11:58.797Z",
+  "exported_at": "2026-04-05T18:26:09.162Z",
   "milestones": [
     {
       "id": "M001",
@@ -7903,14 +7903,14 @@
       "milestone_id": "M048",
       "id": "S01",
       "title": "Fix Table & Cards Views + Creation Timestamps",
-      "status": "pending",
+      "status": "complete",
       "risk": "high",
       "depends": [],
       "demo": "Open Table View from explorer → objects listed with label, type, created, modified. Open Cards View → cards render. Create a new object → dcterms:created appears in the table.",
       "created_at": "2026-04-05T17:54:07.578Z",
-      "completed_at": null,
-      "full_summary_md": "",
-      "full_uat_md": "",
+      "completed_at": "2026-04-05T18:13:32.866Z",
+      "full_summary_md": "---\nid: S01\nparent: M048\nmilestone: M048\nprovides:\n  - Table View renders objects with labels, types, created, and modified columns\n  - Cards View renders cards with data\n  - Newly created objects have dcterms:created and dcterms:modified timestamps\nrequires:\n  []\naffects:\n  - S03\nkey_files:\n  - backend/app/views/service.py\n  - backend/app/commands/handlers/object_create.py\n  - backend/tests/test_view_prefix_fix.py\n  - backend/tests/test_object_create_timestamps.py\nkey_decisions:\n  - Applied inject_prefixes() at each query construction site rather than at _client.query() call level to keep the fix surgical\n  - Track user-supplied predicates in a set during the property loop to detect duplicates for timestamp precedence\n  - Define DCTERMS_CREATED and DCTERMS_MODIFIED as module-level URIRef constants for reuse\npatterns_established:\n  - inject_prefixes() must be applied to any reconstructed SPARQL query that uses prefixed names — the pattern of extracting WHERE body and rebuilding queries drops PREFIX declarations\n  - Auto-injected metadata triples (dcterms:created, dcterms:modified) should respect user-supplied values by tracking predicates in a set during property iteration\nobservability_surfaces:\n  - none\ndrill_down_paths:\n  - .gsd/milestones/M048/slices/S01/tasks/T01-SUMMARY.md\n  - .gsd/milestones/M048/slices/S01/tasks/T02-SUMMARY.md\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-04-05T18:13:32.866Z\nblocker_discovered: false\n---\n\n# S01: Fix Table & Cards Views + Creation Timestamps\n\n**Fixed Table and Cards views rendering zero results due to missing PREFIX declarations in reconstructed SPARQL queries, and added automatic dcterms:created/dcterms:modified timestamps to object creation.**\n\n## What Happened\n\nTwo root causes were fixed in this slice:\n\n**T01 — SPARQL PREFIX injection for views:** The `execute_table_query` and `execute_cards_query` methods in `backend/app/views/service.py` extract the WHERE body from the original scoped SPARQL query and reconstruct new count/data/subjects queries. These reconstructed queries dropped all PREFIX declarations from the original query. Since the WHERE body uses prefixed names (`rdf:type`, `rdfs:label|dcterms:title`, `dcterms:created`, `dcterms:modified`), RDF4J rejected them with SPARQL parse errors. The exceptions were silently caught and logged as warnings, resulting in zero results and the \"No objects found\" empty state. The fix imported `inject_prefixes` from `app.sparql.client` and wrapped all 4 reconstructed queries before sending to the triplestore. 6 unit tests verify prefix injection and non-empty results.\n\n**T02 — Creation timestamps:** The `handle_object_create` handler created objects with `rdf:type` and user-supplied properties but never added `dcterms:created` or `dcterms:modified` timestamps. This left the Table View's \"created\" and \"modified\" columns permanently empty for all UI-created objects. The fix adds both timestamps as `xsd:dateTime` literals (UTC ISO 8601) after the property triples loop, with user-supplied value precedence tracked via a `user_predicates` set. 10 unit tests cover timestamp presence, format, datatype, and user-supplied precedence via both compact and full IRI keys.\n\n## Verification\n\nAll 41 tests pass across 3 test files:\n\n- `cd backend && .venv/bin/python -m pytest tests/test_view_prefix_fix.py -v` → 6 passed (prefix injection)\n- `cd backend && .venv/bin/python -m pytest tests/test_object_create_timestamps.py -v` → 10 passed (timestamps)\n- `cd backend && .venv/bin/python -m pytest tests/test_view_scope.py -v` → 25 passed (no regressions)\n\nTotal: 41 passed, 0 failed, 0 regressions.\n\n## Requirements Advanced\n\nNone.\n\n## Requirements Validated\n\nNone.\n\n## New Requirements Surfaced\n\nNone.\n\n## Requirements Invalidated or Re-scoped\n\nNone.\n\n## Deviations\n\nViewSpec dataclass field names differed from plan assumptions (renderer_type/target_class instead of view_type/model_id) — test helper adapted. Tests use async def with await due to project's pytest-asyncio mode=AUTO. Both deviations are minor implementation details with no impact on functionality.\n\n## Known Limitations\n\nNone. Both fixes are complete and tested.\n\n## Follow-ups\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/views/service.py` — Added inject_prefixes import and wrapped all 4 reconstructed SPARQL queries (2 in execute_table_query, 2 in execute_cards_query) with inject_prefixes() before triplestore execution\n- `backend/app/commands/handlers/object_create.py` — Added auto-injection of dcterms:created and dcterms:modified timestamps (UTC ISO 8601, xsd:dateTime) with user-supplied value precedence\n- `backend/tests/test_view_prefix_fix.py` — New test file: 6 tests verifying PREFIX injection in reconstructed table and cards queries\n- `backend/tests/test_object_create_timestamps.py` — New test file: 10 tests verifying timestamp presence, format, datatype, and user-supplied precedence\n",
+      "full_uat_md": "# S01: Fix Table & Cards Views + Creation Timestamps — UAT\n\n**Milestone:** M048\n**Written:** 2026-04-05T18:13:32.866Z\n\n## UAT: Fix Table & Cards Views + Creation Timestamps\n\n### Preconditions\n- SemPKM running via Docker Compose with at least one Mental Model installed (e.g., basic-pkm)\n- At least 2–3 objects already exist in the system\n\n---\n\n### Test Case 1: Table View Renders Objects\n\n**Steps:**\n1. Open the workspace\n2. In the explorer pane, expand \"Views\" or navigate to a Table View\n3. Click on any Table View entry (e.g., \"All Objects\" or a type-specific table)\n\n**Expected:**\n- Table renders with rows — NOT \"No objects found\" empty state\n- Each row shows: Label, Type, Created date, Modified date columns\n- Label column shows human-readable labels (not raw IRIs)\n- Type column shows the object's rdf:type\n\n**Failure indicator:** \"No objects found\" message, empty table, or browser console showing SPARQL parse errors with \"undefined prefix\"\n\n---\n\n### Test Case 2: Cards View Renders Cards\n\n**Steps:**\n1. Open the workspace\n2. Navigate to a Cards View in the explorer (or switch an existing view to Cards renderer)\n\n**Expected:**\n- Cards render with object data — NOT empty grid\n- Each card shows at minimum a label/title\n\n**Failure indicator:** Empty cards area, \"No objects found\", or SPARQL errors in backend logs\n\n---\n\n### Test Case 3: New Object Gets Creation Timestamp\n\n**Steps:**\n1. Open the workspace\n2. Create a new object via the \"+\" button or command palette (Ctrl+K → \"Create Object\")\n3. Select a type (e.g., \"Note\" from basic-pkm)\n4. Fill in a title and save\n5. Open a Table View that includes this object type\n\n**Expected:**\n- The newly created object appears in the table\n- The \"Created\" column shows a valid datetime (today's date, UTC)\n- The \"Modified\" column shows the same datetime as Created\n\n---\n\n### Test Case 4: User-Supplied Created Date Takes Precedence\n\n**Steps:**\n1. Create a new object via the API or form where you can explicitly set `dcterms:created` as a property\n2. Set it to a past date (e.g., \"2020-01-01T00:00:00+00:00\")\n3. Save the object\n4. Check the object in Table View\n\n**Expected:**\n- The \"Created\" column shows 2020-01-01, NOT today's date\n- The \"Modified\" column shows today's date (auto-injected since user only supplied created)\n\n---\n\n### Test Case 5: Existing Objects Still Render in Views\n\n**Steps:**\n1. Verify that objects created BEFORE this fix (which lack dcterms:created) still appear in Table and Cards views\n\n**Expected:**\n- All existing objects render in views\n- Created/Modified columns are blank for pre-fix objects (expected — no timestamp was stored)\n- No errors or missing rows\n\n---\n\n### Edge Cases\n\n- **Empty triplestore:** Table/Cards views show \"No objects found\" gracefully (not SPARQL errors)\n- **Multiple types:** Table View with mixed types renders all matching objects\n- **Rapid creation:** Create 3 objects quickly — all get distinct timestamps and appear in views\n",
       "goal": "Table View and Cards View render objects, and newly created objects get a dcterms:created timestamp.",
       "success_criteria": "- Opening Table View (generic, no type filter) returns rows with label, type, created, modified columns\n- Opening Cards View (generic, no type filter) returns card items with labels and snippets\n- Creating a new object via the object.create command produces a dcterms:created triple with the current datetime\n- Unit tests for all three fixes pass",
       "proof_level": "Contract — unit tests prove SPARQL queries include PREFIX declarations and object.create injects dcterms:created. Real runtime verification deferred to E2E.",
@@ -7931,11 +7931,11 @@
       "completed_at": null,
       "full_summary_md": "",
       "full_uat_md": "",
-      "goal": "Eliminate phantom save events by diffing current property values against the triplestore before patching, and by skipping body saves when content is unchanged.",
-      "success_criteria": "Saving with one changed field produces an event with only that field. Saving with no changes produces no event. Body save is skipped client-side when content matches saved state.",
-      "proof_level": "integration — verified through the browser event log panel",
-      "integration_closure": "Clean event log is a prerequisite for trustworthy audit trails in all downstream features",
-      "observability_impact": "Event log accuracy improved — phantom events eliminated",
+      "goal": "Eliminate phantom save events: form saves only create events for actually-changed properties, and no-op saves create no events at all.",
+      "success_criteria": "- Open an object, change one property, save → event log shows ONLY that property changed\n- Open an object, change nothing, save → no new event created\n- DateTime properties that haven't changed don't trigger phantom events\n- Multi-valued properties compared correctly (set equality, not order-dependent)\n- Body save skips network call when content hasn't changed (client-side check)\n- `cd backend && python -m pytest tests/test_save_diff.py -v` passes",
+      "proof_level": "Contract — unit tests prove diff logic correctness (normalization, filtering, no-op detection). Integration proof deferred to manual/E2E testing.",
+      "integration_closure": "- Upstream: `save_object()` consumes form data from htmx POST and SPARQL current graph via `TriplestoreClient`\n- New wiring: SPARQL query for current values inserted before `ObjectPatchParams` construction; `dcterms:modified` injection moved after diff check\n- Downstream: `handle_object_patch()` and `EventStore.commit()` unchanged — they receive filtered input",
+      "observability_impact": "- Runtime: `save_object()` logs when a save is skipped as no-op (debug level)\n- Inspection: event log (timeline panel) shows only actual changes — absence of phantom events is the observable signal\n- Failure: if diff logic has a bug, events will either be missing (under-reporting) or still phantom (over-reporting) — both visible in timeline",
       "sequence": 0,
       "replan_triggered_at": null
     },
@@ -31841,6 +31841,87 @@
       "sequence": 0
     },
     {
+      "milestone_id": "M048",
+      "slice_id": "S02",
+      "id": "T01",
+      "title": "Added diff-based property filtering to save_object() and client-side body save short-circuit to eliminate phantom events",
+      "status": "complete",
+      "one_liner": "Added diff-based property filtering to save_object() and client-side body save short-circuit to eliminate phantom events",
+      "narrative": "Implemented three changes to eliminate phantom save events: (1) Added _normalize_value_for_compare() helper that normalizes datetime strings to minute-precision YYYY-MM-DDTHH:MM format to match HTML datetime-local input truncation. (2) Added _compute_changed_properties() that compares form values against triplestore current values using normalized sorted lists, returning only differing properties. (3) Modified save_object() to query current triplestore values, compute the diff, and only create ObjectPatchParams for actually-changed properties. dcterms:modified is only injected when real changes exist. (4) Added client-side body save short-circuit in saveCurrentObject() that skips the body POST when editor content matches _sempkmSavedContent.",
+      "verification_result": "All task verification commands passed: _normalize_value_for_compare found at 3 locations in objects.py, changed_properties found at 5 locations, _sempkmSavedContent short-circuit check found (count=1). Python syntax validation passed. LSP diagnostics show no new errors.",
+      "duration": "",
+      "completed_at": "2026-04-05T18:26:09.127Z",
+      "blocker_discovered": false,
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/browser/objects.py",
+        "frontend/static/js/workspace.js"
+      ],
+      "key_decisions": [
+        "Extracted diff logic into testable module-level functions (_normalize_value_for_compare, _compute_changed_properties) for T02 unit testing",
+        "Excluded rdf:type and urn:sempkm:body from current-value comparison as they are not form-managed",
+        "dcterms:modified only stamped when changed_properties is non-empty"
+      ],
+      "full_summary_md": "---\nid: T01\nparent: S02\nmilestone: M048\nkey_files:\n  - backend/app/browser/objects.py\n  - frontend/static/js/workspace.js\nkey_decisions:\n  - Extracted diff logic into testable module-level functions (_normalize_value_for_compare, _compute_changed_properties) for T02 unit testing\n  - Excluded rdf:type and urn:sempkm:body from current-value comparison as they are not form-managed\n  - dcterms:modified only stamped when changed_properties is non-empty\nduration: \nverification_result: passed\ncompleted_at: 2026-04-05T18:26:09.126Z\nblocker_discovered: false\n---\n\n# T01: Added diff-based property filtering to save_object() and client-side body save short-circuit to eliminate phantom events\n\n**Added diff-based property filtering to save_object() and client-side body save short-circuit to eliminate phantom events**\n\n## What Happened\n\nImplemented three changes to eliminate phantom save events: (1) Added _normalize_value_for_compare() helper that normalizes datetime strings to minute-precision YYYY-MM-DDTHH:MM format to match HTML datetime-local input truncation. (2) Added _compute_changed_properties() that compares form values against triplestore current values using normalized sorted lists, returning only differing properties. (3) Modified save_object() to query current triplestore values, compute the diff, and only create ObjectPatchParams for actually-changed properties. dcterms:modified is only injected when real changes exist. (4) Added client-side body save short-circuit in saveCurrentObject() that skips the body POST when editor content matches _sempkmSavedContent.\n\n## Verification\n\nAll task verification commands passed: _normalize_value_for_compare found at 3 locations in objects.py, changed_properties found at 5 locations, _sempkmSavedContent short-circuit check found (count=1). Python syntax validation passed. LSP diagnostics show no new errors.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `rg -n '_normalize_value_for_compare' backend/app/browser/objects.py` | 0 | ✅ pass | 100ms |\n| 2 | `rg -n 'changed_properties' backend/app/browser/objects.py` | 0 | ✅ pass | 100ms |\n| 3 | `rg -n '_sempkmSavedContent' frontend/static/js/workspace.js | grep -v '= content' | grep -c '_sempkmSavedContent'` | 0 | ✅ pass | 100ms |\n| 4 | `python3 -c \"import ast; ast.parse(open('backend/app/browser/objects.py').read())\"` | 0 | ✅ pass | 200ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/browser/objects.py`\n- `frontend/static/js/workspace.js`\n",
+      "description": "## Why\nThe `save_object()` endpoint unconditionally creates an `object.patch` event recording every form property as changed, even when values haven't changed. This produces phantom events that clutter the timeline. The fix: query current values from the triplestore, compare against form values with proper normalization, and only patch actually-changed properties. If nothing changed, skip the patch entirely.\n\nSecondarily, `saveCurrentObject()` in JS always POSTs the body content even when unchanged. The backend already handles this no-op, but skipping the network call is cleaner.\n\n## Steps\n\n1. **Add current-value query in `save_object()`** (objects.py, after the properties dict is built ~line 1370, BEFORE `dcterms:modified` injection at line 1373):\n   - Query: `SELECT ?p ?o WHERE { GRAPH <urn:sempkm:current> { <{decoded_iri}> ?p ?o } }`\n   - Build `current_values: dict[str, list[str]]` from bindings, keyed by predicate IRI string, values as sorted list of `?o` value strings\n   - Filter out `rdf:type` and `urn:sempkm:body` from current_values (these aren't form-managed)\n\n2. **Add normalization helper `_normalize_value_for_compare(value: str) -> str`** (in objects.py, module-level):\n   - For datetime-like strings (matches `YYYY-MM-DDTHH:MM` pattern): strip timezone suffix (`+00:00`, `+HH:MM`, `Z`), truncate to minute precision (first 16 chars)\n   - For all other strings: return as-is\n   - This matches the form template truncation in `_field.html:140-143`\n\n3. **Filter to changed-only properties** (between current query and `ObjectPatchParams` creation):\n   - For each property in the form `properties` dict:\n     - Normalize both form values and current values using `_normalize_value_for_compare()`\n     - Compare as sorted lists: `sorted(normalized_form) == sorted(normalized_current)`\n     - If equal → skip this property\n     - If different → include in `changed_properties` dict\n   - Also include properties in form that have no current value (new properties)\n   - Also include properties where current has values but form doesn't (deletions — form sent empty)\n\n4. **Move `dcterms:modified` injection AFTER the diff check:**\n   - Remove the unconditional `properties[dcterms_modified] = [...]` from line 1373\n   - Only add `dcterms:modified` to `changed_properties` when `changed_properties` is non-empty\n\n5. **Conditional patch:** Replace `if properties:` with `if changed_properties:` — use `changed_properties` instead of `properties` when creating `ObjectPatchParams`\n\n6. **Client-side body save short-circuit** (workspace.js ~line 1196):\n   - In the `if (editor)` block, before the `apiFetch` call, add: `if (content === editor._sempkmSavedContent) { markClean(activeIri); return; }`\n\n## Key Constraints\n- `dcterms:modified` MUST only appear in the patch when other properties actually changed. It's a timestamp tracking real modifications, not saves.\n- The SPARQL query for current values uses the same `CURRENT_GRAPH` constant already imported (line 42).\n- The `_normalize_value_for_compare` function must handle: full ISO datetime with timezone, datetime without timezone, datetime-local format (no seconds), plain date strings, and non-datetime strings (pass through unchanged).\n- Multi-valued properties: form sends `key[]` collected via `getlist()`. Current values may have multiple bindings for same predicate. Both must be collected as lists and compared as sorted lists.\n- Properties in current but NOT in the form's skip_fields list and not in the form submission should NOT be treated as deletions — the form only submits fields it renders.",
+      "estimate": "1h",
+      "files": [
+        "backend/app/browser/objects.py",
+        "frontend/static/js/workspace.js"
+      ],
+      "verify": "rg -n '_normalize_value_for_compare' backend/app/browser/objects.py && rg -n 'changed_properties' backend/app/browser/objects.py && rg -n '_sempkmSavedContent' frontend/static/js/workspace.js | grep -v '= content' | grep -c '_sempkmSavedContent'",
+      "inputs": [
+        "`backend/app/browser/objects.py` — save_object() endpoint (line 1319), save_body() no-op pattern (line 530-546)",
+        "`frontend/static/js/workspace.js` — saveCurrentObject() function (line 1177)",
+        "`backend/app/templates/forms/_field.html` — datetime truncation logic (line 139-143)",
+        "`backend/app/commands/handlers/object_patch.py` — handle_object_patch() and ObjectPatchParams"
+      ],
+      "expected_output": [
+        "`backend/app/browser/objects.py` — save_object() with diff-based filtering, _normalize_value_for_compare() helper",
+        "`frontend/static/js/workspace.js` — saveCurrentObject() with _sempkmSavedContent short-circuit before body POST"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M048",
+      "slice_id": "S02",
+      "id": "T02",
+      "title": "Add unit tests for save diff logic",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "## Why\nThe diff logic in `save_object()` handles datetime normalization, multi-value comparison, and no-op detection. Unit tests ensure these edge cases are covered and prevent regressions.\n\n## Steps\n\n1. **Create `backend/tests/test_save_diff.py`** with tests for the `_normalize_value_for_compare()` helper:\n   - Full ISO datetime with timezone `2026-04-05T12:30:45.123456+00:00` → `2026-04-05T12:30`\n   - Datetime with Z suffix `2026-04-05T12:30:45Z` → `2026-04-05T12:30`\n   - Datetime-local format (already truncated) `2026-04-05T12:30` → `2026-04-05T12:30`\n   - Plain date `2026-04-05` → `2026-04-05` (pass-through)\n   - Non-datetime string `hello world` → `hello world` (pass-through)\n   - URI string `http://example.org/thing` → `http://example.org/thing` (pass-through)\n   - Empty string → empty string\n\n2. **Add integration-style tests** that exercise the diff filtering logic (can test inline or via extracted helper):\n   - Unchanged properties → empty changed dict\n   - One property changed → only that property in changed dict\n   - DateTime property unchanged (different format) → not in changed dict\n   - Multi-valued property with same values in different order → not in changed dict\n   - New property (in form but not in current) → in changed dict\n   - `dcterms:modified` only present when other changes exist\n\n3. **Follow the existing test pattern** from `test_object_create_timestamps.py` — use pytest with async tests, import from `app.browser.objects` or test the helper directly.\n\n## Key Constraints\n- Tests must be runnable with `cd backend && python -m pytest tests/test_save_diff.py -v`\n- The `_normalize_value_for_compare` function should be importable from `app.browser.objects`\n- If the diff filtering logic is inline in `save_object()`, extract the comparison into a testable helper function (e.g., `_compute_changed_properties(form_props, current_props)`) that T02 can import and test directly.",
+      "estimate": "30m",
+      "files": [
+        "backend/tests/test_save_diff.py",
+        "backend/app/browser/objects.py"
+      ],
+      "verify": "cd backend && python -m pytest tests/test_save_diff.py -v",
+      "inputs": [
+        "`backend/app/browser/objects.py` — _normalize_value_for_compare() and diff logic from T01",
+        "`backend/tests/test_object_create_timestamps.py` — reference test pattern"
+      ],
+      "expected_output": [
+        "`backend/tests/test_save_diff.py` — unit tests for normalization and diff filtering",
+        "`backend/app/browser/objects.py` — possible extraction of _compute_changed_properties() helper if diff logic was inline"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
       "milestone_id": "M049",
       "slice_id": "S01",
       "id": "T01",
@@ -38891,6 +38972,50 @@
       "verdict": "✅ pass",
       "duration_ms": 410,
       "created_at": "2026-04-05T18:11:58.764Z"
+    },
+    {
+      "id": 213,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M048",
+      "command": "rg -n '_normalize_value_for_compare' backend/app/browser/objects.py",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-05T18:26:09.127Z"
+    },
+    {
+      "id": 214,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M048",
+      "command": "rg -n 'changed_properties' backend/app/browser/objects.py",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-05T18:26:09.127Z"
+    },
+    {
+      "id": 215,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M048",
+      "command": "rg -n '_sempkmSavedContent' frontend/static/js/workspace.js | grep -v '= content' | grep -c '_sempkmSavedContent'",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-05T18:26:09.127Z"
+    },
+    {
+      "id": 216,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M048",
+      "command": "python3 -c \"import ast; ast.parse(open('backend/app/browser/objects.py').read())\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 200,
+      "created_at": "2026-04-05T18:26:09.127Z"
     }
   ]
 }

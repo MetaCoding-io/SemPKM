@@ -1,10 +1,12 @@
-# S02: Diff-Based Save — No Phantom Events
+---
+estimated_steps: 32
+estimated_files: 2
+skills_used: []
+---
 
-**Goal:** Eliminate phantom save events: form saves only create events for actually-changed properties, and no-op saves create no events at all.
-**Demo:** After this: Open an object, change one property field, save. Check the event log — only the changed property appears. Change nothing and save — no event is created.
+# T01: Add diff-based filtering to save_object() and body save short-circuit
 
-## Tasks
-- [x] **T01: Added diff-based property filtering to save_object() and client-side body save short-circuit to eliminate phantom events** — ## Why
+## Why
 The `save_object()` endpoint unconditionally creates an `object.patch` event recording every form property as changed, even when values haven't changed. This produces phantom events that clutter the timeline. The fix: query current values from the triplestore, compare against form values with proper normalization, and only patch actually-changed properties. If nothing changed, skip the patch entirely.
 
 Secondarily, `saveCurrentObject()` in JS always POSTs the body content even when unchanged. The backend already handles this no-op, but skipping the network call is cleaner.
@@ -45,37 +47,19 @@ Secondarily, `saveCurrentObject()` in JS always POSTs the body content even when
 - The `_normalize_value_for_compare` function must handle: full ISO datetime with timezone, datetime without timezone, datetime-local format (no seconds), plain date strings, and non-datetime strings (pass through unchanged).
 - Multi-valued properties: form sends `key[]` collected via `getlist()`. Current values may have multiple bindings for same predicate. Both must be collected as lists and compared as sorted lists.
 - Properties in current but NOT in the form's skip_fields list and not in the form submission should NOT be treated as deletions — the form only submits fields it renders.
-  - Estimate: 1h
-  - Files: backend/app/browser/objects.py, frontend/static/js/workspace.js
-  - Verify: rg -n '_normalize_value_for_compare' backend/app/browser/objects.py && rg -n 'changed_properties' backend/app/browser/objects.py && rg -n '_sempkmSavedContent' frontend/static/js/workspace.js | grep -v '= content' | grep -c '_sempkmSavedContent'
-- [ ] **T02: Add unit tests for save diff logic** — ## Why
-The diff logic in `save_object()` handles datetime normalization, multi-value comparison, and no-op detection. Unit tests ensure these edge cases are covered and prevent regressions.
 
-## Steps
+## Inputs
 
-1. **Create `backend/tests/test_save_diff.py`** with tests for the `_normalize_value_for_compare()` helper:
-   - Full ISO datetime with timezone `2026-04-05T12:30:45.123456+00:00` → `2026-04-05T12:30`
-   - Datetime with Z suffix `2026-04-05T12:30:45Z` → `2026-04-05T12:30`
-   - Datetime-local format (already truncated) `2026-04-05T12:30` → `2026-04-05T12:30`
-   - Plain date `2026-04-05` → `2026-04-05` (pass-through)
-   - Non-datetime string `hello world` → `hello world` (pass-through)
-   - URI string `http://example.org/thing` → `http://example.org/thing` (pass-through)
-   - Empty string → empty string
+- ``backend/app/browser/objects.py` — save_object() endpoint (line 1319), save_body() no-op pattern (line 530-546)`
+- ``frontend/static/js/workspace.js` — saveCurrentObject() function (line 1177)`
+- ``backend/app/templates/forms/_field.html` — datetime truncation logic (line 139-143)`
+- ``backend/app/commands/handlers/object_patch.py` — handle_object_patch() and ObjectPatchParams`
 
-2. **Add integration-style tests** that exercise the diff filtering logic (can test inline or via extracted helper):
-   - Unchanged properties → empty changed dict
-   - One property changed → only that property in changed dict
-   - DateTime property unchanged (different format) → not in changed dict
-   - Multi-valued property with same values in different order → not in changed dict
-   - New property (in form but not in current) → in changed dict
-   - `dcterms:modified` only present when other changes exist
+## Expected Output
 
-3. **Follow the existing test pattern** from `test_object_create_timestamps.py` — use pytest with async tests, import from `app.browser.objects` or test the helper directly.
+- ``backend/app/browser/objects.py` — save_object() with diff-based filtering, _normalize_value_for_compare() helper`
+- ``frontend/static/js/workspace.js` — saveCurrentObject() with _sempkmSavedContent short-circuit before body POST`
 
-## Key Constraints
-- Tests must be runnable with `cd backend && python -m pytest tests/test_save_diff.py -v`
-- The `_normalize_value_for_compare` function should be importable from `app.browser.objects`
-- If the diff filtering logic is inline in `save_object()`, extract the comparison into a testable helper function (e.g., `_compute_changed_properties(form_props, current_props)`) that T02 can import and test directly.
-  - Estimate: 30m
-  - Files: backend/tests/test_save_diff.py, backend/app/browser/objects.py
-  - Verify: cd backend && python -m pytest tests/test_save_diff.py -v
+## Verification
+
+rg -n '_normalize_value_for_compare' backend/app/browser/objects.py && rg -n 'changed_properties' backend/app/browser/objects.py && rg -n '_sempkmSavedContent' frontend/static/js/workspace.js | grep -v '= content' | grep -c '_sempkmSavedContent'
