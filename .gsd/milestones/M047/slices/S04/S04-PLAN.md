@@ -77,7 +77,7 @@ No openWorkflowTab helper exists in dockview.ts. Use `page.evaluate()` directly 
   - Estimate: 1h
   - Files: e2e/tests/47-ppv-v2/ppv-v2-lifecycle.spec.ts
   - Verify: cd e2e && npx tsc --noEmit 2>&1 | grep -c 'error' | grep -q '^0$' && echo 'TypeScript compiles OK' || echo 'TypeScript errors found'
-- [ ] **T03: Write PPV v2 user guide chapter and update all three index files** — Create the PPV model user guide chapter and update all three index files that must stay in sync (KNOWLEDGE.md rule: 'User guide has THREE files that must stay in sync').
+- [x] **T03: Created PPV v2 user guide chapter (docs/guide/50-ppv-model.md) documenting all 12 types, 5 dashboards, 5 workflows, review system, installation, and seed data — updated all three index files in sync** — Create the PPV model user guide chapter and update all three index files that must stay in sync (KNOWLEDGE.md rule: 'User guide has THREE files that must stay in sync').
 
 ## Steps
 

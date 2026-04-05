@@ -99,6 +99,7 @@ GUIDE_SECTIONS: list[dict] = [
             {"filename": "47-asana-sync.md", "title": "47. Asana Sync", "icon": "list-checks"},
             {"filename": "48-mobile-app-context.md", "title": "48. Mobile App & Context", "icon": "smartphone"},
             {"filename": "49-media-scheduler.md", "title": "49. Media Scheduler", "icon": "radio"},
+            {"filename": "50-ppv-model.md", "title": "50. PPV Model", "icon": "compass"},
             {"filename": "38-hosted-demo.md", "title": "38. Hosted Demo", "icon": "globe"},
             # Appendices
             {"filename": "appendix-a-environment-variables.md", "title": "Appendix A: Environment Variables", "icon": "file-text", "appendix": True},
