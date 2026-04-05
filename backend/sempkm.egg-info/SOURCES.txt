@@ -144,6 +144,7 @@ app/monitoring/__init__.py
 app/monitoring/middleware.py
 app/monitoring/posthog.py
 app/monitoring/router.py
+app/monitoring/tracing.py
 app/notion/__init__.py
 app/notion/broadcast.py
 app/notion/executor.py
@@ -412,6 +413,7 @@ tests/test_todoist_person_matcher.py
 tests/test_todoist_push_sync.py
 tests/test_todoist_sync_engine.py
 tests/test_token_scopes.py
+tests/test_tracing.py
 tests/test_validation_pipeline.py
 tests/test_values_injection.py
 tests/test_vfs_path_contract.py

@@ -195,7 +195,7 @@
   - Estimate: 35m
   - Files: backend/app/monitoring/tracing.py, backend/app/main.py, backend/app/triplestore/client.py
   - Verify: cd backend && .venv/bin/python -c "from app.monitoring.tracing import setup_tracing, shutdown_tracing; print('OK')" && .venv/bin/python -c "from app.triplestore.client import TriplestoreClient; print('OK')" && grep -q 'setup_tracing' app/main.py && grep -q 'start_as_current_span' app/triplestore/client.py
-- [ ] **T03: Unit tests for tracing infrastructure** — Write unit tests proving the tracing infrastructure works correctly: setup/shutdown lifecycle, custom TriplestoreClient spans with attributes, and no regressions on existing tests.
+- [x] **T03: Created 10 unit tests for OTel tracing infrastructure covering setup/shutdown lifecycle, all 4 TriplestoreClient span types, text truncation, and result count attributes** — Write unit tests proving the tracing infrastructure works correctly: setup/shutdown lifecycle, custom TriplestoreClient spans with attributes, and no regressions on existing tests.
 
 ## Steps
 
