@@ -180,3 +180,69 @@ class TestLoadTboxWorkflows:
         manifest = _make_manifest(workflows="workflows/test.json")
         with pytest.raises(ValueError, match="top-level 'workflows' array"):
             load_tbox_workflows(tmp_path, manifest)
+
+    def test_real_ppv_workflows(self):
+        """Load the real PPV workflows file — 5 workflows with dashboard_name refs."""
+        ppv_dir = MODELS_DIR / "ppv"
+        if not ppv_dir.exists():
+            pytest.skip("ppv model not found")
+        from app.models.manifest import parse_manifest
+        manifest = parse_manifest(ppv_dir)
+        result = load_tbox_workflows(ppv_dir, manifest)
+        assert result is not None
+        assert len(result) == 5
+        names = [w["name"] for w in result]
+        assert "Daily Check-in" in names
+        assert "Weekly Review" in names
+        assert "Monthly Review" in names
+        assert "Quarterly Review" in names
+        assert "Yearly Review" in names
+        # Verify dashboard_name references exist in dashboard steps
+        dashboard_steps = [
+            step for wf in result for step in wf["steps"]
+            if step["type"] == "dashboard"
+        ]
+        assert len(dashboard_steps) >= 5
+        for step in dashboard_steps:
+            assert "dashboard_name" in step["config"]
+
+
+class TestResolveDashboardNames:
+    """Tests for _resolve_dashboard_names helper."""
+
+    def test_resolves_known_names(self):
+        """Steps with dashboard_name get resolved to dashboard_id."""
+        from app.services.models import _resolve_dashboard_names
+        steps = [
+            {"type": "dashboard", "label": "Review", "config": {"dashboard_name": "Action Items"}},
+            {"type": "view", "label": "Table", "config": {"spec_iri": "urn:test"}},
+        ]
+        mapping = {"Action Items": "uuid-abc-123"}
+        resolved = _resolve_dashboard_names(steps, mapping, "test-model")
+        assert resolved[0]["config"]["dashboard_id"] == "uuid-abc-123"
+        assert "dashboard_name" not in resolved[0]["config"]
+        # view step unchanged
+        assert resolved[1]["config"]["spec_iri"] == "urn:test"
+
+    def test_unknown_name_leaves_unresolved(self):
+        """Steps referencing unknown dashboard names are left as-is."""
+        from app.services.models import _resolve_dashboard_names
+        steps = [
+            {"type": "dashboard", "label": "Missing", "config": {"dashboard_name": "No Such Dash"}},
+        ]
+        resolved = _resolve_dashboard_names(steps, {}, "test-model")
+        assert resolved[0]["config"]["dashboard_name"] == "No Such Dash"
+        assert "dashboard_id" not in resolved[0]["config"]
+
+    def test_does_not_mutate_original(self):
+        """Resolution returns copies, does not mutate original step dicts."""
+        from app.services.models import _resolve_dashboard_names
+        original_step = {"type": "dashboard", "label": "X", "config": {"dashboard_name": "Dash"}}
+        steps = [original_step]
+        mapping = {"Dash": "uuid-999"}
+        resolved = _resolve_dashboard_names(steps, mapping, "test-model")
+        # Original untouched
+        assert "dashboard_name" in original_step["config"]
+        assert "dashboard_id" not in original_step["config"]
+        # Resolved has the new value
+        assert resolved[0]["config"]["dashboard_id"] == "uuid-999"

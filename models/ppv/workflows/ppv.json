@@ -1,0 +1,176 @@
+{
+  "workflows": [
+    {
+      "name": "Daily Check-in",
+      "description": "Quick daily capture: create an action item and review active actions on the kanban board.",
+      "steps": [
+        {
+          "type": "form",
+          "label": "Create Action Item",
+          "config": {
+            "target_class": "urn:sempkm:model:ppv:ActionItem"
+          }
+        },
+        {
+          "type": "view",
+          "label": "Action Kanban",
+          "config": {
+            "spec_iri": "urn:sempkm:model:ppv:view-action-kanban",
+            "renderer_type": "kanban"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Weekly Review",
+      "description": "Review active actions, score pillars, and create a weekly review entry.",
+      "steps": [
+        {
+          "type": "dashboard",
+          "label": "Review Action Items",
+          "config": {
+            "dashboard_name": "Action Items"
+          }
+        },
+        {
+          "type": "view",
+          "label": "This Week's Reviews",
+          "config": {
+            "spec_iri": "urn:sempkm:model:ppv:view-weekly-table",
+            "renderer_type": "table"
+          }
+        },
+        {
+          "type": "form",
+          "label": "Create Weekly Review",
+          "config": {
+            "target_class": "urn:sempkm:model:ppv:WeeklyReview"
+          }
+        },
+        {
+          "type": "dashboard",
+          "label": "Review Hub",
+          "config": {
+            "dashboard_name": "Review Hub"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Monthly Review",
+      "description": "Review the month's progress across reviews, goals, and projects.",
+      "steps": [
+        {
+          "type": "view",
+          "label": "Monthly Reviews",
+          "config": {
+            "spec_iri": "urn:sempkm:model:ppv:view-monthly-table",
+            "renderer_type": "table"
+          }
+        },
+        {
+          "type": "dashboard",
+          "label": "Review Hub",
+          "config": {
+            "dashboard_name": "Review Hub"
+          }
+        },
+        {
+          "type": "view",
+          "label": "Weekly Reviews",
+          "config": {
+            "spec_iri": "urn:sempkm:model:ppv:view-weekly-table",
+            "renderer_type": "table"
+          }
+        },
+        {
+          "type": "form",
+          "label": "Create Monthly Review",
+          "config": {
+            "target_class": "urn:sempkm:model:ppv:MonthlyReview"
+          }
+        },
+        {
+          "type": "view",
+          "label": "Goal Outcomes",
+          "config": {
+            "spec_iri": "urn:sempkm:model:ppv:view-goaloutcome-table",
+            "renderer_type": "table"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Quarterly Review",
+      "description": "Assess quarterly progress on goals and value alignment.",
+      "steps": [
+        {
+          "type": "view",
+          "label": "Quarterly Reviews",
+          "config": {
+            "spec_iri": "urn:sempkm:model:ppv:view-quarterly-table",
+            "renderer_type": "table"
+          }
+        },
+        {
+          "type": "form",
+          "label": "Create Quarterly Review",
+          "config": {
+            "target_class": "urn:sempkm:model:ppv:QuarterlyReview"
+          }
+        },
+        {
+          "type": "dashboard",
+          "label": "Goals Overview",
+          "config": {
+            "dashboard_name": "Goals Overview"
+          }
+        },
+        {
+          "type": "view",
+          "label": "Value Goals",
+          "config": {
+            "spec_iri": "urn:sempkm:model:ppv:view-valuegoal-table",
+            "renderer_type": "table"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Yearly Review",
+      "description": "Full life review: assess the year, set new direction, and review the full hierarchy.",
+      "steps": [
+        {
+          "type": "view",
+          "label": "Yearly Reviews",
+          "config": {
+            "spec_iri": "urn:sempkm:model:ppv:view-yearly-table",
+            "renderer_type": "table"
+          }
+        },
+        {
+          "type": "form",
+          "label": "Create Yearly Review",
+          "config": {
+            "target_class": "urn:sempkm:model:ppv:YearlyReview"
+          }
+        },
+        {
+          "type": "dashboard",
+          "label": "Life Dashboard",
+          "config": {
+            "dashboard_name": "Life Dashboard"
+          }
+        },
+        {
+          "type": "view",
+          "label": "Full Hierarchy",
+          "config": {
+            "spec_iri": "urn:sempkm:model:ppv:view-hierarchy-graph",
+            "renderer_type": "graph"
+          }
+        }
+      ]
+    }
+  ]
+}

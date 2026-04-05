@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-05T00:00:56.919Z",
+  "exported_at": "2026-04-05T00:06:40.699Z",
   "milestones": [
     {
       "id": "M001",
@@ -31124,19 +31124,28 @@
       "milestone_id": "M047",
       "slice_id": "S03",
       "id": "T02",
-      "title": "Create PPV workflows JSON, update manifest, add dashboard_name→UUID resolution",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Created 5 PPV workflows with dashboard_name→UUID resolution at install time",
+      "status": "complete",
+      "one_liner": "Created 5 PPV workflows with dashboard_name→UUID resolution at install time",
+      "narrative": "Created models/ppv/workflows/ppv.json with 5 PPV workflow definitions (Daily Check-in, Weekly/Monthly/Quarterly/Yearly Review) using view/dashboard/form step types. Added workflows entrypoint to manifest. Implemented _resolve_dashboard_names() helper in ModelService that replaces dashboard_name with dashboard_id UUIDs during install and refresh, with graceful degradation for unresolved names. Added 5 new tests covering real file loading, name resolution logic, and full lifecycle integration.",
+      "verification_result": "All 32 tests pass across test_tbox_loader.py and test_tbox_lifecycle.py. JSON structure validation confirms 5 workflows. Manifest validation confirms workflows entrypoint. The originally-failing verification gate was a path issue (missing cd backend), not a code issue.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-05T00:06:40.661Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "models/ppv/workflows/ppv.json",
+        "models/ppv/manifest.yaml",
+        "backend/app/services/models.py",
+        "backend/tests/test_tbox_loader.py",
+        "backend/tests/test_tbox_lifecycle.py"
+      ],
+      "key_decisions": [
+        "Used full ViewSpec IRIs in workflow steps for consistency with dashboard view-embed blocks",
+        "_resolve_dashboard_names replaces dashboard_name with dashboard_id and removes the name key; unresolved names left as-is (degraded mode per D380)"
+      ],
+      "full_summary_md": "---\nid: T02\nparent: S03\nmilestone: M047\nkey_files:\n  - models/ppv/workflows/ppv.json\n  - models/ppv/manifest.yaml\n  - backend/app/services/models.py\n  - backend/tests/test_tbox_loader.py\n  - backend/tests/test_tbox_lifecycle.py\nkey_decisions:\n  - Used full ViewSpec IRIs in workflow steps for consistency with dashboard view-embed blocks\n  - _resolve_dashboard_names replaces dashboard_name with dashboard_id and removes the name key; unresolved names left as-is (degraded mode per D380)\nduration: \nverification_result: passed\ncompleted_at: 2026-04-05T00:06:40.660Z\nblocker_discovered: false\n---\n\n# T02: Created 5 PPV workflows with dashboard_name→UUID resolution at install time\n\n**Created 5 PPV workflows with dashboard_name→UUID resolution at install time**\n\n## What Happened\n\nCreated models/ppv/workflows/ppv.json with 5 PPV workflow definitions (Daily Check-in, Weekly/Monthly/Quarterly/Yearly Review) using view/dashboard/form step types. Added workflows entrypoint to manifest. Implemented _resolve_dashboard_names() helper in ModelService that replaces dashboard_name with dashboard_id UUIDs during install and refresh, with graceful degradation for unresolved names. Added 5 new tests covering real file loading, name resolution logic, and full lifecycle integration.\n\n## Verification\n\nAll 32 tests pass across test_tbox_loader.py and test_tbox_lifecycle.py. JSON structure validation confirms 5 workflows. Manifest validation confirms workflows entrypoint. The originally-failing verification gate was a path issue (missing cd backend), not a code issue.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `python3 -c \"import json; w=json.load(open('models/ppv/workflows/ppv.json')); assert len(w['workflows'])==5\"` | 0 | ✅ pass | 100ms |\n| 2 | `python3 -c \"import yaml; m=yaml.safe_load(open('models/ppv/manifest.yaml')); assert m['entrypoints'].get('workflows')=='workflows/ppv.json'\"` | 0 | ✅ pass | 100ms |\n| 3 | `cd backend && .venv/bin/python -m pytest tests/test_tbox_loader.py tests/test_tbox_lifecycle.py -v` | 0 | ✅ pass | 940ms |\n| 4 | `cd backend && .venv/bin/python -m pytest tests/test_tbox_loader.py::TestLoadTboxDashboards::test_real_ppv_dashboards -v` | 0 | ✅ pass | 50ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `models/ppv/workflows/ppv.json`\n- `models/ppv/manifest.yaml`\n- `backend/app/services/models.py`\n- `backend/tests/test_tbox_loader.py`\n- `backend/tests/test_tbox_lifecycle.py`\n",
       "description": "Three pieces: (1) Create `models/ppv/workflows/ppv.json` with 5 workflow definitions. (2) Add `workflows: \"workflows/ppv.json\"` to `models/ppv/manifest.yaml`. (3) Add ~15 lines of dashboard_name→UUID post-processing in `ModelService.install()` so workflow steps with `dashboard_name` configs get resolved to real `dashboard_id` values at install time.\n\n**Workflows to create:**\n1. **Daily Check-in** — form step (create ActionItem), view step (action-kanban)\n2. **Weekly Review** — dashboard step (Action Items dashboard), view step (weekly-table), form step (create WeeklyReview), dashboard step (Review Hub dashboard)\n3. **Monthly Review** — view step (monthly-table), dashboard step (Review Hub), view step (weekly-table), form step (create MonthlyReview), view step (goaloutcome-table)\n4. **Quarterly Review** — view step (quarterly-table), form step (create QuarterlyReview), dashboard step (Goals Overview), view step (valuegoal-table)\n5. **Yearly Review** — view step (yearly-table), form step (create YearlyReview), dashboard step (Life Dashboard), view step (hierarchy-graph)\n\n**Workflow step types:**\n- `{\"type\": \"view\", \"label\": \"...\", \"config\": {\"spec_iri\": \"urn:sempkm:model:ppv:view-XXX\", \"renderer_type\": \"table|graph|kanban\"}}` — for ViewSpec steps\n- `{\"type\": \"dashboard\", \"label\": \"...\", \"config\": {\"dashboard_name\": \"Action Items\"}}` — for dashboard steps (resolved to dashboard_id at install time)\n- `{\"type\": \"form\", \"label\": \"...\", \"config\": {\"target_class\": \"urn:sempkm:model:ppv:WeeklyReview\"}}` — for form steps\n\n**dashboard_name resolution in ModelService.install():**\nThe install sequence already creates dashboards before workflows (lines ~490-510 in models.py). After the dashboard creation loop, collect `{name: dashboard_data.id}` into a dict. Before creating each workflow, iterate its steps and replace any `config.dashboard_name` with `config.dashboard_id` using the mapping. If a referenced name isn't found, log a warning and leave the step as-is (degraded mode consistent with D380).\n\nSame resolution must be added to `refresh_artifacts()` which does delete+recreate of TBox surfaces.\n\n**Manifest update:** Add `workflows: \"workflows/ppv.json\"` under the `entrypoints:` section in `models/ppv/manifest.yaml`.",
       "estimate": "1h",
       "files": [
@@ -37901,6 +37910,50 @@
       "verdict": "✅ pass",
       "duration_ms": 100,
       "created_at": "2026-04-05T00:00:56.885Z"
+    },
+    {
+      "id": 193,
+      "task_id": "T02",
+      "slice_id": "S03",
+      "milestone_id": "M047",
+      "command": "python3 -c \"import json; w=json.load(open('models/ppv/workflows/ppv.json')); assert len(w['workflows'])==5\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-05T00:06:40.662Z"
+    },
+    {
+      "id": 194,
+      "task_id": "T02",
+      "slice_id": "S03",
+      "milestone_id": "M047",
+      "command": "python3 -c \"import yaml; m=yaml.safe_load(open('models/ppv/manifest.yaml')); assert m['entrypoints'].get('workflows')=='workflows/ppv.json'\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-05T00:06:40.662Z"
+    },
+    {
+      "id": 195,
+      "task_id": "T02",
+      "slice_id": "S03",
+      "milestone_id": "M047",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_tbox_loader.py tests/test_tbox_lifecycle.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 940,
+      "created_at": "2026-04-05T00:06:40.662Z"
+    },
+    {
+      "id": 196,
+      "task_id": "T02",
+      "slice_id": "S03",
+      "milestone_id": "M047",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_tbox_loader.py::TestLoadTboxDashboards::test_real_ppv_dashboards -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-04-05T00:06:40.662Z"
     }
   ]
 }

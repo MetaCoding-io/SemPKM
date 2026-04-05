@@ -55,6 +55,44 @@ def _expand_prefix(type_ref: str, prefixes: dict[str, str]) -> str:
     return base + local if base else type_ref
 
 
+def _resolve_dashboard_names(
+    steps: list[dict],
+    dashboard_name_to_id: dict[str, str],
+    model_id: str,
+) -> list[dict]:
+    """Replace ``dashboard_name`` with ``dashboard_id`` in workflow steps.
+
+    For each step whose ``config`` contains a ``dashboard_name`` key, look up
+    the name in the mapping built during dashboard creation.  If found, set
+    ``config.dashboard_id`` to the UUID string and remove ``dashboard_name``.
+    If the name is not found (e.g. dashboard creation failed), log a warning
+    and leave the step unchanged — degraded mode consistent with D380.
+
+    Returns a *shallow copy* of the steps list with mutated config dicts so
+    the original JSON definitions are not modified.
+    """
+    resolved: list[dict] = []
+    for step in steps:
+        config = step.get("config", {})
+        name = config.get("dashboard_name")
+        if name is not None and dashboard_name_to_id:
+            dash_id = dashboard_name_to_id.get(name)
+            if dash_id:
+                config = {**config, "dashboard_id": dash_id}
+                del config["dashboard_name"]
+            else:
+                logger.warning(
+                    "Workflow step references dashboard '%s' not found "
+                    "in model '%s' — leaving dashboard_name unresolved",
+                    name,
+                    model_id,
+                )
+            resolved.append({**step, "config": config})
+        else:
+            resolved.append(step)
+    return resolved
+
+
 def get_hidden_type_iris(models_dir: Path | str | None = None) -> set[str]:
     """Return the set of full type IRIs where ``browserVisible`` is ``False``.
 
@@ -467,11 +505,14 @@ class ModelService:
             try:
                 from app.models.tbox_loader import load_tbox_dashboards, load_tbox_workflows
 
+                # Build dashboard name→UUID mapping for workflow resolution
+                dashboard_name_to_id: dict[str, str] = {}
+
                 if self._dashboard_service is not None:
                     tbox_dashboards = load_tbox_dashboards(model_dir, manifest)
                     if tbox_dashboards:
                         for dash_def in tbox_dashboards:
-                            await self._dashboard_service.create(
+                            dash_data = await self._dashboard_service.create(
                                 user_id=user_id,
                                 name=dash_def["name"],
                                 layout=dash_def.get("layout", "single"),
@@ -479,6 +520,7 @@ class ModelService:
                                 description=dash_def.get("description", ""),
                                 source_model=model_id,
                             )
+                            dashboard_name_to_id[dash_def["name"]] = str(dash_data.id)
                             dashboards_created += 1
                         logger.info(
                             "Created %d TBox dashboard(s) for model '%s'",
@@ -490,10 +532,15 @@ class ModelService:
                     tbox_workflows = load_tbox_workflows(model_dir, manifest)
                     if tbox_workflows:
                         for wf_def in tbox_workflows:
+                            steps = _resolve_dashboard_names(
+                                wf_def.get("steps", []),
+                                dashboard_name_to_id,
+                                model_id,
+                            )
                             await self._workflow_service.create(
                                 user_id=user_id,
                                 name=wf_def["name"],
-                                steps=wf_def.get("steps", []),
+                                steps=steps,
                                 description=wf_def.get("description", ""),
                                 source_model=model_id,
                             )
@@ -652,12 +699,15 @@ class ModelService:
             try:
                 from app.models.tbox_loader import load_tbox_dashboards, load_tbox_workflows
 
+                # Build dashboard name→UUID mapping for workflow resolution
+                dashboard_name_to_id: dict[str, str] = {}
+
                 if self._dashboard_service is not None:
                     await self._dashboard_service.delete_by_model(model_id)
                     tbox_dashboards = load_tbox_dashboards(model_dir, manifest)
                     if tbox_dashboards:
                         for dash_def in tbox_dashboards:
-                            await self._dashboard_service.create(
+                            dash_data = await self._dashboard_service.create(
                                 user_id=user_id,
                                 name=dash_def["name"],
                                 layout=dash_def.get("layout", "single"),
@@ -665,15 +715,21 @@ class ModelService:
                                 description=dash_def.get("description", ""),
                                 source_model=model_id,
                             )
+                            dashboard_name_to_id[dash_def["name"]] = str(dash_data.id)
                 if self._workflow_service is not None:
                     await self._workflow_service.delete_by_model(model_id)
                     tbox_workflows = load_tbox_workflows(model_dir, manifest)
                     if tbox_workflows:
                         for wf_def in tbox_workflows:
+                            steps = _resolve_dashboard_names(
+                                wf_def.get("steps", []),
+                                dashboard_name_to_id,
+                                model_id,
+                            )
                             await self._workflow_service.create(
                                 user_id=user_id,
                                 name=wf_def["name"],
-                                steps=wf_def.get("steps", []),
+                                steps=steps,
                                 description=wf_def.get("description", ""),
                                 source_model=model_id,
                             )

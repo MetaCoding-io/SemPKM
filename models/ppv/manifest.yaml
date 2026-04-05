@@ -13,6 +13,7 @@ entrypoints:
   seed: "seed/ppv.jsonld"
   rules: "rules/ppv.ttl"
   dashboards: "dashboards/ppv.json"
+  workflows: "workflows/ppv.json"
 entailment_defaults:
   owl_inverseOf: true
   rdfs_subClassOf: false

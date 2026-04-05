@@ -267,6 +267,42 @@ class TestModelServiceTboxLifecycle:
         assert model_dashes[0].source_model == "ppv"
 
     @pytest.mark.asyncio
+    async def test_install_v2_creates_workflows_with_resolved_dashboards(self, dash_service, wf_service, user_id):
+        """Install of PPV v2 creates workflows with dashboard_name resolved to dashboard_id."""
+        from app.services.models import ModelService
+
+        ppv_dir = MODELS_DIR / "ppv"
+        if not ppv_dir.exists():
+            pytest.skip("ppv model not found")
+
+        client = _mock_triplestore()
+        service = ModelService(
+            triplestore_client=client,
+            event_store=_mock_event_store(),
+            prefix_registry=_mock_prefix_registry(),
+            dashboard_service=dash_service,
+            workflow_service=wf_service,
+        )
+
+        result = await service.install(ppv_dir, user_id=user_id)
+        assert result.success, f"Install failed: {result.errors}"
+        assert result.workflows_created == 5
+
+        # Verify workflows are in the DB with resolved dashboard IDs
+        model_wfs = await wf_service.list_by_model("ppv")
+        assert len(model_wfs) == 5
+
+        # Find the Weekly Review workflow — has 2 dashboard steps
+        weekly = [w for w in model_wfs if w.name == "Weekly Review"]
+        assert len(weekly) == 1
+        steps = weekly[0].steps
+        dashboard_steps = [s for s in steps if s["type"] == "dashboard"]
+        assert len(dashboard_steps) == 2
+        for step in dashboard_steps:
+            assert "dashboard_id" in step["config"], f"dashboard_name not resolved: {step}"
+            assert "dashboard_name" not in step["config"]
+
+    @pytest.mark.asyncio
     async def test_install_v1_creates_zero_tbox(self, dash_service, wf_service, user_id):
         """Install of a v1 model creates zero dashboards/workflows (backward compat)."""
         from app.services.models import ModelService

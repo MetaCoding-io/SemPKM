@@ -27,7 +27,7 @@
   - Estimate: 1h
   - Files: models/ppv/dashboards/ppv.json
   - Verify: python3 -c "import json; d=json.load(open('models/ppv/dashboards/ppv.json')); assert len(d['dashboards'])==5, f'Expected 5, got {len(d["dashboards"])}'; [print(f'  {i+1}. {dd["name"]}') for i,dd in enumerate(d['dashboards'])]; print('OK: 5 dashboards')" && cd backend && .venv/bin/python -m pytest tests/test_tbox_loader.py::TestLoadTboxDashboards::test_real_ppv_dashboards -v
-- [ ] **T02: Create PPV workflows JSON, update manifest, add dashboard_name→UUID resolution** — Three pieces: (1) Create `models/ppv/workflows/ppv.json` with 5 workflow definitions. (2) Add `workflows: "workflows/ppv.json"` to `models/ppv/manifest.yaml`. (3) Add ~15 lines of dashboard_name→UUID post-processing in `ModelService.install()` so workflow steps with `dashboard_name` configs get resolved to real `dashboard_id` values at install time.
+- [x] **T02: Created 5 PPV workflows with dashboard_name→UUID resolution at install time** — Three pieces: (1) Create `models/ppv/workflows/ppv.json` with 5 workflow definitions. (2) Add `workflows: "workflows/ppv.json"` to `models/ppv/manifest.yaml`. (3) Add ~15 lines of dashboard_name→UUID post-processing in `ModelService.install()` so workflow steps with `dashboard_name` configs get resolved to real `dashboard_id` values at install time.
 
 **Workflows to create:**
 1. **Daily Check-in** — form step (create ActionItem), view step (action-kanban)
