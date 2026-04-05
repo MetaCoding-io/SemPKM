@@ -515,6 +515,22 @@
       "doneMilestones": 46,
       "totalMilestones": 47,
       "phase": "pre-planning"
+    },
+    {
+      "filename": "M048-2026-04-05T19-53-54.html",
+      "generatedAt": "2026-04-05T19:53:54.233Z",
+      "milestoneId": "M048",
+      "milestoneTitle": "Critical Bug Fixes",
+      "label": "M048: Critical Bug Fixes",
+      "kind": "milestone",
+      "totalCost": 2001.8617667500012,
+      "totalTokens": 2849921930,
+      "totalDuration": 373086207,
+      "doneSlices": 280,
+      "totalSlices": 285,
+      "doneMilestones": 48,
+      "totalMilestones": 56,
+      "phase": "executing"
     }
   ]
 }

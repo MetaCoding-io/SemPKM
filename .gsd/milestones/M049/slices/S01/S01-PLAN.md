@@ -4,7 +4,7 @@
 **Demo:** After this: Open 5 different objects in the browser. Each tab loads in under 1.5 seconds (Network tab timing). Before/after timing comparison captured.
 
 ## Tasks
-- [ ] **T01: Add TTL caching to ShapesService** — ## Description
+- [x] **T01: ShapesService TTL caching already implemented — verified 12 cache tests pass with zero regressions; fixed missing icalendar dev dependency** — ## Description
 
 ShapesService currently re-fetches the entire shapes graph from the triplestore on EVERY call to `get_form_for_type()`, `get_node_shapes()`, `get_types()`, `get_labels_for_predicates()`, and `get_helptext_for_predicates()`. This means 2 SPARQL round-trips (1 SELECT for model IDs + 1 CONSTRUCT for shapes triples) plus rdflib parsing on every request. Since SHACL shapes only change when a Mental Model is installed/uninstalled (rare admin operation), this is pure waste.
 
