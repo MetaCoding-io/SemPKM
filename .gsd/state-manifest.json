@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-05T18:09:32.318Z",
+  "exported_at": "2026-04-05T18:11:58.797Z",
   "milestones": [
     {
       "id": "M001",
@@ -31802,19 +31802,25 @@
       "milestone_id": "M048",
       "slice_id": "S01",
       "id": "T02",
-      "title": "Add dcterms:created timestamp to object.create handler",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Added auto-injection of dcterms:created and dcterms:modified UTC timestamps to handle_object_create, with user-supplied value precedence",
+      "status": "complete",
+      "one_liner": "Added auto-injection of dcterms:created and dcterms:modified UTC timestamps to handle_object_create, with user-supplied value precedence",
+      "narrative": "Modified handle_object_create to automatically append dcterms:created and dcterms:modified triples (UTC ISO 8601, xsd:dateTime datatype) after the property triples loop. User-supplied values take precedence via a user_predicates set that tracks resolved URIRefs during the property loop. Created 10 unit tests covering timestamp presence, datatype, format, equality, and user-supplied precedence via both compact and full IRI keys.",
+      "verification_result": "Ran cd backend && .venv/bin/python -m pytest tests/test_object_create_timestamps.py -v — all 10 tests passed. Ran cd backend && .venv/bin/python -m pytest tests/test_view_prefix_fix.py tests/test_view_scope.py -v — all 31 slice-level tests passed, zero regressions.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-05T18:11:58.763Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "Tests use async def with await instead of asyncio.get_event_loop() due to project's pytest-asyncio mode=AUTO. XSD imported at module level rather than inline.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/commands/handlers/object_create.py",
+        "backend/tests/test_object_create_timestamps.py"
+      ],
+      "key_decisions": [
+        "Track user-supplied predicates in a set during the property loop to detect duplicates",
+        "Define DCTERMS_CREATED and DCTERMS_MODIFIED as module-level URIRef constants for reuse"
+      ],
+      "full_summary_md": "---\nid: T02\nparent: S01\nmilestone: M048\nkey_files:\n  - backend/app/commands/handlers/object_create.py\n  - backend/tests/test_object_create_timestamps.py\nkey_decisions:\n  - Track user-supplied predicates in a set during the property loop to detect duplicates\n  - Define DCTERMS_CREATED and DCTERMS_MODIFIED as module-level URIRef constants for reuse\nduration: \nverification_result: passed\ncompleted_at: 2026-04-05T18:11:58.763Z\nblocker_discovered: false\n---\n\n# T02: Added auto-injection of dcterms:created and dcterms:modified UTC timestamps to handle_object_create, with user-supplied value precedence\n\n**Added auto-injection of dcterms:created and dcterms:modified UTC timestamps to handle_object_create, with user-supplied value precedence**\n\n## What Happened\n\nModified handle_object_create to automatically append dcterms:created and dcterms:modified triples (UTC ISO 8601, xsd:dateTime datatype) after the property triples loop. User-supplied values take precedence via a user_predicates set that tracks resolved URIRefs during the property loop. Created 10 unit tests covering timestamp presence, datatype, format, equality, and user-supplied precedence via both compact and full IRI keys.\n\n## Verification\n\nRan cd backend && .venv/bin/python -m pytest tests/test_object_create_timestamps.py -v — all 10 tests passed. Ran cd backend && .venv/bin/python -m pytest tests/test_view_prefix_fix.py tests/test_view_scope.py -v — all 31 slice-level tests passed, zero regressions.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python -m pytest tests/test_object_create_timestamps.py -v` | 0 | ✅ pass | 170ms |\n| 2 | `cd backend && .venv/bin/python -m pytest tests/test_view_prefix_fix.py tests/test_view_scope.py -v` | 0 | ✅ pass | 410ms |\n\n## Deviations\n\nTests use async def with await instead of asyncio.get_event_loop() due to project's pytest-asyncio mode=AUTO. XSD imported at module level rather than inline.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/commands/handlers/object_create.py`\n- `backend/tests/test_object_create_timestamps.py`\n",
       "description": "## Description\n\nThe `handle_object_create` function in `backend/app/commands/handlers/object_create.py` creates objects with `rdf:type` and user-supplied property triples, but never adds a `dcterms:created` timestamp. This means the Table View's \"created\" column is always empty for objects created through the UI.\n\n**Fix**: After building the property triples, add a `dcterms:created` triple with the current UTC datetime as an `xsd:dateTime` literal. Also add `dcterms:modified` with the same value so newly created objects show both timestamps.\n\n## Steps\n\n1. In `backend/app/commands/handlers/object_create.py`, import `datetime` from stdlib and `DCTERMS` from rdflib (or use a URIRef for `http://purl.org/dc/terms/created`).\n2. After the property triples loop (after line ~107), add:\n   ```python\n   from rdflib.namespace import XSD\n   now = datetime.now(timezone.utc).isoformat()\n   triples.append((subject, URIRef('http://purl.org/dc/terms/created'), Literal(now, datatype=XSD.dateTime)))\n   triples.append((subject, URIRef('http://purl.org/dc/terms/modified'), Literal(now, datatype=XSD.dateTime)))\n   ```\n3. Write a unit test in `backend/tests/test_object_create_timestamps.py` that calls `handle_object_create` and verifies:\n   - The returned Operation's `data_triples` contain a triple with predicate `dcterms:created`\n   - The `dcterms:created` value is a Literal with `xsd:dateTime` datatype\n   - The `dcterms:modified` triple is also present\n   - User-supplied properties are NOT overwritten if the user explicitly passes `dcterms:created`\n\n## Must-Haves\n\n- [ ] `handle_object_create` adds `dcterms:created` and `dcterms:modified` triples\n- [ ] Timestamps use UTC ISO 8601 format with `xsd:dateTime` datatype\n- [ ] User-supplied `dcterms:created` in properties takes precedence (no double-write)\n- [ ] Unit test verifies timestamp presence and format\n\n## Verification\n\n- `cd backend && python -m pytest tests/test_object_create_timestamps.py -v` passes\n\n## Inputs\n\n- `backend/app/commands/handlers/object_create.py` — the handler to modify\n- `backend/app/commands/schemas.py` — ObjectCreateParams definition\n\n## Expected Output\n\n- `backend/app/commands/handlers/object_create.py` — modified to inject dcterms:created and dcterms:modified\n- `backend/tests/test_object_create_timestamps.py` — new test file verifying timestamps",
       "estimate": "30m",
       "files": [
@@ -38863,6 +38869,28 @@
       "verdict": "✅ pass",
       "duration_ms": 400,
       "created_at": "2026-04-05T18:09:32.279Z"
+    },
+    {
+      "id": 211,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M048",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_object_create_timestamps.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 170,
+      "created_at": "2026-04-05T18:11:58.764Z"
+    },
+    {
+      "id": 212,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M048",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_view_prefix_fix.py tests/test_view_scope.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 410,
+      "created_at": "2026-04-05T18:11:58.764Z"
     }
   ]
 }

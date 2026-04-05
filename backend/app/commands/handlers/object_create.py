@@ -1,18 +1,24 @@
 """Handler for the object.create command.
 
 Creates a new RDF object with a minted IRI, type triple, and property triples.
+Automatically adds dcterms:created and dcterms:modified timestamps (UTC ISO 8601)
+unless the user explicitly supplies them.
 Returns an Operation for EventStore.commit().
 """
 
+from datetime import datetime, timezone
 from typing import Any
 
 from rdflib import URIRef, Literal
-from rdflib.namespace import RDF
+from rdflib.namespace import RDF, XSD
 
 from app.commands.schemas import ObjectCreateParams
 from app.events.store import Operation
 from app.rdf.iri import mint_object_iri
 from app.rdf.namespaces import COMMON_PREFIXES, DATA
+
+DCTERMS_CREATED = URIRef("http://purl.org/dc/terms/created")
+DCTERMS_MODIFIED = URIRef("http://purl.org/dc/terms/modified")
 
 
 def _resolve_predicate(predicate: str) -> URIRef:
@@ -100,8 +106,10 @@ async def handle_object_create(
     triples.append((subject, RDF.type, type_iri))
 
     # Property triples
+    user_predicates: set[URIRef] = set()
     for predicate_str, value in params.properties.items():
         predicate = _resolve_predicate(predicate_str)
+        user_predicates.add(predicate)
         # Support multi-value: if value is a list, create one triple per element
         if isinstance(value, list):
             for item in value:
@@ -110,6 +118,14 @@ async def handle_object_create(
         else:
             rdf_value = _to_rdf_value(value)
             triples.append((subject, predicate, rdf_value))
+
+    # Auto-inject dcterms:created and dcterms:modified timestamps (UTC ISO 8601)
+    # unless the user explicitly supplied them in properties.
+    now = datetime.now(timezone.utc).isoformat()
+    if DCTERMS_CREATED not in user_predicates:
+        triples.append((subject, DCTERMS_CREATED, Literal(now, datatype=XSD.dateTime)))
+    if DCTERMS_MODIFIED not in user_predicates:
+        triples.append((subject, DCTERMS_MODIFIED, Literal(now, datatype=XSD.dateTime)))
 
     return Operation(
         operation_type="object.create",

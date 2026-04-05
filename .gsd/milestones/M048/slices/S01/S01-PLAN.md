@@ -58,7 +58,7 @@ WHERE {
   - Estimate: 45m
   - Files: backend/app/views/service.py, backend/app/sparql/client.py, backend/tests/test_view_prefix_fix.py
   - Verify: cd backend && python -m pytest tests/test_view_prefix_fix.py tests/test_view_scope.py -v
-- [ ] **T02: Add dcterms:created timestamp to object.create handler** — ## Description
+- [x] **T02: Added auto-injection of dcterms:created and dcterms:modified UTC timestamps to handle_object_create, with user-supplied value precedence** — ## Description
 
 The `handle_object_create` function in `backend/app/commands/handlers/object_create.py` creates objects with `rdf:type` and user-supplied property triples, but never adds a `dcterms:created` timestamp. This means the Table View's "created" column is always empty for objects created through the UI.
 
