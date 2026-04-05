@@ -771,7 +771,8 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 **In progress: M047 PPV Model v2 — Versioned Manifests, TBox Dashboards/Workflows & Review System**
 - S01 complete: Manifest v2 infrastructure — manifest_version field, dashboards/workflows entrypoints, source_model column on dashboard_specs/workflow_specs, TBox loader module, ModelService install/remove/refresh lifecycle hooks. PPV bumped to v2.0.0 with test dashboard. All 8 v1 models install unchanged. 43 unit tests.
-- S02–S04 pending: PPV ontology expansion, real dashboards/workflows, seed data, E2E verification.
+- S02 complete: PPV ontology expansion — PillarScore (score 1-10, linked to Pillar + WeeklyReview) and GuidingPrinciples classes, 25 new properties, enriched review reflection fields on all 4 review types, 4 new ViewSpecs (pillarscore table, action kanban, project kanban, action-by-context table), PillarScoreDateDenormRule SHACL-AF rule, manifest icons. 99-test validation suite.
+- S03–S04 pending: TBox dashboards/workflows, seed data, E2E verification.
 
 **Latest shipped: M045 Security Remediation (2026-03-29) — 3 slices, all 44 M042 security audit findings resolved. 218 security tests pass (78 M045 + 140 M043). Comprehensive security-model.md documents all findings, features, and dependency scanning.**
 
@@ -1252,4 +1253,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-04-04 after M047/S01 complete (Manifest v2 Infrastructure + TBox Install/Uninstall Lifecycle. Manifest v2 schema, source_model column, TBox loader, ModelService lifecycle hooks, PPV v2.0.0 manifest with test dashboard, 43 unit tests.)*
+*Last updated: 2026-04-04 after M047/S02 complete (PPV Ontology Expansion — PillarScore, GuidingPrinciples & Enriched Reviews. 2 new OWL classes, 25 properties, 4 ViewSpecs, SHACL-AF denorm rule, 99-test validation suite.)*

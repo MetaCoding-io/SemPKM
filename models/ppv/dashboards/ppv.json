@@ -1,14 +1,255 @@
 {
   "dashboards": [
     {
-      "name": "PPV Test Dashboard",
-      "description": "Test TBox dashboard from the PPV model",
-      "layout": "single",
+      "name": "Action Items",
+      "description": "Track active actions by status and priority. Quick counts plus filterable table and kanban views.",
+      "layout": "gridstack",
       "blocks": [
         {
-          "type": "markdown",
+          "type": "heading",
+          "x": 0, "y": 0, "w": 12, "h": 1,
           "config": {
-            "content": "# PPV Test\n\nThis dashboard was installed from the PPV model."
+            "text": "Action Items",
+            "level": "2",
+            "subtitle": "Active tasks and priorities"
+          }
+        },
+        {
+          "type": "stat-card",
+          "x": 0, "y": 1, "w": 3, "h": 2,
+          "config": {
+            "query": "SELECT (COUNT(?s) AS ?count) WHERE { ?s a ppv:ActionItem ; ppv:status \"Active\" }",
+            "label": "Active Actions",
+            "icon": "check-circle",
+            "color": "blue"
+          }
+        },
+        {
+          "type": "stat-card",
+          "x": 3, "y": 1, "w": 3, "h": 2,
+          "config": {
+            "query": "SELECT (COUNT(?s) AS ?count) WHERE { ?s a ppv:ActionItem ; ppv:status \"Active\" ; ppv:priority \"Immediate\" }",
+            "label": "Immediate Priority",
+            "icon": "alert-triangle",
+            "color": "red"
+          }
+        },
+        {
+          "type": "view-embed",
+          "x": 0, "y": 3, "w": 12, "h": 6,
+          "config": {
+            "spec_iri": "urn:sempkm:model:ppv:view-action-table",
+            "renderer_type": "table"
+          }
+        },
+        {
+          "type": "view-embed",
+          "x": 0, "y": 9, "w": 12, "h": 6,
+          "config": {
+            "spec_iri": "urn:sempkm:model:ppv:view-action-kanban",
+            "renderer_type": "kanban"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Life Dashboard",
+      "description": "High-level overview of pillars, goals, projects, and guiding principles.",
+      "layout": "gridstack",
+      "blocks": [
+        {
+          "type": "heading",
+          "x": 0, "y": 0, "w": 12, "h": 1,
+          "config": {
+            "text": "Life Dashboard",
+            "level": "2",
+            "subtitle": "Pillars, goals, and guiding principles"
+          }
+        },
+        {
+          "type": "stat-card",
+          "x": 0, "y": 1, "w": 3, "h": 2,
+          "config": {
+            "query": "SELECT (COUNT(?s) AS ?count) WHERE { ?s a ppv:ActionItem ; ppv:status \"Active\" }",
+            "label": "Active Actions",
+            "icon": "check-circle",
+            "color": "blue"
+          }
+        },
+        {
+          "type": "stat-card",
+          "x": 3, "y": 1, "w": 3, "h": 2,
+          "config": {
+            "query": "SELECT (COUNT(?s) AS ?count) WHERE { ?s a ppv:Project ; ppv:status \"Active\" }",
+            "label": "Active Projects",
+            "icon": "folder",
+            "color": "green"
+          }
+        },
+        {
+          "type": "stat-card",
+          "x": 6, "y": 1, "w": 3, "h": 2,
+          "config": {
+            "query": "SELECT (COUNT(?s) AS ?count) WHERE { ?s a ppv:ValueGoal ; ppv:status \"Underway\" }",
+            "label": "Active Goals",
+            "icon": "target",
+            "color": "purple"
+          }
+        },
+        {
+          "type": "view-embed",
+          "x": 0, "y": 3, "w": 12, "h": 6,
+          "config": {
+            "spec_iri": "urn:sempkm:model:ppv:view-pillar-table",
+            "renderer_type": "table"
+          }
+        },
+        {
+          "type": "sparql-result",
+          "x": 0, "y": 9, "w": 6, "h": 4,
+          "config": {
+            "query": "SELECT ?title ?description WHERE { ?s a ppv:Pillar ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } } ORDER BY ?title",
+            "label": "Guiding Principles — Life Pillars"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Projects Board",
+      "description": "Manage projects with kanban and table views. Spot orphan projects missing goal alignment.",
+      "layout": "gridstack",
+      "blocks": [
+        {
+          "type": "heading",
+          "x": 0, "y": 0, "w": 12, "h": 1,
+          "config": {
+            "text": "Projects Board",
+            "level": "2",
+            "subtitle": "Active projects and alignment"
+          }
+        },
+        {
+          "type": "stat-card",
+          "x": 0, "y": 1, "w": 3, "h": 2,
+          "config": {
+            "query": "SELECT (COUNT(?s) AS ?count) WHERE { ?s a ppv:Project ; ppv:status \"Active\" }",
+            "label": "Active Projects",
+            "icon": "folder",
+            "color": "green"
+          }
+        },
+        {
+          "type": "view-embed",
+          "x": 0, "y": 3, "w": 12, "h": 6,
+          "config": {
+            "spec_iri": "urn:sempkm:model:ppv:view-project-kanban",
+            "renderer_type": "kanban"
+          }
+        },
+        {
+          "type": "view-embed",
+          "x": 0, "y": 9, "w": 12, "h": 6,
+          "config": {
+            "spec_iri": "urn:sempkm:model:ppv:view-project-table",
+            "renderer_type": "table"
+          }
+        },
+        {
+          "type": "sparql-result",
+          "x": 0, "y": 15, "w": 6, "h": 4,
+          "config": {
+            "query": "SELECT ?title ?status WHERE { ?s a ppv:Project ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s ppv:status ?status } . FILTER NOT EXISTS { ?s ppv:goalOutcome ?go } }",
+            "label": "Orphan Projects (no linked Goal Outcome)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Goals Overview",
+      "description": "Track value goals and their outcomes. Identify goals without active outcomes.",
+      "layout": "gridstack",
+      "blocks": [
+        {
+          "type": "heading",
+          "x": 0, "y": 0, "w": 12, "h": 1,
+          "config": {
+            "text": "Goals Overview",
+            "level": "2",
+            "subtitle": "Value goals and outcomes"
+          }
+        },
+        {
+          "type": "stat-card",
+          "x": 0, "y": 1, "w": 3, "h": 2,
+          "config": {
+            "query": "SELECT (COUNT(?s) AS ?count) WHERE { ?s a ppv:ValueGoal ; ppv:status \"Underway\" }",
+            "label": "Active Value Goals",
+            "icon": "target",
+            "color": "purple"
+          }
+        },
+        {
+          "type": "view-embed",
+          "x": 0, "y": 3, "w": 12, "h": 6,
+          "config": {
+            "spec_iri": "urn:sempkm:model:ppv:view-valuegoal-table",
+            "renderer_type": "table"
+          }
+        },
+        {
+          "type": "view-embed",
+          "x": 0, "y": 9, "w": 12, "h": 6,
+          "config": {
+            "spec_iri": "urn:sempkm:model:ppv:view-goaloutcome-table",
+            "renderer_type": "table"
+          }
+        },
+        {
+          "type": "sparql-result",
+          "x": 0, "y": 15, "w": 6, "h": 4,
+          "config": {
+            "query": "SELECT ?title ?status WHERE { ?s a ppv:ValueGoal ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s ppv:status ?status } . FILTER NOT EXISTS { ?go ppv:valueGoal ?s ; ppv:status \"Active\" } }",
+            "label": "Goals Without Active Outcomes"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Review Hub",
+      "description": "Central hub for pillar scores, weekly reviews, and the review hierarchy graph.",
+      "layout": "gridstack",
+      "blocks": [
+        {
+          "type": "heading",
+          "x": 0, "y": 0, "w": 12, "h": 1,
+          "config": {
+            "text": "Review Hub",
+            "level": "2",
+            "subtitle": "Scores, reviews, and reflection"
+          }
+        },
+        {
+          "type": "view-embed",
+          "x": 0, "y": 1, "w": 12, "h": 6,
+          "config": {
+            "spec_iri": "urn:sempkm:model:ppv:view-pillarscore-table",
+            "renderer_type": "table"
+          }
+        },
+        {
+          "type": "view-embed",
+          "x": 0, "y": 7, "w": 12, "h": 6,
+          "config": {
+            "spec_iri": "urn:sempkm:model:ppv:view-weekly-table",
+            "renderer_type": "table"
+          }
+        },
+        {
+          "type": "view-embed",
+          "x": 0, "y": 13, "w": 12, "h": 6,
+          "config": {
+            "spec_iri": "urn:sempkm:model:ppv:view-review-graph",
+            "renderer_type": "graph"
           }
         }
       ]

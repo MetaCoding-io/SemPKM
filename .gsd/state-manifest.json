@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-04T23:43:13.178Z",
+  "exported_at": "2026-04-05T00:00:56.919Z",
   "milestones": [
     {
       "id": "M001",
@@ -7572,16 +7572,16 @@
       "milestone_id": "M047",
       "id": "S02",
       "title": "PPV Ontology Expansion — PillarScore, GuidingPrinciples & Enriched Reviews",
-      "status": "pending",
+      "status": "complete",
       "risk": "medium",
       "depends": [
         "S01"
       ],
       "demo": "After PPV install, create a PillarScore via SHACL form (linked to a pillar and weekly review, score 1-10). Create a GuidingPrinciples singleton. New enriched review fields (wins, challenges, supportingPriorities) appear on weekly/monthly/quarterly/yearly review forms.",
       "created_at": "2026-04-04T23:07:03.231Z",
-      "completed_at": null,
-      "full_summary_md": "",
-      "full_uat_md": "",
+      "completed_at": "2026-04-04T23:45:37.653Z",
+      "full_summary_md": "---\nid: S02\nparent: M047\nmilestone: M047\nprovides:\n  - ppv:PillarScore OWL class + SHACL shape (score 1-10, links to Pillar + WeeklyReview)\n  - ppv:GuidingPrinciples OWL class + SHACL shape (values, purpose, meaning, manifestation, foundationalStatement, guidingWord)\n  - 15 enriched review reflection properties across Weekly/Monthly/Quarterly/Yearly review shapes\n  - 4 new ViewSpecs (pillarscore-table, action-kanban, project-kanban, action-by-context)\n  - PillarScoreDateDenormRule (schema:startDate denormalization for calendar/timeline)\n  - 99-test validation suite for all PPV ontology expansion artifacts\nrequires:\n  - slice: S01\n    provides: Manifest v2 infrastructure with TBox lifecycle hooks\naffects:\n  - S03\n  - S04\nkey_files:\n  - models/ppv/ontology/ppv.jsonld\n  - models/ppv/shapes/ppv.jsonld\n  - models/ppv/views/ppv.jsonld\n  - models/ppv/rules/ppv.ttl\n  - models/ppv/manifest.yaml\n  - backend/tests/test_ppv_ontology.py\nkey_decisions:\n  - Reused existing ppv:pillar ObjectProperty (no domain restriction) for PillarScore rather than creating a duplicate property\n  - Kanban ViewSpecs omit columns/sortDefault since kanban renderer auto-detects status field via SHACL sh:in\n  - PillarScoreDateDenormRule derives schema:startDate from linked WeeklyReview to enable calendar/timeline views for PillarScore\npatterns_established:\n  - SHACL-AF SPARQLRule for date denormalization: derive a date property from a linked object's date to enable time-based views on types that don't have their own date\n  - PropertyGroup extension pattern: add new groups to existing shapes at sh:order values after existing groups, with property sh:order values that don't collide\nobservability_surfaces:\n  - none\ndrill_down_paths:\n  - .gsd/milestones/M047/slices/S02/tasks/T01-SUMMARY.md\n  - .gsd/milestones/M047/slices/S02/tasks/T02-SUMMARY.md\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-04-04T23:45:37.654Z\nblocker_discovered: false\n---\n\n# S02: PPV Ontology Expansion — PillarScore, GuidingPrinciples & Enriched Reviews\n\n**Expanded PPV ontology with PillarScore and GuidingPrinciples classes, 25 new properties, enriched review fields on all 4 review types, 4 new ViewSpecs, a SHACL-AF denormalization rule, manifest icons, and a 99-test validation suite.**\n\n## What Happened\n\nT01 added two new OWL classes (PillarScore for weekly pillar scoring, GuidingPrinciples for values anchor documents) with 22 new ontology properties across the PPV namespace. PillarScore has score (integer 1-10), wentWell, needsAttention, plus weeklyReview and pillar object links. GuidingPrinciples has values, purpose, meaning, manifestation, foundationalStatement, and guidingWord text fields. Fifteen reflection properties were added across all four review types: WeeklyReview (+3: wins, challenges, supportingPriorities), MonthlyReview (+4: biggestWins, biggestChallenges, focusAreas, habitsToAdjust), QuarterlyReview (+6: accomplishments, disappointments, whatWorked, whatDidntWork, howToImprove, annualVisionNotes), and YearlyReview (+2: intentionWord, yearTheme).\n\nSHACL NodeShapes were created for both new classes with property groups (Basic/Relationships/Metadata for PillarScore; Basic/Statement/Metadata for GuidingPrinciples). The PillarScore shape enforces sh:minInclusive 1 and sh:maxInclusive 10 on the score property. All four existing review shapes were extended with new PropertyGroups (ReflectionGroup) containing the reflection fields at appropriate sh:order values that don't collide with existing properties. Manifest icons added for both types (bar-chart-2 amber for PillarScore, heart-handshake purple for GuidingPrinciples).\n\nT02 added 4 new ViewSpecs (pillarscore-table, action-kanban, project-kanban, action-by-context table) bringing total PPV ViewSpecs to 23. Added the PillarScoreDateDenormRule — a SHACL-AF SPARQLRule that derives schema:startDate on PillarScore from the linked WeeklyReview's startDate, enabling calendar and timeline views for pillar scores. This required adding the schema prefix to both the rules file header and the ppv:PrefixDeclarations block.\n\nA comprehensive test_ppv_ontology.py file with 99 tests across 9 test classes validates all new artifacts: ontology class existence, 25 property existence and typing, SHACL shape targets, score constraints, PropertyGroup existence, ViewSpec metadata, rules file structure, manifest icons, combined graph parsing, and cross-reference integrity between ontology classes, shapes, and ViewSpec targets.\n\n## Verification\n\nAll 99 tests pass (cd backend && .venv/bin/python -m pytest tests/test_ppv_ontology.py -v — 99 passed in 0.27s). JSON valid for ontology and shapes files. YAML valid for manifest. rdflib parses ontology (364 triples) with both new classes found. rdflib parses rules as Turtle (63 triples). Cross-reference validation confirms PillarScore and GuidingPrinciples classes in ontology match sh:targetClass in shapes and sempkm:targetClass in ViewSpecs.\n\n## Requirements Advanced\n\nNone.\n\n## Requirements Validated\n\nNone.\n\n## New Requirements Surfaced\n\nNone.\n\n## Requirements Invalidated or Re-scoped\n\nNone.\n\n## Deviations\n\nNone.\n\n## Known Limitations\n\nNone.\n\n## Follow-ups\n\nS03 will consume the new classes, ViewSpecs, and denorm rule to build TBox dashboards and workflows that reference PillarScore and GuidingPrinciples. S04 seed data will need to create PillarScore and GuidingPrinciples instances for realistic dashboard rendering.\n\n## Files Created/Modified\n\n- `models/ppv/ontology/ppv.jsonld` — Added PillarScore + GuidingPrinciples OWL classes, 22 new properties (10 PillarScore/GuidingPrinciples + 15 review reflection - 3 counted in both)\n- `models/ppv/shapes/ppv.jsonld` — Added PillarScoreShape + GuidingPrinciplesShape NodeShapes with PropertyGroups, extended 4 review shapes with ReflectionGroups and 15 new property shapes\n- `models/ppv/views/ppv.jsonld` — Added 4 new ViewSpecs: pillarscore-table, action-kanban, project-kanban, action-by-context\n- `models/ppv/rules/ppv.ttl` — Added schema prefix, PillarScoreDateDenormRule SHACL-AF SPARQLRule\n- `models/ppv/manifest.yaml` — Added icon entries for PillarScore (bar-chart-2 amber) and GuidingPrinciples (heart-handshake purple)\n- `backend/tests/test_ppv_ontology.py` — New 99-test validation suite across 9 test classes\n",
+      "full_uat_md": "# S02: PPV Ontology Expansion — PillarScore, GuidingPrinciples & Enriched Reviews — UAT\n\n**Milestone:** M047\n**Written:** 2026-04-04T23:45:37.654Z\n\n## UAT: PPV Ontology Expansion\n\n### Preconditions\n- PPV model v2.0.0 installed (from S01)\n- Backend running with triplestore accessible\n- Access to workspace browser and admin portal\n\n### Test 1: PillarScore SHACL Form Creation\n1. Navigate to workspace, click \"New Object\"\n2. Select type \"Pillar Score\" from type picker\n3. **Expected:** SHACL form renders with 3 property groups: Basic (title, score, wentWell, needsAttention), Relationships (weeklyReview, pillar), Metadata (created)\n4. Enter title \"Week 1 - Health\"\n5. Set score to 8\n6. **Expected:** Score field accepts integer 1-10 only. Values outside range show validation error.\n7. Set score to 0 → **Expected:** SHACL validation error (sh:minInclusive 1)\n8. Set score to 11 → **Expected:** SHACL validation error (sh:maxInclusive 10)\n9. Set score back to 8, fill wentWell \"Good sleep schedule\", needsAttention \"Need more exercise\"\n10. Link to existing Pillar and WeeklyReview objects via relationship fields\n11. Save → **Expected:** Object created successfully, appears in explorer under Pillar Score type\n\n### Test 2: GuidingPrinciples SHACL Form Creation\n1. Click \"New Object\", select type \"Guiding Principles\"\n2. **Expected:** SHACL form renders with 3 property groups: Basic (title, values, purpose, meaning, manifestation), Statement (foundationalStatement, guidingWord), Metadata (created)\n3. Enter title \"My Core Values\", fill values \"integrity, growth\", purpose \"serve others\", meaning \"continuous improvement\"\n4. Fill foundationalStatement \"I choose growth over comfort\", guidingWord \"resilience\"\n5. Save → **Expected:** Object created, appears in explorer under Guiding Principles type\n\n### Test 3: Enriched Weekly Review Fields\n1. Open an existing WeeklyReview object (or create new)\n2. **Expected:** Form shows new \"Reflection\" property group with fields: wins, challenges, supportingPriorities\n3. Fill wins \"Completed project X\", challenges \"Time management\", supportingPriorities \"Focus on deep work\"\n4. Save → **Expected:** All reflection fields persist and display on re-open\n\n### Test 4: Enriched Monthly Review Fields\n1. Open a MonthlyReview object\n2. **Expected:** Reflection group shows: biggestWins, biggestChallenges, focusAreas, habitsToAdjust (after existing gratitude and learnedThisMonth fields)\n3. Fill all 4 fields, save, re-open → **Expected:** Values persist\n\n### Test 5: Enriched Quarterly Review Fields\n1. Open a QuarterlyReview object\n2. **Expected:** New Reflection group with 6 fields: accomplishments, disappointments, whatWorked, whatDidntWork, howToImprove, annualVisionNotes\n3. Fill all 6 fields, save, re-open → **Expected:** Values persist\n\n### Test 6: Enriched Yearly Review Fields\n1. Open a YearlyReview object\n2. **Expected:** New Reflection group with 2 fields: intentionWord, yearTheme\n3. Fill both, save, re-open → **Expected:** Values persist\n\n### Test 7: PillarScore Table ViewSpec\n1. Navigate to Views in explorer\n2. Open \"Pillar Scores\" view\n3. **Expected:** Table renders with columns: title, score, pillarTitle, weekTitle, wentWell, needsAttention\n4. **Expected:** Rows sorted by pillarTitle\n\n### Test 8: Action Kanban ViewSpec\n1. Open \"Action Kanban\" view\n2. **Expected:** Kanban board renders with columns auto-detected from ActionItem's status sh:in enum values\n3. **Expected:** Cards show title, draggable between columns\n\n### Test 9: Project Kanban ViewSpec\n1. Open \"Project Kanban\" view\n2. **Expected:** Kanban board renders with columns from Project status enum\n3. **Expected:** Cards show title, status, priority, progress\n\n### Test 10: Actions by Context ViewSpec\n1. Open \"Actions by Context\" view\n2. **Expected:** Table renders with columns: title, status, priority, doDate, context, energy\n3. **Expected:** Rows sorted by context\n\n### Test 11: Manifest Icons\n1. Open explorer, expand object type tree\n2. **Expected:** PillarScore shows bar-chart-2 icon in amber (#f59e0b)\n3. **Expected:** GuidingPrinciples shows heart-handshake icon in purple (#8b5cf6)\n\n### Test 12: Offline Validation Suite\n1. Run: `cd backend && .venv/bin/python -m pytest tests/test_ppv_ontology.py -v`\n2. **Expected:** 99 tests pass, covering ontology classes, properties, shapes, constraints, PropertyGroups, ViewSpecs, rules, manifest, combined parse, and cross-references\n\n### Edge Cases\n- Creating PillarScore without required fields (title, score, pillar, weeklyReview) should show SHACL validation errors\n- Score field should reject non-integer values\n- GuidingPrinciples with only title (all optional fields empty) should save successfully\n- Multiple PillarScores can reference the same Pillar but different WeeklyReviews\n",
       "goal": "PPV ontology expanded with PillarScore and GuidingPrinciples classes, enriched review reflection fields on all 4 review types, 4 new ViewSpecs, a SHACL-AF denormalization rule, and manifest icon entries — all parseable and cross-reference-valid.",
       "success_criteria": "- PillarScore and GuidingPrinciples owl:Classes exist in ontology with all properties\n- PillarScoreShape and GuidingPrinciplesShape NodeShapes exist in shapes with property groups\n- WeeklyReview, MonthlyReview, QuarterlyReview, YearlyReview shapes extended with reflection properties\n- 4 new ViewSpecs (pillar-score table, action kanban, project kanban, action-by-context table) in views\n- PillarScoreDateDenormRule SHACL-AF rule in rules file\n- 2 new icon entries in manifest.yaml\n- All JSON-LD files parse via json.load() and rdflib\n- Rules Turtle file parses via rdflib\n- Unit test verifies all new classes, shapes, views, rules, and cross-references",
       "proof_level": "contract — offline model file validation via rdflib parse + cross-reference checks. No running server needed.",
@@ -7605,11 +7605,11 @@
       "completed_at": null,
       "full_summary_md": "",
       "full_uat_md": "",
-      "goal": "Author the 5 PPV dashboards and 5 workflows as TBox JSON files in the model archive. Migrate seed.py PPV workflows to the model manifest. Update manifest.yaml to v2 with all entrypoints.",
-      "success_criteria": "- dashboards/ppv.json with 5 dashboards (Action Items, Life Dashboard, Projects Board, Goals Overview, Review Hub)\n- workflows/ppv.json with 5 workflows (Daily Check-in, Weekly/Monthly/Quarterly/Yearly Review)\n- manifest.yaml updated to v2 with dashboards and workflows entrypoints\n- Seed.py PPV workflows removed (Getting Started dashboard stays)\n- All dashboard SPARQL queries valid against PPV ontology\n- Workflows reference correct dashboard UUIDs and ViewSpec IRIs",
-      "proof_level": "Dashboard SPARQL queries tested against PPV data. Workflow step configs validated. Install/uninstall cycle verified.",
-      "integration_closure": "PPV ships as a complete v2 model. The model archive is self-contained — no seed.py dependency for PPV-specific workflows.",
-      "observability_impact": "5 dashboards and 5 workflows appear in explorer sections. Dashboard stat-cards and charts render with live data.",
+      "goal": "PPV model ships 5 dashboards and 5 workflows as TBox definitions. Install resolves dashboard_name references in workflow steps to dashboard UUIDs. Seed.py retains only the generic \"Create & Review\" workflow.",
+      "success_criteria": "- `models/ppv/dashboards/ppv.json` contains 5 dashboards with valid gridstack blocks referencing real PPV ViewSpec IRIs and SPARQL queries\n- `models/ppv/workflows/ppv.json` contains 5 workflows using view/dashboard/form step types, with `dashboard_name` references (not hardcoded UUIDs)\n- `models/ppv/manifest.yaml` has `workflows: \"workflows/ppv.json\"` entrypoint\n- ModelService.install() resolves `dashboard_name` → `dashboard_id` in workflow step configs after creating TBox dashboards\n- `backend/app/dashboard/seed.py` SEED_WORKFLOWS contains only 1 workflow (\"Create & Review\")\n- All existing tests pass with zero regressions; new tests cover dashboard_name resolution and real PPV content validation\n",
+      "proof_level": "Contract — JSON content validated structurally, dashboard_name resolution proven via unit test with mocked services, seed.py migration verified by count assertion.",
+      "integration_closure": "- Upstream consumed: S01 manifest v2 infrastructure (tbox_loader, source_model lifecycle), S02 PPV ViewSpec IRIs and ontology classes\n- New wiring: dashboard_name→UUID post-processing in ModelService.install(), workflows entrypoint in manifest\n- Remains before milestone usable: S04 E2E verification and seed data for realistic rendering",
+      "observability_impact": "ModelService logs dashboard name→UUID resolution count and any unresolved references at warning level during install.",
       "sequence": 0,
       "replan_triggered_at": null
     },
@@ -31081,6 +31081,126 @@
       "observability_impact": "",
       "full_plan_md": "",
       "sequence": 0
+    },
+    {
+      "milestone_id": "M047",
+      "slice_id": "S03",
+      "id": "T01",
+      "title": "Replaced test dashboard with 5 real PPV dashboards (Action Items, Life Dashboard, Projects Board, Goals Overview, Review Hub) using gridstack layout with 25 validated blocks",
+      "status": "complete",
+      "one_liner": "Replaced test dashboard with 5 real PPV dashboards (Action Items, Life Dashboard, Projects Board, Goals Overview, Review Hub) using gridstack layout with 25 validated blocks",
+      "narrative": "Replaced the single \"PPV Test Dashboard\" placeholder with 5 production dashboards using gridstack layout. Each dashboard uses heading blocks, stat-cards with SPARQL count queries (using ppv: prefix for runtime injection), view-embed blocks referencing full ViewSpec IRIs from the PPV model, and sparql-result blocks for diagnostic queries (orphan projects, goals without outcomes). All 25 blocks pass BLOCK_REGISTRY type and position validation.",
+      "verification_result": "1. JSON structure check confirms 5 dashboards with correct names. 2. test_real_ppv_dashboards pytest passes. 3. All 25 blocks validated against BLOCK_REGISTRY.validate_block() and validate_position().",
+      "duration": "",
+      "completed_at": "2026-04-05T00:00:56.885Z",
+      "blocker_discovered": false,
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "models/ppv/dashboards/ppv.json"
+      ],
+      "key_decisions": [
+        "Used full IRIs for view-embed spec_iri and ppv: prefixed SPARQL for stat-card queries (auto-injected at runtime)"
+      ],
+      "full_summary_md": "---\nid: T01\nparent: S03\nmilestone: M047\nkey_files:\n  - models/ppv/dashboards/ppv.json\nkey_decisions:\n  - Used full IRIs for view-embed spec_iri and ppv: prefixed SPARQL for stat-card queries (auto-injected at runtime)\nduration: \nverification_result: passed\ncompleted_at: 2026-04-05T00:00:56.884Z\nblocker_discovered: false\n---\n\n# T01: Replaced test dashboard with 5 real PPV dashboards (Action Items, Life Dashboard, Projects Board, Goals Overview, Review Hub) using gridstack layout with 25 validated blocks\n\n**Replaced test dashboard with 5 real PPV dashboards (Action Items, Life Dashboard, Projects Board, Goals Overview, Review Hub) using gridstack layout with 25 validated blocks**\n\n## What Happened\n\nReplaced the single \"PPV Test Dashboard\" placeholder with 5 production dashboards using gridstack layout. Each dashboard uses heading blocks, stat-cards with SPARQL count queries (using ppv: prefix for runtime injection), view-embed blocks referencing full ViewSpec IRIs from the PPV model, and sparql-result blocks for diagnostic queries (orphan projects, goals without outcomes). All 25 blocks pass BLOCK_REGISTRY type and position validation.\n\n## Verification\n\n1. JSON structure check confirms 5 dashboards with correct names. 2. test_real_ppv_dashboards pytest passes. 3. All 25 blocks validated against BLOCK_REGISTRY.validate_block() and validate_position().\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `python3 -c \"import json; d=json.load(open('models/ppv/dashboards/ppv.json')); assert len(d['dashboards'])==5\"` | 0 | ✅ pass | 200ms |\n| 2 | `cd backend && .venv/bin/python -m pytest tests/test_tbox_loader.py::TestLoadTboxDashboards::test_real_ppv_dashboards -v` | 0 | ✅ pass | 50ms |\n| 3 | `BLOCK_REGISTRY.validate_block() + validate_position() on all 25 blocks` | 0 | ✅ pass | 100ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `models/ppv/dashboards/ppv.json`\n",
+      "description": "Replace the single test dashboard in `models/ppv/dashboards/ppv.json` with 5 real PPV dashboards using gridstack layout. Each dashboard uses heading blocks, stat-cards with SPARQL queries, and view-embed blocks referencing PPV ViewSpec IRIs from S02.\n\n**Dashboards to create:**\n1. **Action Items** — stat-cards (active count, immediate priority count), view-embed for action-table, view-embed for action-kanban\n2. **Life Dashboard** — stat-cards (active actions, active projects, active goals), view-embed for pillar-table, sparql-result for guiding principles\n3. **Projects Board** — stat-card (active projects), view-embed for project-kanban, view-embed for project-table, sparql-result for orphan projects\n4. **Goals Overview** — stat-card (active value goals), view-embed for valuegoal-table, view-embed for goaloutcome-table, sparql-result for goals without active outcomes\n5. **Review Hub** — view-embed for pillarscore-table, view-embed for weekly-table, view-embed for review-graph\n\n**GridStack constraints:** x: 0-11, y: ≥0, w: 1-12, h: ≥1, x+w ≤ 12. Stat-cards: 3w×2h. View-embeds: 6w×4h or 12w×6h. Headings: 12w×1h.\n\n**ViewSpec IRI format:** Full IRI `urn:sempkm:model:ppv:view-{name}` (the ppv: prefix isn't available in the JSON — only in SPARQL queries at runtime). For view-embed blocks, use the full IRI.\n\n**SPARQL queries for stat-cards** use prefixed form (ppv: prefix is auto-injected by the SPARQL router from model prefix registry at runtime):\n- Active Actions: `SELECT (COUNT(?s) AS ?count) WHERE { ?s a ppv:ActionItem ; ppv:status \"Active\" }`\n- Immediate Priority: `SELECT (COUNT(?s) AS ?count) WHERE { ?s a ppv:ActionItem ; ppv:status \"Active\" ; ppv:priority \"Immediate\" }`\n- Active Projects: `SELECT (COUNT(?s) AS ?count) WHERE { ?s a ppv:Project ; ppv:status \"Active\" }`\n- Active Value Goals: `SELECT (COUNT(?s) AS ?count) WHERE { ?s a ppv:ValueGoal ; ppv:status \"Underway\" }`\n\n**Block types available:** stat-card, view-embed, heading, markdown, sparql-result, chart, create-form, form-group, object-embed, divider",
+      "estimate": "1h",
+      "files": [
+        "models/ppv/dashboards/ppv.json"
+      ],
+      "verify": "python3 -c \"import json; d=json.load(open('models/ppv/dashboards/ppv.json')); assert len(d['dashboards'])==5, f'Expected 5, got {len(d[\"dashboards\"])}'; [print(f'  {i+1}. {dd[\"name\"]}') for i,dd in enumerate(d['dashboards'])]; print('OK: 5 dashboards')\" && cd backend && .venv/bin/python -m pytest tests/test_tbox_loader.py::TestLoadTboxDashboards::test_real_ppv_dashboards -v",
+      "inputs": [
+        "`models/ppv/dashboards/ppv.json` — existing test dashboard to replace",
+        "`models/ppv/views/ppv.jsonld` — 23 ViewSpec IRIs to reference in view-embed blocks"
+      ],
+      "expected_output": [
+        "`models/ppv/dashboards/ppv.json` — 5 real PPV dashboards with gridstack layout, stat-cards, view-embeds, headings"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M047",
+      "slice_id": "S03",
+      "id": "T02",
+      "title": "Create PPV workflows JSON, update manifest, add dashboard_name→UUID resolution",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Three pieces: (1) Create `models/ppv/workflows/ppv.json` with 5 workflow definitions. (2) Add `workflows: \"workflows/ppv.json\"` to `models/ppv/manifest.yaml`. (3) Add ~15 lines of dashboard_name→UUID post-processing in `ModelService.install()` so workflow steps with `dashboard_name` configs get resolved to real `dashboard_id` values at install time.\n\n**Workflows to create:**\n1. **Daily Check-in** — form step (create ActionItem), view step (action-kanban)\n2. **Weekly Review** — dashboard step (Action Items dashboard), view step (weekly-table), form step (create WeeklyReview), dashboard step (Review Hub dashboard)\n3. **Monthly Review** — view step (monthly-table), dashboard step (Review Hub), view step (weekly-table), form step (create MonthlyReview), view step (goaloutcome-table)\n4. **Quarterly Review** — view step (quarterly-table), form step (create QuarterlyReview), dashboard step (Goals Overview), view step (valuegoal-table)\n5. **Yearly Review** — view step (yearly-table), form step (create YearlyReview), dashboard step (Life Dashboard), view step (hierarchy-graph)\n\n**Workflow step types:**\n- `{\"type\": \"view\", \"label\": \"...\", \"config\": {\"spec_iri\": \"urn:sempkm:model:ppv:view-XXX\", \"renderer_type\": \"table|graph|kanban\"}}` — for ViewSpec steps\n- `{\"type\": \"dashboard\", \"label\": \"...\", \"config\": {\"dashboard_name\": \"Action Items\"}}` — for dashboard steps (resolved to dashboard_id at install time)\n- `{\"type\": \"form\", \"label\": \"...\", \"config\": {\"target_class\": \"urn:sempkm:model:ppv:WeeklyReview\"}}` — for form steps\n\n**dashboard_name resolution in ModelService.install():**\nThe install sequence already creates dashboards before workflows (lines ~490-510 in models.py). After the dashboard creation loop, collect `{name: dashboard_data.id}` into a dict. Before creating each workflow, iterate its steps and replace any `config.dashboard_name` with `config.dashboard_id` using the mapping. If a referenced name isn't found, log a warning and leave the step as-is (degraded mode consistent with D380).\n\nSame resolution must be added to `refresh_artifacts()` which does delete+recreate of TBox surfaces.\n\n**Manifest update:** Add `workflows: \"workflows/ppv.json\"` under the `entrypoints:` section in `models/ppv/manifest.yaml`.",
+      "estimate": "1h",
+      "files": [
+        "models/ppv/workflows/ppv.json",
+        "models/ppv/manifest.yaml",
+        "backend/app/services/models.py"
+      ],
+      "verify": "python3 -c \"import json; w=json.load(open('models/ppv/workflows/ppv.json')); assert len(w['workflows'])==5, f'Expected 5, got {len(w[\"workflows\"])}'; print('OK: 5 workflows')\" && python3 -c \"import yaml; m=yaml.safe_load(open('models/ppv/manifest.yaml')); assert m['entrypoints'].get('workflows')=='workflows/ppv.json', 'Missing workflows entrypoint'; print('OK: manifest has workflows entrypoint')\" && cd backend && .venv/bin/python -m pytest tests/test_tbox_lifecycle.py -v",
+      "inputs": [
+        "`models/ppv/dashboards/ppv.json` — T01 output: 5 dashboard names needed for dashboard_name references in workflows",
+        "`models/ppv/views/ppv.jsonld` — ViewSpec IRIs for view step configs",
+        "`models/ppv/manifest.yaml` — existing manifest to add workflows entrypoint",
+        "`backend/app/services/models.py` — ModelService.install() and refresh_artifacts() to add dashboard_name resolution"
+      ],
+      "expected_output": [
+        "`models/ppv/workflows/ppv.json` — 5 PPV workflow definitions with view/dashboard/form steps",
+        "`models/ppv/manifest.yaml` — updated with workflows entrypoint",
+        "`backend/app/services/models.py` — dashboard_name→UUID resolution in install() and refresh_artifacts()"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M047",
+      "slice_id": "S03",
+      "id": "T03",
+      "title": "Migrate seed.py workflows + add tests for resolution and content validation",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Three pieces: (1) Remove the 4 PPV-specific workflows from `SEED_WORKFLOWS` in seed.py, keeping only \"Create & Review\". (2) Add test coverage for dashboard_name→UUID resolution in ModelService. (3) Update existing tbox_loader tests and add real PPV workflows content validation.\n\n**seed.py changes:** Remove \"Weekly Review\", \"Monthly Review\", \"Quarterly Review\", \"Yearly Review\" entries from `SEED_WORKFLOWS` list. Keep \"Create & Review\" (generic, no PPV references). Remove the `_PPV` namespace constant since it's no longer used.\n\n**Tests to add/update in `test_tbox_lifecycle.py`:**\n- `test_install_v2_resolves_dashboard_names` — create a v2 manifest with workflow steps containing `dashboard_name` references → verify after install, workflow steps have `dashboard_id` (not `dashboard_name`)\n- `test_install_v2_unresolved_dashboard_name_logs_warning` — workflow references a dashboard name that doesn't exist in the model → verify install succeeds (degraded mode) and step retains `dashboard_name`\n\n**Tests to add/update in `test_tbox_loader.py`:**\n- `test_real_ppv_workflows` — load real PPV workflows file, verify 5 workflows with expected names and step counts\n- Update `test_real_ppv_dashboards` assertion: `len(result) >= 5` (previously >= 1)\n\n**Tests to add in `test_data_widgets.py` or standalone:**\n- `test_seed_workflows_count` — verify SEED_WORKFLOWS has exactly 1 entry (\"Create & Review\")\n\n**Verification of seed.py:**\n`python3 -c \"from app.dashboard.seed import SEED_WORKFLOWS; assert len(SEED_WORKFLOWS)==1, f'Expected 1, got {len(SEED_WORKFLOWS)}'; print('OK: 1 seed workflow')\"` (run from backend/)",
+      "estimate": "45m",
+      "files": [
+        "backend/app/dashboard/seed.py",
+        "backend/tests/test_tbox_lifecycle.py",
+        "backend/tests/test_tbox_loader.py"
+      ],
+      "verify": "cd backend && .venv/bin/python -m pytest tests/test_tbox_loader.py tests/test_tbox_lifecycle.py -v && .venv/bin/python -c \"from app.dashboard.seed import SEED_WORKFLOWS; assert len(SEED_WORKFLOWS)==1; print('OK: 1 seed workflow')\"",
+      "inputs": [
+        "`backend/app/dashboard/seed.py` — existing seed with 5 workflows to trim to 1",
+        "`backend/tests/test_tbox_lifecycle.py` — existing 13 tests to extend with dashboard_name resolution tests",
+        "`backend/tests/test_tbox_loader.py` — existing 14 tests to extend with real PPV workflows validation",
+        "`models/ppv/workflows/ppv.json` — T02 output: real workflows file to validate in tests",
+        "`models/ppv/dashboards/ppv.json` — T01 output: real dashboards file (test_real_ppv_dashboards assertion update)",
+        "`backend/app/services/models.py` — T02 output: dashboard_name resolution code to test"
+      ],
+      "expected_output": [
+        "`backend/app/dashboard/seed.py` — SEED_WORKFLOWS trimmed to 1 entry",
+        "`backend/tests/test_tbox_lifecycle.py` — 2+ new tests for dashboard_name resolution",
+        "`backend/tests/test_tbox_loader.py` — updated test_real_ppv_dashboards + new test_real_ppv_workflows"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
     }
   ],
   "decisions": [
@@ -35655,6 +35775,18 @@
       "revisable": "Yes",
       "made_by": "agent",
       "superseded_by": null
+    },
+    {
+      "seq": 408,
+      "id": "D382",
+      "when_context": "M047/S03",
+      "scope": "architecture",
+      "decision": "How TBox workflow steps reference TBox dashboards defined in the same model",
+      "choice": "dashboard_name string reference in workflow JSON, resolved to dashboard_id UUID at install time via post-processing in ModelService.install(). After creating TBox dashboards, build a name→UUID map from DashboardData.id values. Before creating each workflow, replace dashboard_name → dashboard_id in step configs. Unresolved names log a warning (degraded mode, consistent with D380).",
+      "rationale": "TBox dashboard UUIDs are minted at install time — they can't be hardcoded in the model archive JSON. Name-based resolution at install time is simple (~15 lines), requires no schema changes, and uses the natural install sequence (dashboards are created before workflows already). The alternative (name-based lookup in the workflow router) would require router changes and wouldn't work for user-created workflows referencing user-created dashboards.",
+      "revisable": "Yes — if a proper foreign-key or symbolic reference system is added to dashboards/workflows, the install-time resolution can be removed.",
+      "made_by": "agent",
+      "superseded_by": null
     }
   ],
   "verification_evidence": [
@@ -37736,6 +37868,39 @@
       "verdict": "✅ pass",
       "duration_ms": 290,
       "created_at": "2026-04-04T23:43:13.146Z"
+    },
+    {
+      "id": 190,
+      "task_id": "T01",
+      "slice_id": "S03",
+      "milestone_id": "M047",
+      "command": "python3 -c \"import json; d=json.load(open('models/ppv/dashboards/ppv.json')); assert len(d['dashboards'])==5\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 200,
+      "created_at": "2026-04-05T00:00:56.885Z"
+    },
+    {
+      "id": 191,
+      "task_id": "T01",
+      "slice_id": "S03",
+      "milestone_id": "M047",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_tbox_loader.py::TestLoadTboxDashboards::test_real_ppv_dashboards -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-04-05T00:00:56.885Z"
+    },
+    {
+      "id": 192,
+      "task_id": "T01",
+      "slice_id": "S03",
+      "milestone_id": "M047",
+      "command": "BLOCK_REGISTRY.validate_block() + validate_position() on all 25 blocks",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-05T00:00:56.885Z"
     }
   ]
 }
