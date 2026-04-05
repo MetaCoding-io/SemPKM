@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-05T20:29:38.574Z",
+  "exported_at": "2026-04-05T20:32:40.028Z",
   "milestones": [
     {
       "id": "M001",
@@ -32268,19 +32268,25 @@
       "milestone_id": "M049",
       "slice_id": "S02",
       "id": "T02",
-      "title": "Create tracing module, wire lifespan, and instrument TriplestoreClient",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Created OTel tracing module with FastAPI+httpx auto-instrumentation and custom SPARQL spans on query/update/construct/insert_graph methods",
+      "status": "complete",
+      "one_liner": "Created OTel tracing module with FastAPI+httpx auto-instrumentation and custom SPARQL spans on query/update/construct/insert_graph methods",
+      "narrative": "Created backend/app/monitoring/tracing.py with setup_tracing() and shutdown_tracing() functions. setup_tracing() creates a TracerProvider with OTLP/HTTP exporter, instruments FastAPI (excluding health/monitoring endpoints), and globally instruments httpx. Wired into FastAPI lifespan at line 144 (before TriplestoreClient at line 147) for correct instrumentation ordering. Added custom span instrumentation to all 4 main TriplestoreClient methods with semantic SPARQL attributes. No conditional otel_enabled checks in client.py — relies on no-op tracer when disabled.",
+      "verification_result": "All 10 verification checks pass: tracing module imports OK, TriplestoreClient imports OK, setup_tracing precedes TriplestoreClient in lifespan, shutdown_tracing in shutdown block, start_as_current_span in client.py, uv lock consistent, OTel SDK importable, settings.otel_enabled exists, jaeger and OTEL_ENABLED in docker-compose.yml.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-05T20:32:39.990Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/monitoring/tracing.py",
+        "backend/app/main.py",
+        "backend/app/triplestore/client.py"
+      ],
+      "key_decisions": [
+        "Placed shutdown_tracing before client.close() so buffered spans flush while httpx connections are still alive"
+      ],
+      "full_summary_md": "---\nid: T02\nparent: S02\nmilestone: M049\nkey_files:\n  - backend/app/monitoring/tracing.py\n  - backend/app/main.py\n  - backend/app/triplestore/client.py\nkey_decisions:\n  - Placed shutdown_tracing before client.close() so buffered spans flush while httpx connections are still alive\nduration: \nverification_result: passed\ncompleted_at: 2026-04-05T20:32:39.989Z\nblocker_discovered: false\n---\n\n# T02: Created OTel tracing module with FastAPI+httpx auto-instrumentation and custom SPARQL spans on query/update/construct/insert_graph methods\n\n**Created OTel tracing module with FastAPI+httpx auto-instrumentation and custom SPARQL spans on query/update/construct/insert_graph methods**\n\n## What Happened\n\nCreated backend/app/monitoring/tracing.py with setup_tracing() and shutdown_tracing() functions. setup_tracing() creates a TracerProvider with OTLP/HTTP exporter, instruments FastAPI (excluding health/monitoring endpoints), and globally instruments httpx. Wired into FastAPI lifespan at line 144 (before TriplestoreClient at line 147) for correct instrumentation ordering. Added custom span instrumentation to all 4 main TriplestoreClient methods with semantic SPARQL attributes. No conditional otel_enabled checks in client.py — relies on no-op tracer when disabled.\n\n## Verification\n\nAll 10 verification checks pass: tracing module imports OK, TriplestoreClient imports OK, setup_tracing precedes TriplestoreClient in lifespan, shutdown_tracing in shutdown block, start_as_current_span in client.py, uv lock consistent, OTel SDK importable, settings.otel_enabled exists, jaeger and OTEL_ENABLED in docker-compose.yml.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python -c \"from app.monitoring.tracing import setup_tracing, shutdown_tracing; print('OK')\"` | 0 | ✅ pass | 500ms |\n| 2 | `cd backend && .venv/bin/python -c \"from app.triplestore.client import TriplestoreClient; print('OK')\"` | 0 | ✅ pass | 500ms |\n| 3 | `grep -n 'setup_tracing' backend/app/main.py` | 0 | ✅ pass | 50ms |\n| 4 | `grep -n 'shutdown_tracing' backend/app/main.py` | 0 | ✅ pass | 50ms |\n| 5 | `grep -q 'start_as_current_span' backend/app/triplestore/client.py` | 0 | ✅ pass | 50ms |\n| 6 | `cd backend && uv lock --check` | 0 | ✅ pass | 900ms |\n| 7 | `cd backend && .venv/bin/python -c \"from opentelemetry import trace; from opentelemetry.sdk.trace import TracerProvider; print('OK')\"` | 0 | ✅ pass | 500ms |\n| 8 | `cd backend && .venv/bin/python -c \"from app.config import settings; assert hasattr(settings, 'otel_enabled'); print('OK')\"` | 0 | ✅ pass | 500ms |\n| 9 | `grep -q 'jaeger' docker-compose.yml` | 0 | ✅ pass | 50ms |\n| 10 | `grep -q 'OTEL_ENABLED' docker-compose.yml` | 0 | ✅ pass | 50ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/monitoring/tracing.py`\n- `backend/app/main.py`\n- `backend/app/triplestore/client.py`\n",
       "description": "Core implementation task. Creates the OTel tracing module, wires it into the FastAPI lifespan (before TriplestoreClient creation), and adds custom semantic spans to all 4 main TriplestoreClient methods.\n\n## Steps\n\n1. Create `backend/app/monitoring/tracing.py` with two functions:\n\n   **`setup_tracing(app: FastAPI) -> TracerProvider | None`:**\n   - Import settings from `app.config`\n   - If `settings.otel_enabled` is False, log at DEBUG level and return None\n   - Create a `Resource` with `service.name=\"sempkm-api\"` and `service.version=settings.app_version`\n   - Create `TracerProvider(resource=resource)`\n   - Create `OTLPSpanExporter(endpoint=settings.otel_exporter_endpoint)`\n   - Create `BatchSpanProcessor(exporter)` and add to provider\n   - Call `trace.set_tracer_provider(provider)`\n   - Call `FastAPIInstrumentor.instrument_app(app, excluded_urls=\"api/health,api/monitoring\")` — this excludes health check and monitoring endpoints from creating traces\n   - Call `HTTPXClientInstrumentor().instrument()` — this auto-instruments ALL httpx.AsyncClient instances globally, including TriplestoreClient._client\n   - Log at INFO level: \"OpenTelemetry tracing initialized, exporting to {endpoint}\"\n   - Return the provider\n\n   **`shutdown_tracing(provider: TracerProvider | None) -> None`:**\n   - If provider is None, return immediately\n   - Call `provider.shutdown()` to flush any buffered spans\n   - Log at INFO level: \"OpenTelemetry tracing shut down\"\n\n   **Key imports:**\n   ```python\n   from opentelemetry import trace\n   from opentelemetry.sdk.trace import TracerProvider\n   from opentelemetry.sdk.trace.export import BatchSpanProcessor\n   from opentelemetry.sdk.resources import Resource\n   from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter\n   from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor\n   from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor\n   ```\n\n2. Wire tracing into `backend/app/main.py` lifespan:\n   - Add import at top: `from app.monitoring.tracing import setup_tracing, shutdown_tracing`\n   - **CRITICAL ORDERING**: Call `setup_tracing(app)` BEFORE the `TriplestoreClient(...)` creation (currently at ~line 150). Place it right after `init_posthog()` (around line 147). The HTTPXClientInstrumentor must be called before any httpx.AsyncClient is created.\n   - Store result: `app.state.tracer_provider = setup_tracing(app)`\n   - In the shutdown block (after line 565, before `await client.close()`), add: `shutdown_tracing(app.state.tracer_provider)`\n\n3. Add custom span instrumentation to `backend/app/triplestore/client.py`:\n   - Add import at top: `from opentelemetry import trace`\n   - Add module-level tracer: `tracer = trace.get_tracer(\"sempkm.triplestore\")`\n   - Wrap the 4 main methods with `tracer.start_as_current_span()`. When `otel_enabled` is False, `trace.get_tracer()` returns a no-op tracer — all span operations become no-ops with ~1μs overhead. No conditional logic needed.\n\n   **For `query()`:**\n   ```python\n   async def query(self, sparql: str) -> dict:\n       with tracer.start_as_current_span(\"sparql.query\") as span:\n           span.set_attribute(\"sparql.type\", \"SELECT\")\n           span.set_attribute(\"sparql.text\", sparql[:500])\n           resp = await self._client.post(\n               self._repo_url,\n               data={\"query\": sparql},\n               headers={\"Accept\": \"application/sparql-results+json\"},\n           )\n           resp.raise_for_status()\n           result = resp.json()\n           span.set_attribute(\"sparql.result_count\",\n               len(result.get(\"results\", {}).get(\"bindings\", [])))\n           return result\n   ```\n\n   **For `update()`:** span name `\"sparql.update\"`, attribute `sparql.type=\"UPDATE\"`, `sparql.text=sparql[:500]`. No result_count.\n\n   **For `construct()`:** span name `\"sparql.construct\"`, attribute `sparql.type=\"CONSTRUCT\"`, `sparql.text=sparql[:500]`. No result_count (returns bytes).\n\n   **For `insert_graph()`:** span name `\"sparql.insert_graph\"`, attributes `sparql.type=\"INSERT_GRAPH\"`, `sparql.graph_iri=graph_iri`, `sparql.data_size=len(turtle_data)`. Don't log turtle_data content (could be large).\n\n   **Do NOT instrument** `is_healthy()`, `begin_transaction()`, `commit_transaction()`, `rollback_transaction()`, `transaction_update()`, `transaction_query()`, or `close()` — the httpx auto-instrumentation already covers the HTTP level for these, and they don't need semantic SPARQL attributes.\n\n## Must-Haves\n\n- [ ] `backend/app/monitoring/tracing.py` exists with setup_tracing and shutdown_tracing\n- [ ] FastAPIInstrumentor and HTTPXClientInstrumentor activated in setup_tracing\n- [ ] Health/monitoring URLs excluded from tracing\n- [ ] setup_tracing called BEFORE TriplestoreClient in lifespan\n- [ ] shutdown_tracing called in lifespan shutdown block\n- [ ] Custom spans on query/update/construct/insert_graph with semantic attributes\n- [ ] No conditional otel_enabled checks in client.py — relies on no-op tracer\n\n## Verification\n\n- `cd backend && .venv/bin/python -c \"from app.monitoring.tracing import setup_tracing, shutdown_tracing; print('OK')\"` prints OK\n- `cd backend && .venv/bin/python -c \"from app.triplestore.client import TriplestoreClient; print('OK')\"` prints OK\n- `grep -n 'setup_tracing' backend/app/main.py` shows the call exists before TriplestoreClient creation\n- `grep -n 'shutdown_tracing' backend/app/main.py` shows the call in the shutdown block\n- `grep -q 'start_as_current_span' backend/app/triplestore/client.py` exits 0\n\n## Observability Impact\n\n- Signals added: OTel spans for every FastAPI request and every SPARQL operation, with semantic attributes (sparql.type, sparql.text, sparql.result_count, sparql.graph_iri, sparql.data_size)\n- How a future agent inspects this: Jaeger UI at localhost:16686, search for service=\"sempkm-api\"\n- Failure state exposed: BatchSpanProcessor logs export failures; Jaeger unavailability is silent (app continues working)\n\n## Inputs\n\n- `backend/pyproject.toml` — OTel packages must be installed (from T01)\n- `backend/app/config.py` — otel_enabled and otel_exporter_endpoint settings (from T01)\n- `backend/app/main.py` — lifespan function to wire into\n- `backend/app/triplestore/client.py` — SPARQL methods to instrument\n- `backend/app/monitoring/__init__.py` — existing package to add module to\n\n## Expected Output\n\n- `backend/app/monitoring/tracing.py` — new OTel setup/shutdown module\n- `backend/app/main.py` — lifespan wired with setup_tracing/shutdown_tracing\n- `backend/app/triplestore/client.py` — 4 methods instrumented with custom spans",
       "estimate": "35m",
       "files": [
@@ -39573,6 +39579,116 @@
       "verdict": "✅ pass",
       "duration_ms": 50,
       "created_at": "2026-04-05T20:29:38.535Z"
+    },
+    {
+      "id": 237,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M049",
+      "command": "cd backend && .venv/bin/python -c \"from app.monitoring.tracing import setup_tracing, shutdown_tracing; print('OK')\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 500,
+      "created_at": "2026-04-05T20:32:39.990Z"
+    },
+    {
+      "id": 238,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M049",
+      "command": "cd backend && .venv/bin/python -c \"from app.triplestore.client import TriplestoreClient; print('OK')\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 500,
+      "created_at": "2026-04-05T20:32:39.990Z"
+    },
+    {
+      "id": 239,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M049",
+      "command": "grep -n 'setup_tracing' backend/app/main.py",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-04-05T20:32:39.990Z"
+    },
+    {
+      "id": 240,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M049",
+      "command": "grep -n 'shutdown_tracing' backend/app/main.py",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-04-05T20:32:39.990Z"
+    },
+    {
+      "id": 241,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M049",
+      "command": "grep -q 'start_as_current_span' backend/app/triplestore/client.py",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-04-05T20:32:39.990Z"
+    },
+    {
+      "id": 242,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M049",
+      "command": "cd backend && uv lock --check",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 900,
+      "created_at": "2026-04-05T20:32:39.990Z"
+    },
+    {
+      "id": 243,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M049",
+      "command": "cd backend && .venv/bin/python -c \"from opentelemetry import trace; from opentelemetry.sdk.trace import TracerProvider; print('OK')\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 500,
+      "created_at": "2026-04-05T20:32:39.990Z"
+    },
+    {
+      "id": 244,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M049",
+      "command": "cd backend && .venv/bin/python -c \"from app.config import settings; assert hasattr(settings, 'otel_enabled'); print('OK')\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 500,
+      "created_at": "2026-04-05T20:32:39.990Z"
+    },
+    {
+      "id": 245,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M049",
+      "command": "grep -q 'jaeger' docker-compose.yml",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-04-05T20:32:39.990Z"
+    },
+    {
+      "id": 246,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M049",
+      "command": "grep -q 'OTEL_ENABLED' docker-compose.yml",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-04-05T20:32:39.990Z"
     }
   ]
 }

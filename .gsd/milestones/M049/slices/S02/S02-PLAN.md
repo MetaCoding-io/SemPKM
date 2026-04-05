@@ -83,7 +83,7 @@
   - Estimate: 20m
   - Files: backend/pyproject.toml, backend/uv.lock, backend/app/config.py, docker-compose.yml
   - Verify: cd backend && uv lock --check && .venv/bin/python -c "from opentelemetry import trace; from opentelemetry.sdk.trace import TracerProvider; print('OK')" && .venv/bin/python -c "from app.config import settings; assert hasattr(settings, 'otel_enabled'); print('OK')"
-- [ ] **T02: Create tracing module, wire lifespan, and instrument TriplestoreClient** — Core implementation task. Creates the OTel tracing module, wires it into the FastAPI lifespan (before TriplestoreClient creation), and adds custom semantic spans to all 4 main TriplestoreClient methods.
+- [x] **T02: Created OTel tracing module with FastAPI+httpx auto-instrumentation and custom SPARQL spans on query/update/construct/insert_graph methods** — Core implementation task. Creates the OTel tracing module, wires it into the FastAPI lifespan (before TriplestoreClient creation), and adds custom semantic spans to all 4 main TriplestoreClient methods.
 
 ## Steps
 

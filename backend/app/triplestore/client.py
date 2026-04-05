@@ -8,8 +8,11 @@ protocol requirements (not raw SPARQL body).
 """
 
 import httpx
+from opentelemetry import trace
 
 from app.config import TIMEOUT_DEFAULT
+
+tracer = trace.get_tracer("sempkm.triplestore")
 
 
 class TriplestoreClient:
@@ -39,13 +42,21 @@ class TriplestoreClient:
         POST to {base_url}/repositories/{repo_id} with form-encoded query.
         Raises httpx.TimeoutException if the query exceeds the 30s timeout.
         """
-        resp = await self._client.post(
-            self._repo_url,
-            data={"query": sparql},
-            headers={"Accept": "application/sparql-results+json"},
-        )
-        resp.raise_for_status()
-        return resp.json()
+        with tracer.start_as_current_span("sparql.query") as span:
+            span.set_attribute("sparql.type", "SELECT")
+            span.set_attribute("sparql.text", sparql[:500])
+            resp = await self._client.post(
+                self._repo_url,
+                data={"query": sparql},
+                headers={"Accept": "application/sparql-results+json"},
+            )
+            resp.raise_for_status()
+            result = resp.json()
+            span.set_attribute(
+                "sparql.result_count",
+                len(result.get("results", {}).get("bindings", [])),
+            )
+            return result
 
     async def update(self, sparql: str) -> None:
         """Execute a SPARQL UPDATE (INSERT/DELETE).
@@ -54,11 +65,14 @@ class TriplestoreClient:
         form-encoded update.
         Raises httpx.TimeoutException if the update exceeds the 30s timeout.
         """
-        resp = await self._client.post(
-            f"{self._repo_url}/statements",
-            data={"update": sparql},
-        )
-        resp.raise_for_status()
+        with tracer.start_as_current_span("sparql.update") as span:
+            span.set_attribute("sparql.type", "UPDATE")
+            span.set_attribute("sparql.text", sparql[:500])
+            resp = await self._client.post(
+                f"{self._repo_url}/statements",
+                data={"update": sparql},
+            )
+            resp.raise_for_status()
 
     async def begin_transaction(self) -> str:
         """Begin an RDF4J transaction.
@@ -127,13 +141,16 @@ class TriplestoreClient:
         POST to {base_url}/repositories/{repo_id} with form-encoded query
         and Accept: text/turtle to get Turtle-serialized results.
         """
-        resp = await self._client.post(
-            self._repo_url,
-            data={"query": sparql},
-            headers={"Accept": "text/turtle"},
-        )
-        resp.raise_for_status()
-        return resp.content
+        with tracer.start_as_current_span("sparql.construct") as span:
+            span.set_attribute("sparql.type", "CONSTRUCT")
+            span.set_attribute("sparql.text", sparql[:500])
+            resp = await self._client.post(
+                self._repo_url,
+                data={"query": sparql},
+                headers={"Accept": "text/turtle"},
+            )
+            resp.raise_for_status()
+            return resp.content
 
     async def insert_graph(self, turtle_data: str, graph_iri: str) -> None:
         """Insert Turtle data into a named graph via RDF4J Graph Store protocol.
@@ -142,13 +159,17 @@ class TriplestoreClient:
         This avoids SPARQL INSERT DATA parsing issues with blank nodes
         by sending the data directly as Turtle content.
         """
-        resp = await self._client.post(
-            f"{self._repo_url}/statements",
-            content=turtle_data.encode("utf-8"),
-            params={"context": f"<{graph_iri}>"},
-            headers={"Content-Type": "text/turtle"},
-        )
-        resp.raise_for_status()
+        with tracer.start_as_current_span("sparql.insert_graph") as span:
+            span.set_attribute("sparql.type", "INSERT_GRAPH")
+            span.set_attribute("sparql.graph_iri", graph_iri)
+            span.set_attribute("sparql.data_size", len(turtle_data))
+            resp = await self._client.post(
+                f"{self._repo_url}/statements",
+                content=turtle_data.encode("utf-8"),
+                params={"context": f"<{graph_iri}>"},
+                headers={"Content-Type": "text/turtle"},
+            )
+            resp.raise_for_status()
 
     async def close(self) -> None:
         """Close the underlying httpx client."""

@@ -76,6 +76,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from app.auth.rate_limit import limiter
 from app.monitoring.posthog import init_posthog, shutdown_posthog
+from app.monitoring.tracing import setup_tracing, shutdown_tracing
 from app.monitoring.router import router as monitoring_router
 from app.validation.queue import AsyncValidationQueue
 # Old validation router removed in 37-02 (replaced by /api/lint/*)
@@ -138,6 +139,9 @@ async def lifespan(app: FastAPI):
 
     # Initialize PostHog analytics/error monitoring
     init_posthog()
+
+    # Initialize OpenTelemetry tracing (must be before any httpx.AsyncClient creation)
+    app.state.tracer_provider = setup_tracing(app)
 
     # Create triplestore client and store on app state
     client = TriplestoreClient(
@@ -589,6 +593,7 @@ async def lifespan(app: FastAPI):
         logger.error("Error shutting down app processes", exc_info=True)
 
     await sql_engine.dispose()
+    shutdown_tracing(app.state.tracer_provider)
     await client.close()
     shutdown_posthog()
     logger.info("SemPKM API shut down")
