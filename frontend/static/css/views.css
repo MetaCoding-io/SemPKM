@@ -1382,23 +1382,15 @@ select.cards-group-select {
     --fc-event-bg-color: var(--color-accent);
     --fc-event-border-color: var(--color-accent);
     --fc-event-text-color: var(--color-on-accent);
+    --fc-button-text-color: var(--color-text);
+    --fc-button-bg-color: var(--color-bg-secondary);
+    --fc-button-border-color: var(--color-border);
+    --fc-button-hover-bg-color: var(--color-bg-hover);
+    --fc-button-hover-border-color: var(--color-border);
+    --fc-button-active-bg-color: var(--color-accent);
+    --fc-button-active-border-color: var(--color-accent);
+    --fc-button-active-text-color: var(--color-on-accent);
     color: var(--color-text);
-}
-
-[data-theme="dark"] .fc .fc-button {
-    background: var(--color-bg-secondary);
-    border-color: var(--color-border);
-    color: var(--color-text);
-}
-
-[data-theme="dark"] .fc .fc-button:hover {
-    background: var(--color-bg-hover);
-}
-
-[data-theme="dark"] .fc .fc-button-active {
-    background: var(--color-accent);
-    border-color: var(--color-accent);
-    color: var(--color-on-accent);
 }
 
 [data-theme="dark"] .fc .fc-col-header-cell,

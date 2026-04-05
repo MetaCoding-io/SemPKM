@@ -10,7 +10,11 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Last completed milestone:** M049 — Backend Performance & Observability (2026-04-05)
+**Active milestone:** M050 — View System Rework (in progress)
+
+S01 (Smart Type Dropdown) complete — replaced the 37-pill type bar with a renderer-filtered `<select>` dropdown across all 11 view templates. Kanban shows only types with status fields, calendar/timeline shows only types with date fields, map shows only types with geo fields. View Variants dropdown removed. S02 (Toolbar Cleanup + View Polish) and S03 (Save/Restore Flow + E2E Tests) remain.
+
+**Previous milestone:** M049 — Backend Performance & Observability (2026-04-05)
 
 Eliminated the sequential SPARQL query waterfall in object tab loads (3→1 queries, 5→1 label batches, asyncio.gather parallelization), added OpenTelemetry distributed tracing with Jaeger v2 backend, and built Server-Timing headers plus an admin performance dashboard with p50/p95/p99 percentile charts. 70 new tests. R001 (lazy-loaded panels) validated.
 
@@ -58,4 +62,4 @@ Fixed five showstopper bugs: broken Table/Cards view rendering (missing SPARQL P
 
 All features from v2.1 through v2.6 and milestones M002 through M049 validated. See REQUIREMENTS.md for full details.
 
-Key milestones: Full-text search (v2.2), SPARQL console (v2.2), Dockview workspace (v2.3), OWL inference + SHACL-AF rules (v2.4), Obsidian import + WebID + IndieAuth (v2.5), Federation + VFS + Canvas (v2.6), Security hardening (M002), Knowledge organization (M003), Ontology system (M004), Platform polish (M005), Dashboards & workflows (M006–M007), Spatial canvas (M008), App platform (M009), RSS reader (M010), 4 mental models (M011), Workspace polish (M012), API surface (M013), Browser extension (M014–M015, M028), 9 sync apps (M016–M024), Demo instance (M025), Homepage (M026), Notion import (M027), Frontend performance (M029), Lint UX (M030), Saved views + kanban + graph3D + calendar + timeline + map (M031–M034), AI copilot (M035), Business planning models (M036), Mobile app (M037), Media scheduler (M038), RDF import (M039), Context rules (M040), Notifications (M041), SPARQL security (M043), Frontend cleanup (M044), Backend security (M045), E2E tests (M046), PPV model (M047), Critical bug fixes (M048), **Backend performance & observability (M049)**.
+Key milestones: Full-text search (v2.2), SPARQL console (v2.2), Dockview workspace (v2.3), OWL inference + SHACL-AF rules (v2.4), Obsidian import + WebID + IndieAuth (v2.5), Federation + VFS + Canvas (v2.6), Security hardening (M002), Knowledge organization (M003), Ontology system (M004), Platform polish (M005), Dashboards & workflows (M006–M007), Spatial canvas (M008), App platform (M009), RSS reader (M010), 4 mental models (M011), Workspace polish (M012), API surface (M013), Browser extension (M014–M015, M028), 9 sync apps (M016–M024), Demo instance (M025), Homepage (M026), Notion import (M027), Frontend performance (M029), Lint UX (M030), Saved views + kanban + graph3D + calendar + timeline + map (M031–M034), AI copilot (M035), Business planning models (M036), Mobile app (M037), Media scheduler (M038), RDF import (M039), Context rules (M040), Notifications (M041), SPARQL security (M043), Frontend cleanup (M044), Backend security (M045), E2E tests (M046), PPV model (M047), Critical bug fixes (M048), Backend performance & observability (M049), **View system rework (M050, in progress)**.

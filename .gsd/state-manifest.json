@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-05T21:34:06.949Z",
+  "exported_at": "2026-04-05T21:43:26.812Z",
   "milestones": [
     {
       "id": "M001",
@@ -8089,14 +8089,14 @@
       "milestone_id": "M050",
       "id": "S01",
       "title": "Smart Type Dropdown",
-      "status": "pending",
+      "status": "complete",
       "risk": "high",
       "depends": [],
       "demo": "Open Kanban View → type dropdown shows only types with status fields. Open Table View → shows all types. No more 37-pill bar.",
       "created_at": "2026-04-05T21:21:40.434Z",
-      "completed_at": null,
-      "full_summary_md": "",
-      "full_uat_md": "",
+      "completed_at": "2026-04-05T21:35:44.285Z",
+      "full_summary_md": "---\nid: S01\nparent: M050\nmilestone: M050\nprovides:\n  - Renderer-filtered type lists in all view templates via get_compatible_types()\n  - JSON endpoint GET /browser/views/compatible-types?renderer=X for frontend lazy-loading\n  - type_filter_dropdown.html partial with scope_query preservation and localStorage persistence\nrequires:\n  []\naffects:\n  - S02\n  - S03\nkey_files:\n  - backend/app/views/service.py\n  - backend/app/views/router.py\n  - backend/tests/test_compatible_types.py\n  - backend/app/templates/browser/type_filter_dropdown.html\n  - backend/app/templates/browser/view_toolbar.html\n  - frontend/static/css/views.css\nkey_decisions:\n  - D389: Remove View Variants dropdown entirely — confusing UX with no data model impact\n  - D390: Reuse existing SHACL introspection methods for renderer-filtered type lists\npatterns_established:\n  - Renderer compatibility filtering via SHACL shape introspection — kanban checks _detect_status_field, calendar/timeline check _detect_date_fields, map checks _detect_geo_fields, all others return unfiltered\n  - type_filter_dropdown.html partial with select onchange → htmx swap preserving scope_query — replaces the pill bar pattern\nobservability_surfaces:\n  - get_compatible_types() logs 'compatible_types: renderer=%s total=%d compatible=%d' at INFO level\ndrill_down_paths:\n  - .gsd/milestones/M050/slices/S01/tasks/T01-SUMMARY.md\n  - .gsd/milestones/M050/slices/S01/tasks/T02-SUMMARY.md\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-04-05T21:35:44.285Z\nblocker_discovered: false\n---\n\n# S01: Smart Type Dropdown\n\n**Replaced the 37-pill type bar with a renderer-filtered select dropdown and removed the View Variants dropdown from the toolbar.**\n\n## What Happened\n\nTwo tasks delivered the slice goal cleanly. T01 added `get_compatible_types(renderer, exclude_iris)` to ViewSpecService, reusing existing SHACL introspection methods (`_detect_status_field`, `_detect_date_fields`, `_detect_geo_fields`) to filter types by renderer compatibility. A new JSON endpoint `GET /browser/views/compatible-types?renderer=X` was added. `generic_view()` now passes renderer-filtered types to templates instead of all types. 10 unit tests cover all filter paths including edge cases (unknown renderer, no shapes service, exclude_iris).\n\nT02 created `type_filter_dropdown.html` with a `<select>` element that loops over the filtered types. The onchange handler preserves scope_query from the nearest `.view-scope-select`, persists selection to localStorage, and fires an htmx swap. All 11 view templates (7 core + 4 specialized) were updated from pills to dropdown. The View Variants dropdown was removed from `view_toolbar.html` per D389. CSS rules for pills and variants were removed; new dropdown styles added. `type_filter_pills.html` kept as empty stub to prevent include errors from stale references.\n\n## Verification\n\nAll slice-level checks pass:\n- `grep -r 'type_filter_pills' backend/app/templates/browser/ | grep -v type_filter_pills.html | wc -l` → 0 (no templates reference old pills)\n- All 11 view templates include `type_filter_dropdown` (1 match each confirmed)\n- `grep -c 'view-variant-select' backend/app/templates/browser/view_toolbar.html` → 0 (View Variants removed)\n- `cd backend && .venv/bin/python -m pytest tests/test_compatible_types.py -v` → 10/10 passed (all renderer filter paths, edge cases)\n\n## Requirements Advanced\n\nNone.\n\n## Requirements Validated\n\nNone.\n\n## New Requirements Surfaced\n\nNone.\n\n## Requirements Invalidated or Re-scoped\n\nNone.\n\n## Deviations\n\nT02 updated all 11 view templates instead of the planned 7 — the 4 specialized views (okr, bmc, quadrant, decision-matrix) also included the pills template and needed updating.\n\n## Known Limitations\n\nNone.\n\n## Follow-ups\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/views/service.py` — Added get_compatible_types() method using SHACL introspection to filter types by renderer\n- `backend/app/views/router.py` — Added GET /browser/views/compatible-types endpoint; updated generic_view() to use filtered types\n- `backend/tests/test_compatible_types.py` — New: 10 unit tests for all renderer filter paths and edge cases\n- `backend/app/templates/browser/type_filter_dropdown.html` — New: select dropdown partial with onchange htmx swap and localStorage persistence\n- `backend/app/templates/browser/type_filter_pills.html` — Emptied to stub (prevents include errors from stale references)\n- `backend/app/templates/browser/view_toolbar.html` — Removed View Variants dropdown block\n- `backend/app/templates/browser/table_view.html` — Changed pills include to dropdown include\n- `backend/app/templates/browser/cards_view.html` — Changed pills include to dropdown include\n- `backend/app/templates/browser/kanban_view.html` — Changed pills include to dropdown include\n- `backend/app/templates/browser/graph_view.html` — Changed pills include to dropdown include\n- `backend/app/templates/browser/calendar_view.html` — Changed pills include to dropdown include\n- `backend/app/templates/browser/timeline_view.html` — Changed pills include to dropdown include\n- `backend/app/templates/browser/map_view.html` — Changed pills include to dropdown include\n- `backend/app/templates/browser/okr_view.html` — Changed pills include to dropdown include\n- `backend/app/templates/browser/bmc_view.html` — Changed pills include to dropdown include\n- `backend/app/templates/browser/quadrant_view.html` — Changed pills include to dropdown include\n- `backend/app/templates/browser/decision_matrix_view.html` — Changed pills include to dropdown include\n- `frontend/static/css/views.css` — Removed pill/variant CSS rules; added .type-filter-dropdown and .type-filter-select styles\n",
+      "full_uat_md": "# S01: Smart Type Dropdown — UAT\n\n**Milestone:** M050\n**Written:** 2026-04-05T21:35:44.286Z\n\n## UAT: S01 — Smart Type Dropdown\n\n### Preconditions\n- At least one Mental Model installed (e.g., Basic PKM) that provides types with SHACL shapes\n- Basic PKM Task type has a status field (bpkm:taskStatus with sh:in constraint)\n- At least one type exists without status/date/geo fields (e.g., Concept)\n- Docker dev stack running with backend + triplestore accessible\n\n### Test Case 1: Table View Shows All Types\n1. Open the workspace\n2. Open a Table View tab (via explorer sidebar → VIEWS → Table)\n3. **Expected:** A `<select>` dropdown appears in the toolbar area (not a row of 37 type pill buttons)\n4. Click the dropdown\n5. **Expected:** \"All Types\" is the default option. All installed types appear as options regardless of their SHACL shape fields.\n\n### Test Case 2: Kanban View Shows Only Status-Field Types\n1. Open a Kanban View tab\n2. Click the type dropdown\n3. **Expected:** Only types whose SHACL shape includes a property with `sh:in` constraint appear (e.g., Task). Types without status fields (e.g., Concept, Person) are absent.\n4. **Expected:** The dropdown has fewer options than the Table View dropdown.\n\n### Test Case 3: Calendar/Timeline View Shows Only Date-Field Types\n1. Open a Calendar View tab\n2. Click the type dropdown\n3. **Expected:** Only types whose SHACL shape includes date/dateTime properties appear (e.g., Task with bpkm:dueDate or bpkm:scheduledStart). Types without any date field are absent.\n4. Repeat for Timeline View — same filtering expected.\n\n### Test Case 4: Map View Shows Only Geo-Field Types\n1. Open a Map View tab\n2. Click the type dropdown\n3. **Expected:** Only types whose SHACL shape includes geo-coordinate properties (wgs84:lat/long or similar) appear. If no types have geo fields, the dropdown shows only \"All Types\".\n\n### Test Case 5: Type Selection Triggers View Reload\n1. Open a Table View tab\n2. Select a specific type from the dropdown (e.g., \"Task\")\n3. **Expected:** The view reloads via htmx showing only objects of the selected type\n4. **Expected:** The dropdown retains the selected type after reload\n\n### Test Case 6: Type Selection Persists in localStorage\n1. Open a Table View, select a type (e.g., \"Project\")\n2. Close the tab\n3. Open a new Table View tab\n4. **Expected:** The dropdown remembers the previously selected type (restored from localStorage key `sempkm_generic_type_table`)\n\n### Test Case 7: Scope Query Preserved on Type Change\n1. Open a Table View with a scope query active (e.g., via a saved view with scope)\n2. Change the type in the dropdown\n3. **Expected:** The htmx reload URL includes the scope_query parameter — the scope filter is not lost\n\n### Test Case 8: View Variants Dropdown Removed\n1. Open any view tab (Table, Kanban, Cards, etc.)\n2. Inspect the toolbar area\n3. **Expected:** No \"View Variants\" dropdown is present anywhere in the toolbar. Only the type filter dropdown and scope select remain.\n\n### Test Case 9: Pill Bar Fully Removed\n1. Open any of the 11 view types\n2. **Expected:** No row of type pill buttons appears. The toolbar uses the compact select dropdown instead.\n3. Inspect page source — no `.type-filter-pills` or `.type-pill` CSS classes in the rendered HTML.\n\n### Test Case 10: Compatible Types JSON Endpoint\n1. `curl http://localhost:8000/browser/views/compatible-types?renderer=kanban` (with auth cookie)\n2. **Expected:** JSON response `{\"types\": [...]}` containing only types with status fields\n3. `curl http://localhost:8000/browser/views/compatible-types?renderer=table`\n4. **Expected:** JSON response containing all types (table is unfiltered)\n\n### Edge Cases\n- **No models installed:** All dropdowns show only \"All Types\" with no type options\n- **Unknown renderer in URL:** Falls back to showing all types (safe default)\n- **Specialized views (OKR, BMC, Quadrant, Decision Matrix):** Also use the dropdown, not pills\n",
       "goal": "Replace the 37-pill type bar with a smart `<select>` dropdown filtered by renderer compatibility, and remove the View Variants dropdown.",
       "success_criteria": "- Open Kanban View → type dropdown shows only types with sh:in status fields\n- Open Timeline View → type dropdown shows only types with date fields\n- Open Map View → type dropdown shows only types with geo fields\n- Open Table/Cards/Graph View → type dropdown shows all types\n- No pill bar visible in any view\n- No View Variants dropdown in the toolbar\n- Type selection persists via localStorage and survives tab reopen",
       "proof_level": "Contract — verified by backend unit tests for compatible-type filtering + manual browser verification of the dropdown in each renderer",
@@ -8119,11 +8119,11 @@
       "completed_at": null,
       "full_summary_md": "",
       "full_uat_md": "",
-      "goal": "Remove View Variants dropdown, fix calendar dark mode nav icons, add timeline popover dismiss",
-      "success_criteria": "- View Variants dropdown removed from view_toolbar.html\n- .view-variant-select CSS removed\n- Calendar dark mode nav buttons visible (--fc-button-text-color set)\n- Timeline popover dismisses on Escape and click-outside\n- model_view_specs logic removed from generic_view() router",
-      "proof_level": "manual + E2E",
-      "integration_closure": "Toolbar renders cleanly across all renderers. No references to view-variant-select remain.",
-      "observability_impact": "None",
+      "goal": "Clean up remaining view polish issues: calendar dark mode nav icons visible, timeline popover dismisses on Escape/click-outside.",
+      "success_criteria": "- Calendar prev/next nav buttons show visible icons in dark mode (FC6 custom properties override)\n- Timeline bar popup dismisses on Escape keypress\n- Timeline bar popup dismisses on click outside the popup\n- Timeline cleanup registered for dockview panel destroy lifecycle",
+      "proof_level": "visual + grep verification",
+      "integration_closure": "No new wiring. Both fixes are leaf-level CSS/JS changes with no upstream/downstream dependencies beyond S01's toolbar cleanup.",
+      "observability_impact": "None — CSS and event-handler changes only.",
       "sequence": 0,
       "replan_triggered_at": null
     },
@@ -32700,6 +32700,76 @@
       "observability_impact": "",
       "full_plan_md": "",
       "sequence": 0
+    },
+    {
+      "milestone_id": "M050",
+      "slice_id": "S02",
+      "id": "T01",
+      "title": "Added 8 FC6 button custom properties to dark mode .fc block and removed 3 redundant direct-property override selectors for visible calendar nav icons",
+      "status": "complete",
+      "one_liner": "Added 8 FC6 button custom properties to dark mode .fc block and removed 3 redundant direct-property override selectors for visible calendar nav icons",
+      "narrative": "FullCalendar 6's .fc-button-primary reads color from --fc-button-text-color. The existing dark mode fix set color directly on .fc .fc-button, but FC6's custom-property rule won at specificity, leaving nav icons invisible. Added all 8 --fc-button-* custom properties to the [data-theme=\"dark\"] .fc block, which FC6 reads natively. Removed the three now-redundant direct-property override blocks (.fc-button, .fc-button:hover, .fc-button-active) since the custom properties handle all states.",
+      "verification_result": "Ran grep checks confirming all 3 key custom properties present (fc-button-text-color, fc-button-bg-color, fc-button-active-text-color). Verified no remaining direct-property override blocks via grep for [data-theme=\"dark\"] .fc .fc-button returning zero matches. All 8 custom properties confirmed in the dark mode .fc block.",
+      "duration": "",
+      "completed_at": "2026-04-05T21:43:26.769Z",
+      "blocker_discovered": false,
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "frontend/static/css/views.css"
+      ],
+      "key_decisions": [
+        "Replaced three direct-property override blocks with eight FC6 custom properties in the [data-theme=\"dark\"] .fc block"
+      ],
+      "full_summary_md": "---\nid: T01\nparent: S02\nmilestone: M050\nkey_files:\n  - frontend/static/css/views.css\nkey_decisions:\n  - Replaced three direct-property override blocks with eight FC6 custom properties in the [data-theme=\"dark\"] .fc block\nduration: \nverification_result: passed\ncompleted_at: 2026-04-05T21:43:26.768Z\nblocker_discovered: false\n---\n\n# T01: Added 8 FC6 button custom properties to dark mode .fc block and removed 3 redundant direct-property override selectors for visible calendar nav icons\n\n**Added 8 FC6 button custom properties to dark mode .fc block and removed 3 redundant direct-property override selectors for visible calendar nav icons**\n\n## What Happened\n\nFullCalendar 6's .fc-button-primary reads color from --fc-button-text-color. The existing dark mode fix set color directly on .fc .fc-button, but FC6's custom-property rule won at specificity, leaving nav icons invisible. Added all 8 --fc-button-* custom properties to the [data-theme=\"dark\"] .fc block, which FC6 reads natively. Removed the three now-redundant direct-property override blocks (.fc-button, .fc-button:hover, .fc-button-active) since the custom properties handle all states.\n\n## Verification\n\nRan grep checks confirming all 3 key custom properties present (fc-button-text-color, fc-button-bg-color, fc-button-active-text-color). Verified no remaining direct-property override blocks via grep for [data-theme=\"dark\"] .fc .fc-button returning zero matches. All 8 custom properties confirmed in the dark mode .fc block.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `grep -c 'fc-button-text-color' frontend/static/css/views.css` | 0 | ✅ pass | 50ms |\n| 2 | `grep -c 'fc-button-bg-color' frontend/static/css/views.css` | 0 | ✅ pass | 50ms |\n| 3 | `grep -c 'fc-button-active-text-color' frontend/static/css/views.css` | 0 | ✅ pass | 50ms |\n| 4 | `grep -n '[data-theme=\"dark\"] .fc .fc-button' frontend/static/css/views.css` | 1 | ✅ pass (no matches = direct overrides removed) | 50ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `frontend/static/css/views.css`\n",
+      "description": "## Description\n\nThe FullCalendar 6.1.17 prev/next nav buttons use an icon font (`fcicons`) where the icon color is inherited from the button's `color` property. In dark mode, FC6's `.fc .fc-button-primary { color: var(--fc-button-text-color) }` wins the specificity battle over the direct `color` override in `[data-theme=\"dark\"] .fc .fc-button`. The fix is to set FC6's custom properties (`--fc-button-text-color`, `--fc-button-bg-color`, etc.) in the existing dark mode block, then simplify or remove the now-redundant direct-property overrides.\n\n## Steps\n\n1. Read `frontend/static/css/views.css` lines 1376–1412 (the dark mode FC block).\n2. Add FC6 button custom properties to the `[data-theme=\"dark\"] .fc` block (lines ~1376):\n   ```css\n   --fc-button-text-color: var(--color-text);\n   --fc-button-bg-color: var(--color-bg-secondary);\n   --fc-button-border-color: var(--color-border);\n   --fc-button-hover-bg-color: var(--color-bg-hover);\n   --fc-button-hover-border-color: var(--color-border);\n   --fc-button-active-bg-color: var(--color-accent);\n   --fc-button-active-border-color: var(--color-accent);\n   --fc-button-active-text-color: var(--color-on-accent);\n   ```\n3. Remove the now-redundant direct-property override blocks:\n   - `[data-theme=\"dark\"] .fc .fc-button` (lines ~1388–1392) — custom properties handle bg, border, color\n   - `[data-theme=\"dark\"] .fc .fc-button:hover` (lines ~1394–1396) — custom property handles hover bg\n   - `[data-theme=\"dark\"] .fc .fc-button-active` (lines ~1398–1402) — custom property handles active state\n4. Verify with grep that the custom properties are set and the direct overrides are gone.\n\n## Must-Haves\n\n- [ ] `--fc-button-text-color` set in dark mode `.fc` block\n- [ ] `--fc-button-bg-color` set in dark mode `.fc` block\n- [ ] `--fc-button-active-bg-color` set in dark mode `.fc` block\n- [ ] No remaining `[data-theme=\"dark\"] .fc .fc-button {` direct-property block (custom properties replace it)\n\n## Verification\n\n- `grep -c 'fc-button-text-color' frontend/static/css/views.css` returns >= 1\n- `grep -c 'fc-button-bg-color' frontend/static/css/views.css` returns >= 1\n- `grep -c 'fc-button-active-text-color' frontend/static/css/views.css` returns >= 1\n- The `[data-theme=\"dark\"] .fc` block contains all 8 button custom properties",
+      "estimate": "15m",
+      "files": [
+        "frontend/static/css/views.css"
+      ],
+      "verify": "grep -c 'fc-button-text-color' frontend/static/css/views.css && grep -c 'fc-button-bg-color' frontend/static/css/views.css && grep -c 'fc-button-active-text-color' frontend/static/css/views.css",
+      "inputs": [
+        "`frontend/static/css/views.css` — existing dark mode FullCalendar override block at lines 1376–1412"
+      ],
+      "expected_output": [
+        "`frontend/static/css/views.css` — dark mode block updated with FC6 button custom properties, redundant direct-property overrides removed"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M050",
+      "slice_id": "S02",
+      "id": "T02",
+      "title": "Add timeline popover dismiss on Escape and click-outside with cleanup registration",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "## Description\n\nFrappe Gantt 1.2.2 shows a `.popup-wrapper` on bar click but has no built-in dismiss mechanism. Users must click another bar to close the popup — there's no Escape or click-outside support. The fix adds document-level event listeners after `new Gantt(...)` and registers cleanup via `window.registerCleanup` for the dockview panel destroy lifecycle.\n\nThe Gantt instance is a local variable inside the `initTimeline()` function's `.then()` callback, so the dismiss handlers must be added in that same scope, after the `new Gantt(...)` call.\n\n## Steps\n\n1. Read `backend/app/templates/browser/timeline_view.html` to confirm the Gantt init location and popup structure.\n2. After the `new Gantt(...)` call (around line 93) and the `SemPKM.debug(...)` log line, add:\n   ```javascript\n   // Dismiss popup on click-outside\n   function onDocClick(e) {\n       var pw = el.querySelector('.popup-wrapper');\n       if (pw && !pw.classList.contains('hide') && !pw.contains(e.target) && !e.target.closest('.bar-wrapper')) {\n           gantt.hide_popup();\n       }\n   }\n   // Dismiss popup on Escape\n   function onDocKeydown(e) {\n       if (e.key === 'Escape') {\n           var pw = el.querySelector('.popup-wrapper');\n           if (pw && !pw.classList.contains('hide')) {\n               gantt.hide_popup();\n           }\n       }\n   }\n   document.addEventListener('click', onDocClick);\n   document.addEventListener('keydown', onDocKeydown);\n   ```\n3. After the event listeners, add cleanup registration:\n   ```javascript\n   if (typeof window.registerCleanup === 'function') {\n       window.registerCleanup('timeline-container', function() {\n           document.removeEventListener('click', onDocClick);\n           document.removeEventListener('keydown', onDocKeydown);\n       });\n   }\n   ```\n4. The click handler excludes `.bar-wrapper` clicks to avoid immediately dismissing the popup when clicking a bar (which opens it). The Escape handler checks that the popup is visible before calling `hide_popup()` to avoid no-op calls.\n5. Verify with grep that `hide_popup`, `Escape`, and `registerCleanup` all appear in the template.\n\n## Must-Haves\n\n- [ ] Document `click` listener calls `gantt.hide_popup()` when clicking outside `.popup-wrapper` and outside `.bar-wrapper`\n- [ ] Document `keydown` listener calls `gantt.hide_popup()` on Escape when popup is visible\n- [ ] Both listeners registered via `document.addEventListener`\n- [ ] Cleanup registered via `window.registerCleanup('timeline-container', ...)` to remove both listeners\n\n## Verification\n\n- `grep -c 'hide_popup' backend/app/templates/browser/timeline_view.html` returns >= 2 (click + Escape handlers)\n- `grep -c 'Escape' backend/app/templates/browser/timeline_view.html` returns >= 1\n- `grep -c 'registerCleanup' backend/app/templates/browser/timeline_view.html` returns >= 1",
+      "estimate": "15m",
+      "files": [
+        "backend/app/templates/browser/timeline_view.html"
+      ],
+      "verify": "grep -c 'hide_popup' backend/app/templates/browser/timeline_view.html && grep -c 'Escape' backend/app/templates/browser/timeline_view.html && grep -c 'registerCleanup' backend/app/templates/browser/timeline_view.html",
+      "inputs": [
+        "`backend/app/templates/browser/timeline_view.html` — existing timeline template with Gantt init at line 93, no popup dismiss or cleanup logic"
+      ],
+      "expected_output": [
+        "`backend/app/templates/browser/timeline_view.html` — click-outside dismiss, Escape dismiss, and registerCleanup added after Gantt init"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
     }
   ],
   "decisions": [
@@ -40387,6 +40457,50 @@
       "verdict": "✅ pass",
       "duration_ms": 700,
       "created_at": "2026-04-05T21:34:06.908Z"
+    },
+    {
+      "id": 274,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M050",
+      "command": "grep -c 'fc-button-text-color' frontend/static/css/views.css",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-04-05T21:43:26.769Z"
+    },
+    {
+      "id": 275,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M050",
+      "command": "grep -c 'fc-button-bg-color' frontend/static/css/views.css",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-04-05T21:43:26.769Z"
+    },
+    {
+      "id": 276,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M050",
+      "command": "grep -c 'fc-button-active-text-color' frontend/static/css/views.css",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-04-05T21:43:26.769Z"
+    },
+    {
+      "id": 277,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M050",
+      "command": "grep -n '[data-theme=\"dark\"] .fc .fc-button' frontend/static/css/views.css",
+      "exit_code": 1,
+      "verdict": "✅ pass (no matches = direct overrides removed)",
+      "duration_ms": 50,
+      "created_at": "2026-04-05T21:43:26.769Z"
     }
   ]
 }
