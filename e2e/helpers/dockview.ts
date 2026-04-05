@@ -171,7 +171,7 @@ export async function isPanelActive(page: Page, panelId: string): Promise<boolea
 /**
  * Open a generic view tab via the application's openGenericViewTab() API.
  *
- * This wraps `window.SemPKM.openGenericViewTab(renderer, scopeQuery, scopeLabel)`,
+ * This wraps `window.SemPKM.openGenericViewTab(renderer, scopeQuery, scopeLabel, selectedType)`,
  * the M031 entry point that opens table/card/graph/kanban tabs from the
  * explorer sidebar or programmatically.
  *
@@ -190,12 +190,13 @@ export async function openGenericViewTab(
   scopeLabel?: string,
   timeoutMs = 15000,
   waitState?: 'visible' | 'attached' | 'hidden' | 'detached',
+  selectedType?: string,
 ) {
-  await page.evaluate(({ renderer, scopeQuery, scopeLabel }) => {
+  await page.evaluate(({ renderer, scopeQuery, scopeLabel, selectedType }) => {
     if (typeof (window as any).SemPKM?.openGenericViewTab === 'function') {
-      (window as any).SemPKM.openGenericViewTab(renderer, scopeQuery || '', scopeLabel || '');
+      (window as any).SemPKM.openGenericViewTab(renderer, scopeQuery || '', scopeLabel || '', selectedType || '');
     }
-  }, { renderer, scopeQuery, scopeLabel });
+  }, { renderer, scopeQuery, scopeLabel, selectedType });
   await page.waitForSelector(waitSelector, { timeout: timeoutMs, ...(waitState ? { state: waitState } : {}) });
 }
 
@@ -226,4 +227,6 @@ export async function openDashboardTab(
   );
   // Wait for GridStack container to appear in the dockview panel
   await page.waitForSelector('.grid-stack', { timeout: timeoutMs });
+}
+.waitForSelector('.grid-stack', { timeout: timeoutMs });
 }

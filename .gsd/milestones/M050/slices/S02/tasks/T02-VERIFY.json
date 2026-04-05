@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T02",
+  "unitId": "M050/S02/T02",
+  "timestamp": 1775425516558,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "grep -c 'hide_popup' backend/app/templates/browser/timeline_view.html",
+      "exitCode": 0,
+      "durationMs": 31,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -c 'Escape' backend/app/templates/browser/timeline_view.html",
+      "exitCode": 0,
+      "durationMs": 30,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -c 'registerCleanup' backend/app/templates/browser/timeline_view.html",
+      "exitCode": 0,
+      "durationMs": 29,
+      "verdict": "pass"
+    }
+  ]
+}

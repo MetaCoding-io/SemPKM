@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-05T21:45:10.565Z",
+  "exported_at": "2026-04-05T21:56:51.830Z",
   "milestones": [
     {
       "id": "M001",
@@ -8109,16 +8109,16 @@
       "milestone_id": "M050",
       "id": "S02",
       "title": "Toolbar Cleanup + View Polish",
-      "status": "pending",
+      "status": "complete",
       "risk": "low",
       "depends": [
         "S01"
       ],
       "demo": "View toolbar is clean — no View Variants dropdown. Calendar dark mode shows visible nav buttons. Timeline popover dismisses on Escape/click-outside.",
       "created_at": "2026-04-05T21:21:40.434Z",
-      "completed_at": null,
-      "full_summary_md": "",
-      "full_uat_md": "",
+      "completed_at": "2026-04-05T21:46:25.678Z",
+      "full_summary_md": "---\nid: S02\nparent: M050\nmilestone: M050\nprovides:\n  - Clean view toolbar — no View Variants dropdown, visible calendar dark mode nav, dismissible timeline popups\nrequires:\n  - slice: S01\n    provides: Smart type dropdown replacing 37-pill type bar\naffects:\n  - S03\nkey_files:\n  - frontend/static/css/views.css\n  - backend/app/templates/browser/timeline_view.html\nkey_decisions:\n  - Replaced 3 direct-property FC dark mode override blocks with 8 FC6 custom properties — lets FC6 read colors natively instead of fighting specificity\n  - Used gantt.hide_popup() Frappe Gantt built-in API for dismiss, with document-level listeners + registerCleanup matching the established dockview cleanup pattern\npatterns_established:\n  - (none)\nobservability_surfaces:\n  - none\ndrill_down_paths:\n  - .gsd/milestones/M050/slices/S02/tasks/T01-SUMMARY.md\n  - .gsd/milestones/M050/slices/S02/tasks/T02-SUMMARY.md\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-04-05T21:46:25.679Z\nblocker_discovered: false\n---\n\n# S02: Toolbar Cleanup + View Polish\n\n**Fixed calendar dark mode nav icon visibility via FC6 custom properties and added Escape/click-outside dismiss for timeline Gantt popups.**\n\n## What Happened\n\nTwo targeted CSS/JS polish fixes for the view system.\n\n**T01 — Calendar dark mode nav icons:** FullCalendar 6's `.fc-button-primary` reads icon color from `--fc-button-text-color`, not from a direct `color` property. The existing dark mode override set `color` directly on `.fc .fc-button`, but FC6's custom-property rule won the specificity battle, leaving prev/next nav icons invisible in dark mode. Fixed by adding all 8 `--fc-button-*` custom properties to the `[data-theme=\"dark\"] .fc` block, which FC6 reads natively. Removed three now-redundant direct-property override blocks (`.fc-button`, `.fc-button:hover`, `.fc-button-active`).\n\n**T02 — Timeline popup dismiss:** Frappe Gantt 1.2.2's `.popup-wrapper` has no built-in dismiss mechanism — clicking another bar is the only way to close it. Added two document-level event listeners inside the `initTimeline()` callback: a click handler that calls `gantt.hide_popup()` when clicking outside `.popup-wrapper` and `.bar-wrapper`, and a keydown handler that dismisses on Escape when the popup is visible. Both listeners are cleaned up via `window.registerCleanup('timeline-container', ...)` for dockview panel lifecycle, matching the established pattern from calendar.js and canvas.js.\n\n## Verification\n\nAll slice-level checks passed:\n- `grep -c 'fc-button-text-color' frontend/static/css/views.css` → 1 ✅\n- `grep -c 'fc-button-bg-color' frontend/static/css/views.css` → 1 ✅\n- `grep -c 'fc-button-active-text-color' frontend/static/css/views.css` → 1 ✅\n- `grep -n '[data-theme=\"dark\"] .fc .fc-button'` → no matches (direct overrides removed) ✅\n- `grep -c 'hide_popup' backend/app/templates/browser/timeline_view.html` → 2 ✅\n- `grep -c 'Escape' backend/app/templates/browser/timeline_view.html` → 2 ✅\n- `grep -c 'registerCleanup' backend/app/templates/browser/timeline_view.html` → 2 ✅\n\n## Requirements Advanced\n\nNone.\n\n## Requirements Validated\n\nNone.\n\n## New Requirements Surfaced\n\nNone.\n\n## Requirements Invalidated or Re-scoped\n\nNone.\n\n## Deviations\n\nNone.\n\n## Known Limitations\n\nNone.\n\n## Follow-ups\n\nNone.\n\n## Files Created/Modified\n\n- `frontend/static/css/views.css` — Added 8 FC6 button custom properties to dark mode .fc block, removed 3 redundant direct-property override selectors\n- `backend/app/templates/browser/timeline_view.html` — Added click-outside and Escape dismiss handlers for Frappe Gantt popup with dockview registerCleanup\n",
+      "full_uat_md": "# S02: Toolbar Cleanup + View Polish — UAT\n\n**Milestone:** M050\n**Written:** 2026-04-05T21:46:25.679Z\n\n## UAT: S02 — Toolbar Cleanup + View Polish\n\n### Preconditions\n- SemPKM running with at least one Mental Model installed (basic-pkm recommended)\n- At least one type with date fields (e.g., Task with dueDate/scheduledStart) for calendar/timeline views\n- Dark mode and light mode both available via theme toggle\n\n---\n\n### Test 1: Calendar dark mode nav icon visibility\n1. Open workspace, switch to **dark mode** via theme toggle\n2. Open a Calendar view (any type with date fields)\n3. Observe the prev/next navigation buttons in the calendar toolbar header\n4. **Expected:** Arrow icons are clearly visible (light text on dark button background)\n5. Click prev and next buttons\n6. **Expected:** Buttons respond to clicks, calendar navigates months. Hover state shows distinct background change. Active/today button shows accent color.\n7. Switch to **light mode**\n8. **Expected:** Calendar nav buttons still render correctly (no regression)\n\n### Test 2: Timeline popup Escape dismiss\n1. Open a Timeline view for a type with date-bearing instances (e.g., Tasks)\n2. Click a Gantt bar to open the popup detail card\n3. **Expected:** `.popup-wrapper` appears near the clicked bar\n4. Press **Escape**\n5. **Expected:** Popup dismisses immediately\n6. Click another bar to reopen a popup\n7. Press Escape again\n8. **Expected:** Popup dismisses again (handler survives multiple uses)\n\n### Test 3: Timeline popup click-outside dismiss\n1. Open a Timeline view, click a Gantt bar to open popup\n2. Click on empty space in the timeline (not on any bar, not inside the popup)\n3. **Expected:** Popup dismisses\n4. Click a bar again to reopen popup\n5. Click inside the popup text area\n6. **Expected:** Popup stays open (click is inside .popup-wrapper)\n7. Click on a different Gantt bar\n8. **Expected:** Previous popup closes, new bar's popup opens (Frappe Gantt native behavior)\n\n### Test 4: Timeline panel cleanup on close\n1. Open a Timeline view tab\n2. Click a Gantt bar to confirm popup works\n3. Close the Timeline tab (click X on the dockview tab)\n4. Open a new Timeline tab\n5. Click a bar, press Escape\n6. **Expected:** Dismiss still works — no stale listeners from previous panel. No console errors about removed elements.\n\n### Edge Cases\n- **No date data:** Open timeline for a type with no date-bearing instances → Gantt renders empty, no popup to dismiss, no errors\n- **Rapid Escape:** Press Escape when no popup is open → no error, no-op\n- **Multiple timeline tabs:** Open two timeline tabs side by side, open popups in both, press Escape → only the focused tab's popup dismisses\n",
       "goal": "Clean up remaining view polish issues: calendar dark mode nav icons visible, timeline popover dismisses on Escape/click-outside.",
       "success_criteria": "- Calendar prev/next nav buttons show visible icons in dark mode (FC6 custom properties override)\n- Timeline bar popup dismisses on Escape keypress\n- Timeline bar popup dismisses on click outside the popup\n- Timeline cleanup registered for dockview panel destroy lifecycle",
       "proof_level": "visual + grep verification",
@@ -8142,11 +8142,11 @@
       "completed_at": null,
       "full_summary_md": "",
       "full_uat_md": "",
-      "goal": "Fix the broken save/restore flow for view type filters and write E2E tests covering the new toolbar",
-      "success_criteria": "- saveCurrentView() persists type_filter correctly\n- openGenericViewTab() accepts selectedType parameter directly\n- my_views.html passes type_filter in onclick handler\n- Saved view round-trip preserves renderer + type + scope\n- E2E: open kanban → verify dropdown has subset of types\n- E2E: save view with type → restore → same type selected\n- E2E: calendar dark mode nav buttons visible\n- Existing E2E view tests still pass (selectors updated if needed)",
-      "proof_level": "E2E",
-      "integration_closure": "Full save→store→restore→render cycle works end-to-end through RDF storage and JS restore path.",
-      "observability_impact": "None",
+      "goal": "Fix the save/restore view flow so that saved views preserve and restore their type filter and scope query, and prove it with E2E tests.",
+      "success_criteria": "## Must-Haves\n\n- `openGenericViewTab()` accepts an optional `selectedType` parameter and uses it (falling back to localStorage when not provided)\n- `my_views.html` onclick handlers pass `pv.type_filter` to `openGenericViewTab()`\n- E2E helper `openGenericViewTab()` in dockview.ts accepts and forwards `selectedType`\n- Stale `variantSelect` selector removed from selectors.ts; new view selectors added\n- E2E test `e2e/tests/02-views/save-restore-view.spec.ts` passes — covers save, find-in-sidebar, restore-with-type-filter, and delete\n\n## Verification\n\n- `rg 'function openGenericViewTab' frontend/static/js/workspace.js` shows 4-param signature including `selectedType`\n- `rg 'openGenericViewTab' backend/app/templates/browser/my_views.html` shows `pv.type_filter` as 4th arg\n- `rg 'variantSelect' e2e/helpers/selectors.ts` returns zero results\n- `cd /home/james/Code/SemPKM && npx playwright test e2e/tests/02-views/save-restore-view.spec.ts --reporter=list` passes",
+      "proof_level": "Integration — proves the full save→sidebar→restore round-trip works with real backend + frontend + dockview.",
+      "integration_closure": "Upstream surfaces consumed: S01 type_filter_dropdown.html partial, S01 get_compatible_types() endpoint, S02 clean toolbar. New wiring: openGenericViewTab() 4th parameter flows from my_views.html → workspace.js → dockview panel params → view URL. What remains: nothing — this is the final slice.",
+      "observability_impact": "None — this is a parameter-plumbing fix with no new runtime signals.",
       "sequence": 0,
       "replan_triggered_at": null
     }
@@ -32775,6 +32775,95 @@
       "observability_impact": "",
       "full_plan_md": "",
       "sequence": 0
+    },
+    {
+      "milestone_id": "M050",
+      "slice_id": "S03",
+      "id": "T01",
+      "title": "Added selectedType parameter to openGenericViewTab with localStorage fallback, wired type_filter from saved views template, and updated E2E helpers and selectors",
+      "status": "complete",
+      "one_liner": "Added selectedType parameter to openGenericViewTab with localStorage fallback, wired type_filter from saved views template, and updated E2E helpers and selectors",
+      "narrative": "Fixed the save/restore view flow so saved views can restore their type filter. openGenericViewTab() now accepts an optional 4th selectedType parameter with localStorage fallback. Updated my_views.html to pass pv.type_filter. Updated E2E dockview helper to forward selectedType. Updated selectors.ts: removed obsolete variantSelect, added typeFilterDropdown, savedViewsTree, savedViewEntry.",
+      "verification_result": "Ran task verification command: confirmed selectedType in function signature, type_filter in my_views.html onclick, variantSelect absent from selectors.ts, and selectedType forwarded in E2E helper (5 hits in dockview.ts). Verified all 25 existing E2E callers pass ≤7 args — backward compatible.",
+      "duration": "",
+      "completed_at": "2026-04-05T21:56:51.784Z",
+      "blocker_discovered": false,
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "frontend/static/js/workspace.js",
+        "backend/app/templates/browser/my_views.html",
+        "e2e/helpers/dockview.ts",
+        "e2e/helpers/selectors.ts"
+      ],
+      "key_decisions": [
+        "Renamed internal var to resolvedType to avoid confusion with the selectedType parameter name",
+        "Placed selectedType after waitState in E2E helper to preserve backward compat with all 25 existing callers"
+      ],
+      "full_summary_md": "---\nid: T01\nparent: S03\nmilestone: M050\nkey_files:\n  - frontend/static/js/workspace.js\n  - backend/app/templates/browser/my_views.html\n  - e2e/helpers/dockview.ts\n  - e2e/helpers/selectors.ts\nkey_decisions:\n  - Renamed internal var to resolvedType to avoid confusion with the selectedType parameter name\n  - Placed selectedType after waitState in E2E helper to preserve backward compat with all 25 existing callers\nduration: \nverification_result: passed\ncompleted_at: 2026-04-05T21:56:51.783Z\nblocker_discovered: false\n---\n\n# T01: Added selectedType parameter to openGenericViewTab with localStorage fallback, wired type_filter from saved views template, and updated E2E helpers and selectors\n\n**Added selectedType parameter to openGenericViewTab with localStorage fallback, wired type_filter from saved views template, and updated E2E helpers and selectors**\n\n## What Happened\n\nFixed the save/restore view flow so saved views can restore their type filter. openGenericViewTab() now accepts an optional 4th selectedType parameter with localStorage fallback. Updated my_views.html to pass pv.type_filter. Updated E2E dockview helper to forward selectedType. Updated selectors.ts: removed obsolete variantSelect, added typeFilterDropdown, savedViewsTree, savedViewEntry.\n\n## Verification\n\nRan task verification command: confirmed selectedType in function signature, type_filter in my_views.html onclick, variantSelect absent from selectors.ts, and selectedType forwarded in E2E helper (5 hits in dockview.ts). Verified all 25 existing E2E callers pass ≤7 args — backward compatible.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `rg 'function openGenericViewTab' workspace.js | grep -q 'selectedType'` | 0 | ✅ pass | 100ms |\n| 2 | `rg 'openGenericViewTab' my_views.html | grep -q 'type_filter'` | 0 | ✅ pass | 100ms |\n| 3 | `rg 'variantSelect' selectors.ts | wc -l | grep -q '^0$'` | 0 | ✅ pass | 100ms |\n| 4 | `grep -n 'selectedType' e2e/helpers/dockview.ts (5 hits)` | 0 | ✅ pass | 100ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `frontend/static/js/workspace.js`\n- `backend/app/templates/browser/my_views.html`\n- `e2e/helpers/dockview.ts`\n- `e2e/helpers/selectors.ts`\n",
+      "description": "## Description\n\nThe save/restore flow stores `type_filter` correctly in RDF but never restores it because `openGenericViewTab()` only reads from localStorage, and `my_views.html` doesn't pass the stored value. This task fixes both bugs and updates the E2E infrastructure.\n\n## Steps\n\n1. **Read** `frontend/static/js/workspace.js` around the `openGenericViewTab` function (line ~3765). Add `selectedType` as a 4th parameter with fallback:\n   - Change signature from `function openGenericViewTab(renderer, scopeQuery, scopeLabel)` to `function openGenericViewTab(renderer, scopeQuery, scopeLabel, selectedType)`\n   - Change the selectedType assignment from `var selectedType = localStorage.getItem('sempkm_generic_type_' + renderer) || '';` to `var selectedType = selectedType || localStorage.getItem('sempkm_generic_type_' + renderer) || '';`\n   - **Important:** The new param must shadow the `var` declaration. Rename the `var` to avoid confusion: use `var resolvedType = selectedType || localStorage.getItem(...)` and pass `resolvedType` to the dockview params.\n\n2. **Read** `backend/app/templates/browser/my_views.html`. Update the non-query onclick handler:\n   - Change from: `onclick=\"openGenericViewTab('{{ pv.renderer_type }}', '{{ pv.scope_query_id | default('') }}', '{{ pv.display_label | replace(\"'\", \"\\\\'\") }}')\"`\n   - Change to: `onclick=\"openGenericViewTab('{{ pv.renderer_type }}', '{{ pv.scope_query_id | default('') }}', '{{ pv.display_label | replace(\"'\", \"\\\\'\") }}', '{{ pv.type_filter | default('') }}')\"`\n\n3. **Read** `e2e/helpers/dockview.ts`. Add `selectedType` parameter to the `openGenericViewTab` helper:\n   - Add `selectedType?: string` parameter after `scopeLabel`\n   - Update the `page.evaluate` call to pass `selectedType` and forward it to `window.SemPKM.openGenericViewTab(renderer, scopeQuery || '', scopeLabel || '', selectedType || '')`\n\n4. **Read** `e2e/helpers/selectors.ts`. In the `views:` block:\n   - Remove `variantSelect: '.view-variant-select'` (View Variants was removed in S02)\n   - Add `typeFilterDropdown: '.type-filter-select'`\n   - Add `savedViewsTree: '#saved-views-tree'`\n   - Add `savedViewEntry: '.view-leaf[data-view-id]'`\n\n5. **Verify** all changes with grep checks.\n\n## Must-Haves\n\n- [ ] `openGenericViewTab()` accepts optional 4th `selectedType` parameter with localStorage fallback\n- [ ] All existing callers (which pass 3 args) continue working — the 4th param is optional\n- [ ] `my_views.html` passes `pv.type_filter` to `openGenericViewTab()`\n- [ ] E2E `openGenericViewTab` helper forwards `selectedType`\n- [ ] `variantSelect` removed from selectors.ts",
+      "estimate": "30m",
+      "files": [
+        "frontend/static/js/workspace.js",
+        "backend/app/templates/browser/my_views.html",
+        "e2e/helpers/dockview.ts",
+        "e2e/helpers/selectors.ts"
+      ],
+      "verify": "rg 'function openGenericViewTab' frontend/static/js/workspace.js | grep -q 'selectedType' && rg 'openGenericViewTab' backend/app/templates/browser/my_views.html | grep -q 'type_filter' && rg 'variantSelect' e2e/helpers/selectors.ts | wc -l | grep -q '^0$' && echo 'T01 PASS'",
+      "inputs": [
+        "`frontend/static/js/workspace.js` — contains openGenericViewTab() function at line ~3765",
+        "`backend/app/templates/browser/my_views.html` — saved views sidebar template with onclick handlers",
+        "`e2e/helpers/dockview.ts` — E2E helper wrapping openGenericViewTab()",
+        "`e2e/helpers/selectors.ts` — centralized CSS selectors for E2E tests"
+      ],
+      "expected_output": [
+        "`frontend/static/js/workspace.js` — openGenericViewTab() with 4-param signature",
+        "`backend/app/templates/browser/my_views.html` — onclick passes pv.type_filter as 4th arg",
+        "`e2e/helpers/dockview.ts` — helper forwards selectedType parameter",
+        "`e2e/helpers/selectors.ts` — variantSelect removed, typeFilterDropdown/savedViewsTree/savedViewEntry added"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M050",
+      "slice_id": "S03",
+      "id": "T02",
+      "title": "E2E test for save/restore view flow",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "## Description\n\nCreate an E2E test that exercises the full save→sidebar→restore round-trip: open a generic view, select a type filter, save the view, find it in the Saved Views sidebar, click to restore, and verify the type filter is preserved. Also test delete.\n\n## Steps\n\n1. **Read** existing E2E view tests for patterns: `e2e/tests/02-views/m031-views.spec.ts` (uses `openGenericViewTab` helper, `waitForWorkspace`, `SEL.views`). Read `e2e/fixtures/auth.ts` for the auth fixture import pattern.\n\n2. **Create** `e2e/tests/02-views/save-restore-view.spec.ts` with these tests:\n\n   **Test 1: Save a view with type filter and restore it**\n   - Navigate to workspace, wait for load\n   - Open a table view via `openGenericViewTab(ownerPage, 'table', SEL.views.table)`\n   - Wait for `.type-filter-select` to appear and have options loaded (wait for `option[value]` child)\n   - Select a type from the dropdown: `page.selectOption('.type-filter-select', { index: 1 })` (first non-empty option)\n   - Read the selected type value for later assertion\n   - Register a dialog listener that accepts with a view name (e.g., 'E2E Test View'): `page.on('dialog', d => d.accept('E2E Test View'))`\n   - Click the save button: `page.click('.save-view-btn')`\n   - Wait for toast or sidebar refresh\n   - Expand the SAVED VIEWS section in the explorer sidebar (click `[data-panel-section=\"saved-views\"]` or the section header)\n   - Wait for `#saved-views-tree` to load (it uses `hx-trigger=\"intersect once\"`)\n   - Assert a `.view-leaf` with text 'E2E Test View' appears in `#saved-views-tree`\n   - Click the saved view entry\n   - Wait for the new dockview panel to appear (a second table view tab)\n   - Assert the `.type-filter-select` in the new panel has the same type value selected\n\n   **Test 2: Delete a saved view**\n   - (After Test 1 or as a continuation) Click the pin-off button on the saved view entry\n   - Handle the `confirm()` dialog\n   - Assert the view entry is removed from the sidebar\n\n3. **Handle edge cases:**\n   - The saved views section may need explicit expansion (click the section header) before the htmx `intersect` trigger fires\n   - The `window.prompt()` in saveCurrentView needs `page.on('dialog')` registered BEFORE clicking save\n   - The `window.confirm()` in deleteSavedView also needs a dialog listener\n   - Type dropdown options load via htmx — wait for options before selecting\n\n4. **Run** `npx playwright test e2e/tests/02-views/save-restore-view.spec.ts --reporter=list` and iterate until it passes.\n\n## Must-Haves\n\n- [ ] Test file exists at `e2e/tests/02-views/save-restore-view.spec.ts`\n- [ ] Covers save with type filter, find in sidebar, restore with type filter preserved, and delete\n- [ ] Uses auth fixture, `openGenericViewTab` helper, and SEL selectors\n- [ ] Handles `window.prompt()` and `window.confirm()` dialogs via Playwright dialog listeners\n- [ ] All tests pass",
+      "estimate": "45m",
+      "files": [
+        "e2e/tests/02-views/save-restore-view.spec.ts"
+      ],
+      "verify": "cd /home/james/Code/SemPKM && npx playwright test e2e/tests/02-views/save-restore-view.spec.ts --reporter=list",
+      "inputs": [
+        "`frontend/static/js/workspace.js` — openGenericViewTab() with selectedType parameter (from T01)",
+        "`backend/app/templates/browser/my_views.html` — onclick with type_filter pass-through (from T01)",
+        "`e2e/helpers/dockview.ts` — openGenericViewTab helper with selectedType (from T01)",
+        "`e2e/helpers/selectors.ts` — updated selectors (from T01)",
+        "`e2e/fixtures/auth.ts` — auth fixture providing ownerPage",
+        "`e2e/helpers/wait-for.ts` — waitForWorkspace helper",
+        "`e2e/tests/02-views/m031-views.spec.ts` — reference E2E test pattern for views"
+      ],
+      "expected_output": [
+        "`e2e/tests/02-views/save-restore-view.spec.ts` — passing E2E test for save/restore view flow"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
     }
   ],
   "decisions": [
@@ -40572,6 +40661,50 @@
       "verdict": "✅ pass (1)",
       "duration_ms": 100,
       "created_at": "2026-04-05T21:45:10.517Z"
+    },
+    {
+      "id": 284,
+      "task_id": "T01",
+      "slice_id": "S03",
+      "milestone_id": "M050",
+      "command": "rg 'function openGenericViewTab' workspace.js | grep -q 'selectedType'",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-05T21:56:51.784Z"
+    },
+    {
+      "id": 285,
+      "task_id": "T01",
+      "slice_id": "S03",
+      "milestone_id": "M050",
+      "command": "rg 'openGenericViewTab' my_views.html | grep -q 'type_filter'",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-05T21:56:51.784Z"
+    },
+    {
+      "id": 286,
+      "task_id": "T01",
+      "slice_id": "S03",
+      "milestone_id": "M050",
+      "command": "rg 'variantSelect' selectors.ts | wc -l | grep -q '^0$'",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-05T21:56:51.784Z"
+    },
+    {
+      "id": 287,
+      "task_id": "T01",
+      "slice_id": "S03",
+      "milestone_id": "M050",
+      "command": "grep -n 'selectedType' e2e/helpers/dockview.ts (5 hits)",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-05T21:56:51.784Z"
     }
   ]
 }

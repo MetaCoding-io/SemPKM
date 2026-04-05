@@ -8,7 +8,7 @@
     {% if pv.query_id and pv.query_text %}
     <span class="tree-leaf-label" onclick="openViewTab('urn:sempkm:user-view:{{ pv.id }}', '{{ pv.display_label | replace("'", "\\'") }}', '{{ pv.renderer_type }}')">{{ pv.display_label }}</span>
     {% else %}
-    <span class="tree-leaf-label" onclick="openGenericViewTab('{{ pv.renderer_type }}', '{{ pv.scope_query_id | default('') }}', '{{ pv.display_label | replace("'", "\\'") }}')">{{ pv.display_label }}</span>
+    <span class="tree-leaf-label" onclick="openGenericViewTab('{{ pv.renderer_type }}', '{{ pv.scope_query_id | default('') }}', '{{ pv.display_label | replace("'", "\\'") }}', '{{ pv.type_filter | default('') }}')">{{ pv.display_label }}</span>
     {% endif %}
     {% if pv.query_id %}
     <button class="panel-btn tree-leaf-action sparql-demote-btn" title="Remove from views"

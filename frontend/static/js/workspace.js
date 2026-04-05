@@ -3762,7 +3762,7 @@
 
   // --- Generic View Tab Support ---
 
-  function openGenericViewTab(renderer, scopeQuery, scopeLabel) {
+  function openGenericViewTab(renderer, scopeQuery, scopeLabel, selectedType) {
     var dv = window.SemPKM._dockview;
     if (!dv) return;
 
@@ -3797,7 +3797,7 @@
     if (!window.SemPKM._tabMeta) window.SemPKM._tabMeta = {};
     window.SemPKM._tabMeta[tabKey] = { label: label, dirty: false };
 
-    var selectedType = localStorage.getItem('sempkm_generic_type_' + renderer) || '';
+    var resolvedType = selectedType || localStorage.getItem('sempkm_generic_type_' + renderer) || '';
 
     dv.api.addPanel({
       id: tabKey,
@@ -3805,7 +3805,7 @@
       params: {
         specialType: 'generic-view',
         renderer: renderer,
-        selectedType: selectedType,
+        selectedType: resolvedType,
         scopeQuery: scopeQuery || '',
         isView: false,
         isSpecial: true
