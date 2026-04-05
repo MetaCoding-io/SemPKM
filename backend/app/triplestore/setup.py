@@ -8,6 +8,7 @@ Also ensures the sentinel triple exists in the current state graph to
 prevent RDF4J from deleting the empty graph (Pitfall 1 from research).
 """
 
+import asyncio
 import logging
 from pathlib import Path
 
@@ -15,6 +16,33 @@ import httpx
 from app.rdf.namespaces import CURRENT_GRAPH
 
 logger = logging.getLogger(__name__)
+
+
+async def _wait_for_repo_ready(
+    client: httpx.AsyncClient,
+    repo_url: str,
+    max_retries: int = 10,
+) -> bool:
+    """Wait until the repository responds to /size with 200.
+
+    After fresh creation, RDF4J's LuceneSail + NativeStore may need
+    a few seconds to fully initialise. Returns True if ready, False
+    if all retries exhausted.
+    """
+    for attempt in range(max_retries):
+        resp = await client.get(f"{repo_url}/size")
+        if resp.status_code == 200:
+            return True
+        delay = min(1.0 * (attempt + 1), 5.0)
+        logger.warning(
+            "Repository not ready yet (status=%s), retrying in %.0fs (%d/%d)",
+            resp.status_code,
+            delay,
+            attempt + 1,
+            max_retries,
+        )
+        await asyncio.sleep(delay)
+    return False
 
 
 async def ensure_repository(
@@ -64,17 +92,51 @@ async def ensure_repository(
         resp.raise_for_status()
         logger.info("Repository '%s' created successfully", repo_id)
 
+        # Wait for the repository to be fully initialised before
+        # attempting SPARQL operations.  RDF4J's LuceneSail +
+        # NativeStore can return 500 / RepositoryLockedException
+        # immediately after creation.
+        ready = await _wait_for_repo_ready(client, repo_url)
+        if not ready:
+            raise RuntimeError(
+                f"Repository '{repo_id}' was created but never became ready"
+            )
+        logger.info("Repository '%s' is ready", repo_id)
+
     # Ensure sentinel triple exists in current state graph (Pitfall 1)
-    # This prevents RDF4J from deleting the empty graph
+    # This prevents RDF4J from deleting the empty graph.
+    # Retry with backoff in case the store is still settling.
     sentinel_sparql = (
         f"INSERT DATA {{ "
         f"GRAPH <{CURRENT_GRAPH}> {{ "
         f"<{CURRENT_GRAPH}> a <urn:sempkm:StateGraph> "
         f"}} }}"
     )
-    resp = await client.post(
-        f"{repo_url}/statements",
-        data={"update": sentinel_sparql},
-    )
+    max_retries = 5
+    for attempt in range(max_retries):
+        resp = await client.post(
+            f"{repo_url}/statements",
+            data={"update": sentinel_sparql},
+        )
+        if resp.status_code < 500:
+            break
+        if attempt < max_retries - 1:
+            delay = 1.0 * (attempt + 1)
+            logger.warning(
+                "Sentinel INSERT returned %s (body=%.200s), retrying in %.0fs (%d/%d)",
+                resp.status_code,
+                resp.text,
+                delay,
+                attempt + 1,
+                max_retries,
+            )
+            await asyncio.sleep(delay)
+        else:
+            logger.error(
+                "Sentinel INSERT failed after %d attempts. Last: %s %.500s",
+                max_retries,
+                resp.status_code,
+                resp.text,
+            )
     resp.raise_for_status()
     logger.info("Sentinel triple ensured in current state graph")

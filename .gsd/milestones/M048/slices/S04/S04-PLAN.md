@@ -24,7 +24,7 @@ Steps:
   - Estimate: 15m
   - Files: backend/docker-entrypoint.sh, backend/Dockerfile
   - Verify: docker compose build api 2>&1 | tail -5 && echo 'Build succeeded'
-- [ ] **T02: Verify fresh-volume Docker deploy and reinstall business-planning model** — Run the full fresh-volume Docker deploy cycle and fix the stale business-planning model by reinstalling it. This is primarily an operational/verification task — code changes only if issues are discovered.
+- [x] **T02: Verify fresh-volume Docker deploy and reinstall business-planning model** — Run the full fresh-volume Docker deploy cycle and fix the stale business-planning model by reinstalling it. This is primarily an operational/verification task — code changes only if issues are discovered.
 
 **Context — stale model data:** The business-planning model was installed 2026-03-23 from an older archive with only 2 NodeShapes (EisenhowerMatrix + EisenhowerItem). The current archive at `models/business-planning/shapes/business-planning.jsonld` has 33 NodeShapes across 1665 triples. The install pipeline is correct — this is a stale data issue.
 

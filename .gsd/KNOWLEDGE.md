@@ -752,3 +752,27 @@ Pydantic's `EmailStr` validator rejects the `.local` TLD (RFC 6762 multicast DNS
 **Fix:** Use `example.com` (RFC 2606 reserved domain, universally accepted by email validators) for test email addresses that pass through `EmailStr` validation. Note: `OWNER_EMAIL` uses `test.local` and still works because the setup/magic-link endpoints use plain `str`, not `EmailStr`.
 
 **Affected file:** `e2e/fixtures/auth.ts` — `MEMBER_EMAIL`
+
+### Docker named volumes with child-path mounts get root ownership
+
+**Discovered:** M048/S04/T02
+
+When docker-compose.yml mounts two separate named volumes where one is a child path of another (e.g., `rdf4j_data:/var/rdf4j` and `lucene_index:/var/rdf4j/lucene`), Docker creates the child volume with **root ownership** regardless of the parent volume's permissions. If the container process runs as a non-root user (e.g., `tomcat`), it cannot write to the child mount.
+
+**Impact:** The `lucene_index` volume caused `RepositoryLockedException` on every RDF4J repository access after fresh-volume creation. The LuceneSail couldn't initialize its index because `/var/rdf4j/lucene` was root-owned.
+
+**Fix:** Remove the child volume. Let the child directory (`lucene`) be created naturally inside the parent volume, where it inherits the parent's ownership.
+
+**Rule:** Never mount a Docker named volume at a child path of another named volume when the container runs as non-root. Either use a single parent volume and let subdirectories be created at runtime, or use an init container/entrypoint to fix ownership.
+
+**Affected files:** `docker-compose.yml` — triplestore service volumes
+
+### RDF4J repository not immediately ready after creation
+
+**Discovered:** M048/S04/T02
+
+After creating an RDF4J repository via `PUT /repositories/{id}` (returns 204), the LuceneSail + NativeStore combination may not be immediately ready for SPARQL operations. The `/size` endpoint and `/statements` endpoint can return 500 for a brief period while the store initialises.
+
+**Fix:** Added `_wait_for_repo_ready()` in `backend/app/triplestore/setup.py` that polls `/size` with retry backoff after fresh creation. Also added retry on the sentinel INSERT.
+
+**Affected file:** `backend/app/triplestore/setup.py`

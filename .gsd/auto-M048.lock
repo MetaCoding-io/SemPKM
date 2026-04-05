@@ -1,8 +1,7 @@
 {
   "pid": 776936,
-  "startedAt": "2026-04-05T18:54:45.712Z",
+  "startedAt": "2026-04-05T18:54:47.337Z",
   "unitType": "execute-task",
-  "unitId": "M048/S04/T01",
-  "unitStartedAt": "2026-04-05T18:54:45.712Z",
-  "sessionFile": "/home/james/.gsd/agent/sessions/--home-james-Code-SemPKM-.gsd-worktrees-M048--/2026-04-05T18-53-35-660Z_a2d0d7e5-84e3-4192-9059-118a1bdf35d3.jsonl"
+  "unitId": "M048/S04/T02",
+  "unitStartedAt": "2026-04-05T18:54:47.337Z"
 }
