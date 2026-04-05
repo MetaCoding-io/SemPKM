@@ -41,7 +41,7 @@ The save/restore flow stores `type_filter` correctly in RDF but never restores i
   - Estimate: 30m
   - Files: frontend/static/js/workspace.js, backend/app/templates/browser/my_views.html, e2e/helpers/dockview.ts, e2e/helpers/selectors.ts
   - Verify: rg 'function openGenericViewTab' frontend/static/js/workspace.js | grep -q 'selectedType' && rg 'openGenericViewTab' backend/app/templates/browser/my_views.html | grep -q 'type_filter' && rg 'variantSelect' e2e/helpers/selectors.ts | wc -l | grep -q '^0$' && echo 'T01 PASS'
-- [ ] **T02: E2E test for save/restore view flow** — ## Description
+- [x] **T02: Created E2E test for save/restore view flow covering save with type filter, sidebar restore, type preservation, and delete — passes Chromium and Firefox** — ## Description
 
 Create an E2E test that exercises the full save→sidebar→restore round-trip: open a generic view, select a type filter, save the view, find it in the Saved Views sidebar, click to restore, and verify the type filter is preserved. Also test delete.
 

@@ -228,5 +228,3 @@ export async function openDashboardTab(
   // Wait for GridStack container to appear in the dockview panel
   await page.waitForSelector('.grid-stack', { timeout: timeoutMs });
 }
-.waitForSelector('.grid-stack', { timeout: timeoutMs });
-}
