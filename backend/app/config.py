@@ -91,6 +91,10 @@ class Settings(BaseSettings):
     posthog_api_key: str = ""
     posthog_host: str = "https://us.i.posthog.com"
 
+    # OpenTelemetry tracing (optional — app works without Jaeger)
+    otel_enabled: bool = False
+    otel_exporter_endpoint: str = "http://jaeger:4318/v1/traces"
+
     model_config = SettingsConfigDict(env_file=".env")
 
 

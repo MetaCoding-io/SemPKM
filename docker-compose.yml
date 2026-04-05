@@ -48,6 +48,9 @@ services:
       # SMTP_USER: ${SMTP_USER:-}
       # SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       # SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-}
+      # OpenTelemetry tracing
+      OTEL_ENABLED: ${OTEL_ENABLED:-true}
+      OTEL_EXPORTER_ENDPOINT: ${OTEL_EXPORTER_ENDPOINT:-http://jaeger:4318/v1/traces}
     depends_on:
       triplestore:
         condition: service_healthy
@@ -70,6 +73,17 @@ services:
     depends_on:
       api:
         condition: service_healthy
+    networks:
+      - sempkm
+
+  jaeger:
+    image: jaegertracing/jaeger:2
+    ports:
+      - "16686:16686"   # Jaeger UI
+      - "4318:4318"     # OTLP HTTP receiver
+    environment:
+      MEMORY_MAX_TRACES: "10000"
+    mem_limit: 512m
     networks:
       - sempkm
 

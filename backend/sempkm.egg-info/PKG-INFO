@@ -30,7 +30,16 @@ Requires-Dist: packaging~=25.0
 Requires-Dist: mf2py~=2.0.1
 Requires-Dist: http-message-signatures~=2.0.1
 Requires-Dist: slowapi~=0.1.9
+Requires-Dist: python-dateutil~=2.9.0
+Requires-Dist: firebase-admin~=6.7
+Requires-Dist: opentelemetry-api~=1.31
+Requires-Dist: opentelemetry-sdk~=1.31
+Requires-Dist: opentelemetry-exporter-otlp-proto-http~=1.31
+Requires-Dist: opentelemetry-instrumentation-fastapi~=0.52b0
+Requires-Dist: opentelemetry-instrumentation-httpx~=0.52b0
+Requires-Dist: opentelemetry-semantic-conventions~=0.52b0
 Provides-Extra: dev
 Requires-Dist: pytest; extra == "dev"
 Requires-Dist: pytest-asyncio; extra == "dev"
 Requires-Dist: httpx; extra == "dev"
+Requires-Dist: icalendar; extra == "dev"
