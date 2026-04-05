@@ -897,3 +897,97 @@ The original PPV research and templates are available at:
 
 **Context:** To be written at `.gsd/milestones/M047/M047-CONTEXT.md` during planning
 **Depends on:** M046
+
+---
+
+## Feature Tour Bug Hunt — 9 Milestones (M048–M056)
+
+**Queued:** 2026-04-05
+**Status:** Ready for planning
+**Source:** Interactive feature tour with user (TOUR.md) — 65 issues found across Mental Models, Object CRUD, Workspace, Views, and Business Planning sections.
+
+### Wave 1 (P0+P1, parallel-safe — zero shared files)
+
+**M048: Critical Bug Fixes** — no dependencies
+- Diagnose model installer partial loading (uninstall/reinstall first before investigating pipeline)
+- Implement object.delete command (backend + UI + command palette)
+- Diff-based save (track original values, only send changes)
+- Fix broken Generic Table View and Cards View
+- Auto-set dcterms:created on object.create
+- Permanent Docker volume permissions fix (entrypoint chown)
+
+**M049: Backend Performance & Observability** — no dependencies
+- Jaeger/OpenTelemetry distributed tracing setup
+- Profile and fix top 5 slowest SPARQL query paths (4s → <1.5s target)
+- Lazy-load secondary panels (comments, inbox, collaboration)
+- Server-Timing headers with per-query breakdown
+- Performance dashboard at /admin/performance
+
+### Wave 2 (P1+P2, parallel-safe — different code paths)
+
+**M050: View System Rework** — depends on M048
+- Replace 37-pill type bar with smart type dropdown
+- Remove View Variants dropdown
+- Smart type filtering by renderer compatibility
+- 100% width/height responsive views
+- Fix calendar dark mode nav buttons, timeline popover dismiss, save flow
+
+**M051: Workspace UX Improvements** — no dependencies
+- Autocomplete dismiss on click-outside/Escape
+- Tag dropdown escape container boundary
+- Remove " Shape" suffix from explorer type names
+- Fix command palette scroll bug
+- Persona/Layout create UX (proper input dialog)
+- Explorer hover action buttons (info, delete)
+- Object tab refresh button
+
+### Wave 3 (P2, depends on Waves 1-2)
+
+**M052: UI Design System & Polish Pass** — depends on M048, M050
+- Type-colored accents, styled type pills with icons
+- Writing-surface body editor (not code editor feel)
+- Property label/value visual distinction, zebra striping across all panels
+- Kanban card density (priority, due date, assignee, type icon)
+- Kanban column colors from Mental Model SHACL enum
+- Timeline bar styling (status colors, progress)
+- Tab styling, view icons brightness
+
+### Wave 4 (P3, future features building on fixed foundations)
+
+**M053: Model Marketplace** — depends on M048
+- Cloud-hosted model registry (API + hosting)
+- In-app browse/install UI
+- Version checking and update notifications
+
+**M054: Explorer Composable Filter/Group/Sort** — depends on M051
+- Stackable filter/group/sort layers (like VFS MountSpec strategies)
+- Multiple OBJECTS panels with independent configurations
+- Configuration builder UI, save/restore named configs
+
+**M055: Browser History & Tab Recovery** — depends on M051
+- URL reflects active tab (bookmarkable, shareable)
+- Browser back/forward navigates tab focus history
+- "Reopen Closed Tab" command + Ctrl+Shift+T
+
+**M056: Ontology Visualization Overhaul** — depends on M048
+- Layered graph layout (gist at top, models below)
+- Full TBox coverage across all installed models
+- Multi-select filtering by Mental Model
+- Bottom detail panel for selected node
+- Graph persists across TBox/ABox/RBox tab switches
+
+### Dependency Graph
+
+```
+M048 (Critical Bugs) ───────────┬──→ M050 (View Rework) ──→ M052 (Design System)
+                                ├──→ M053 (Marketplace)
+                                └──→ M056 (Ontology Viz)
+
+M049 (Performance) ─────────────── (independent, parallel with M048)
+
+M051 (Workspace UX) ────────────┬──→ M054 (Explorer Filter/Group/Sort)
+                                └──→ M055 (Browser History)
+```
+
+**Context files:** `.gsd/milestones/M048/M048-CONTEXT.md` through `.gsd/milestones/M056/M056-CONTEXT.md`
+**Full issue log:** `TOUR.md` — 65 items with severity, category, section, description, and repro steps

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-05T00:39:00.139Z",
+  "exported_at": "2026-04-05T18:09:32.318Z",
   "milestones": [
     {
       "id": "M001",
@@ -1612,6 +1612,268 @@
       ],
       "requirement_coverage": "No Active requirements directly target M047 scope. PLAN-07 (PPV review workflows) is already validated from M034 — M047 migrates those workflows from seed.py to the model manifest as TBox definitions. DASH-01 and WKFL-01 are validated infrastructure that M047 extends with the source_model lifecycle. New requirements will be surfaced during slice execution if warranted.",
       "boundary_map_markdown": "```\nmanifest.yaml (v2)  →  ManifestSchema (Pydantic)  →  ModelService.install()\n                                                         ├── RDF4J transaction (ontology, shapes, views, rules)\n                                                         └── SQLite (dashboards, workflows) via services\n                                                              ├── DashboardService.create(source_model=...)\n                                                              └── WorkflowService.create(source_model=...)\n\ndashboards/ppv.json  →  load as raw JSON  →  DashboardService.create() per entry\nworkflows/ppv.json   →  load as raw JSON  →  WorkflowService.create() per entry\n\nUninstall:  DELETE FROM dashboard_specs WHERE source_model = ?\n            DELETE FROM workflow_specs WHERE source_model = ?\n\nRefresh:    delete model-sourced  →  recreate from manifest JSON\n```"
+    },
+    {
+      "id": "M048",
+      "title": "Critical Bug Fixes",
+      "status": "queued",
+      "depends_on": [],
+      "created_at": "2026-04-05T14:30:43.615Z",
+      "completed_at": null,
+      "vision": "Fix the showstopper bugs that make core features non-functional: broken view rendering, phantom save events, missing delete UI, absent creation timestamps, and Docker volume permission issues. After this milestone, the full CRUD cycle (create → edit → save → delete) works correctly with clean event logs, views render all objects, and Docker deploys succeed on fresh volumes.",
+      "success_criteria": [
+        "Create an object, edit one field, save — event log shows only the changed field (no phantom properties)",
+        "Delete that object — it disappears from explorer, views, and SPARQL",
+        "Open Table View with 'All Types' — objects are listed with label, type, created, modified columns",
+        "Open Cards View — cards render with titles and body snippets",
+        "Create a new object — dcterms:created timestamp appears in table views",
+        "docker compose down -v && docker compose up --build -d succeeds with all services healthy",
+        "Install business-planning model on clean triplestore — all 33 NodeShapes loaded into shapes graph"
+      ],
+      "key_risks": [
+        {
+          "risk": "Table/Cards view rendering bug has unknown root cause — could be query generation, graph scoping, data issue, or template rendering",
+          "whyItMatters": "These views are the primary way users browse their data; if diagnosis takes long it delays the whole milestone"
+        },
+        {
+          "risk": "Save diffing adds a SPARQL query per save for property comparison",
+          "whyItMatters": "Additional latency per save operation; must verify it stays under acceptable threshold"
+        },
+        {
+          "risk": "Model loading may be a pipeline chunking issue for large SPARQL INSERT DATA statements",
+          "whyItMatters": "If RDF4J silently truncates large inserts, fixing requires batched upload logic"
+        }
+      ],
+      "proof_strategy": [
+        {
+          "riskOrUnknown": "View rendering root cause unknown",
+          "retireIn": "S01",
+          "whatWillBeProven": "Table and Cards views render objects from the triplestore — proven by opening views in the browser with existing data"
+        },
+        {
+          "riskOrUnknown": "Save diffing latency",
+          "retireIn": "S02",
+          "whatWillBeProven": "Save with one changed field produces exactly one property change in the event log — no phantom events"
+        },
+        {
+          "riskOrUnknown": "Model loading pipeline",
+          "retireIn": "S04",
+          "whatWillBeProven": "Business-planning model installs all 33 NodeShapes — verified by SPARQL count query"
+        }
+      ],
+      "verification_contract": "Unit tests for: dcterms:created injection in handle_object_create, property diff logic in save_object, inbound edge cleanup in bulk_delete_objects",
+      "verification_integration": "Full CRUD cycle through the browser: create object → edit properties → verify event log → delete object → verify removal from explorer and views",
+      "verification_operational": "docker compose down -v && docker compose up --build -d succeeds; model install loads all shapes; no SQLite permission errors",
+      "verification_uat": "User can browse all objects in Table View and Cards View, save edits without phantom events, and delete objects with confirmation",
+      "definition_of_done": [
+        "Table View and Cards View render objects when opened from explorer",
+        "dcterms:created auto-set on every new object",
+        "Save produces events only for actually-changed properties",
+        "Body save skipped when content unchanged (client-side check)",
+        "Delete button on object toolbar with confirmation dialog",
+        "Delete command in command palette",
+        "Inbound edges cleaned up on object delete",
+        "Post-delete: tab closed, explorer refreshed, toast shown",
+        "Backend Docker entrypoint handles volume permissions idempotently",
+        "Business-planning model installs all 33 shapes (or diagnosis documents why)"
+      ],
+      "requirement_coverage": "M048 fixes regressions and gaps in previously validated requirements rather than advancing Active ones. VIEW-01 (Generic Table/Cards/Graph views) is validated but has a rendering regression fixed in S01. No Active requirements are directly mapped — the milestone context confirms these are regressions/gaps, not new requirements.",
+      "boundary_map_markdown": "```\nExplorer (nav tree) ←→ Object Tab (toolbar, form, editor) ←→ Backend CRUD (objects.py)\n                                                                    ↓\n                                                              EventStore (commit)\n                                                                    ↓\nViews (router.py) ←→ ViewSpecService (service.py) ←→ TriplestoreClient (SPARQL)\n                                                                    ↓\nDocker (Dockerfile, entrypoint) ←→ Volume (/app/data) ←→ SQLite + Secrets\n                                                                    ↓\nModelService (models.py) ←→ RDF4J (shapes graph)\n```"
+    },
+    {
+      "id": "M049",
+      "title": "Backend Performance & Observability",
+      "status": "active",
+      "depends_on": [],
+      "created_at": "2026-04-05T17:38:45.584Z",
+      "completed_at": null,
+      "vision": "Fix the 4+ second object tab load times by optimizing the sequential SPARQL query waterfall, adding ShapesService caching, and establishing OpenTelemetry/Jaeger tracing infrastructure for ongoing performance visibility.",
+      "success_criteria": [
+        "Object tab p95 response time under 1.5 seconds measured across 5 different objects",
+        "Jaeger UI at localhost:16686 shows distributed traces with per-SPARQL-query spans for object-tab requests",
+        "Server-Timing response header includes named per-query timing breakdown on htmx partial responses",
+        "/admin/performance dashboard renders Chart.js percentile charts with real latency data",
+        "Inbox and collaboration panels do not fire HTTP requests until expanded (lazy-load)"
+      ],
+      "key_risks": [
+        {
+          "risk": "Combined multi-graph SPARQL query may perform worse than 3 separate queries on RDF4J",
+          "whyItMatters": "The primary optimization strategy depends on reducing HTTP round trips — if RDF4J can't optimize graph-variable queries, we fall back to asyncio.gather parallelization which is still an improvement but smaller"
+        },
+        {
+          "risk": "ShapesService cache invalidation may miss edge cases during model install/uninstall",
+          "whyItMatters": "Stale SHACL forms after model changes would silently serve incorrect edit UIs — the 300s TTL provides a safety net but is a poor user experience"
+        },
+        {
+          "risk": "OpenTelemetry instrumentation may add measurable overhead to the request path",
+          "whyItMatters": "We're trying to reduce latency — adding tracing overhead would be counterproductive. BatchSpanProcessor design mitigates this but needs verification"
+        }
+      ],
+      "proof_strategy": [
+        {
+          "riskOrUnknown": "Combined SPARQL query performance on RDF4J",
+          "retireIn": "S01",
+          "whatWillBeProven": "Object tab loads under 1.5s with combined queries OR asyncio.gather fallback, measured via browser Network tab"
+        },
+        {
+          "riskOrUnknown": "OpenTelemetry overhead on request latency",
+          "retireIn": "S02",
+          "whatWillBeProven": "Object tab response time does not regress after OTel instrumentation is enabled (within 100ms of S01 baseline)"
+        },
+        {
+          "riskOrUnknown": "ShapesService cache correctness",
+          "retireIn": "S01",
+          "whatWillBeProven": "Model install/uninstall invalidates ShapesService cache — object tab shows updated forms immediately after model change"
+        }
+      ],
+      "verification_contract": "Object tab response time measured via browser Network tab: p95 under 1.5s across 5 different object types. Before/after comparison logged.",
+      "verification_integration": "Full object-tab request flow instrumented: FastAPI middleware → TriplestoreClient SPARQL spans → template render. Jaeger trace shows complete waterfall with no gaps.",
+      "verification_operational": "Jaeger service runs in docker-compose.yml. App starts and functions normally when Jaeger container is stopped (OTEL_ENABLED=false or Jaeger absent). /admin/performance page renders with real data.",
+      "verification_uat": "Open 5 different objects → each loads in under 2s. Open Jaeger UI → traces visible. Check browser DevTools Network → Server-Timing header shows per-query breakdown. Visit /admin/performance → charts render.",
+      "definition_of_done": [
+        "Object tab p95 under 1.5s for 5 different object types (measured via browser Network tab)",
+        "ShapesService TTL cache with model-install invalidation deployed",
+        "Jaeger v2 container in docker-compose.yml with OTEL_ENABLED toggle",
+        "TriplestoreClient.query() emits OTel spans with query type and result count",
+        "Server-Timing header includes per-SPARQL-query breakdown",
+        "/admin/performance page renders percentile charts",
+        "Inbox and collaboration panels lazy-loaded (hx-trigger=revealed)"
+      ],
+      "requirement_coverage": "- PERF-11 (Object tab <1.5s) → S01 primary owner\\n- PERF-12 (OTel/Jaeger infrastructure) → S02 primary owner\\n- PERF-13 (Server-Timing per-query breakdown) → S03 primary owner\\n- PERF-14 (Admin performance dashboard) → S03 primary owner\\n- PERF-15 (Right-pane lazy loading) → S03 primary owner, S01 supporting",
+      "boundary_map_markdown": "```\\nBrowser ──htmx──▶ FastAPI (TimingMiddleware + OTel auto-instrument)\\n                      │\\n                      ├──▶ TriplestoreClient (custom OTel spans)\\n                      │       └──httpx──▶ RDF4J triplestore\\n                      │\\n                      ├──▶ ShapesService (NEW: TTL cache)\\n                      │       └── TriplestoreClient\\n                      │\\n                      ├──▶ LabelService (existing TTL cache)\\n                      │       └── TriplestoreClient\\n                      │\\n                      └──▶ SQLite (favorites, auth — fast, no changes)\\n\\nBatchSpanProcessor ──OTLP/HTTP──▶ Jaeger v2 (optional)\\n\\nTimingMiddleware ──Server-Timing header──▶ Browser DevTools\\nTimingMiddleware ──in-memory stats──▶ /admin/performance\\n```"
+    },
+    {
+      "id": "M050",
+      "title": "",
+      "status": "active",
+      "depends_on": [],
+      "created_at": "2026-04-05T17:38:45.584Z",
+      "completed_at": null,
+      "vision": "",
+      "success_criteria": [],
+      "key_risks": [],
+      "proof_strategy": [],
+      "verification_contract": "",
+      "verification_integration": "",
+      "verification_operational": "",
+      "verification_uat": "",
+      "definition_of_done": [],
+      "requirement_coverage": "",
+      "boundary_map_markdown": ""
+    },
+    {
+      "id": "M051",
+      "title": "",
+      "status": "active",
+      "depends_on": [],
+      "created_at": "2026-04-05T17:38:45.584Z",
+      "completed_at": null,
+      "vision": "",
+      "success_criteria": [],
+      "key_risks": [],
+      "proof_strategy": [],
+      "verification_contract": "",
+      "verification_integration": "",
+      "verification_operational": "",
+      "verification_uat": "",
+      "definition_of_done": [],
+      "requirement_coverage": "",
+      "boundary_map_markdown": ""
+    },
+    {
+      "id": "M052",
+      "title": "",
+      "status": "active",
+      "depends_on": [],
+      "created_at": "2026-04-05T17:38:45.584Z",
+      "completed_at": null,
+      "vision": "",
+      "success_criteria": [],
+      "key_risks": [],
+      "proof_strategy": [],
+      "verification_contract": "",
+      "verification_integration": "",
+      "verification_operational": "",
+      "verification_uat": "",
+      "definition_of_done": [],
+      "requirement_coverage": "",
+      "boundary_map_markdown": ""
+    },
+    {
+      "id": "M053",
+      "title": "",
+      "status": "active",
+      "depends_on": [],
+      "created_at": "2026-04-05T17:38:45.585Z",
+      "completed_at": null,
+      "vision": "",
+      "success_criteria": [],
+      "key_risks": [],
+      "proof_strategy": [],
+      "verification_contract": "",
+      "verification_integration": "",
+      "verification_operational": "",
+      "verification_uat": "",
+      "definition_of_done": [],
+      "requirement_coverage": "",
+      "boundary_map_markdown": ""
+    },
+    {
+      "id": "M054",
+      "title": "",
+      "status": "active",
+      "depends_on": [],
+      "created_at": "2026-04-05T17:38:45.585Z",
+      "completed_at": null,
+      "vision": "",
+      "success_criteria": [],
+      "key_risks": [],
+      "proof_strategy": [],
+      "verification_contract": "",
+      "verification_integration": "",
+      "verification_operational": "",
+      "verification_uat": "",
+      "definition_of_done": [],
+      "requirement_coverage": "",
+      "boundary_map_markdown": ""
+    },
+    {
+      "id": "M055",
+      "title": "",
+      "status": "active",
+      "depends_on": [],
+      "created_at": "2026-04-05T17:38:45.585Z",
+      "completed_at": null,
+      "vision": "",
+      "success_criteria": [],
+      "key_risks": [],
+      "proof_strategy": [],
+      "verification_contract": "",
+      "verification_integration": "",
+      "verification_operational": "",
+      "verification_uat": "",
+      "definition_of_done": [],
+      "requirement_coverage": "",
+      "boundary_map_markdown": ""
+    },
+    {
+      "id": "M056",
+      "title": "",
+      "status": "active",
+      "depends_on": [],
+      "created_at": "2026-04-05T17:38:45.585Z",
+      "completed_at": null,
+      "vision": "",
+      "success_criteria": [],
+      "key_risks": [],
+      "proof_strategy": [],
+      "verification_contract": "",
+      "verification_integration": "",
+      "verification_operational": "",
+      "verification_uat": "",
+      "definition_of_done": [],
+      "requirement_coverage": "",
+      "boundary_map_markdown": ""
     }
   ],
   "slices": [
@@ -7634,6 +7896,153 @@
       "proof_level": "Integration — E2E test exercises real model install/uninstall against running Docker stack with triplestore and SQLite",
       "integration_closure": "- Upstream: consumes S01 manifest v2 infrastructure (install/uninstall lifecycle, source_model tracking), S02 ontology expansion (PillarScore/GuidingPrinciples shapes, enriched review shapes), S03 TBox dashboards/workflows (5 dashboards, 5 workflows in JSON files)\n- New wiring: none — seed data is consumed by existing install pipeline, E2E test uses existing API endpoints and helpers\n- What remains: nothing — after this slice the milestone is complete",
       "observability_impact": "None — seed data and docs don't introduce runtime surfaces. E2E test is verification-only.",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M048",
+      "id": "S01",
+      "title": "Fix Table & Cards Views + Creation Timestamps",
+      "status": "pending",
+      "risk": "high",
+      "depends": [],
+      "demo": "Open Table View from explorer → objects listed with label, type, created, modified. Open Cards View → cards render. Create a new object → dcterms:created appears in the table.",
+      "created_at": "2026-04-05T17:54:07.578Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Table View and Cards View render objects, and newly created objects get a dcterms:created timestamp.",
+      "success_criteria": "- Opening Table View (generic, no type filter) returns rows with label, type, created, modified columns\n- Opening Cards View (generic, no type filter) returns card items with labels and snippets\n- Creating a new object via the object.create command produces a dcterms:created triple with the current datetime\n- Unit tests for all three fixes pass",
+      "proof_level": "Contract — unit tests prove SPARQL queries include PREFIX declarations and object.create injects dcterms:created. Real runtime verification deferred to E2E.",
+      "integration_closure": "- Upstream: `backend/app/sparql/client.py` provides `inject_prefixes()` and `scope_to_current_graph()`\n- Upstream: `backend/app/commands/handlers/object_create.py` is the object creation pipeline entry\n- New wiring: `inject_prefixes` imported into `backend/app/views/service.py` and applied to all reconstructed SPARQL queries in `execute_table_query` and `execute_cards_query`\n- What remains: S03 (Object Delete) depends on S01 being complete so views correctly display objects. Other view renderers (kanban, calendar, etc.) may have the same prefix-dropping bug but are out of scope for this slice.",
+      "observability_impact": "- The silent exception swallowing in execute_table_query/execute_cards_query already logs warnings. After this fix, the warnings should stop appearing for prefix-related SPARQL errors.\n- dcterms:created triples become visible in Table View's \"created\" column, providing direct user feedback.",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M048",
+      "id": "S02",
+      "title": "Diff-Based Save — No Phantom Events",
+      "status": "pending",
+      "risk": "medium",
+      "depends": [],
+      "demo": "Open an object, change one property field, save. Check the event log — only the changed property appears. Change nothing and save — no event is created.",
+      "created_at": "2026-04-05T17:54:07.578Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Eliminate phantom save events by diffing current property values against the triplestore before patching, and by skipping body saves when content is unchanged.",
+      "success_criteria": "Saving with one changed field produces an event with only that field. Saving with no changes produces no event. Body save is skipped client-side when content matches saved state.",
+      "proof_level": "integration — verified through the browser event log panel",
+      "integration_closure": "Clean event log is a prerequisite for trustworthy audit trails in all downstream features",
+      "observability_impact": "Event log accuracy improved — phantom events eliminated",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M048",
+      "id": "S03",
+      "title": "Object Delete UI",
+      "status": "pending",
+      "risk": "low",
+      "depends": [
+        "S01"
+      ],
+      "demo": "Click delete button on object toolbar → confirmation dialog → object removed from explorer tree, views, and SPARQL. Also accessible via command palette 'Delete Object' command.",
+      "created_at": "2026-04-05T17:54:07.579Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Add single-object delete UI (toolbar button, command palette entry) with confirmation dialog, inbound edge cleanup, and post-delete housekeeping (close tab, refresh tree, toast).",
+      "success_criteria": "Delete button visible on object toolbar. Clicking it shows confirmation dialog. Confirming removes the object from all surfaces. Inbound edges are cleaned up. Tab is closed and explorer refreshed.",
+      "proof_level": "integration — delete exercised through the browser UI with verification in explorer and SPARQL",
+      "integration_closure": "Completes the CRUD cycle (create → edit → delete) that the platform's core loop depends on",
+      "observability_impact": "object.delete events in the event log now include inbound edge cleanup",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M048",
+      "id": "S04",
+      "title": "Docker Permissions + Model Loading Diagnosis",
+      "status": "pending",
+      "risk": "low",
+      "depends": [],
+      "demo": "docker compose down -v && docker compose up --build -d succeeds on fresh volume. Install business-planning model → SPARQL query confirms all 33 NodeShapes loaded.",
+      "created_at": "2026-04-05T17:54:07.579Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Add backend Docker entrypoint script that fixes volume permissions idempotently, and diagnose/fix the model loading issue where not all shapes load.",
+      "success_criteria": "Backend container starts without SQLite permission errors on fresh and existing volumes. Business-planning model installs with all 33 NodeShapes in the shapes graph.",
+      "proof_level": "operational — Docker lifecycle test on fresh volume + SPARQL verification of shape count",
+      "integration_closure": "Ensures clean deploys for all downstream milestones and testing",
+      "observability_impact": "Entrypoint script logs permission fix actions for debugging container startup issues",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M049",
+      "id": "S01",
+      "title": "Query Optimization & Caching",
+      "status": "pending",
+      "risk": "high — combined SPARQL query may not optimize well on RDF4J; fallback is asyncio.gather parallelization",
+      "depends": [],
+      "demo": "Open 5 different objects in the browser. Each tab loads in under 1.5 seconds (Network tab timing). Before/after timing comparison captured.",
+      "created_at": "2026-04-05T17:51:26.699Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Object tab loads in under 1.5 seconds by eliminating the sequential SPARQL query waterfall in `get_object`: cache ShapesService results, combine multi-graph property queries into a single UNION, consolidate 5 label batches into 1, and parallelize independent awaits with asyncio.gather.",
+      "success_criteria": "- ShapesService caches the shapes graph with TTL; repeated `get_form_for_type` calls don't hit the triplestore\n- The 3 separate property queries (current, inferred, mirrored) are combined into 1 UNION query\n- The 5 separate `label_service.resolve_batch` calls are consolidated into 1 combined batch\n- Independent work (property query, shapes lookup, favorites check) runs concurrently via `asyncio.gather`\n- Object tab load time is under 1.5 seconds measured by request timing\n- All existing tests pass; new unit tests cover caching and query optimization",
+      "proof_level": "Integration — requires real SPARQL query execution against a triplestore (or realistic mock) to confirm round-trip reduction and timing improvement",
+      "integration_closure": "- Upstream: `TriplestoreClient.query()` and `TriplestoreClient.construct()` — consumed unchanged\n- New wiring: ShapesService gains TTL cache (internal, no external wiring); `get_object` handler refactored to use UNION query + asyncio.gather\n- Remaining before milestone usable: S02 (tracing) and S03 (Server-Timing headers, admin dashboard, lazy panels)",
+      "observability_impact": "- Timing log: `get_object` logs total wall-clock time per request for before/after comparison\n- ShapesService cache: logs cache hit/miss at DEBUG level with shapes graph size\n- No new endpoints or metrics — tracing infrastructure comes in S02",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M049",
+      "id": "S02",
+      "title": "OpenTelemetry + Jaeger Tracing",
+      "status": "pending",
+      "risk": "medium — new dependencies (OTel SDK, Jaeger container) may have unexpected interaction with existing middleware or Docker networking",
+      "depends": [
+        "S01"
+      ],
+      "demo": "Open an object tab. Navigate to Jaeger UI at localhost:16686. Find the trace for the request showing FastAPI → TriplestoreClient → RDF4J span breakdown with timing for each SPARQL query.",
+      "created_at": "2026-04-05T17:51:26.699Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Establish distributed tracing infrastructure using OpenTelemetry Python SDK and Jaeger v2 for ongoing performance visibility across all backend request paths.",
+      "success_criteria": "- Jaeger v2 container running in docker-compose.yml on ports 16686/4317/4318\n- OpenTelemetry SDK configured in main.py lifespan with OTEL_ENABLED toggle\n- FastAPI auto-instrumented (per-request spans)\n- httpx auto-instrumented (per-HTTP-call spans to RDF4J)\n- TriplestoreClient.query() has custom spans with sparql.type and sparql.text attributes\n- App starts and functions normally when Jaeger is absent",
+      "proof_level": "integration — Jaeger UI shows real distributed traces for object-tab requests",
+      "integration_closure": "Full request trace visible in Jaeger: FastAPI middleware span → object endpoint span → TriplestoreClient SPARQL spans → httpx HTTP spans. No gaps in the trace.",
+      "observability_impact": "Jaeger UI at localhost:16686 provides per-request distributed trace visualization. All SPARQL queries tagged with type and truncated query text.",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M049",
+      "id": "S03",
+      "title": "Server-Timing Headers & Admin Dashboard",
+      "status": "pending",
+      "risk": "low — extends existing TimingMiddleware and admin template patterns",
+      "depends": [
+        "S01",
+        "S02"
+      ],
+      "demo": "Open an object tab. In browser DevTools Network tab, inspect the response headers — Server-Timing shows per-query breakdown. Navigate to /admin/performance — Chart.js percentile charts render with real data. Collapse then expand the inbox panel — network request fires only on expand.",
+      "created_at": "2026-04-05T17:51:26.699Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Enhance developer visibility with per-query Server-Timing headers, build an admin performance dashboard with Chart.js percentile charts, and lazy-load non-essential panels.",
+      "success_criteria": "- Server-Timing header includes named sparql entries with durations on htmx responses\n- /admin/performance page renders Chart.js p50/p95/p99 latency charts from real timing data\n- Inbox panel uses hx-trigger=revealed instead of hx-trigger=load\n- Collaboration panel uses hx-trigger=revealed instead of hx-trigger=load\n- No HTTP requests for inbox/collaboration on page load (verified via Network tab)",
+      "proof_level": "integration — Server-Timing visible in DevTools, admin dashboard renders real data",
+      "integration_closure": "TimingMiddleware collects per-query timing from request-scoped accumulator, serializes to Server-Timing header. Admin page reads timing stats from existing /api/admin/timing-report endpoint.",
+      "observability_impact": "Server-Timing headers on all responses. /admin/performance dashboard with percentile charts. Right-pane panels lazy-loaded to reduce background request noise.",
       "sequence": 0,
       "replan_triggered_at": null
     }
@@ -31345,6 +31754,193 @@
       "observability_impact": "",
       "full_plan_md": "",
       "sequence": 0
+    },
+    {
+      "milestone_id": "M048",
+      "slice_id": "S01",
+      "id": "T01",
+      "title": "Added inject_prefixes() to all 4 reconstructed SPARQL queries in execute_table_query and execute_cards_query so prefixed names are declared before triplestore execution",
+      "status": "complete",
+      "one_liner": "Added inject_prefixes() to all 4 reconstructed SPARQL queries in execute_table_query and execute_cards_query so prefixed names are declared before triplestore execution",
+      "narrative": "The execute_table_query and execute_cards_query methods in backend/app/views/service.py extract WHERE body and FROM clause from the original scoped SPARQL query, then reconstruct new count/data/subjects queries. These reconstructed queries dropped all PREFIX declarations, causing SPARQL parse errors when the WHERE body used prefixed names like rdf:type, rdfs:label|dcterms:title, dcterms:created, dcterms:modified. The exceptions were silently caught, resulting in zero results and the 'No objects found' empty state. Fixed by importing inject_prefixes from app.sparql.client and wrapping all 4 reconstructed queries (count_query and data_query in execute_table_query; count_query and subjects_query in execute_cards_query) with inject_prefixes() before passing to self._client.query(). Created 6 unit tests verifying prefix injection and non-empty results for both methods.",
+      "verification_result": "Ran cd backend && python -m pytest tests/test_view_prefix_fix.py tests/test_view_scope.py -v — all 31 tests passed (6 new + 25 existing, zero regressions). LSP diagnostics show no new errors from the changes.",
+      "duration": "",
+      "completed_at": "2026-04-05T18:09:32.279Z",
+      "blocker_discovered": false,
+      "deviations": "ViewSpec dataclass uses renderer_type/target_class fields instead of view_type/model_id as planner assumed — adapted test helper. Line numbers slightly different from plan. Added AsyncMock for label_service.resolve_batch() needed by execute_cards_query.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/views/service.py",
+        "backend/tests/test_view_prefix_fix.py"
+      ],
+      "key_decisions": [
+        "Applied inject_prefixes() at each query construction site rather than at the _client.query() call level to keep the fix surgical and avoid changing the triplestore client interface"
+      ],
+      "full_summary_md": "---\nid: T01\nparent: S01\nmilestone: M048\nkey_files:\n  - backend/app/views/service.py\n  - backend/tests/test_view_prefix_fix.py\nkey_decisions:\n  - Applied inject_prefixes() at each query construction site rather than at the _client.query() call level to keep the fix surgical and avoid changing the triplestore client interface\nduration: \nverification_result: passed\ncompleted_at: 2026-04-05T18:09:32.278Z\nblocker_discovered: false\n---\n\n# T01: Added inject_prefixes() to all 4 reconstructed SPARQL queries in execute_table_query and execute_cards_query so prefixed names are declared before triplestore execution\n\n**Added inject_prefixes() to all 4 reconstructed SPARQL queries in execute_table_query and execute_cards_query so prefixed names are declared before triplestore execution**\n\n## What Happened\n\nThe execute_table_query and execute_cards_query methods in backend/app/views/service.py extract WHERE body and FROM clause from the original scoped SPARQL query, then reconstruct new count/data/subjects queries. These reconstructed queries dropped all PREFIX declarations, causing SPARQL parse errors when the WHERE body used prefixed names like rdf:type, rdfs:label|dcterms:title, dcterms:created, dcterms:modified. The exceptions were silently caught, resulting in zero results and the 'No objects found' empty state. Fixed by importing inject_prefixes from app.sparql.client and wrapping all 4 reconstructed queries (count_query and data_query in execute_table_query; count_query and subjects_query in execute_cards_query) with inject_prefixes() before passing to self._client.query(). Created 6 unit tests verifying prefix injection and non-empty results for both methods.\n\n## Verification\n\nRan cd backend && python -m pytest tests/test_view_prefix_fix.py tests/test_view_scope.py -v — all 31 tests passed (6 new + 25 existing, zero regressions). LSP diagnostics show no new errors from the changes.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && python -m pytest tests/test_view_prefix_fix.py -v` | 0 | ✅ pass | 330ms |\n| 2 | `cd backend && python -m pytest tests/test_view_scope.py -v` | 0 | ✅ pass | 360ms |\n| 3 | `cd backend && python -m pytest tests/test_view_prefix_fix.py tests/test_view_scope.py -v` | 0 | ✅ pass | 400ms |\n\n## Deviations\n\nViewSpec dataclass uses renderer_type/target_class fields instead of view_type/model_id as planner assumed — adapted test helper. Line numbers slightly different from plan. Added AsyncMock for label_service.resolve_batch() needed by execute_cards_query.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/views/service.py`\n- `backend/tests/test_view_prefix_fix.py`\n",
+      "description": "## Description\n\nThe `execute_table_query` and `execute_cards_query` methods in `backend/app/views/service.py` extract the WHERE body and FROM clause from the original SPARQL query, then reconstruct new count/data/subjects queries. These reconstructed queries **drop all PREFIX declarations** from the original query. Since the WHERE body uses prefixed names like `rdf:type`, `rdfs:label|dcterms:title`, `dcterms:created`, and `dcterms:modified`, the RDF4J triplestore rejects the queries with SPARQL parse errors. The exceptions are silently caught (logged as warnings), resulting in zero results and the \"No objects found\" empty state.\n\n**Root cause**: Lines ~592-637 (`execute_table_query`) and ~743-777 (`execute_cards_query`) construct queries like:\n```\nSELECT (COUNT(*) AS ?total)\nFROM <urn:sempkm:current>\nWHERE {\n  ?s rdf:type ?type .\n  OPTIONAL { ?s rdfs:label|dcterms:title ?label }\n  ...\n}\n```\n...without any PREFIX declarations. The `rdf:`, `rdfs:`, and `dcterms:` prefixes are undefined.\n\n**Fix**: Import `inject_prefixes` from `app.sparql.client` and apply it to every reconstructed query before sending to the triplestore. This function checks which prefixes are missing and prepends them.\n\n## Steps\n\n1. In `backend/app/views/service.py`, add `inject_prefixes` to the import from `app.sparql.client` (line 29, change `from app.sparql.client import scope_to_current_graph` to `from app.sparql.client import scope_to_current_graph, inject_prefixes`)\n2. In `execute_table_query` (~line 592), wrap the `count_query` with `inject_prefixes(count_query)` before passing to `self._client.query()`. Similarly wrap the `data_query` (~line 637).\n3. In `execute_cards_query` (~line 743), wrap the `count_query` with `inject_prefixes(count_query)`. Wrap the `subjects_query` (~line 770) with `inject_prefixes(subjects_query)`.\n4. Write unit tests in `backend/tests/test_view_prefix_fix.py` that verify:\n   - The reconstructed count query from `execute_table_query` includes PREFIX declarations\n   - The reconstructed data query includes PREFIX declarations\n   - The reconstructed subjects query from `execute_cards_query` includes PREFIX declarations\n   - Both methods return non-empty results when the triplestore mock returns valid SPARQL results\n\n## Must-Haves\n\n- [ ] `inject_prefixes` imported in `backend/app/views/service.py`\n- [ ] All reconstructed queries in `execute_table_query` are wrapped with `inject_prefixes()`\n- [ ] All reconstructed queries in `execute_cards_query` are wrapped with `inject_prefixes()`\n- [ ] Unit tests verify prefix injection and non-empty results\n\n## Verification\n\n- `cd backend && python -m pytest tests/test_view_prefix_fix.py -v` passes\n- `cd backend && python -m pytest tests/test_view_scope.py -v` passes (no regressions)\n\n## Inputs\n\n- `backend/app/views/service.py` — contains the broken execute methods\n- `backend/app/sparql/client.py` — provides inject_prefixes()\n- `backend/tests/test_view_scope.py` — existing test pattern to follow\n\n## Expected Output\n\n- `backend/app/views/service.py` — modified with inject_prefixes applied to reconstructed queries\n- `backend/tests/test_view_prefix_fix.py` — new test file verifying prefix injection",
+      "estimate": "45m",
+      "files": [
+        "backend/app/views/service.py",
+        "backend/app/sparql/client.py",
+        "backend/tests/test_view_prefix_fix.py"
+      ],
+      "verify": "cd backend && python -m pytest tests/test_view_prefix_fix.py tests/test_view_scope.py -v",
+      "inputs": [
+        "`backend/app/views/service.py` — contains the broken execute_table_query and execute_cards_query methods",
+        "`backend/app/sparql/client.py` — provides inject_prefixes() function",
+        "`backend/tests/test_view_scope.py` — existing test pattern to follow"
+      ],
+      "expected_output": [
+        "`backend/app/views/service.py` — modified with inject_prefixes applied to all reconstructed queries",
+        "`backend/tests/test_view_prefix_fix.py` — new test file verifying prefix injection and non-empty results"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M048",
+      "slice_id": "S01",
+      "id": "T02",
+      "title": "Add dcterms:created timestamp to object.create handler",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "## Description\n\nThe `handle_object_create` function in `backend/app/commands/handlers/object_create.py` creates objects with `rdf:type` and user-supplied property triples, but never adds a `dcterms:created` timestamp. This means the Table View's \"created\" column is always empty for objects created through the UI.\n\n**Fix**: After building the property triples, add a `dcterms:created` triple with the current UTC datetime as an `xsd:dateTime` literal. Also add `dcterms:modified` with the same value so newly created objects show both timestamps.\n\n## Steps\n\n1. In `backend/app/commands/handlers/object_create.py`, import `datetime` from stdlib and `DCTERMS` from rdflib (or use a URIRef for `http://purl.org/dc/terms/created`).\n2. After the property triples loop (after line ~107), add:\n   ```python\n   from rdflib.namespace import XSD\n   now = datetime.now(timezone.utc).isoformat()\n   triples.append((subject, URIRef('http://purl.org/dc/terms/created'), Literal(now, datatype=XSD.dateTime)))\n   triples.append((subject, URIRef('http://purl.org/dc/terms/modified'), Literal(now, datatype=XSD.dateTime)))\n   ```\n3. Write a unit test in `backend/tests/test_object_create_timestamps.py` that calls `handle_object_create` and verifies:\n   - The returned Operation's `data_triples` contain a triple with predicate `dcterms:created`\n   - The `dcterms:created` value is a Literal with `xsd:dateTime` datatype\n   - The `dcterms:modified` triple is also present\n   - User-supplied properties are NOT overwritten if the user explicitly passes `dcterms:created`\n\n## Must-Haves\n\n- [ ] `handle_object_create` adds `dcterms:created` and `dcterms:modified` triples\n- [ ] Timestamps use UTC ISO 8601 format with `xsd:dateTime` datatype\n- [ ] User-supplied `dcterms:created` in properties takes precedence (no double-write)\n- [ ] Unit test verifies timestamp presence and format\n\n## Verification\n\n- `cd backend && python -m pytest tests/test_object_create_timestamps.py -v` passes\n\n## Inputs\n\n- `backend/app/commands/handlers/object_create.py` — the handler to modify\n- `backend/app/commands/schemas.py` — ObjectCreateParams definition\n\n## Expected Output\n\n- `backend/app/commands/handlers/object_create.py` — modified to inject dcterms:created and dcterms:modified\n- `backend/tests/test_object_create_timestamps.py` — new test file verifying timestamps",
+      "estimate": "30m",
+      "files": [
+        "backend/app/commands/handlers/object_create.py",
+        "backend/tests/test_object_create_timestamps.py"
+      ],
+      "verify": "cd backend && python -m pytest tests/test_object_create_timestamps.py -v",
+      "inputs": [
+        "`backend/app/commands/handlers/object_create.py` — the handler to modify",
+        "`backend/app/commands/schemas.py` — ObjectCreateParams definition for test setup"
+      ],
+      "expected_output": [
+        "`backend/app/commands/handlers/object_create.py` — modified to inject dcterms:created and dcterms:modified triples",
+        "`backend/tests/test_object_create_timestamps.py` — new test file verifying timestamp presence and format"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M049",
+      "slice_id": "S01",
+      "id": "T01",
+      "title": "Add TTL caching to ShapesService",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "## Description\n\nShapesService currently re-fetches the entire shapes graph from the triplestore on EVERY call to `get_form_for_type()`, `get_node_shapes()`, `get_types()`, `get_labels_for_predicates()`, and `get_helptext_for_predicates()`. This means 2 SPARQL round-trips (1 SELECT for model IDs + 1 CONSTRUCT for shapes triples) plus rdflib parsing on every request. Since SHACL shapes only change when a Mental Model is installed/uninstalled (rare admin operation), this is pure waste.\n\nAdd a TTL-cached shapes graph to ShapesService so repeated calls return cached results. Also cache per-type form lookups.\n\n## Steps\n\n1. Read `backend/app/services/shapes.py` to understand the current structure — `_fetch_shapes_graph()` is the expensive method, called by `get_node_shapes()` which is called by `get_form_for_type()`, `get_types()`, etc.\n\n2. Add `cachetools.TTLCache` dependency (already in pyproject.toml — used by LabelService). Add two caches:\n   - `_shapes_graph_cache`: TTLCache(maxsize=1, ttl=600) storing the parsed rdflib Graph object. Key is a sentinel string like `'shapes'`.\n   - `_form_cache`: TTLCache(maxsize=64, ttl=600) storing `NodeShapeForm` by type_iri.\n\n3. Modify `_fetch_shapes_graph()` to check `_shapes_graph_cache` first. On miss, execute the existing SPARQL queries and cache the result. Log cache hit/miss at DEBUG level.\n\n4. Modify `get_form_for_type()` to check `_form_cache[type_iri]` first. On miss, call `get_node_shapes()` (which uses the cached graph) and cache the found form.\n\n5. Add a `clear_cache()` method that clears both caches. This will be called by model install/uninstall paths if needed (not wired in this task — shapes change rarely enough that TTL handles it).\n\n6. Write tests in `backend/tests/test_shapes_cache.py`:\n   - Test that repeated `get_form_for_type` calls with same type_iri only trigger 1 SPARQL CONSTRUCT (mock the client)\n   - Test that `clear_cache()` forces a re-fetch\n   - Test that cache expires after TTL\n\n## Must-Haves\n\n- [ ] `_fetch_shapes_graph()` uses TTLCache — second call within TTL returns cached Graph without SPARQL\n- [ ] `get_form_for_type()` caches per type_iri — repeated calls for same type don't re-parse\n- [ ] `clear_cache()` method exists and clears both caches\n- [ ] DEBUG-level logging on cache hit/miss\n- [ ] All existing tests still pass\n\n## Verification\n\n- `cd backend && python -m pytest tests/test_shapes_cache.py -v`\n- `cd backend && python -m pytest tests/ -x --timeout=30` (no regressions)",
+      "estimate": "45m",
+      "files": [
+        "backend/app/services/shapes.py",
+        "backend/tests/test_shapes_cache.py"
+      ],
+      "verify": "cd backend && python -m pytest tests/test_shapes_cache.py -v && python -m pytest tests/ -x --timeout=60",
+      "inputs": [
+        "`backend/app/services/shapes.py` — current ShapesService without caching",
+        "`backend/app/services/labels.py` — reference implementation of TTLCache pattern"
+      ],
+      "expected_output": [
+        "`backend/app/services/shapes.py` — ShapesService with TTL caching on _fetch_shapes_graph and get_form_for_type",
+        "`backend/tests/test_shapes_cache.py` — unit tests proving cache hit/miss/expiry/clear behavior"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M049",
+      "slice_id": "S01",
+      "id": "T02",
+      "title": "Combine multi-graph property queries and consolidate label batches in get_object",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "## Description\n\nThe `get_object` handler in `backend/app/browser/objects.py` makes 3 separate SPARQL queries to fetch properties from current, inferred, and mirrored graphs — each is a sequential HTTP round-trip to RDF4J. It also makes up to 5 separate `label_service.resolve_batch()` calls sequentially.\n\nCombine the 3 property queries into 1 UNION query (similar to how `get_relations` already uses UNION). Consolidate the 5 label batches into 1 combined batch after all IRIs are known.\n\n## Steps\n\n1. Read `backend/app/browser/objects.py` lines 100-310 (the `get_object` handler) to understand the current query sequence.\n\n2. Replace the 3 separate property queries (props_sparql, inferred_props_sparql, mirrored_props_sparql) with a single UNION query that annotates each result with its source graph:\n   ```sparql\n   SELECT ?p ?o ?source WHERE {\n     { GRAPH <urn:sempkm:current> { <IRI> ?p ?o } BIND(\"user\" AS ?source) }\n     UNION\n     { GRAPH <urn:sempkm:inferred> { <IRI> ?p ?o } BIND(\"inferred\" AS ?source) }\n     UNION\n     { GRAPH <urn:sempkm:mirrored> { <IRI> ?p ?o } BIND(\"mirrored\" AS ?source) }\n   }\n   ```\n\n3. Adjust the binding-processing logic to partition results by `?source` into `values`, `inferred_values`, and `mirrored_values` dicts (same structure as before). Preserve the existing deduplication logic (user > inferred > mirrored).\n\n4. After all property processing and form resolution is done, collect ALL IRIs that need labels into a single set: ref_iris + type_class_iris + object/type iris + inferred iris + mirrored iris. Make ONE call to `label_service.resolve_batch(all_iris)`. Then extract sub-results from the single response dict.\n\n5. Write a focused test in `backend/tests/test_object_query_opt.py` that mocks `TriplestoreClient.query` and `LabelService.resolve_batch`, calls a simplified version of the query logic, and asserts:\n   - Only 1 SPARQL query is made for properties (not 3)\n   - Only 1 label batch call is made (not 5)\n   - Output structure (values, inferred_values, mirrored_values) is identical to the old behavior\n\n## Must-Haves\n\n- [ ] Single UNION query replaces 3 separate graph queries\n- [ ] Single label batch replaces 5 separate batches\n- [ ] Deduplication logic preserved: user values take precedence over inferred/mirrored\n- [ ] Template context structure unchanged — no template modifications needed\n- [ ] Test verifies query count reduction and output equivalence\n\n## Verification\n\n- `cd backend && python -m pytest tests/test_object_query_opt.py -v`\n- `cd backend && python -m pytest tests/ -x --timeout=30` (no regressions)",
+      "estimate": "1h",
+      "files": [
+        "backend/app/browser/objects.py",
+        "backend/tests/test_object_query_opt.py"
+      ],
+      "verify": "cd backend && python -m pytest tests/test_object_query_opt.py -v && python -m pytest tests/ -x --timeout=60",
+      "inputs": [
+        "`backend/app/browser/objects.py` — current get_object handler with sequential queries",
+        "`backend/app/services/labels.py` — LabelService.resolve_batch interface"
+      ],
+      "expected_output": [
+        "`backend/app/browser/objects.py` — get_object with UNION query and consolidated label batch",
+        "`backend/tests/test_object_query_opt.py` — tests verifying query count reduction and output equivalence"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M049",
+      "slice_id": "S01",
+      "id": "T03",
+      "title": "Parallelize independent work in get_object with asyncio.gather and add timing log",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "## Description\n\nAfter T01 (cached shapes) and T02 (combined queries + consolidated labels), the `get_object` handler still has independent async operations that run sequentially. The UNION property query, the ShapesService form lookup (now cached), and the favorites SQLite check are all independent and can run concurrently.\n\nAdd `asyncio.gather` to parallelize these independent operations. Also add timing instrumentation that logs the total handler wall-clock time so we can measure the improvement.\n\n## Steps\n\n1. Read the modified `backend/app/browser/objects.py` (output of T02) to identify the current sequential flow.\n\n2. Identify the independent operation groups that can run concurrently:\n   - Group A: UNION property query (depends on decoded_iri only)\n   - Group B: Favorites SQLite query (depends on decoded_iri + user.id only)\n   These two are independent. The shapes lookup needs type_iris from Group A, so it stays sequential after Group A. But the label batch (from T02) also needs type_iris. So the parallel groups are:\n   - Phase 1 (parallel): property UNION query + favorites check\n   - Phase 2 (sequential, needs property results): shapes form lookup\n   - Phase 3 (sequential, needs form + properties): consolidated label batch\n\n3. Wrap Phase 1 in `asyncio.gather`:\n   ```python\n   import asyncio\n   props_result, fav_result = await asyncio.gather(\n       client.query(union_sparql),\n       db.execute(fav_query),\n   )\n   ```\n\n4. Add timing instrumentation at the top and bottom of `get_object`:\n   ```python\n   import time\n   _start = time.perf_counter()\n   # ... handler body ...\n   _elapsed = time.perf_counter() - _start\n   logger.info(\"get_object %s completed in %.3fs\", decoded_iri, _elapsed)\n   ```\n\n5. Write a test in `backend/tests/test_object_parallel.py` that:\n   - Mocks the triplestore client and db session with artificial delays (e.g. 0.1s each)\n   - Verifies that get_object with asyncio.gather completes faster than the sum of individual delays\n   - Verifies that the timing log message is emitted\n\n## Must-Haves\n\n- [ ] Property query and favorites check run concurrently via asyncio.gather\n- [ ] Handler logs wall-clock time at INFO level\n- [ ] No change to template context or response structure\n- [ ] Test proves parallel execution reduces total time\n\n## Verification\n\n- `cd backend && python -m pytest tests/test_object_parallel.py -v`\n- `cd backend && python -m pytest tests/ -x --timeout=30` (no regressions)\n- Manual: open an object tab in the browser, check backend logs for timing output",
+      "estimate": "45m",
+      "files": [
+        "backend/app/browser/objects.py",
+        "backend/tests/test_object_parallel.py"
+      ],
+      "verify": "cd backend && python -m pytest tests/test_object_parallel.py -v && python -m pytest tests/ -x --timeout=60",
+      "inputs": [
+        "`backend/app/browser/objects.py` — output of T02 with UNION query and consolidated labels",
+        "`backend/app/services/shapes.py` — output of T01 with TTL caching"
+      ],
+      "expected_output": [
+        "`backend/app/browser/objects.py` — get_object with asyncio.gather parallelization and timing log",
+        "`backend/tests/test_object_parallel.py` — tests proving parallel execution and timing instrumentation"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
     }
   ],
   "decisions": [
@@ -35931,6 +36527,30 @@
       "revisable": "Yes — if a proper foreign-key or symbolic reference system is added to dashboards/workflows, the install-time resolution can be removed.",
       "made_by": "agent",
       "superseded_by": null
+    },
+    {
+      "seq": 411,
+      "id": "D383",
+      "when_context": "M049/S02",
+      "scope": "architecture",
+      "decision": "Jaeger version for distributed tracing",
+      "choice": "Jaeger v2 (jaegertracing/jaeger:latest) over Jaeger v1 (jaegertracing/all-in-one)",
+      "rationale": "Jaeger v1 reached end-of-life December 31, 2025. Jaeger v2 is built on the OpenTelemetry Collector framework and natively ingests OTLP without additional configuration. The Docker image is jaegertracing/jaeger:latest.",
+      "revisable": "Yes",
+      "made_by": "agent",
+      "superseded_by": null
+    },
+    {
+      "seq": 414,
+      "id": "D384",
+      "when_context": "M048/S03",
+      "scope": "architecture",
+      "decision": "Whether object.delete should cascade to inbound edges (triples where the deleted object is the RDF object, not the subject)",
+      "choice": "Yes — bulk_delete_objects should also query and delete triples matching ?s ?p <deleted_iri> from the current graph",
+      "rationale": "Leaving dangling references causes silent data corruption — views, relations panels, and SPARQL queries would reference non-existent objects. The inbound edge triples are included in the delete event's data for audit purposes, so provenance is preserved.",
+      "revisable": "Yes",
+      "made_by": "agent",
+      "superseded_by": null
     }
   ],
   "verification_evidence": [
@@ -38210,6 +38830,39 @@
       "verdict": "✅ pass",
       "duration_ms": 80,
       "created_at": "2026-04-05T00:31:32.635Z"
+    },
+    {
+      "id": 208,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M048",
+      "command": "cd backend && python -m pytest tests/test_view_prefix_fix.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 330,
+      "created_at": "2026-04-05T18:09:32.279Z"
+    },
+    {
+      "id": 209,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M048",
+      "command": "cd backend && python -m pytest tests/test_view_scope.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 360,
+      "created_at": "2026-04-05T18:09:32.279Z"
+    },
+    {
+      "id": 210,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M048",
+      "command": "cd backend && python -m pytest tests/test_view_prefix_fix.py tests/test_view_scope.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 400,
+      "created_at": "2026-04-05T18:09:32.279Z"
     }
   ]
 }

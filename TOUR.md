@@ -21,14 +21,14 @@
 
 > Admin → Models page. Install, inspect, uninstall models.
 
-- [ ] **1.1** Navigate to Admin portal
-- [ ] **1.2** Install `basic-pkm` model from archive
-- [ ] **1.3** Install `business-planning` model
-- [ ] **1.4** Install `crm` model
-- [ ] **1.5** Install `zettelkasten` model
-- [ ] **1.6** Install `research` model
-- [ ] **1.7** Install `ppv` model
-- [ ] **1.8** Model detail page shows real stats + charts
+- [x] **1.1** Navigate to Admin portal
+- [x] **1.2** Install `basic-pkm` model from archive
+- [x] **1.3** Install `business-planning` model
+- [x] **1.4** Install `crm` model
+- [x] **1.5** Install `zettelkasten` model
+- [x] **1.6** Install `research` model
+- [x] **1.7** Install `ppv` model
+- [x] **1.8** Model detail page shows real stats + charts
 - [ ] **1.9** Schema refresh works (POST without uninstall)
 - [ ] **1.10** Uninstall a model (verify clean removal)
 
@@ -42,20 +42,20 @@
 
 > Create, read, edit, delete objects of various types.
 
-- [ ] **2.1** Create a Note (basic-pkm) — form renders, save works
-- [ ] **2.2** Create a Project — verify all SHACL fields present
-- [ ] **2.3** Create a Concept — definition field, related concepts
-- [ ] **2.4** Create a Person — contact fields
-- [ ] **2.5** Create a Task — status, priority, due date, scheduled times
-- [ ] **2.6** Object read view renders (markdown body, properties)
-- [ ] **2.7** Flip to edit mode (CSS 3D card flip, no flicker)
-- [ ] **2.8** Edit properties — save persists
-- [ ] **2.9** Edit markdown body — save persists
-- [ ] **2.10** Delete object — confirmation, clean removal
-- [ ] **2.11** Edge creation (link two objects)
-- [ ] **2.12** Edge deletion
-- [ ] **2.13** Markdown rendering in body (headings, code, lists, links)
-- [ ] **2.14** Form advanced section (collapse/expand)
+- [x] **2.1** Create a Note (basic-pkm) — form renders, save works
+- [x] **2.2** Create a Project — verify all SHACL fields present
+- [x] **2.3** Create a Concept — definition field, related concepts
+- [x] **2.4** Create a Person — contact fields
+- [x] **2.5** Create a Task — status, priority, due date, scheduled times
+- [x] **2.6** Object read view renders (markdown body, properties)
+- [x] **2.7** Flip to edit mode (CSS 3D card flip, no flicker)
+- [x] **2.8** Edit properties — save persists
+- [x] **2.9** Edit markdown body — save persists
+- [x] **2.10** Delete object — confirmation, clean removal
+- [x] **2.11** Edge creation (link two objects)
+- [x] **2.12** Edge deletion
+- [x] **2.13** Markdown rendering in body (headings, code, lists, links)
+- [x] **2.14** Form advanced section (collapse/expand)
 
 **Notes:**
 ```
@@ -67,20 +67,20 @@
 
 > IDE-style workspace: tabs, sidebar, command palette, keyboard shortcuts.
 
-- [ ] **3.1** Sidebar navigation tree loads (explorer sections)
-- [ ] **3.2** Explorer mode dropdown works (by-type, by-hierarchy, by-tag, VFS)
-- [ ] **3.3** Click object in tree → opens in dockview tab
-- [ ] **3.4** Multiple tabs open simultaneously
-- [ ] **3.5** Tab close, tab switching
-- [ ] **3.6** Dockview drag to split (horizontal/vertical groups)
-- [ ] **3.7** Command palette (Ctrl+K) — search, actions
-- [ ] **3.8** Keyboard shortcuts (documented ones work)
-- [ ] **3.9** Named layouts — save and restore
-- [ ] **3.10** Personas — create, switch, verify layout persistence
-- [ ] **3.11** Sidebar panel drag-drop reordering
-- [ ] **3.12** Dark mode toggle (system/light/dark)
-- [ ] **3.13** Sidebar sections collapse/expand
-- [ ] **3.14** Bottom panel toggle (Ctrl+J) — SPARQL, Event Log, Copilot tabs
+- [x] **3.1** Sidebar navigation tree loads (explorer sections)
+- [x] **3.2** Explorer mode dropdown works (by-type, by-hierarchy, by-tag, VFS)
+- [x] **3.3** Click object in tree → opens in dockview tab
+- [x] **3.4** Multiple tabs open simultaneously
+- [x] **3.5** Tab close, tab switching
+- [x] **3.6** Dockview drag to split (horizontal/vertical groups)
+- [x] **3.7** Command palette (Ctrl+K) — search, actions
+- [x] **3.8** Keyboard shortcuts (documented ones work)
+- [x] **3.9** Named layouts — save and restore
+- [x] **3.10** Personas — create, switch, verify layout persistence
+- [x] **3.11** Sidebar panel drag-drop reordering
+- [x] **3.12** Dark mode toggle (system/light/dark)
+- [x] **3.13** Sidebar sections collapse/expand
+- [x] **3.14** Bottom panel toggle (Ctrl+J) — SPARQL, Event Log, Copilot tabs
 
 **Notes:**
 ```
@@ -92,17 +92,17 @@
 
 > Table, cards, graph, kanban, calendar, timeline, map renderers.
 
-- [ ] **4.1** Table view — loads, columns correct, pagination
-- [ ] **4.2** Cards view — renders, flip animation
-- [ ] **4.3** Graph view (2D) — nodes, edges, layout
-- [ ] **4.4** Kanban view — columns from SHACL sh:in, drag cards
-- [ ] **4.5** Calendar view — tasks/events display, drag-to-reschedule
-- [ ] **4.6** Timeline/Gantt view — bars, dependencies, zoom
-- [ ] **4.7** Map view (if geo data exists)
-- [ ] **4.8** Generic views (any type → table/cards/graph)
-- [ ] **4.9** View filtering / scope select
-- [ ] **4.10** Column preferences (table) persist
-- [ ] **4.11** Save view / promoted views folder
+- [x] **4.1** Table view — loads, columns correct, pagination
+- [x] **4.2** Cards view — renders, flip animation
+- [x] **4.3** Graph view (2D) — nodes, edges, layout
+- [x] **4.4** Kanban view — columns from SHACL sh:in, drag cards
+- [x] **4.5** Calendar view — tasks/events display, drag-to-reschedule
+- [x] **4.6** Timeline/Gantt view — bars, dependencies, zoom
+- [x] **4.7** Map view (if geo data exists)
+- [x] **4.8** Generic views (any type → table/cards/graph)
+- [x] **4.9** View filtering / scope select
+- [x] **4.10** Column preferences (table) persist
+- [x] **4.11** Save view / promoted views folder
 
 **Notes:**
 ```
@@ -114,7 +114,7 @@
 
 > Install business-planning model, test custom renderers.
 
-- [ ] **5.1** Quadrant view (e.g. SWOT, Eisenhower) — 2×2 grid renders
+- [x] **5.1** Quadrant view (e.g. SWOT, Eisenhower) — 2×2 grid renders
 - [ ] **5.2** Drag-to-reclassify in quadrant
 - [ ] **5.3** BMC (Business Model Canvas) 9-box poster
 - [ ] **5.4** BMC inline editing
@@ -410,7 +410,71 @@ _These need API keys/OAuth to test fully. Test at minimum: settings UI loads, co
 | # | Severity | Category | Section | Description | Repro Steps |
 |---|----------|----------|---------|-------------|-------------|
 | 1 | 🔴 Broken | infra | Pre-flight | SQLite "attempt to write a readonly database" after `docker compose up --build` — volume data owned by root:root, process runs as uid 1000 (sempkm). Dockerfile `chown` only applies at image build, not to existing volume data. | `docker compose down && docker compose up --build -d` → API crash loop |
-| 2 | 🔴 Broken | infra | Pre-flight | nginx frontend crashes with `setgid(101) failed (Operation not permitted)` — `security_opt: no-new-privileges` in docker-compose.yml prevents nginx worker setgid. | `docker compose up -d` after a fresh build → frontend container exits immediately |
+| 2 | 🔴 Broken | infra | Pre-flight | nginx frontend crashes with `setgid(101) failed (Operation not permitted)` — `security_opt: no-new-privileges` in docker-compose.yml prevents nginx worker setgid. Fixed by removing security_opt from frontend service. | `docker compose up -d` after a fresh build → frontend container exits immediately |
+| 3 | 🟢 Polish | model-mgmt | 1 | Install UI should auto-discover models from `/app/models/` and show installable list (like Applications page does for apps) instead of requiring user to type a filesystem path. | Admin → Mental Models → Install field |
+| 4a | 🔴 Broken | model-mgmt | 1 | Model installer only loads a fraction of SHACL shapes — business-planning has 33 shapes on disk but only 2 (Eisenhower) made it into the triplestore (154 triples vs expected thousands). JSON-LD parsing likely drops shapes after the first block. | Install business-planning → query shapes graph → only 2 NodeShapes |
+| 4b | 🟡 Bug | model-mgmt | 1 | Model detail page has no tab/section to view SHACL shapes. Add a "Shapes" tab showing all shapes with their properties. | Click into any model → no shapes section |
+| 5 | 🟢 Polish | model-mgmt | 1 | Type references (including xsd types) need consistent styling — color, icon (use model-declared icon when available). Currently unstyled plain text. | Model detail page → types listed without visual distinction |
+| 6 | 🟡 Bug | model-mgmt | 1 | Analytics/growth charts show incorrect data for most new types — growth not displayed correctly. | Model detail → stats charts |
+| 7 | 🟢 Polish | model-mgmt | 1 | Model detail page has too much whitespace on right side. Should use centered layout. Relationship map should use 100% width and height. | Model detail page layout |
+| 8 | 🟡 Bug | model-mgmt | 1 | Inference Settings UI is confusing — no separation between items in "in this model" section. Needs unordered list formatting, better visual separation, and tooltip help text explaining each line. | Model detail → Inference section |
+| 9 | 🟢 Polish | model-mgmt | 1 | Model detail page is laggy to load — API calls likely heavy. Needs performance investigation. | Click into any model → noticeable delay |
+| 10 | 🟡 Bug | workspace | 3 | Bottom panel EVENT LOG tab shows stale placeholder "Event Log Explorer — coming in Phase 16" — event log was built in M012. | Object Browser → bottom panel → EVENT LOG tab |
+| 11 | 🟢 Polish | workspace | 3 | Explorer shows "Project Shape", "Person Shape" etc. — the " Shape" suffix is noisy. Should show just the type name. | Object Browser → OBJECTS section |
+| 12 | 🟡 Bug | workspace | 3 | OBJECTS dropdown is poorly organized — raw model IDs with `(by-type)` suffix, VFS Mounts 404s, no visual grouping between generic modes and per-model filters. | Object Browser → OBJECTS dropdown |
+| 13 | 🟢 Polish | object-crud | 2 | Object view is bland/generic — no distinctive color, no type-colored accents, flat gray/white palette. Needs visual identity and warmth. | Create any object → view it |
+| 14 | 🟢 Polish | object-crud | 2 | Type badge shows raw namespace IRI (`sempkm:model:basic-pkm:Note`) — should be a styled pill with type icon and just the type name "Note". | Object header bar |
+| 15 | 🟢 Polish | object-crud | 2 | Body editor uses code-editor line numbers — feels wrong for note-taking. Should feel like a writing surface, not an IDE. | Object body area |
+| 16 | 🟢 Polish | object-crud | 2 | "2 properties" link in header is cryptic — unclear what properties, why 2. Needs better labeling or context. | Object header bar |
+| 17 | 🟢 Polish | object-crud | 2 | Right panel sections (RELATIONS, LINT, COMMENTS, INBOX, COLLABORATION) all have equal visual weight, most are empty — wall of "nothing here" messages. Needs smarter collapse/hide when empty. | Object right panel |
+| 18 | 🟢 Polish | object-crud | 2 | Form helptext has too much vertical spacing — wastes screen real estate. | Create object form |
+| 19 | 🟢 Polish | object-crud | 2 | Read view properties table — no visual distinction between property name and value (same font, weight, color). Needs bolder labels or muted values. No zebra striping or separators. | Object read view → properties |
+| 20 | 🟢 Polish | object-crud | 2 | Read view has no `?` tooltip icons on properties — edit form has them but read view doesn't. Should show helptext in both modes. | Object read view vs edit form |
+| 21 | 🟢 Polish | object-crud | 2 | Edit form inputs are fixed-width (~55% of panel) — right half is dead white space. Inputs should be responsive to panel width. Alignment feels off. | Object edit form |
+| 22 | 🟢 Polish | object-crud | 2 | Edit form section headers (Content, Relationships, Metadata) have tiny orange squares — don't create strong visual grouping. Need more prominent section separation. | Object edit form |
+| 23 | 🟢 Polish | ui-quality | 21 | Lists and panels across the entire Object Browser lack visual borders, zebra striping, or subtle separators — properties table, relations panel, lint results, comments, explorer tree items all blend together. Needs a systemic pass. | All panels in Object Browser |
+| 24 | 🟡 Bug | workspace | 3 | Command palette (ninja-keys) has a scroll jump bug — moving mouse slowly from top to bottom, near "Create Project" the list scrolls away. Likely a hover-highlight layout shift or overflow issue inside the shadow DOM. | F1 → move mouse slowly down the command list |
+| 25 | 🟡 Bug | object-crud | 2 | Relationship autocomplete dropdowns don't dismiss on click-outside or Escape — must click another element to close. Affects all relation search fields (Participants, Notes, Tasks, Milestones, About Concepts, etc.). | Edit any object → click a relation search field → type → try to dismiss |
+| 26 | 🟡 Bug | object-crud | 2 | Tag autocomplete dropdown gets clipped/cutoff by the Metadata section container boundary. Dropdown renders inside parent instead of escaping to document.body. Same stacking context issue as dockview popovers (KNOWLEDGE.md). | Edit object → Metadata → Tags → type "garden" → dropdown is cut off at bottom |
+| 27 | 🟡 Bug | workspace | 3 | URL never changes while browsing — no browser history integration. Can't bookmark, share, or use back/forward to navigate. Closing a tab is irreversible — no undo, no "Reopen closed tab" in command palette. | Open objects, switch tabs, close a tab → URL stays at /browser/, no way to recover |
+| 28 | 🟢 Polish | workspace | 3 | Explorer OBJECTS panel entries should show hover-reveal action buttons — `?` tooltip with shape/type description from ontology, and a delete button for object instances. | Hover over entries in explorer → no actions appear |
+| 29 | 🔴 Broken | object-crud | 2 | Object deletion does not exist — no `object.delete` command, no delete button in UI, no command palette entry. There is no way to delete an object. Need: backend command handler (event-sourced soft delete or hard delete), UI button on object header and explorer hover, confirmation dialog. | Try to delete any object → no mechanism exists |
+| 30 | 🔴 Broken | object-crud | 2 | Save does a full replace instead of diffing — every save sends ALL fields as if new, even unchanged ones. Causes: (1) unnecessary `body.set` events when body wasn't edited, (2) event log shows `(new)` for properties that already existed (e.g. Type showing as `(new) → observation` when it was already observation), (3) pollutes event history with noise, making real changes hard to find. The editor.js save should diff current vs original values and only send changed fields. | Edit "Be Useful" → only add About Concepts → save → event log shows body.set + all properties as (new) |
+| 31 | 🟢 Polish | workspace | 3 | Tab styling — tab colors too close to background color, not prominent enough. Tabs don't stand out visually. | Multiple tabs open → hard to distinguish active vs inactive |
+| 32 | 🔴 Broken | ui-quality | 21 | Severe backend performance issue — opening an object takes 4+ seconds. Network tab shows "Waiting for server response" at 4.07s on individual requests. Opening one object triggers a cascade of htmx partial loads (object tab, comments, inbox, lint, relations, shapes) each hitting the API with slow SPARQL queries. Needs performance profiling and optimization (query caching, parallel loading, lazy loading of secondary panels). | Open any object → 4+ second delay, visible in Network tab |
+| 33 | 🟡 Bug | workspace | 3 | Persona "Create New" doesn't work from command palette — requires typing a name in the search field first then selecting the action, which is not discoverable. No modal/dialog prompt for the name. | F1 → Persona: Create New → nothing happens unless you typed a name first |
+| 34 | 🟡 Bug | workspace | 3 | Layout "Save As" has same broken UX as persona create — "type a name above, then select this item to save" is not discoverable. Should show an input dialog. | F1 → Layout: Save As → same issue |
+| 35 | 🟢 Polish | workspace | 3 | Personas vs Named Layouts distinction is unclear to users. Personas = layout + sidebar positions + explorer mode (server-stored). Layouts = dockview panel arrangement only (localStorage). Consider merging into a single "Workspace" concept or at minimum clarifying the difference in UI. | F1 → see both Persona and Layout sections |
+| 36 | 🔴 Broken | views | 4 | Generic Table View shows "No objects found" even with "All Types" selected — objects exist (visible in explorer + just created). The generic view query is broken. | VIEWS → Table View → All Types selected → empty table |
+| 37 | 🟢 Polish | views | 4 | Type filter pills are overwhelming — 37 pills across 4 rows, all with " Shape" suffix. Unscalable. Replace with a dropdown that only shows types present in the current query's result set. | Table View → type pills area |
+| 38 | 🟢 Polish | views | 4 | Remove "View Variants" dropdown — concept is confusing and adds no clear value. The query/scope dropdown is sufficient. | Table View → "All Objects" variant dropdown |
+| 39 | 🟢 Polish | views | 4 | View toolbar needs clearer separation between query filter (what universe of objects) and type filter (which types within that universe). Query dropdown should be primary, type dropdown secondary and smart-filtered. | Table View toolbar |
+| 40 | 🟢 Polish | workspace | 3 | View icons in explorer VIEWS section (Spatial Canvas, Ontology Viewer, Table, Cards, Graph, Kanban) are too dim/muted — need brighter colors to stand out. | Explorer → VIEWS section → first 6 entries |
+| 41 | 🔴 Broken | views | 4 | Cards View is broken — doesn't render/load. | VIEWS → Cards View → broken |
+| 42 | 🟡 Bug | model-mgmt | 1 | Model detail relationship graph — hover popover appears far away from the node, not anchored to it. Likely the dockview stacking context / CSS transform coordinate issue (documented in KNOWLEDGE.md for Cytoscape). | Admin → model detail → relationship graph → hover a node |
+| 43 | 🟢 Polish | views | 4 | Graph view node hover popover — property names and values need alignment (left-align labels, right-align or indent values). Add borders/separators between rows. Same polish pass as the object properties table (#23). | Graph View → hover a node → popover content is unstyled |
+| 44 | 🟢 Polish | views | 4 | Kanban cards are too bare — just a title in a white box. Need: type icon, priority indicator, due date, assignee, tags. Compare to Trello/Linear card density. | Kanban View → cards show only title |
+| 45 | 🟢 Polish | views | 4 | Kanban column headers need color coding and icons from the Mental Model's SHACL enum values. Currently plain text + count. | Kanban View → column headers "Todo", "In Progress" etc. |
+| 46 | 🟢 Polish | views | 4 | Kanban cards need hover-reveal action buttons — delete, open in new tab, and a mini popover with key properties. | Kanban View → hover a card → nothing happens |
+| 47 | 🟢 Polish | views | 4 | Kanban pills should only show types that have a status field (sh:in enum) — showing all 37 types makes no sense for kanban. Smart filtering by renderer compatibility. | Kanban View → pill bar shows all types including ones without status fields |
+| 48 | 🟡 Bug | views | 4 | Calendar View doesn't take 100% available width — only fills after manually collapsing explorer/details panels. Should be responsive to available space. | Open Calendar View with panels open → doesn't fill |
+| 49 | 🟡 Bug | views | 4 | Calendar nav buttons (back/forward arrows) invisible in dark mode — icon stroke color matches dark button background. Only "today" button text is visible. | Calendar View → upper left nav buttons → dark rectangle with invisible icons |
+| 50 | 🟢 Polish | views | 4 | Calendar filter text field shows raw namespace IRI (`sempkm:model:basic-p...`) instead of human-readable label. | Calendar View → filter field |
+| 51 | 🟢 Polish | views | 4 | Timeline/Gantt bars are plain gray rectangles — no color coding by status/priority, no progress indicator, no type icon. Small empty white squares on left edge of bars look like broken checkboxes. | Timeline View → bar styling |
+| 52 | 🟢 Polish | views | 4 | Timeline has no "scroll to today" button — opens showing December/January seed data instead of current date. Calendar has a "today" button but timeline doesn't. | Timeline View → shows old dates, no navigation aid |
+| 53 | 🟡 Bug | views | 4 | Timeline pills should only show types with date fields (scheduledStart, dueDate, etc.) — same smart filtering issue as kanban (#47). | Timeline View → all 37 types shown |
+| 54 | 🟡 Bug | views | 4 | Timeline/Gantt popover (on bar click/hover) is impossible to dismiss — no click-outside or Escape handling. Same class of issue as relation autocomplete (#25). | Timeline View → click a bar → popover sticks |
+| 55 | 🟡 Bug | views | 4 | Timeline doesn't fill 100% available height — Gantt area uses ~30% of viewport, rest is empty white space below. | Timeline View → large empty area below bars |
+| 56 | 🟢 Polish | views | 4 | Timeline should show object detail in a right-hand panel when a bar is selected (like calendar does when clicking an event). | Timeline View → click a bar → no detail panel |
+| 57 | 🟡 Bug | views | 4 | No discoverable way to save the current view — save button/flow is missing or broken. | Any view → try to save → unclear how |
+| 58 | 🟡 Bug | views | 4 | Saved Views menu/section doesn't work — saved views can't be loaded or managed. | Explorer → Saved Views |
+| 59 | 🟢 Polish | workspace | 3 | View names in explorer VIEWS section are underlined (link-styled) — inconsistent with other explorer items which are plain text. | Explorer → VIEWS → entries are underlined |
+| 60 | 🟢 Polish | views | 4 | No seed data exists for Map View — no models define geo properties (wgs84:lat/long). Need to add geo fields to at least one model (e.g. CRM Contact/Company with addresses, or Events with locations) and create seed data. | Map View → nothing to display |
+| 61 | 🟢 Polish | views | 5 | Eisenhower Matrix creation has zero workflow guidance — user creates the matrix container but has no indication that items must be created separately and linked. The read view should show an empty 2×2 grid with "Add Item" buttons in each quadrant, or at minimum helptext explaining the workflow. | Create Eisenhower Matrix → save → now what? |
+| 62 | 🔴 Broken | views | 5 | Eisenhower Matrix object read view shows generic properties table + "No content" instead of the 2×2 quadrant grid. The custom renderer only works via a separate ViewSpec view — but that ViewSpec didn't load either (see #4a). Object view should detect custom renderer and show it inline. Same likely applies to BMC, OKR, Decision Matrix. | Create Eisenhower Matrix → save → cancel edit → see flat properties, no grid |
+| 63 | 🔴 Broken | object-crud | 2 | `object.create` does not set `dcterms:created` automatically — new objects have no creation timestamp. The "Eisenhower Matrices Table" shows the seed data row with a CREATED value but the user-created row has an empty CREATED cell. | Create any object → view in table → CREATED column is empty |
+| 64 | 🔴 Broken | views | 5 | "Browse: Eisenhower Quadrant" view does not exist in the VIEWS section — the ViewSpec didn't load into the triplestore. Root cause is #4a (model installer only loading a fraction of artifacts). All business-planning custom renderers are effectively broken. | Explorer → VIEWS → no quadrant entry |
+| 65 | 🟢 Polish | object-crud | 2 | Object tab header needs a refresh button (cycle icon, same as explorer panel) next to the star/favorite icon. Currently no way to reload an object without closing and reopening the tab. | Any object tab → no refresh action |
 
 **Severity:** 🔴 Broken (feature doesn't work) · 🟡 Bug (works but wrong) · 🟢 Polish (cosmetic/UX)
 
@@ -422,14 +486,113 @@ _These need API keys/OAuth to test fully. Test at minimum: settings UI loads, co
 
 > Distilled from the bug log after the tour. Each becomes a GSD milestone.
 
-### Candidate A: _[name TBD]_
-**Scope:**
+### Candidate A: Model Marketplace
+**Scope:** Cloud-hosted model registry so users can discover, browse, and install Mental Models without filesystem access.
 **Items:**
+- Hosted model registry (cloud API) with model metadata, versions, screenshots
+- In-app "Browse Models" UI that fetches from the registry
+- One-click install from the marketplace (download archive → install)
+- Model versioning and update notifications
+- Community model submissions (later phase)
 
-### Candidate B: _[name TBD]_
-**Scope:**
+### Candidate B: Ontology Visualization Overhaul
+**Scope:** Layered ontology graph with hierarchical layout, full TBox coverage, and interactive filtering.
 **Items:**
+- Layered graph layout: gist upper ontology at top, then model layers determined by degree-from-gist + categorical grouping
+- Copy relationship graph from model detail to Ontology Viewer — show full TBox not just a single model subset
+- Bottom panel in Ontology Viewer showing a graph of whatever is selected (class detail, properties, etc.)
+- Multi-select filtering by Mental Model (not just "hide gist" toggle) — graph updates live as user filters
+- Graph persists across tab switches (TBox/ABox/RBox) — doesn't reset when switching views
+- Fix model detail relationship graph to use 100% width/height (currently has wasted whitespace)
 
-### Candidate C: _[name TBD]_
-**Scope:**
+### Candidate C: Explorer Composable Filter/Group/Sort
+**Scope:** Replace the flat OBJECTS dropdown with a composable explorer where filtering, grouping, and sorting are independent stackable layers.
 **Items:**
+- **Filter layer:** subset objects by type, saved query, tag, or arbitrary SPARQL — controls WHAT is shown
+- **Group layer:** organize results by property, tag, type, model, or custom grouping — controls HOW they're structured. Multi-level: each level is a group + sort (like VFS mount strategies)
+- **Sort layer:** within each group, sort by time, label, property value
+- Remove "Shape" suffix from type names in explorer — show "Project" not "Project Shape"
+- Remove or relocate "VFS Mounts" from the mode dropdown (currently 404s anyway)
+- Per-model filter entries need human-readable labels, not raw `model-id (by-type)` format
+- Group the generic view modes (By Type / Hierarchy / By Tag) visually separate from model-specific filters
+- Consider a builder UI similar to VFS MountSpec strategies where user composes levels
+- Support multiple OBJECTS panels — button to duplicate an explorer instance so user can have different filter/group/sort configs side by side (e.g. "Tasks by status" + "Contacts by company")
+
+### Candidate D: Browser History & Tab Recovery
+**Scope:** Research and implement browser history integration for the workspace. Hard problem — dockview's multi-tab model doesn't map 1:1 to browser history, but the current state (URL never changes, no undo close) is a real usability gap.
+**Items:**
+- Research: how do other IDE-in-browser apps (VS Code web, Figma, Linear) handle URL ↔ workspace state?
+- URL should reflect at minimum the active tab's object/view IRI — enables bookmarking and sharing
+- Browser back/forward should navigate between recently-viewed objects (tab focus history, not DOM history)
+- "Reopen closed tab" command in command palette (maintain a closed-tab stack)
+- Ctrl+Z / Ctrl+Shift+T for undo close tab
+- Consider: should opening a shared URL restore a single-tab view or add to existing workspace?
+
+### Candidate E: Backend Performance & Observability
+**Scope:** Profile and fix the 4+ second object load times. The backend is the bottleneck — SPARQL queries are slow, and opening one object triggers 10+ sequential htmx partial loads.
+**Items:**
+- Set up Jaeger/OpenTelemetry for distributed tracing — flame graphs for every request showing SPARQL query time, template render time, middleware overhead
+- Profile slowest SPARQL queries (object-tab, comments, inbox, lint, relations, shapes lookups)
+- Add query-level caching (label service TTL cache exists but may not cover all paths)
+- Lazy-load secondary panels (comments, inbox, collaboration) — don't fetch until section is expanded
+- Consider parallel loading of independent partials instead of sequential htmx cascade
+- Investigate triplestore query optimization (indexes, query plans)
+- Add Server-Timing headers to all htmx endpoints for easy profiling
+- Basic observability dashboard (request latency percentiles, slow query log, error rates)
+
+### Candidate F: Critical Bug Fixes
+**Scope:** Fix the showstopper bugs that make core features non-functional. Highest priority — do before any polish work.
+**Items:**
+- **#4a** Model installer only loads fraction of SHACL shapes (cascades to #62, #64 — breaks all business-planning custom renderers)
+- **#29** Object deletion doesn't exist — no command, no UI, no mechanism at all
+- **#30** Save does full replace instead of diff — pollutes event store with phantom changes, unnecessary body.set events
+- **#36** Generic Table View shows "No objects found" even with data present
+- **#41** Cards View broken — doesn't render
+- **#63** object.create doesn't set dcterms:created — new objects have no creation timestamp
+- **#1, #2** Docker volume permissions / nginx setgid (already fixed but need permanent fix in Dockerfile entrypoint)
+
+### Candidate G: UI Design System & Polish Pass
+**Scope:** Systemic visual quality pass — establish a design system with consistent styling across all panels, forms, views, and popovers. Address the "bland/generic" feel.
+**Items:**
+- **#13, #14** Object view visual identity — type-colored accents, styled type pill with icon instead of raw IRI
+- **#15** Body editor should feel like a writing surface, not a code editor
+- **#19, #20** Read view property table — label/value distinction, tooltips in both read and edit modes
+- **#21, #22** Edit form — responsive width inputs, stronger section headers
+- **#23** Systemic zebra striping / borders / separators across ALL panels
+- **#43** Graph/view popovers — aligned properties, borders
+- **#44, #45, #46** Kanban cards — richer card content, column colors from model, hover actions
+- **#51** Timeline bar styling — colors, progress indicators
+- **#31** Tab styling — more prominent active/inactive distinction
+- **#40** View icons in explorer — brighter colors
+- **#59** View names underlined inconsistently
+
+### Candidate H: View System Rework
+**Scope:** Fix the view toolbar UX — pills, variants, filters, and save flow.
+**Items:**
+- **#37** Replace 37-pill type bar with a smart dropdown showing only relevant types for the current query
+- **#38** Remove View Variants dropdown
+- **#39** Clearer separation between query filter (universe) and type filter (subset)
+- **#47, #53** Smart type filtering by renderer compatibility (kanban = status types only, timeline = date types only)
+- **#48, #55** Views should take 100% available width and height
+- **#49** Calendar nav button icons invisible in dark mode
+- **#50** Filter field shows raw namespace IRIs
+- **#52** Timeline "scroll to today" not working
+- **#54** Timeline/Gantt popover undismissable
+- **#56** Timeline should show object detail in right panel on selection
+- **#57, #58** Save view flow broken / undiscoverable
+- **#60** Map view needs seed data with geo properties
+
+### Candidate I: Workspace UX Improvements
+**Scope:** Fix workspace-level interaction issues — command palette, dropdowns, dismissal, discoverability.
+**Items:**
+- **#10** Event Log tab shows stale "Phase 16" placeholder
+- **#11** Explorer shows "Shape" suffix on all type names
+- **#12** OBJECTS dropdown poorly organized — raw model IDs, VFS Mounts 404
+- **#24** Command palette scroll jump bug
+- **#25** Relation autocomplete dropdowns don't dismiss on click-outside/Escape
+- **#26** Tag autocomplete clipped by container boundary
+- **#27** URL never changes / no browser history integration (→ Candidate D research)
+- **#33, #34** Persona create / Layout save UX broken (type-then-select pattern not discoverable)
+- **#35** Personas vs Layouts distinction unclear — consider merging
+- **#42** Model detail graph popover appears far from node
+- **#65** Object tab needs refresh button

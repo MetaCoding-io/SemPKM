@@ -26,7 +26,7 @@ from app.models.registry import MODELS_GRAPH, SEMPKM_NS
 from app.services.labels import LabelService
 from app.services.shapes import NodeShapeForm, PropertyShape, ShapesService
 from app.sparql.builder import safe_iri
-from app.sparql.client import scope_to_current_graph
+from app.sparql.client import scope_to_current_graph, inject_prefixes
 from app.sparql.query_service import QueryService
 from app.sparql.utils import escape_sparql_regex
 from app.triplestore.client import TriplestoreClient
@@ -595,6 +595,8 @@ WHERE {{
   {count_where}
 }}"""
 
+        count_query = inject_prefixes(count_query)
+
         try:
             count_result = await self._client.query(count_query)
             count_bindings = count_result.get("results", {}).get("bindings", [])
@@ -636,6 +638,8 @@ WHERE {{
 {order_clause}
 LIMIT {page_size}
 OFFSET {offset}"""
+
+        data_query = inject_prefixes(data_query)
 
         try:
             data_result = await self._client.query(data_query)
@@ -746,6 +750,8 @@ WHERE {{
   {count_where}
 }}"""
 
+        count_query = inject_prefixes(count_query)
+
         try:
             count_result = await self._client.query(count_query)
             count_bindings = count_result.get("results", {}).get("bindings", [])
@@ -774,6 +780,8 @@ WHERE {{
 }}
 LIMIT {page_size}
 OFFSET {offset}"""
+
+        subjects_query = inject_prefixes(subjects_query)
 
         try:
             subj_result = await self._client.query(subjects_query)

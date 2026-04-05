@@ -13,6 +13,7 @@ property paths.
 import logging
 from dataclasses import dataclass, field
 
+from cachetools import TTLCache
 from rdflib import Graph, URIRef, Literal
 from rdflib.collection import Collection
 from rdflib.namespace import RDF, RDFS, SH, XSD
@@ -72,16 +73,46 @@ class ShapesService:
     with all property shape attributes needed for form generation.
     """
 
-    def __init__(self, client: TriplestoreClient) -> None:
+    def __init__(self, client: TriplestoreClient, ttl: int = 600) -> None:
         self._client = client
+        self._shapes_graph_cache: TTLCache[str, Graph] = TTLCache(
+            maxsize=1, ttl=ttl
+        )
+        self._form_cache: TTLCache[str, NodeShapeForm | None] = TTLCache(
+            maxsize=64, ttl=ttl
+        )
+
+    def clear_cache(self) -> None:
+        """Clear both the shapes graph and per-type form caches.
+
+        Call after model install/uninstall to force a fresh fetch on
+        the next request.  In normal operation the TTL (default 600s)
+        handles staleness automatically.
+        """
+        self._shapes_graph_cache.clear()
+        self._form_cache.clear()
+        logger.debug("shapes caches cleared")
 
     async def _fetch_shapes_graph(self) -> Graph:
         """Fetch the combined shapes graph from all installed models.
+
+        Uses a TTL cache (default 600s) to avoid repeated SPARQL
+        round-trips.  Shapes only change when a Mental Model is
+        installed/uninstalled — well within the TTL window.
 
         Queries the model registry for installed model IDs, then builds
         a SPARQL CONSTRUCT with FROM clauses for each model's shapes
         named graph. Returns the merged rdflib Graph.
         """
+        _CACHE_KEY = "shapes"
+
+        cached = self._shapes_graph_cache.get(_CACHE_KEY)
+        if cached is not None:
+            logger.debug("shapes graph cache HIT")
+            return cached
+
+        logger.debug("shapes graph cache MISS — fetching from triplestore")
+
         # 1. List installed model IDs
         sparql = f"""SELECT ?modelId WHERE {{
   GRAPH <{MODELS_GRAPH}> {{
@@ -94,7 +125,9 @@ class ShapesService:
 
         if not bindings:
             logger.info("No installed models found for shapes extraction")
-            return Graph()
+            graph = Graph()
+            self._shapes_graph_cache[_CACHE_KEY] = graph
+            return graph
 
         # 2. Build CONSTRUCT with FROM clauses for each model's shapes graph
         #    + user-types graph for user-created class shapes
@@ -120,6 +153,7 @@ WHERE {{ ?s ?p ?o }}"""
             len(shapes_graph),
             len(bindings),
         )
+        self._shapes_graph_cache[_CACHE_KEY] = shapes_graph
         return shapes_graph
 
     def _extract_node_shape(
@@ -347,10 +381,13 @@ WHERE {{ ?s ?p ?o }}"""
     async def get_form_for_type(self, type_iri: str) -> NodeShapeForm | None:
         """Get form metadata for a specific target class.
 
-        Fetches all shapes and finds the one whose sh:targetClass matches
-        the given type IRI.  If the shape has no properties (e.g. a custom
-        class with a bare SHACL shape), injects default Title and Description
-        fields so the create form is always usable.
+        Results are cached per type_iri with the same TTL as the shapes
+        graph cache.  Cache misses fetch all shapes and find the one
+        whose sh:targetClass matches the given type IRI.
+
+        If the shape has no properties (e.g. a custom class with a bare
+        SHACL shape), injects default Title and Description fields so
+        the create form is always usable.
 
         Args:
             type_iri: The target class IRI to find a form for.
@@ -358,12 +395,24 @@ WHERE {{ ?s ?p ?o }}"""
         Returns:
             NodeShapeForm for the type, or None if not found.
         """
+        cached = self._form_cache.get(type_iri)
+        if cached is not None:
+            logger.debug("form cache HIT for %s", type_iri)
+            return cached
+
+        logger.debug("form cache MISS for %s", type_iri)
+
         forms = await self.get_node_shapes()
         for form in forms:
             if form.target_class == type_iri:
                 if not form.properties:
                     form.properties = self._default_properties()
+                self._form_cache[type_iri] = form
                 return form
+
+        # Cache the miss too so we don't re-query for unknown types
+        # Use a sentinel: store None is not possible with TTLCache get(),
+        # so we don't cache misses — they'll re-query each time.
         return None
 
     @staticmethod

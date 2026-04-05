@@ -664,6 +664,20 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 - 13 REST API endpoints, lint panel dismiss/suppress UI, preset selector, settings management
 - 24 per-rule pytest + 59 filter unit tests + 7 E2E Playwright tests, Chapter 14 user guide updated
 
+**Feature Tour Bug Hunt & Polish** — queued (M048–M056, 2026-04-05)
+
+65 issues found during interactive feature tour across sections 1–5 (Mental Models, Object CRUD, Workspace, Views, Business Planning). Organized into 9 milestones:
+
+- **M048: Critical Bug Fixes** (P0, no deps) — model installer partial loading diagnosis, object.delete command, diff-based save, broken table/cards views, missing dcterms:created, Docker permissions
+- **M049: Backend Performance & Observability** (P1, no deps) — Jaeger/OpenTelemetry, SPARQL profiling, lazy panel loading, 4s→<1.5s object load target
+- **M050: View System Rework** (P1, depends M048) — pills→dropdown, smart type filtering, responsive sizing, save flow, view variants removal
+- **M051: Workspace UX Improvements** (P2, no deps) — autocomplete dismiss, stale text, explorer hover actions, persona/layout UX, refresh button
+- **M052: UI Design System & Polish** (P2, depends M048+M050) — type-colored accents, zebra striping, kanban card density, writing-surface body editor
+- **M053: Model Marketplace** (P3, depends M048) — cloud-hosted model registry, in-app browse/install
+- **M054: Explorer Composable Filter/Group/Sort** (P3, depends M051) — stackable filter/group/sort layers, multiple OBJECTS panels
+- **M055: Browser History & Tab Recovery** (P3, depends M051) — URL integration, back/forward, undo close tab
+- **M056: Ontology Visualization Overhaul** (P3, depends M048) — layered graph, full TBox, multi-model filtering, persistent graph
+
 **Ongoing / cross-cutting**
 - Backlinks panel (incoming references for any object)
 - Edge model enhancements: edge inspector panel, inline wiki-link creation
