@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T03",
+  "unitId": "M047/S04/T03",
+  "timestamp": 1775349095008,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "test -f docs/guide/50-ppv-model.md",
+      "exitCode": 0,
+      "durationMs": 20,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -q '50-ppv-model' docs/guide/README.md",
+      "exitCode": 0,
+      "durationMs": 21,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -q '50-ppv-model' docs/guide/index.html",
+      "exitCode": 0,
+      "durationMs": 20,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -q '50-ppv-model' backend/app/shell/router.py",
+      "exitCode": 0,
+      "durationMs": 21,
+      "verdict": "pass"
+    },
+    {
+      "command": "echo 'All 4 files OK'",
+      "exitCode": 0,
+      "durationMs": 20,
+      "verdict": "pass"
+    }
+  ]
+}

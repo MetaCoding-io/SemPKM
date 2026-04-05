@@ -769,12 +769,15 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**In progress: M047 PPV Model v2 — Versioned Manifests, TBox Dashboards/Workflows & Review System**
-- S01 complete: Manifest v2 infrastructure — manifest_version field, dashboards/workflows entrypoints, source_model column on dashboard_specs/workflow_specs, TBox loader module, ModelService install/remove/refresh lifecycle hooks. PPV bumped to v2.0.0 with test dashboard. All 8 v1 models install unchanged. 43 unit tests.
-- S02 complete: PPV ontology expansion — PillarScore (score 1-10, linked to Pillar + WeeklyReview) and GuidingPrinciples classes, 25 new properties, enriched review reflection fields on all 4 review types, 4 new ViewSpecs (pillarscore table, action kanban, project kanban, action-by-context table), PillarScoreDateDenormRule SHACL-AF rule, manifest icons. 99-test validation suite.
-- S03–S04 pending: TBox dashboards/workflows, seed data, E2E verification.
-
-**Latest shipped: M045 Security Remediation (2026-03-29) — 3 slices, all 44 M042 security audit findings resolved. 218 security tests pass (78 M045 + 140 M043). Comprehensive security-model.md documents all findings, features, and dependency scanning.**
+**Latest shipped: M047 PPV Model v2 — Versioned Manifests, TBox Dashboards/Workflows & Review System (2026-04-05)**
+- Manifest v2 format: optional `manifest_version` field, `dashboards`/`workflows` entrypoints, backward-compatible with all 8 v1 models
+- source_model column on dashboard_specs/workflow_specs for model-sourced surface tracking, with install/uninstall/refresh lifecycle
+- PPV ontology expanded: PillarScore (1-10 scoring linked to Pillar + WeeklyReview), GuidingPrinciples (values anchor), 15 enriched review reflection fields across all 4 review types, 4 new ViewSpecs, SHACL-AF date denorm rule
+- 5 TBox dashboards (Action Items, Life Dashboard, Projects Board, Goals Overview, Review Hub) and 5 TBox workflows (Daily Check-in, Weekly/Monthly/Quarterly/Yearly Review) ship with PPV model
+- dashboard_name→UUID resolution at install time for cross-referencing between dashboards and workflows
+- Seed data expanded to 35 instances/12 types with GuidingPrinciples + PillarScore instances + enriched review fields
+- E2E lifecycle test, user guide chapter 50, 150 unit tests, 7 decisions (D376–D382)
+- seed.py trimmed from 5 workflows to 1 generic — PPV review workflows now model-sourced
 
 M045 shipped: SSRF guard (4 code paths), federation integrity (SHA-256 hash + namespace filtering), model install/uninstall audit events, non-root Docker containers (UID 1000, no-new-privileges, cap-drop ALL across 6 compose files), ZIP bomb protection, weak SECRET_KEY startup rejection, per-app JWT key isolation via HMAC-SHA256, Caddyfile HSTS + CSP cleanup. Complete 44-finding disposition table in docs/security-model.md.
 
@@ -1253,4 +1256,4 @@ This distinction must be preserved as new view types are added. Ask: "does this 
 | Unified CodeMirror theme via CSS vars | Single theme using CSS variables instead of dual dark/light CodeMirror themes | ✓ Good — auto-adapts to theme toggle |
 
 ---
-*Last updated: 2026-04-04 after M047/S02 complete (PPV Ontology Expansion — PillarScore, GuidingPrinciples & Enriched Reviews. 2 new OWL classes, 25 properties, 4 ViewSpecs, SHACL-AF denorm rule, 99-test validation suite.)*
+*Last updated: 2026-04-05 after M047 complete (PPV Model v2 — Versioned Manifests, TBox Dashboards/Workflows & Review System. Manifest v2 format, source_model lifecycle, PillarScore + GuidingPrinciples types, 5 dashboards, 5 workflows, 150 tests, 7 decisions.)*
