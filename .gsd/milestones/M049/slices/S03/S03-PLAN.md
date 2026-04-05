@@ -75,7 +75,7 @@ Add a `/admin/performance` HTML page with Chart.js bar charts showing endpoint p
   - Estimate: 45m
   - Files: backend/app/middleware/timing.py, backend/app/admin/router.py, backend/app/templates/admin/performance.html, backend/app/templates/admin/index.html, backend/tests/test_admin_performance.py
   - Verify: cd backend && .venv/bin/python -m pytest tests/test_admin_performance.py -v && grep -q 'performance' backend/app/templates/admin/index.html && test -f backend/app/templates/admin/performance.html
-- [ ] **T03: Lazy-load inbox and collaboration panels on reveal (R001)** — ## Description
+- [x] **T03: Changed inbox and collaboration panel htmx triggers from load to revealed so HTTP requests fire only when panels enter the viewport** — ## Description
 
 Change the inbox and collaboration right-pane panels from `hx-trigger="load"` to `hx-trigger="revealed"` so they only fire HTTP requests when scrolled into view / expanded, not on every page load. This delivers requirement R001.
 

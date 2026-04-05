@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T02",
+  "unitId": "M049/S03/T02",
+  "timestamp": 1775422737999,
+  "passed": false,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "cd backend",
+      "exitCode": 0,
+      "durationMs": 26,
+      "verdict": "pass"
+    },
+    {
+      "command": ".venv/bin/python -m pytest tests/test_admin_performance.py -v",
+      "exitCode": 127,
+      "durationMs": 23,
+      "verdict": "fail"
+    },
+    {
+      "command": "grep -q 'performance' backend/app/templates/admin/index.html",
+      "exitCode": 0,
+      "durationMs": 24,
+      "verdict": "pass"
+    },
+    {
+      "command": "test -f backend/app/templates/admin/performance.html",
+      "exitCode": 0,
+      "durationMs": 26,
+      "verdict": "pass"
+    }
+  ],
+  "retryAttempt": 1,
+  "maxRetries": 2
+}

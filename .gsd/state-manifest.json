@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-05T20:58:54.366Z",
+  "exported_at": "2026-04-05T21:00:15.151Z",
   "milestones": [
     {
       "id": "M001",
@@ -32451,19 +32451,22 @@
       "milestone_id": "M049",
       "slice_id": "S03",
       "id": "T03",
-      "title": "Lazy-load inbox and collaboration panels on reveal (R001)",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Changed inbox and collaboration panel htmx triggers from load to revealed so HTTP requests fire only when panels enter the viewport",
+      "status": "complete",
+      "one_liner": "Changed inbox and collaboration panel htmx triggers from load to revealed so HTTP requests fire only when panels enter the viewport",
+      "narrative": "Straightforward two-line edit. Changed hx-trigger=\"load, every 60s\" to hx-trigger=\"revealed, every 60s\" in the inbox panel partial, and hx-trigger=\"load\" to hx-trigger=\"revealed\" in the collaboration panel partial. The htmx revealed trigger uses IntersectionObserver internally — the panel's GET request fires when the element first scrolls into view or is expanded, not on initial page load. The every 60s polling on inbox continues independently after the first reveal to keep notifications fresh.",
+      "verification_result": "Verified both files show revealed trigger via grep. Confirmed no load triggers remain. Ran all 50 slice tests: 7 server-timing, 32 S01+S02 regression, 11 admin performance — all pass.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-05T21:00:15.116Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/templates/browser/partials/inbox_panel.html",
+        "backend/app/templates/browser/partials/collaboration_panel.html"
+      ],
       "key_decisions": [],
-      "full_summary_md": "",
+      "full_summary_md": "---\nid: T03\nparent: S03\nmilestone: M049\nkey_files:\n  - backend/app/templates/browser/partials/inbox_panel.html\n  - backend/app/templates/browser/partials/collaboration_panel.html\nkey_decisions:\n  - (none)\nduration: \nverification_result: passed\ncompleted_at: 2026-04-05T21:00:15.116Z\nblocker_discovered: false\n---\n\n# T03: Changed inbox and collaboration panel htmx triggers from load to revealed so HTTP requests fire only when panels enter the viewport\n\n**Changed inbox and collaboration panel htmx triggers from load to revealed so HTTP requests fire only when panels enter the viewport**\n\n## What Happened\n\nStraightforward two-line edit. Changed hx-trigger=\"load, every 60s\" to hx-trigger=\"revealed, every 60s\" in the inbox panel partial, and hx-trigger=\"load\" to hx-trigger=\"revealed\" in the collaboration panel partial. The htmx revealed trigger uses IntersectionObserver internally — the panel's GET request fires when the element first scrolls into view or is expanded, not on initial page load. The every 60s polling on inbox continues independently after the first reveal to keep notifications fresh.\n\n## Verification\n\nVerified both files show revealed trigger via grep. Confirmed no load triggers remain. Ran all 50 slice tests: 7 server-timing, 32 S01+S02 regression, 11 admin performance — all pass.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `grep 'revealed' inbox_panel.html && grep 'revealed' collaboration_panel.html` | 0 | ✅ pass | 100ms |\n| 2 | `! grep 'hx-trigger=\"load' inbox_panel.html && ! grep 'hx-trigger=\"load' collaboration_panel.html` | 0 | ✅ pass | 100ms |\n| 3 | `cd backend && .venv/bin/python -m pytest tests/test_server_timing.py -v` | 0 | ✅ pass | 380ms |\n| 4 | `cd backend && .venv/bin/python -m pytest tests/test_shapes_cache.py tests/test_object_query_opt.py tests/test_object_parallel.py tests/test_tracing.py -v` | 0 | ✅ pass | 1440ms |\n| 5 | `cd backend && .venv/bin/python -m pytest tests/test_admin_performance.py -v` | 0 | ✅ pass | 790ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/templates/browser/partials/inbox_panel.html`\n- `backend/app/templates/browser/partials/collaboration_panel.html`\n",
       "description": "## Description\n\nChange the inbox and collaboration right-pane panels from `hx-trigger=\"load\"` to `hx-trigger=\"revealed\"` so they only fire HTTP requests when scrolled into view / expanded, not on every page load. This delivers requirement R001.\n\n## Steps\n\n1. Read `backend/app/templates/browser/partials/inbox_panel.html`. Change `hx-trigger=\"load, every 60s\"` to `hx-trigger=\"revealed, every 60s\"`. The `revealed` trigger fires when the element enters the viewport via IntersectionObserver. The `every 60s` continues independently after first reveal to keep the inbox fresh.\n2. Read `backend/app/templates/browser/partials/collaboration_panel.html`. Change `hx-trigger=\"load\"` to `hx-trigger=\"revealed\"`.\n3. Verify the changes are correct by grepping for the old and new patterns.\n\n## Must-Haves\n\n- [ ] Inbox panel: `hx-trigger=\"revealed, every 60s\"` (not `load`)\n- [ ] Collaboration panel: `hx-trigger=\"revealed\"` (not `load`)\n- [ ] No other htmx attributes changed\n\n## Verification\n\n- `grep 'hx-trigger' backend/app/templates/browser/partials/inbox_panel.html` — shows `revealed, every 60s`\n- `grep 'hx-trigger' backend/app/templates/browser/partials/collaboration_panel.html` — shows `revealed`\n- `! grep 'hx-trigger=\"load' backend/app/templates/browser/partials/inbox_panel.html` — no load trigger\n- `! grep 'hx-trigger=\"load' backend/app/templates/browser/partials/collaboration_panel.html` — no load trigger",
       "estimate": "10m",
       "files": [
@@ -40023,6 +40026,61 @@
       "verdict": "✅ pass",
       "duration_ms": 20,
       "created_at": "2026-04-05T20:58:54.330Z"
+    },
+    {
+      "id": 264,
+      "task_id": "T03",
+      "slice_id": "S03",
+      "milestone_id": "M049",
+      "command": "grep 'revealed' inbox_panel.html && grep 'revealed' collaboration_panel.html",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-05T21:00:15.116Z"
+    },
+    {
+      "id": 265,
+      "task_id": "T03",
+      "slice_id": "S03",
+      "milestone_id": "M049",
+      "command": "! grep 'hx-trigger=\"load' inbox_panel.html && ! grep 'hx-trigger=\"load' collaboration_panel.html",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-05T21:00:15.116Z"
+    },
+    {
+      "id": 266,
+      "task_id": "T03",
+      "slice_id": "S03",
+      "milestone_id": "M049",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_server_timing.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 380,
+      "created_at": "2026-04-05T21:00:15.116Z"
+    },
+    {
+      "id": 267,
+      "task_id": "T03",
+      "slice_id": "S03",
+      "milestone_id": "M049",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_shapes_cache.py tests/test_object_query_opt.py tests/test_object_parallel.py tests/test_tracing.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1440,
+      "created_at": "2026-04-05T21:00:15.116Z"
+    },
+    {
+      "id": 268,
+      "task_id": "T03",
+      "slice_id": "S03",
+      "milestone_id": "M049",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_admin_performance.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 790,
+      "created_at": "2026-04-05T21:00:15.116Z"
     }
   ]
 }

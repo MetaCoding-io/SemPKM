@@ -11,7 +11,7 @@
     </summary>
     <div class="right-section-body" id="inbox-content"
          hx-get="/api/federation/inbox-partial"
-         hx-trigger="load, every 60s"
+         hx-trigger="revealed, every 60s"
          hx-swap="innerHTML">
         <div class="right-empty">Loading notifications...</div>
     </div>
