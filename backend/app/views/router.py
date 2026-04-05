@@ -91,6 +91,25 @@ async def available_views(
     return JSONResponse(content=payload)
 
 
+@router.get("/compatible-types")
+async def compatible_types(
+    renderer: str = Query(default="table"),
+    user: User = Depends(get_current_user),
+    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
+):
+    """Return types compatible with a given renderer as JSON.
+
+    For renderers that require specific SHACL constraints (kanban needs
+    status field, calendar/timeline need date fields, map needs geo pair),
+    only matching types are returned. All other renderers return all types.
+    """
+    types = await view_spec_service.get_compatible_types(
+        renderer=renderer,
+        exclude_iris=get_hidden_types(),
+    )
+    return JSONResponse(content={"types": types})
+
+
 class SaveViewRequest(BaseModel):
     name: str
     renderer_type: str
@@ -321,8 +340,11 @@ async def generic_view(
 
     encoded_spec_iri = quote(spec.spec_iri, safe="")
 
-    # Fetch available types for type filter pills
-    types_list = await shapes_service.get_types(exclude_iris=get_hidden_types())
+    # Fetch types compatible with this renderer (filtered by SHACL constraints)
+    types_list = await view_spec_service.get_compatible_types(
+        renderer=renderer,
+        exclude_iris=get_hidden_types(),
+    )
 
     # Get model-declared view specs for the active type (for variant dropdown)
     model_view_specs = await view_spec_service.get_view_specs_for_type(type_iri) if type_iri else []

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-05T21:07:53.082Z",
+  "exported_at": "2026-04-05T21:30:45.862Z",
   "milestones": [
     {
       "id": "M001",
@@ -1744,22 +1744,61 @@
     },
     {
       "id": "M050",
-      "title": "",
+      "title": "View System Rework",
       "status": "active",
       "depends_on": [],
       "created_at": "2026-04-05T17:38:45.584Z",
       "completed_at": null,
-      "vision": "",
-      "success_criteria": [],
-      "key_risks": [],
-      "proof_strategy": [],
-      "verification_contract": "",
-      "verification_integration": "",
-      "verification_operational": "",
-      "verification_uat": "",
-      "definition_of_done": [],
-      "requirement_coverage": "",
-      "boundary_map_markdown": ""
+      "vision": "Fix the view toolbar UX — replace the 37-pill type bar with a smart dropdown filtered by renderer compatibility, remove the confusing View Variants concept, fix calendar dark mode nav icons, add timeline popover dismiss, and repair the save/restore view flow.",
+      "success_criteria": [
+        "Open Kanban View → type dropdown shows only types with sh:in status fields, not all 37 types",
+        "Open Timeline View → type dropdown shows only types with date fields",
+        "Open Table View → type dropdown shows all types (table is universal)",
+        "Calendar nav prev/next buttons are visible in dark mode",
+        "Timeline popover dismisses on Escape key and click-outside",
+        "Save a view with type filter → find it in Saved Views → open it → same type filter is restored",
+        "View Variants dropdown is removed from all views",
+        "All 11 view templates use the new dropdown instead of pills"
+      ],
+      "key_risks": [
+        {
+          "risk": "Batch type compatibility detection may be slow — one _detect_*() call per type per renderer",
+          "whyItMatters": "With 37 types × 8 specialty renderers, this could add 296 SHACL shape lookups per view open if done naively"
+        },
+        {
+          "risk": "Existing E2E tests may reference pill selectors or toolbar elements that change",
+          "whyItMatters": "13 view test files exist — breaking them silently would undermine test coverage"
+        }
+      ],
+      "proof_strategy": [
+        {
+          "riskOrUnknown": "Batch detection performance",
+          "retireIn": "S01",
+          "whatWillBeProven": "Single get_node_shapes() call + in-memory iteration replaces N per-type queries — verified by unit test"
+        },
+        {
+          "riskOrUnknown": "E2E selector breakage",
+          "retireIn": "S03",
+          "whatWillBeProven": "Updated E2E tests pass against the new dropdown UI"
+        }
+      ],
+      "verification_contract": "Unit tests: batch type compatibility method returns correct renderer→type mappings for kanban (status fields), timeline/calendar (date fields), map (geo fields), table/card/graph (all types). Save/restore round-trip test: saved view with type filter restores correctly.",
+      "verification_integration": "All 11 view templates render with the new dropdown. Opening each renderer shows only compatible types in the dropdown. Saved views persist and restore type filter through the full stack.",
+      "verification_operational": "N/A — no new infrastructure or services.",
+      "verification_uat": "E2E tests: open kanban → verify dropdown has fewer types than table view. Save a view → reopen → verify type filter restored. Dark mode → calendar nav buttons visible. Timeline → click outside popover → popover dismissed.",
+      "definition_of_done": [
+        "type_filter_pills.html replaced by type_filter_dropdown.html (or equivalent) in all 11 view templates",
+        "View Variants dropdown removed from view_toolbar.html and CSS",
+        "Calendar dark mode nav icons are visible (FullCalendar CSS custom property set)",
+        "Timeline popover has Escape and click-outside dismiss handlers",
+        "saveCurrentView persists type_filter and restore reads it back",
+        "openGenericViewTab accepts selectedType parameter directly (not just from localStorage)",
+        "my_views.html onclick passes type_filter from data attribute",
+        "Unit tests for batch type compatibility",
+        "E2E tests for dropdown filtering, save/restore, calendar dark mode"
+      ],
+      "requirement_coverage": "No active requirements exist in REQUIREMENTS.md. This milestone addresses GitHub issues #37, #38, #39, #47-50, #52-58, #60 from the context. New requirements will be created for the core capabilities if warranted.",
+      "boundary_map_markdown": "```\n┌─────────────────────────────────────────────────────┐\n│                  View System                         │\n│                                                      │\n│  ┌──────────────┐     ┌──────────────────────┐      │\n│  │ type_filter_  │     │   view_toolbar.html   │     │\n│  │ pills.html   │ ──► │  (scope, filter, save)│     │\n│  │ REPLACE→     │     │  REMOVE variants      │     │\n│  │ dropdown     │     └──────────────────────┘      │\n│  └──────────────┘                                    │\n│         │                                            │\n│  ┌──────▼──────────────────────────────────┐        │\n│  │  ViewSpecService (backend)               │        │\n│  │  + get_type_compatibility_map()          │        │\n│  │  (calls _detect_status/date/geo/etc.)    │        │\n│  └──────────────────────────────────────────┘        │\n│         │                                            │\n│  ┌──────▼──────────────────────────────────┐        │\n│  │  ShapesService.get_node_shapes()         │        │\n│  │  (single call, cached)                   │        │\n│  └──────────────────────────────────────────┘        │\n│                                                      │\n│  ┌──────────────┐     ┌──────────────────────┐      │\n│  │ workspace.js  │     │   my_views.html       │     │\n│  │ openGeneric   │◄────│  onclick → pass type  │     │\n│  │ ViewTab()     │     └──────────────────────┘      │\n│  │ + selectedType│                                   │\n│  └──────────────┘                                    │\n└─────────────────────────────────────────────────────┘\n```"
     },
     {
       "id": "M051",
@@ -8043,6 +8082,71 @@
       "proof_level": "Contract — unit tests prove Server-Timing header content and admin route access; template inspection proves lazy-load triggers.",
       "integration_closure": "- Upstream: `TimingMiddleware` (S01 timing stats), `TriplestoreClient` OTel spans (S02)\n- New wiring: ContextVar in timing.py ↔ client.py for request-scoped SPARQL timing accumulation; new admin route + template\n- After this: milestone is complete — all three slices delivered",
       "observability_impact": "- Server-Timing header now exposes per-query breakdown in browser DevTools Network tab\n- Admin performance dashboard provides visual percentile charts at /admin/performance\n- Inbox/collab panels no longer fire requests on page load when collapsed",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M050",
+      "id": "S01",
+      "title": "Smart Type Dropdown",
+      "status": "pending",
+      "risk": "high",
+      "depends": [],
+      "demo": "Open Kanban View → type dropdown shows only types with status fields. Open Table View → shows all types. No more 37-pill bar.",
+      "created_at": "2026-04-05T21:21:40.434Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Replace the 37-pill type bar with a smart `<select>` dropdown filtered by renderer compatibility, and remove the View Variants dropdown.",
+      "success_criteria": "- Open Kanban View → type dropdown shows only types with sh:in status fields\n- Open Timeline View → type dropdown shows only types with date fields\n- Open Map View → type dropdown shows only types with geo fields\n- Open Table/Cards/Graph View → type dropdown shows all types\n- No pill bar visible in any view\n- No View Variants dropdown in the toolbar\n- Type selection persists via localStorage and survives tab reopen",
+      "proof_level": "Contract — verified by backend unit tests for compatible-type filtering + manual browser verification of the dropdown in each renderer",
+      "integration_closure": "- Upstream: `ViewSpecService._detect_status_field()`, `_detect_date_fields()`, `_detect_geo_fields()` (existing, proven)\n- New wiring: `get_compatible_types()` method on ViewSpecService, new `/views/compatible-types` endpoint, new `type_filter_dropdown.html` template partial\n- After this slice: toolbar is usable but S02 still needed for calendar dark mode, timeline popover, and other polish",
+      "observability_impact": "- Structured log: `compatible_types: renderer=%s total=%d compatible=%d` on the new endpoint\n- Inspection: `GET /browser/views/compatible-types?renderer=kanban` returns JSON list of compatible types",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M050",
+      "id": "S02",
+      "title": "Toolbar Cleanup + View Polish",
+      "status": "pending",
+      "risk": "low",
+      "depends": [
+        "S01"
+      ],
+      "demo": "View toolbar is clean — no View Variants dropdown. Calendar dark mode shows visible nav buttons. Timeline popover dismisses on Escape/click-outside.",
+      "created_at": "2026-04-05T21:21:40.434Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Remove View Variants dropdown, fix calendar dark mode nav icons, add timeline popover dismiss",
+      "success_criteria": "- View Variants dropdown removed from view_toolbar.html\n- .view-variant-select CSS removed\n- Calendar dark mode nav buttons visible (--fc-button-text-color set)\n- Timeline popover dismisses on Escape and click-outside\n- model_view_specs logic removed from generic_view() router",
+      "proof_level": "manual + E2E",
+      "integration_closure": "Toolbar renders cleanly across all renderers. No references to view-variant-select remain.",
+      "observability_impact": "None",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M050",
+      "id": "S03",
+      "title": "Save/Restore Flow + E2E Tests",
+      "status": "pending",
+      "risk": "medium",
+      "depends": [
+        "S01",
+        "S02"
+      ],
+      "demo": "Save a view with type filter and scope query → find it in Saved Views sidebar → click to open → same type filter and scope are restored. E2E tests pass.",
+      "created_at": "2026-04-05T21:21:40.434Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Fix the broken save/restore flow for view type filters and write E2E tests covering the new toolbar",
+      "success_criteria": "- saveCurrentView() persists type_filter correctly\n- openGenericViewTab() accepts selectedType parameter directly\n- my_views.html passes type_filter in onclick handler\n- Saved view round-trip preserves renderer + type + scope\n- E2E: open kanban → verify dropdown has subset of types\n- E2E: save view with type → restore → same type selected\n- E2E: calendar dark mode nav buttons visible\n- Existing E2E view tests still pass (selectors updated if needed)",
+      "proof_level": "E2E",
+      "integration_closure": "Full save→store→restore→render cycle works end-to-end through RDF storage and JS restore path.",
+      "observability_impact": "None",
       "sequence": 0,
       "replan_triggered_at": null
     }
@@ -32485,6 +32589,109 @@
       "observability_impact": "",
       "full_plan_md": "",
       "sequence": 0
+    },
+    {
+      "milestone_id": "M050",
+      "slice_id": "S01",
+      "id": "T01",
+      "title": "Add get_compatible_types() to ViewSpecService with JSON endpoint and renderer-filtered type lists in generic_view()",
+      "status": "complete",
+      "one_liner": "Add get_compatible_types() to ViewSpecService with JSON endpoint and renderer-filtered type lists in generic_view()",
+      "narrative": "Added `get_compatible_types(renderer, exclude_iris)` method to ViewSpecService that leverages existing SHACL detection methods (_detect_status_field, _detect_date_fields, _detect_geo_fields) to filter types by renderer compatibility. Added GET /browser/views/compatible-types?renderer=X endpoint returning JSON. Updated generic_view() to pass renderer-filtered types to templates instead of all types.",
+      "verification_result": "Ran 10 unit tests covering all renderer filter paths (table/card/graph return all, kanban filters to status types, calendar/timeline filter to date types, map filters to geo types), plus exclude_iris, no-shapes-service, and unknown-renderer edge cases. All 10 passed.",
+      "duration": "",
+      "completed_at": "2026-04-05T21:30:45.819Z",
+      "blocker_discovered": false,
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/views/service.py",
+        "backend/app/views/router.py",
+        "backend/tests/test_compatible_types.py"
+      ],
+      "key_decisions": [
+        "Unfiltered renderers (table, card, graph, quadrant, bmc, okr, decision-matrix) return all types — no false restriction",
+        "Unknown renderer names return all types as safe fallback"
+      ],
+      "full_summary_md": "---\nid: T01\nparent: S01\nmilestone: M050\nkey_files:\n  - backend/app/views/service.py\n  - backend/app/views/router.py\n  - backend/tests/test_compatible_types.py\nkey_decisions:\n  - Unfiltered renderers (table, card, graph, quadrant, bmc, okr, decision-matrix) return all types — no false restriction\n  - Unknown renderer names return all types as safe fallback\nduration: \nverification_result: passed\ncompleted_at: 2026-04-05T21:30:45.819Z\nblocker_discovered: false\n---\n\n# T01: Add get_compatible_types() to ViewSpecService with JSON endpoint and renderer-filtered type lists in generic_view()\n\n**Add get_compatible_types() to ViewSpecService with JSON endpoint and renderer-filtered type lists in generic_view()**\n\n## What Happened\n\nAdded `get_compatible_types(renderer, exclude_iris)` method to ViewSpecService that leverages existing SHACL detection methods (_detect_status_field, _detect_date_fields, _detect_geo_fields) to filter types by renderer compatibility. Added GET /browser/views/compatible-types?renderer=X endpoint returning JSON. Updated generic_view() to pass renderer-filtered types to templates instead of all types.\n\n## Verification\n\nRan 10 unit tests covering all renderer filter paths (table/card/graph return all, kanban filters to status types, calendar/timeline filter to date types, map filters to geo types), plus exclude_iris, no-shapes-service, and unknown-renderer edge cases. All 10 passed.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python -m pytest tests/test_compatible_types.py -v` | 0 | ✅ pass | 620ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/views/service.py`\n- `backend/app/views/router.py`\n- `backend/tests/test_compatible_types.py`\n",
+      "description": "Add a `get_compatible_types(renderer, exclude_iris)` method to ViewSpecService that leverages the existing `_detect_status_field()`, `_detect_date_fields()`, and `_detect_geo_fields()` methods to return only types whose SHACL shapes are compatible with a given renderer.\n\nThen add a new endpoint `GET /browser/views/compatible-types?renderer=kanban` that returns JSON `{types: [{iri, label}]}`. Update `generic_view()` to call `get_compatible_types()` instead of `shapes_service.get_types()` so templates receive the already-filtered list.\n\n**Renderer compatibility rules:**\n- `table`, `card`, `graph`: all types (no filtering)\n- `kanban`: types where `_detect_status_field(type_iri)` returns non-None\n- `calendar`, `timeline`: types where `_detect_date_fields(type_iri)` returns non-None start field\n- `map`: types where `_detect_geo_fields(type_iri)` returns non-None pair\n- `quadrant`, `bmc`, `okr`, `decision-matrix`: all types (model-declared renderers, rare usage)\n\n**Steps:**\n1. Read `backend/app/views/service.py` — understand `_detect_status_field`, `_detect_date_fields`, `_detect_geo_fields` signatures\n2. Add `async def get_compatible_types(self, renderer: str, exclude_iris: set[str] | None = None) -> list[dict]` to `ViewSpecService`:\n   - Call `self._shapes_service.get_types(exclude_iris=exclude_iris)` to get all types\n   - For `kanban`: iterate types, call `_detect_status_field(t['iri'])`, keep only those returning non-None\n   - For `calendar`/`timeline`: iterate types, call `_detect_date_fields(t['iri'])`, keep only those with start_field\n   - For `map`: iterate types, call `_detect_geo_fields(t['iri'])`, keep only those returning non-None pair\n   - For all other renderers: return all types unfiltered\n   - Log `compatible_types: renderer=%s total=%d compatible=%d`\n3. Add `GET /browser/views/compatible-types?renderer=table` endpoint to `backend/app/views/router.py` that calls `get_compatible_types()`\n4. In `generic_view()`, replace `types_list = await shapes_service.get_types(...)` with `types_list = await view_spec_service.get_compatible_types(renderer, ...)`\n5. Add unit test `backend/tests/test_compatible_types.py` that mocks ShapesService to return a set of types, then verifies kanban filtering returns only status-field types\n6. Run tests to verify",
+      "estimate": "1h",
+      "files": [
+        "backend/app/views/service.py",
+        "backend/app/views/router.py",
+        "backend/tests/test_compatible_types.py"
+      ],
+      "verify": "cd backend && .venv/bin/python -m pytest tests/test_compatible_types.py -v",
+      "inputs": [
+        "`backend/app/views/service.py` — existing _detect_status_field, _detect_date_fields, _detect_geo_fields methods",
+        "`backend/app/views/router.py` — existing generic_view() and type_pills() endpoints",
+        "`backend/app/services/shapes.py` — ShapesService.get_types() and get_form_for_type()"
+      ],
+      "expected_output": [
+        "`backend/app/views/service.py` — new get_compatible_types() method",
+        "`backend/app/views/router.py` — new /views/compatible-types endpoint, updated generic_view()",
+        "`backend/tests/test_compatible_types.py` — unit tests for renderer-specific type filtering"
+      ],
+      "observability_impact": "Adds structured log line `compatible_types: renderer=%s total=%d compatible=%d` on the new endpoint and inside get_compatible_types(). GET /browser/views/compatible-types?renderer=kanban returns JSON for inspection.",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M050",
+      "slice_id": "S01",
+      "id": "T02",
+      "title": "Replace pill bar with type dropdown and remove View Variants",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Replace the `type_filter_pills.html` template (37 buttons across 4 rows) with a `<select>` dropdown in a new `type_filter_dropdown.html` partial. Remove the View Variants dropdown from `view_toolbar.html` (D389). Update all 7 view templates. Update CSS.\n\n**Steps:**\n1. Create `backend/app/templates/browser/type_filter_dropdown.html`:\n   - Single `<select class=\"type-filter-select\">` with `<option value=\"\">All Types</option>` default\n   - Loop `{% for t in types %}` rendering `<option value=\"{{ t.iri }}\" {% if selected_type == t.iri %}selected{% endif %}>{{ t.label }}</option>`\n   - `onchange` handler: build URL `/browser/views/generic/{{ renderer }}?type=<value>` + preserve scope_query, then `htmx.ajax('GET', url, {target: 'closest .group-editor-area', swap: 'innerHTML'})`\n   - Also persist selection: `localStorage.setItem('sempkm_generic_type_' + renderer, this.value)`\n   - Wrap in a small container div `<div class=\"type-filter-dropdown\">`\n2. Update all 7 view templates — change `{% include \"browser/type_filter_pills.html\" %}` to `{% include \"browser/type_filter_dropdown.html\" %}`:\n   - `table_view.html`, `cards_view.html`, `kanban_view.html`, `graph_view.html`, `calendar_view.html`, `timeline_view.html`, `map_view.html`\n3. In `view_toolbar.html`, remove the View Variants dropdown block (the `{% if model_view_specs ... %}` select with class `view-variant-select`)\n4. Update `frontend/static/css/views.css`:\n   - Remove `.type-filter-pills`, `.type-pill`, `.type-pill:hover`, `.type-pill.active` rules\n   - Add `.type-filter-dropdown` and `.type-filter-select` styling (compact select, matching toolbar aesthetic)\n   - Remove `.view-variant-select` styles\n5. Verify: open each view renderer in the browser and confirm dropdown appears, pills are gone, View Variants is gone\n\n**Important constraints:**\n- The `onchange` handler must preserve `scope_query` from the toolbar's `data-scope-query` attribute or the scope select's value\n- The dropdown must show only the types passed in the `types` template variable (already filtered by T01's backend work)\n- The `type_filter_pills.html` file should be kept but emptied (or deleted) — keeping it prevents include errors if any non-generic view still references it",
+      "estimate": "1h",
+      "files": [
+        "backend/app/templates/browser/type_filter_dropdown.html",
+        "backend/app/templates/browser/type_filter_pills.html",
+        "backend/app/templates/browser/view_toolbar.html",
+        "backend/app/templates/browser/table_view.html",
+        "backend/app/templates/browser/cards_view.html",
+        "backend/app/templates/browser/kanban_view.html",
+        "backend/app/templates/browser/graph_view.html",
+        "backend/app/templates/browser/calendar_view.html",
+        "backend/app/templates/browser/timeline_view.html",
+        "backend/app/templates/browser/map_view.html",
+        "frontend/static/css/views.css"
+      ],
+      "verify": "grep -r 'type_filter_pills' backend/app/templates/browser/ | grep -v 'type_filter_pills.html' | wc -l should return 0 (no templates include the old pills). grep -c 'type_filter_dropdown' backend/app/templates/browser/table_view.html backend/app/templates/browser/kanban_view.html returns 1 per file. grep -c 'view-variant-select' backend/app/templates/browser/view_toolbar.html returns 0.",
+      "inputs": [
+        "`backend/app/views/service.py` — get_compatible_types() method from T01",
+        "`backend/app/views/router.py` — updated generic_view() passing filtered types from T01",
+        "`backend/app/templates/browser/type_filter_pills.html` — current pill template to replace",
+        "`backend/app/templates/browser/view_toolbar.html` — current toolbar with View Variants to remove",
+        "`frontend/static/css/views.css` — current pill CSS to replace"
+      ],
+      "expected_output": [
+        "`backend/app/templates/browser/type_filter_dropdown.html` — new dropdown partial",
+        "`backend/app/templates/browser/type_filter_pills.html` — emptied or deleted",
+        "`backend/app/templates/browser/view_toolbar.html` — View Variants dropdown removed",
+        "`backend/app/templates/browser/table_view.html` — updated include",
+        "`backend/app/templates/browser/cards_view.html` — updated include",
+        "`backend/app/templates/browser/kanban_view.html` — updated include",
+        "`backend/app/templates/browser/graph_view.html` — updated include",
+        "`backend/app/templates/browser/calendar_view.html` — updated include",
+        "`backend/app/templates/browser/timeline_view.html` — updated include",
+        "`backend/app/templates/browser/map_view.html` — updated include",
+        "`frontend/static/css/views.css` — pill styles removed, dropdown styles added"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
     }
   ],
   "decisions": [
@@ -37143,6 +37350,30 @@
       "revisable": "Yes",
       "made_by": "agent",
       "superseded_by": null
+    },
+    {
+      "seq": 421,
+      "id": "D389",
+      "when_context": "M050 planning",
+      "scope": "frontend / UX",
+      "decision": "Whether to remove View Variants dropdown or rework it",
+      "choice": "Remove entirely. No replacement.",
+      "rationale": "View Variants is confusing UX — users don't understand \"variant\" vs \"renderer\". Saved views don't reference variant IDs. The dropdown only appears when a type is selected and shows model-declared ViewSpecs, which overlap with the generic renderers. Removing it simplifies the toolbar with zero data model impact. Model-declared ViewSpecs remain accessible through the explorer sidebar VIEWS section.",
+      "revisable": "Yes",
+      "made_by": "agent",
+      "superseded_by": null
+    },
+    {
+      "seq": 422,
+      "id": "D390",
+      "when_context": "M050/S01",
+      "scope": "frontend / views",
+      "decision": "How to implement smart type filtering per renderer",
+      "choice": "Add `get_compatible_types(renderer)` method to ViewSpecService that reuses existing `_detect_status_field()`, `_detect_date_fields()`, `_detect_geo_fields()` methods to check each type's SHACL shape for renderer-specific fields. Called in `generic_view()` to pass pre-filtered types to templates.",
+      "rationale": "The detection methods already exist and are proven (KNOWLEDGE patterns P5, P13, P14). Iterating all types is fast because `get_node_shapes()` is cached — each `get_form_for_type()` call filters from the cached list. A new endpoint `/views/compatible-types` also allows the frontend to lazy-load types if needed later. No new SPARQL queries needed — just reuse of existing SHACL introspection.",
+      "revisable": "Yes",
+      "made_by": "agent",
+      "superseded_by": null
     }
   ],
   "verification_evidence": [
@@ -40093,6 +40324,17 @@
       "verdict": "✅ pass",
       "duration_ms": 790,
       "created_at": "2026-04-05T21:00:15.116Z"
+    },
+    {
+      "id": 269,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M050",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_compatible_types.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 620,
+      "created_at": "2026-04-05T21:30:45.819Z"
     }
   ]
 }

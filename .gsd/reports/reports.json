@@ -531,6 +531,22 @@
       "doneMilestones": 48,
       "totalMilestones": 56,
       "phase": "executing"
+    },
+    {
+      "filename": "M049-2026-04-05T21-09-22.html",
+      "generatedAt": "2026-04-05T21:09:22.693Z",
+      "milestoneId": "M049",
+      "milestoneTitle": "Backend Performance & Observability",
+      "label": "M049: Backend Performance & Observability",
+      "kind": "milestone",
+      "totalCost": 2034.7609155000018,
+      "totalTokens": 2900294433,
+      "totalDuration": 377577496,
+      "doneSlices": 283,
+      "totalSlices": 285,
+      "doneMilestones": 49,
+      "totalMilestones": 56,
+      "phase": "pre-planning"
     }
   ]
 }

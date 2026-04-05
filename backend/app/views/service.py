@@ -257,6 +257,73 @@ WHERE {{
                 return spec
         return None
 
+    # Renderers that show all types without SHACL-based filtering
+    _UNFILTERED_RENDERERS: set[str] = {
+        "table", "card", "graph",
+        "quadrant", "bmc", "okr", "decision-matrix",
+    }
+
+    async def get_compatible_types(
+        self,
+        renderer: str,
+        exclude_iris: set[str] | None = None,
+    ) -> list[dict]:
+        """Return types compatible with the given renderer.
+
+        For most renderers, returns all types.  For renderers that depend on
+        specific SHACL constraints, filters to only types whose shapes declare
+        the required fields:
+
+        - ``kanban``: needs a property with ``sh:in`` values (status field)
+        - ``calendar`` / ``timeline``: needs a date/dateTime property
+        - ``map``: needs a lat/lng property pair
+
+        Args:
+            renderer: Renderer name (e.g. 'kanban', 'table', 'map').
+            exclude_iris: Optional set of type IRIs to omit from results.
+
+        Returns:
+            List of dicts with 'iri' and 'label' keys.
+        """
+        if not self._shapes_service:
+            return []
+
+        all_types = await self._shapes_service.get_types(exclude_iris=exclude_iris)
+
+        if renderer in self._UNFILTERED_RENDERERS:
+            logger.info(
+                "compatible_types: renderer=%s total=%d compatible=%d",
+                renderer, len(all_types), len(all_types),
+            )
+            return all_types
+
+        compatible: list[dict] = []
+
+        if renderer == "kanban":
+            for t in all_types:
+                status_field, _ = await self._detect_status_field(t["iri"])
+                if status_field is not None:
+                    compatible.append(t)
+        elif renderer in ("calendar", "timeline"):
+            for t in all_types:
+                start_field, _ = await self._detect_date_fields(t["iri"])
+                if start_field is not None:
+                    compatible.append(t)
+        elif renderer == "map":
+            for t in all_types:
+                lat_field, lng_field = await self._detect_geo_fields(t["iri"])
+                if lat_field is not None and lng_field is not None:
+                    compatible.append(t)
+        else:
+            # Unknown renderer — return all types as safe fallback
+            compatible = all_types
+
+        logger.info(
+            "compatible_types: renderer=%s total=%d compatible=%d",
+            renderer, len(all_types), len(compatible),
+        )
+        return compatible
+
     # ── Dynamic query builder ──────────────────────────────────
 
     _DEFAULT_COLUMNS = ["label", "type", "created", "modified"]
