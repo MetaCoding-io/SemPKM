@@ -5,8 +5,10 @@ edge provenance/deletion, bulk deletion, lint panel, type picker,
 and create/save object flows.
 """
 
+import asyncio
 import logging
 import re
+import time
 from datetime import datetime, timezone
 from urllib.parse import unquote
 
@@ -152,6 +154,8 @@ async def get_object(
     reference labels and tooltips, and renders the object_tab.html with
     flip container for read/edit mode switching.
     """
+    _t0 = time.perf_counter()
+
     templates = request.app.state.templates
     # Register the format_date filter if not already present
     templates.env.filters.setdefault("format_date", _format_date)
@@ -172,12 +176,29 @@ async def get_object(
     }}
     """
 
-    try:
-        result = await client.query(props_union_sparql)
-        all_bindings = result.get("results", {}).get("bindings", [])
-    except Exception:
-        logger.warning("Failed to query object %s", decoded_iri, exc_info=True)
-        all_bindings = []
+    # Phase 1: Run property UNION query and favorites check in parallel
+    # (these are independent — one hits RDF4J, the other hits SQLite)
+    async def _fetch_props():
+        try:
+            result = await client.query(props_union_sparql)
+            return result.get("results", {}).get("bindings", [])
+        except Exception:
+            logger.warning("Failed to query object %s", decoded_iri, exc_info=True)
+            return []
+
+    async def _check_favorite():
+        fav_result = await db.execute(
+            select(UserFavorite.id).where(
+                UserFavorite.user_id == user.id,
+                UserFavorite.object_iri == decoded_iri,
+            ).limit(1)
+        )
+        return fav_result.scalar_one_or_none() is not None
+
+    all_bindings, is_favorite = await asyncio.gather(
+        _fetch_props(),
+        _check_favorite(),
+    )
 
     values: dict[str, list[str]] = {}
     type_iris: list[str] = []
@@ -373,15 +394,6 @@ async def get_object(
     ref_labels.update(inferred_labels)
     ref_labels.update(mirrored_labels)
 
-    # Check if the current user has favorited this object
-    fav_result = await db.execute(
-        select(UserFavorite.id).where(
-            UserFavorite.user_id == user.id,
-            UserFavorite.object_iri == decoded_iri,
-        ).limit(1)
-    )
-    is_favorite = fav_result.scalar_one_or_none() is not None
-
     # Pre-compute template helper values (eliminates Jinja2 .append / namespace hacks)
     form_paths: list[str] = []
     has_values = False
@@ -454,6 +466,9 @@ async def get_object(
         "property_count": property_count,
         **form_parts,
     }
+
+    _elapsed = time.perf_counter() - _t0
+    logger.info("get_object %s completed in %.3fs", decoded_iri, _elapsed)
 
     if embed:
         embed_context = {

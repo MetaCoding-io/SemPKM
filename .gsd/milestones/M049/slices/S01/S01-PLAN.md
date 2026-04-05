@@ -89,7 +89,7 @@ Combine the 3 property queries into 1 UNION query (similar to how `get_relations
   - Estimate: 1h
   - Files: backend/app/browser/objects.py, backend/tests/test_object_query_opt.py
   - Verify: cd backend && python -m pytest tests/test_object_query_opt.py -v && python -m pytest tests/ -x --timeout=60
-- [ ] **T03: Parallelize independent work in get_object with asyncio.gather and add timing log** — ## Description
+- [x] **T03: Parallelized SPARQL property query and SQLite favorites check via asyncio.gather, added wall-clock timing log** — ## Description
 
 After T01 (cached shapes) and T02 (combined queries + consolidated labels), the `get_object` handler still has independent async operations that run sequentially. The UNION property query, the ShapesService form lookup (now cached), and the favorites SQLite check are all independent and can run concurrently.
 

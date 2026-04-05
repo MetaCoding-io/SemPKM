@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-05T20:10:31.276Z",
+  "exported_at": "2026-04-05T20:15:09.316Z",
   "milestones": [
     {
       "id": "M001",
@@ -32179,19 +32179,24 @@
       "milestone_id": "M049",
       "slice_id": "S01",
       "id": "T03",
-      "title": "Parallelize independent work in get_object with asyncio.gather and add timing log",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Parallelized SPARQL property query and SQLite favorites check via asyncio.gather, added wall-clock timing log",
+      "status": "complete",
+      "one_liner": "Parallelized SPARQL property query and SQLite favorites check via asyncio.gather, added wall-clock timing log",
+      "narrative": "Identified two independent I/O operations in get_object — the UNION SPARQL property query (RDF4J) and the favorites SQLite check — and wrapped them in asyncio.gather() using nested async helpers. Added time.perf_counter() instrumentation logging total handler wall-clock time at INFO level. Created test_object_parallel.py with _CallTracker helper introducing 0.15s delays to prove parallel execution completes in under 0.25s (vs 0.30s sequential). All 22 slice-specific tests pass.",
+      "verification_result": "4/4 parallel tests pass (timing, both-ops-called, log emitted, log value). 6/6 T02 UNION tests pass. 12/12 T01 cache tests pass. Full suite has only pre-existing failures unrelated to this work.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-05T20:15:09.280Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "Used _CallTracker class instead of AsyncMock side_effect due to double-awaiting issues with nested async mock functions.",
+      "known_issues": "3 pre-existing test failures in suite (test_ai_endpoints, test_app_views_commands, test_asana_sync_engine) — unrelated to this work.",
+      "key_files": [
+        "backend/app/browser/objects.py",
+        "backend/tests/test_object_parallel.py"
+      ],
+      "key_decisions": [
+        "Used _CallTracker pattern for async delay testing with call counting instead of AsyncMock side_effect"
+      ],
+      "full_summary_md": "---\nid: T03\nparent: S01\nmilestone: M049\nkey_files:\n  - backend/app/browser/objects.py\n  - backend/tests/test_object_parallel.py\nkey_decisions:\n  - Used _CallTracker pattern for async delay testing with call counting instead of AsyncMock side_effect\nduration: \nverification_result: passed\ncompleted_at: 2026-04-05T20:15:09.279Z\nblocker_discovered: false\n---\n\n# T03: Parallelized SPARQL property query and SQLite favorites check via asyncio.gather, added wall-clock timing log\n\n**Parallelized SPARQL property query and SQLite favorites check via asyncio.gather, added wall-clock timing log**\n\n## What Happened\n\nIdentified two independent I/O operations in get_object — the UNION SPARQL property query (RDF4J) and the favorites SQLite check — and wrapped them in asyncio.gather() using nested async helpers. Added time.perf_counter() instrumentation logging total handler wall-clock time at INFO level. Created test_object_parallel.py with _CallTracker helper introducing 0.15s delays to prove parallel execution completes in under 0.25s (vs 0.30s sequential). All 22 slice-specific tests pass.\n\n## Verification\n\n4/4 parallel tests pass (timing, both-ops-called, log emitted, log value). 6/6 T02 UNION tests pass. 12/12 T01 cache tests pass. Full suite has only pre-existing failures unrelated to this work.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python -m pytest tests/test_object_parallel.py -v` | 0 | ✅ pass | 1200ms |\n| 2 | `cd backend && .venv/bin/python -m pytest tests/test_object_query_opt.py -v` | 0 | ✅ pass | 700ms |\n| 3 | `cd backend && .venv/bin/python -m pytest tests/test_shapes_cache.py -v` | 0 | ✅ pass | 1400ms |\n\n## Deviations\n\nUsed _CallTracker class instead of AsyncMock side_effect due to double-awaiting issues with nested async mock functions.\n\n## Known Issues\n\n3 pre-existing test failures in suite (test_ai_endpoints, test_app_views_commands, test_asana_sync_engine) — unrelated to this work.\n\n## Files Created/Modified\n\n- `backend/app/browser/objects.py`\n- `backend/tests/test_object_parallel.py`\n",
       "description": "## Description\n\nAfter T01 (cached shapes) and T02 (combined queries + consolidated labels), the `get_object` handler still has independent async operations that run sequentially. The UNION property query, the ShapesService form lookup (now cached), and the favorites SQLite check are all independent and can run concurrently.\n\nAdd `asyncio.gather` to parallelize these independent operations. Also add timing instrumentation that logs the total handler wall-clock time so we can measure the improvement.\n\n## Steps\n\n1. Read the modified `backend/app/browser/objects.py` (output of T02) to identify the current sequential flow.\n\n2. Identify the independent operation groups that can run concurrently:\n   - Group A: UNION property query (depends on decoded_iri only)\n   - Group B: Favorites SQLite query (depends on decoded_iri + user.id only)\n   These two are independent. The shapes lookup needs type_iris from Group A, so it stays sequential after Group A. But the label batch (from T02) also needs type_iris. So the parallel groups are:\n   - Phase 1 (parallel): property UNION query + favorites check\n   - Phase 2 (sequential, needs property results): shapes form lookup\n   - Phase 3 (sequential, needs form + properties): consolidated label batch\n\n3. Wrap Phase 1 in `asyncio.gather`:\n   ```python\n   import asyncio\n   props_result, fav_result = await asyncio.gather(\n       client.query(union_sparql),\n       db.execute(fav_query),\n   )\n   ```\n\n4. Add timing instrumentation at the top and bottom of `get_object`:\n   ```python\n   import time\n   _start = time.perf_counter()\n   # ... handler body ...\n   _elapsed = time.perf_counter() - _start\n   logger.info(\"get_object %s completed in %.3fs\", decoded_iri, _elapsed)\n   ```\n\n5. Write a test in `backend/tests/test_object_parallel.py` that:\n   - Mocks the triplestore client and db session with artificial delays (e.g. 0.1s each)\n   - Verifies that get_object with asyncio.gather completes faster than the sum of individual delays\n   - Verifies that the timing log message is emitted\n\n## Must-Haves\n\n- [ ] Property query and favorites check run concurrently via asyncio.gather\n- [ ] Handler logs wall-clock time at INFO level\n- [ ] No change to template context or response structure\n- [ ] Test proves parallel execution reduces total time\n\n## Verification\n\n- `cd backend && python -m pytest tests/test_object_parallel.py -v`\n- `cd backend && python -m pytest tests/ -x --timeout=30` (no regressions)\n- Manual: open an object tab in the browser, check backend logs for timing output",
       "estimate": "45m",
       "files": [
@@ -39354,6 +39359,39 @@
       "verdict": "⚠️ pre-existing failure only",
       "duration_ms": 8000,
       "created_at": "2026-04-05T20:10:31.236Z"
+    },
+    {
+      "id": 229,
+      "task_id": "T03",
+      "slice_id": "S01",
+      "milestone_id": "M049",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_object_parallel.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1200,
+      "created_at": "2026-04-05T20:15:09.280Z"
+    },
+    {
+      "id": 230,
+      "task_id": "T03",
+      "slice_id": "S01",
+      "milestone_id": "M049",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_object_query_opt.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 700,
+      "created_at": "2026-04-05T20:15:09.280Z"
+    },
+    {
+      "id": 231,
+      "task_id": "T03",
+      "slice_id": "S01",
+      "milestone_id": "M049",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_shapes_cache.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1400,
+      "created_at": "2026-04-05T20:15:09.280Z"
     }
   ]
 }
