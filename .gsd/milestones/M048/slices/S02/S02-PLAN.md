@@ -48,7 +48,7 @@ Secondarily, `saveCurrentObject()` in JS always POSTs the body content even when
   - Estimate: 1h
   - Files: backend/app/browser/objects.py, frontend/static/js/workspace.js
   - Verify: rg -n '_normalize_value_for_compare' backend/app/browser/objects.py && rg -n 'changed_properties' backend/app/browser/objects.py && rg -n '_sempkmSavedContent' frontend/static/js/workspace.js | grep -v '= content' | grep -c '_sempkmSavedContent'
-- [ ] **T02: Add unit tests for save diff logic** — ## Why
+- [x] **T02: Added 22 unit tests for _normalize_value_for_compare and _compute_changed_properties covering datetime normalization, multi-value ordering, new/deleted properties, and dcterms:modified injection guard** — ## Why
 The diff logic in `save_object()` handles datetime normalization, multi-value comparison, and no-op detection. Unit tests ensure these edge cases are covered and prevent regressions.
 
 ## Steps

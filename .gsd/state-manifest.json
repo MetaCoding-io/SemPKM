@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-05T18:26:09.162Z",
+  "exported_at": "2026-04-05T18:28:00.621Z",
   "milestones": [
     {
       "id": "M001",
@@ -31889,19 +31889,23 @@
       "milestone_id": "M048",
       "slice_id": "S02",
       "id": "T02",
-      "title": "Add unit tests for save diff logic",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Added 22 unit tests for _normalize_value_for_compare and _compute_changed_properties covering datetime normalization, multi-value ordering, new/deleted properties, and dcterms:modified injection guard",
+      "status": "complete",
+      "one_liner": "Added 22 unit tests for _normalize_value_for_compare and _compute_changed_properties covering datetime normalization, multi-value ordering, new/deleted properties, and dcterms:modified injection guard",
+      "narrative": "Created backend/tests/test_save_diff.py with three test classes (TestNormalizeValueForCompare, TestComputeChangedProperties, TestDctermsModifiedIntegration) totaling 22 tests. Covers all edge cases: datetime format normalization across ISO/Z/offset/local variants, multi-value order-insensitive comparison, new and deleted properties, empty inputs, original value preservation, and the dcterms:modified conditional injection pattern used in save_object(). Both helpers were already extracted as module-level functions in T01, so no changes to objects.py were needed.",
+      "verification_result": "Ran `cd backend && .venv/bin/python -m pytest tests/test_save_diff.py -v` — all 22 tests passed in 0.67s. Verified objects.py syntax validity with ast.parse.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-05T18:28:00.584Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/tests/test_save_diff.py"
+      ],
+      "key_decisions": [
+        "Tests are synchronous since both helpers are pure functions with no I/O"
+      ],
+      "full_summary_md": "---\nid: T02\nparent: S02\nmilestone: M048\nkey_files:\n  - backend/tests/test_save_diff.py\nkey_decisions:\n  - Tests are synchronous since both helpers are pure functions with no I/O\nduration: \nverification_result: passed\ncompleted_at: 2026-04-05T18:28:00.583Z\nblocker_discovered: false\n---\n\n# T02: Added 22 unit tests for _normalize_value_for_compare and _compute_changed_properties covering datetime normalization, multi-value ordering, new/deleted properties, and dcterms:modified injection guard\n\n**Added 22 unit tests for _normalize_value_for_compare and _compute_changed_properties covering datetime normalization, multi-value ordering, new/deleted properties, and dcterms:modified injection guard**\n\n## What Happened\n\nCreated backend/tests/test_save_diff.py with three test classes (TestNormalizeValueForCompare, TestComputeChangedProperties, TestDctermsModifiedIntegration) totaling 22 tests. Covers all edge cases: datetime format normalization across ISO/Z/offset/local variants, multi-value order-insensitive comparison, new and deleted properties, empty inputs, original value preservation, and the dcterms:modified conditional injection pattern used in save_object(). Both helpers were already extracted as module-level functions in T01, so no changes to objects.py were needed.\n\n## Verification\n\nRan `cd backend && .venv/bin/python -m pytest tests/test_save_diff.py -v` — all 22 tests passed in 0.67s. Verified objects.py syntax validity with ast.parse.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python -m pytest tests/test_save_diff.py -v` | 0 | ✅ pass | 670ms |\n| 2 | `python3 -c \"import ast; ast.parse(open('backend/app/browser/objects.py').read())\"` | 0 | ✅ pass | 100ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/tests/test_save_diff.py`\n",
       "description": "## Why\nThe diff logic in `save_object()` handles datetime normalization, multi-value comparison, and no-op detection. Unit tests ensure these edge cases are covered and prevent regressions.\n\n## Steps\n\n1. **Create `backend/tests/test_save_diff.py`** with tests for the `_normalize_value_for_compare()` helper:\n   - Full ISO datetime with timezone `2026-04-05T12:30:45.123456+00:00` → `2026-04-05T12:30`\n   - Datetime with Z suffix `2026-04-05T12:30:45Z` → `2026-04-05T12:30`\n   - Datetime-local format (already truncated) `2026-04-05T12:30` → `2026-04-05T12:30`\n   - Plain date `2026-04-05` → `2026-04-05` (pass-through)\n   - Non-datetime string `hello world` → `hello world` (pass-through)\n   - URI string `http://example.org/thing` → `http://example.org/thing` (pass-through)\n   - Empty string → empty string\n\n2. **Add integration-style tests** that exercise the diff filtering logic (can test inline or via extracted helper):\n   - Unchanged properties → empty changed dict\n   - One property changed → only that property in changed dict\n   - DateTime property unchanged (different format) → not in changed dict\n   - Multi-valued property with same values in different order → not in changed dict\n   - New property (in form but not in current) → in changed dict\n   - `dcterms:modified` only present when other changes exist\n\n3. **Follow the existing test pattern** from `test_object_create_timestamps.py` — use pytest with async tests, import from `app.browser.objects` or test the helper directly.\n\n## Key Constraints\n- Tests must be runnable with `cd backend && python -m pytest tests/test_save_diff.py -v`\n- The `_normalize_value_for_compare` function should be importable from `app.browser.objects`\n- If the diff filtering logic is inline in `save_object()`, extract the comparison into a testable helper function (e.g., `_compute_changed_properties(form_props, current_props)`) that T02 can import and test directly.",
       "estimate": "30m",
       "files": [
@@ -39016,6 +39020,28 @@
       "verdict": "✅ pass",
       "duration_ms": 200,
       "created_at": "2026-04-05T18:26:09.127Z"
+    },
+    {
+      "id": 217,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M048",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_save_diff.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 670,
+      "created_at": "2026-04-05T18:28:00.584Z"
+    },
+    {
+      "id": 218,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M048",
+      "command": "python3 -c \"import ast; ast.parse(open('backend/app/browser/objects.py').read())\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-05T18:28:00.584Z"
     }
   ]
 }
