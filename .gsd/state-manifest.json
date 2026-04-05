@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-05T00:10:44.402Z",
+  "exported_at": "2026-04-05T00:24:59.500Z",
   "milestones": [
     {
       "id": "M001",
@@ -7594,7 +7594,7 @@
       "milestone_id": "M047",
       "id": "S03",
       "title": "TBox Dashboards & Workflows — PPV Operating System",
-      "status": "pending",
+      "status": "complete",
       "risk": "medium",
       "depends": [
         "S01",
@@ -7602,9 +7602,9 @@
       ],
       "demo": "Install PPV v2 → 5 dashboards and 5 workflows appear in workspace. Open Action Items dashboard → stat-cards show counts, view-embeds show priority-filtered action tables. Launch Weekly Review workflow → step through guided review with pillar scoring, work review, and planning dashboards. Seed.py PPV workflows replaced by model-sourced TBox.",
       "created_at": "2026-04-04T23:07:03.231Z",
-      "completed_at": null,
-      "full_summary_md": "",
-      "full_uat_md": "",
+      "completed_at": "2026-04-05T00:12:29.224Z",
+      "full_summary_md": "---\nid: S03\nparent: M047\nmilestone: M047\nprovides:\n  - 5 PPV dashboards (Action Items, Life Dashboard, Projects Board, Goals Overview, Review Hub) as TBox definitions\n  - 5 PPV workflows (Daily Check-in, Weekly/Monthly/Quarterly/Yearly Review) as TBox definitions\n  - dashboard_name→UUID resolution infrastructure in ModelService.install() and refresh_artifacts()\n  - Seed.py trimmed to 1 generic workflow — PPV review workflows are now model-sourced\nrequires:\n  - slice: S01\n    provides: TBox install/uninstall lifecycle infrastructure with source_model column\n  - slice: S02\n    provides: PPV ontology with ViewSpec IRIs referenced by dashboard view-embed blocks\naffects:\n  - S04\nkey_files:\n  - models/ppv/dashboards/ppv.json\n  - models/ppv/workflows/ppv.json\n  - models/ppv/manifest.yaml\n  - backend/app/services/models.py\n  - backend/app/dashboard/seed.py\n  - backend/tests/test_tbox_loader.py\n  - backend/tests/test_tbox_lifecycle.py\nkey_decisions:\n  - D382: dashboard_name→dashboard_id resolution at install time via _resolve_dashboard_names() post-processing\npatterns_established:\n  - TBox dashboard JSON format: gridstack blocks with stat-card/view-embed/heading/sparql-result types, validated against BLOCK_REGISTRY\n  - TBox workflow JSON format: steps with view/dashboard/form types, dashboard steps use dashboard_name for symbolic cross-reference\n  - Install-time name resolution: ModelService builds name→UUID map from created dashboards, replaces dashboard_name with dashboard_id in workflow step configs before creating workflows\n  - Same resolution applied in refresh_artifacts() for delete+recreate cycle\nobservability_surfaces:\n  - _resolve_dashboard_names() logs warning for unresolved dashboard names (degraded mode)\ndrill_down_paths:\n  - .gsd/milestones/M047/slices/S03/tasks/T01-SUMMARY.md\n  - .gsd/milestones/M047/slices/S03/tasks/T02-SUMMARY.md\n  - .gsd/milestones/M047/slices/S03/tasks/T03-SUMMARY.md\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-04-05T00:12:29.225Z\nblocker_discovered: false\n---\n\n# S03: TBox Dashboards & Workflows — PPV Operating System\n\n**PPV model ships 5 dashboards and 5 workflows as TBox definitions with install-time dashboard_name→UUID resolution; seed.py trimmed to 1 generic workflow.**\n\n## What Happened\n\nThis slice delivered the full PPV operating system as model-sourced TBox surfaces — 5 dashboards covering the PPV workflow (Action Items, Life Dashboard, Projects Board, Goals Overview, Review Hub) and 5 workflows covering the review cadence (Daily Check-in, Weekly/Monthly/Quarterly/Yearly Review).\n\nT01 replaced the single test dashboard placeholder with 5 production dashboards using gridstack layout. Each dashboard uses heading blocks, stat-cards with SPARQL count queries (ppv: prefix auto-injected at runtime), view-embed blocks referencing full ViewSpec IRIs from S02, and sparql-result blocks for diagnostic queries (orphan projects, goals without outcomes). All 25 blocks validated against BLOCK_REGISTRY.\n\nT02 created the workflows JSON with 5 definitions using view/dashboard/form step types. Dashboard steps use `dashboard_name` string references that are resolved to `dashboard_id` UUIDs at install time. The `_resolve_dashboard_names()` helper in ModelService runs after dashboard creation during install and refresh, replacing name references with real UUIDs. Unresolved names log a warning but don't fail (degraded mode per D380). The manifest was updated with the `workflows` entrypoint.\n\nT03 cleaned up seed.py by removing 4 PPV-specific workflows and the `_PPV` namespace constant, leaving only the generic \"Create & Review\" workflow. Added comprehensive test coverage: seed workflow count/content validation, real PPV workflow file loading, and an unresolved dashboard_name integration test that exercises the full install pipeline with a minimal v2 model archive.\n\n## Verification\n\n35 tests pass across test_tbox_loader.py (19) and test_tbox_lifecycle.py (16). JSON structure checks confirm 5 dashboards and 5 workflows. Manifest validation confirms workflows entrypoint. Seed workflow count confirms exactly 1 entry.\n\n## Requirements Advanced\n\nNone.\n\n## Requirements Validated\n\nNone.\n\n## New Requirements Surfaced\n\nNone.\n\n## Requirements Invalidated or Re-scoped\n\nNone.\n\n## Deviations\n\nNone. All three tasks completed as planned.\n\n## Known Limitations\n\nDashboard SPARQL queries use ppv: prefix which requires the model's prefix registry to be loaded at runtime. If the prefix registry is stale or missing, stat-card queries will fail with SPARQL parse errors. The view-embed blocks reference ViewSpec IRIs that must exist in the triplestore — if S02 ontology changes ViewSpec IRIs, dashboards will show empty views.\n\n## Follow-ups\n\nS04 will add E2E verification for the full install → dashboard render → workflow launch → uninstall lifecycle. The Life Maintenance Checklist (deferred per D379) could be added as a workflow step with a create-form pre-fill once template infrastructure exists.\n\n## Files Created/Modified\n\n- `models/ppv/dashboards/ppv.json` — Replaced test dashboard with 5 production PPV dashboards (25 gridstack blocks total)\n- `models/ppv/workflows/ppv.json` — New file: 5 PPV workflow definitions with view/dashboard/form step types\n- `models/ppv/manifest.yaml` — Added workflows entrypoint: workflows/ppv.json\n- `backend/app/services/models.py` — Added _resolve_dashboard_names() helper, wired into install() and refresh_artifacts()\n- `backend/app/dashboard/seed.py` — Removed 4 PPV-specific workflows and _PPV constant, keeping 1 generic workflow\n- `backend/tests/test_tbox_loader.py` — Added TestLoadTboxWorkflows, TestResolveDashboardNames, TestSeedWorkflows test classes + updated dashboard assertions\n- `backend/tests/test_tbox_lifecycle.py` — Added unresolved dashboard_name integration test\n",
+      "full_uat_md": "# S03: TBox Dashboards & Workflows — PPV Operating System — UAT\n\n**Milestone:** M047\n**Written:** 2026-04-05T00:12:29.225Z\n\n# S03 UAT — TBox Dashboards & Workflows\n\n## Preconditions\n- PPV model v2 with manifest_version \"2.0\" available in models/ppv/\n- Backend running with DashboardService and WorkflowService wired\n- S01 infrastructure (source_model column, TBox lifecycle) in place\n- S02 ontology (ViewSpecs, PillarScore, reviews) installed\n\n## Test Cases\n\n### TC-01: PPV Dashboard Content Validation\n1. Load `models/ppv/dashboards/ppv.json` and parse as JSON\n2. Verify exactly 5 dashboards with names: \"Action Items\", \"Life Dashboard\", \"Projects Board\", \"Goals Overview\", \"Review Hub\"\n3. Verify each dashboard has a `blocks` array with ≥1 block\n4. Verify all blocks have valid gridstack positions (x: 0-11, y ≥ 0, w: 1-12, h ≥ 1, x+w ≤ 12)\n5. **Expected:** All 5 dashboards present with valid block layouts\n\n### TC-02: PPV Workflow Content Validation\n1. Load `models/ppv/workflows/ppv.json` and parse as JSON\n2. Verify exactly 5 workflows with names: \"Daily Check-in\", \"Weekly Review\", \"Monthly Review\", \"Quarterly Review\", \"Yearly Review\"\n3. Verify each workflow has a `steps` array with ≥1 step\n4. Verify step types are one of: \"view\", \"dashboard\", \"form\"\n5. Verify dashboard steps use `dashboard_name` (not `dashboard_id`) — resolution happens at install time\n6. **Expected:** All 5 workflows present with valid step structures\n\n### TC-03: Manifest Entrypoints\n1. Load `models/ppv/manifest.yaml` and parse\n2. Verify `entrypoints.dashboards` equals \"dashboards/ppv.json\"\n3. Verify `entrypoints.workflows` equals \"workflows/ppv.json\"\n4. **Expected:** Both entrypoints present and pointing to correct files\n\n### TC-04: Dashboard Name Resolution at Install Time\n1. Install PPV v2 model (triggers TBox lifecycle)\n2. After install, list workflows sourced from PPV\n3. For each workflow step with type \"dashboard\", verify `dashboard_id` is present (UUID format)\n4. Verify `dashboard_name` key has been removed from resolved steps\n5. **Expected:** All dashboard steps resolved to UUIDs\n\n### TC-05: Unresolved Dashboard Name Degraded Mode\n1. Create a test model with a workflow step referencing `dashboard_name: \"Nonexistent Dashboard\"`\n2. Install the model\n3. Verify install succeeds (no exception)\n4. Verify the step still has `dashboard_name` (not resolved) — degraded but functional\n5. **Expected:** Warning logged, install completes, step retains unresolved name\n\n### TC-06: Seed Workflows Trimmed\n1. Import `SEED_WORKFLOWS` from `app.dashboard.seed`\n2. Verify exactly 1 entry\n3. Verify the entry name is \"Create & Review\"\n4. Verify no PPV-specific references (no \"ppv:\", no \"Weekly Review\", no \"Monthly Review\")\n5. **Expected:** Only generic workflow remains in seed data\n\n### TC-07: Install + Explorer Visibility\n1. Install PPV v2 model as authenticated user\n2. Open workspace explorer\n3. Verify 5 dashboards appear in the DASHBOARDS section (tagged as model-sourced if UI supports it)\n4. Verify 5 workflows appear in the WORKFLOWS section\n5. **Expected:** All 10 surfaces visible in workspace\n\n### TC-08: Uninstall Cleanup\n1. With PPV installed (from TC-07), uninstall PPV\n2. Verify all 5 model-sourced dashboards are removed\n3. Verify all 5 model-sourced workflows are removed\n4. Verify user-created dashboards/workflows (if any) are NOT removed\n5. **Expected:** Clean removal of model-sourced surfaces only\n\n### TC-09: Action Items Dashboard Block Types\n1. Open the \"Action Items\" dashboard after PPV install\n2. Verify stat-card blocks render (may show 0 counts if no data)\n3. Verify view-embed blocks reference valid ViewSpec IRIs\n4. **Expected:** Dashboard layout renders with correct block types\n\n### TC-10: Weekly Review Workflow Steps\n1. Launch \"Weekly Review\" workflow after PPV install\n2. Verify first step is a dashboard step (resolved to Action Items dashboard UUID)\n3. Verify workflow includes view steps, form steps, and dashboard steps\n4. Step through at least the first step\n5. **Expected:** Workflow navigable with correct step types and resolved dashboard references\n",
       "goal": "PPV model ships 5 dashboards and 5 workflows as TBox definitions. Install resolves dashboard_name references in workflow steps to dashboard UUIDs. Seed.py retains only the generic \"Create & Review\" workflow.",
       "success_criteria": "- `models/ppv/dashboards/ppv.json` contains 5 dashboards with valid gridstack blocks referencing real PPV ViewSpec IRIs and SPARQL queries\n- `models/ppv/workflows/ppv.json` contains 5 workflows using view/dashboard/form step types, with `dashboard_name` references (not hardcoded UUIDs)\n- `models/ppv/manifest.yaml` has `workflows: \"workflows/ppv.json\"` entrypoint\n- ModelService.install() resolves `dashboard_name` → `dashboard_id` in workflow step configs after creating TBox dashboards\n- `backend/app/dashboard/seed.py` SEED_WORKFLOWS contains only 1 workflow (\"Create & Review\")\n- All existing tests pass with zero regressions; new tests cover dashboard_name resolution and real PPV content validation\n",
       "proof_level": "Contract — JSON content validated structurally, dashboard_name resolution proven via unit test with mocked services, seed.py migration verified by count assertion.",
@@ -7629,11 +7629,11 @@
       "completed_at": null,
       "full_summary_md": "",
       "full_uat_md": "",
-      "goal": "Update PPV seed data with new type instances. Write E2E tests proving the full TBox lifecycle. Add icon definitions for new types.",
-      "success_criteria": "- GuidingPrinciples seed instance in james-life.jsonld\n- PillarScore seed instances linked to existing weekly review\n- Icon definitions for PillarScore and GuidingPrinciples in manifest.yaml\n- E2E test: install → dashboards/workflows appear → dashboard renders → workflow launchable → uninstall → surfaces removed\n- All existing E2E tests pass without regression",
-      "proof_level": "E2E test with Playwright proving full install → use → uninstall lifecycle.",
-      "integration_closure": "M047 complete. PPV v2 model is self-contained with ontology, shapes, views, dashboards, workflows, seed data, and rules.",
-      "observability_impact": "E2E test provides regression safety for model TBox lifecycle.",
+      "goal": "PPV seed data includes GuidingPrinciples and PillarScore instances with enriched review fields. E2E test verifies the full PPV v2 install → dashboard/workflow verification → UI rendering → uninstall lifecycle. User guide documents PPV v2.",
+      "success_criteria": "- ppv.jsonld contains 1 GuidingPrinciples instance, 3 PillarScore instances, and enriched review fields on all 4 review instances\n- E2E test at `e2e/tests/47-ppv-v2/ppv-v2-lifecycle.spec.ts` passes against the running test stack\n- User guide chapter at `docs/guide/50-ppv-model.md` exists and all 3 index files reference it",
+      "proof_level": "Integration — E2E test exercises real model install/uninstall against running Docker stack with triplestore and SQLite",
+      "integration_closure": "- Upstream: consumes S01 manifest v2 infrastructure (install/uninstall lifecycle, source_model tracking), S02 ontology expansion (PillarScore/GuidingPrinciples shapes, enriched review shapes), S03 TBox dashboards/workflows (5 dashboards, 5 workflows in JSON files)\n- New wiring: none — seed data is consumed by existing install pipeline, E2E test uses existing API endpoints and helpers\n- What remains: nothing — after this slice the milestone is complete",
+      "observability_impact": "None — seed data and docs don't introduce runtime surfaces. E2E test is verification-only.",
       "sequence": 0,
       "replan_triggered_at": null
     }
@@ -31216,6 +31216,126 @@
       "observability_impact": "",
       "full_plan_md": "",
       "sequence": 0
+    },
+    {
+      "milestone_id": "M047",
+      "slice_id": "S04",
+      "id": "T01",
+      "title": "Added 1 GuidingPrinciples, 3 PillarScore instances and enriched reflection fields on all 4 review types to PPV seed data (31→35 instances, 10→12 types)",
+      "status": "complete",
+      "one_liner": "Added 1 GuidingPrinciples, 3 PillarScore instances and enriched reflection fields on all 4 review types to PPV seed data (31→35 instances, 10→12 types)",
+      "narrative": "Added the two new S02 types to seed data: 1 GuidingPrinciples instance with all 7 SHACL fields and 3 PillarScore instances (one per pillar, linked to weekly review). Enriched all 4 review instances with their new reflection fields from the updated shapes — 3 fields on WeeklyReview, 4 on MonthlyReview, 6 on QuarterlyReview, 2 on YearlyReview. All IRI references verified against existing seed IDs with zero dangling refs. Total instances grew from 31 to 35 across 12 types.",
+      "verification_result": "Ran both task-level verification commands (type counts + enriched field presence) plus additional reference integrity and full enriched field assertions. All passed.",
+      "duration": "",
+      "completed_at": "2026-04-05T00:24:59.464Z",
+      "blocker_discovered": false,
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "models/ppv/seed/ppv.jsonld"
+      ],
+      "key_decisions": [],
+      "full_summary_md": "---\nid: T01\nparent: S04\nmilestone: M047\nkey_files:\n  - models/ppv/seed/ppv.jsonld\nkey_decisions:\n  - (none)\nduration: \nverification_result: passed\ncompleted_at: 2026-04-05T00:24:59.464Z\nblocker_discovered: false\n---\n\n# T01: Added 1 GuidingPrinciples, 3 PillarScore instances and enriched reflection fields on all 4 review types to PPV seed data (31→35 instances, 10→12 types)\n\n**Added 1 GuidingPrinciples, 3 PillarScore instances and enriched reflection fields on all 4 review types to PPV seed data (31→35 instances, 10→12 types)**\n\n## What Happened\n\nAdded the two new S02 types to seed data: 1 GuidingPrinciples instance with all 7 SHACL fields and 3 PillarScore instances (one per pillar, linked to weekly review). Enriched all 4 review instances with their new reflection fields from the updated shapes — 3 fields on WeeklyReview, 4 on MonthlyReview, 6 on QuarterlyReview, 2 on YearlyReview. All IRI references verified against existing seed IDs with zero dangling refs. Total instances grew from 31 to 35 across 12 types.\n\n## Verification\n\nRan both task-level verification commands (type counts + enriched field presence) plus additional reference integrity and full enriched field assertions. All passed.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `python3 -c \"...assert types.get('ppv:GuidingPrinciples')==1; assert types.get('ppv:PillarScore')==3...\"` | 0 | ✅ pass | 200ms |\n| 2 | `python3 -c \"...assert 'ppv:wins' in weekly...\"` | 0 | ✅ pass | 150ms |\n| 3 | `python3 -c \"...reference + enriched field check all 4 reviews...\"` | 0 | ✅ pass | 200ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `models/ppv/seed/ppv.jsonld`\n",
+      "description": "The PPV seed file (ppv.jsonld) currently has 31 instances across 10 types but no GuidingPrinciples, no PillarScore, and no enriched review reflection fields. This task adds realistic seed data for the new S02 types so dashboards render with actual data.\n\n## Steps\n\n1. Read `models/ppv/seed/ppv.jsonld` to understand the existing JSON-LD structure and @context prefixes.\n2. Add 1 GuidingPrinciples instance (`ppv:seed-guiding-principles`) with all 7 fields from the SHACL shape: `dcterms:title`, `ppv:values`, `ppv:purpose`, `ppv:meaning`, `ppv:manifestation`, `ppv:foundationalStatement`, `ppv:guidingWord`. All are `xsd:string` type. Use realistic August Bradley-style content.\n3. Add 3 PillarScore instances linked to the existing weekly review (`ppv:seed-review-week-mar3`) and the 3 existing pillars (`ppv:seed-pillar-health`, `ppv:seed-pillar-career`, `ppv:seed-pillar-relationships`). Each PillarScore needs: `dcterms:title` (string), `ppv:score` (xsd:integer, 1-10), `ppv:wentWell` (string), `ppv:needsAttention` (string), `ppv:weeklyReview` (→ weekly review IRI), `ppv:pillar` (→ pillar IRI), `dcterms:created` (xsd:dateTime).\n4. Add enriched reflection fields to 4 existing review instances:\n   - WeeklyReview (`ppv:seed-review-week-mar3`): add `ppv:wins`, `ppv:challenges`, `ppv:supportingPriorities` (all xsd:string)\n   - MonthlyReview (`ppv:seed-review-march-2026`): add `ppv:biggestWins`, `ppv:biggestChallenges`, `ppv:focusAreas`, `ppv:habitsToAdjust` (all xsd:string)\n   - QuarterlyReview (`ppv:seed-review-q1-2026`): add `ppv:accomplishments`, `ppv:disappointments`, `ppv:whatWorked`, `ppv:whatDidntWork`, `ppv:howToImprove`, `ppv:annualVisionNotes` (all xsd:string)\n   - YearlyReview (`ppv:seed-review-yearly-2026`): add `ppv:intentionWord`, `ppv:yearTheme` (all xsd:string)\n5. Verify JSON is valid and type counts are correct.\n\n## Must-Haves\n\n- [ ] 1 GuidingPrinciples instance with all 7 text fields populated\n- [ ] 3 PillarScore instances with scores 1-10, linked to existing pillars and weekly review\n- [ ] All 4 review instances have enriched reflection fields matching their SHACL shapes\n- [ ] JSON-LD is valid (parseable by python json module)\n- [ ] All IRI references use existing seed IDs (no dangling references)\n\n## Verification\n\n- `python3 -c \"import json; data=json.load(open('models/ppv/seed/ppv.jsonld')); types={}; [types.__setitem__(i.get('@type','?'), types.get(i.get('@type','?'),0)+1) for i in data['@graph']]; print(types); assert types.get('ppv:GuidingPrinciples')==1; assert types.get('ppv:PillarScore')==3; print('OK')\"` exits 0\n- `python3 -c \"import json; data=json.load(open('models/ppv/seed/ppv.jsonld')); weekly=[i for i in data['@graph'] if i['@type']=='ppv:WeeklyReview'][0]; assert 'ppv:wins' in weekly; print('Enriched fields OK')\"` exits 0",
+      "estimate": "30m",
+      "files": [
+        "models/ppv/seed/ppv.jsonld"
+      ],
+      "verify": "python3 -c \"import json; data=json.load(open('models/ppv/seed/ppv.jsonld')); types={}; [types.__setitem__(i.get('@type','?'), types.get(i.get('@type','?'),0)+1) for i in data['@graph']]; assert types.get('ppv:GuidingPrinciples')==1; assert types.get('ppv:PillarScore')==3; print('Seed data OK')\"",
+      "inputs": [
+        "`models/ppv/seed/ppv.jsonld` — existing seed data with 31 instances across 10 types",
+        "`models/ppv/shapes/ppv.jsonld` — SHACL shapes defining required fields for PillarScore, GuidingPrinciples, and enriched review properties"
+      ],
+      "expected_output": [
+        "`models/ppv/seed/ppv.jsonld` — updated with 1 GuidingPrinciples + 3 PillarScore instances + enriched review fields on all 4 review instances (35 total instances, 12 types)"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M047",
+      "slice_id": "S04",
+      "id": "T02",
+      "title": "Write E2E test for PPV v2 install/dashboard/workflow/uninstall lifecycle",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Write a Playwright E2E test that exercises the full PPV v2 lifecycle: install the model, verify dashboards and workflows were created, open a dashboard in the workspace, launch a workflow, then attempt uninstall.\n\nThe test uses API endpoints for verification and dockview helpers for UI interaction. Model uninstall will likely return 409 (seed data blocks removal) — handle this gracefully.\n\n## Steps\n\n1. Create `e2e/tests/47-ppv-v2/ppv-v2-lifecycle.spec.ts`.\n2. Import fixtures: `test, expect, BASE_URL` from `../../fixtures/auth`, `waitForWorkspace, waitForIdle` from `../../helpers/wait-for`, `openDashboardTab` from `../../helpers/dockview`.\n3. Write a single consolidated test (to stay within magic-link rate limits) with these phases:\n   - **Pre-clean**: Best-effort `DELETE /api/models/ppv` to handle leftover state from prior runs. Ignore 404/409.\n   - **Install PPV**: `POST /api/models/install` with `{\"path\": \"/app/models/ppv\"}`. Assert 200. The path is the Docker container path (models are volume-mounted at /app/models/).\n   - **Verify dashboards**: `GET /api/dashboard` → filter by name for 5 PPV dashboards (Action Items, Life Dashboard, Projects Board, Goals Overview, Review Hub). Assert count >= 5.\n   - **Verify workflows**: `GET /api/workflow` → filter by name for 5 PPV workflows (Daily Check-in, Weekly Review, Monthly Review, Quarterly Review, Yearly Review). Assert count >= 5.\n   - **Open dashboard**: Navigate to `/browser/`, wait for workspace, use `openDashboardTab(page, dashboardId, dashboardName)` with the first found PPV dashboard. Wait for `.grid-stack` to be visible.\n   - **Launch workflow**: Use `page.evaluate()` to call `window.SemPKM.openWorkflowTab(id, name)` with a found PPV workflow. Wait for workflow runner content (`.workflow-runner` or `.workflow-step-content` selector).\n   - **Uninstall attempt**: `DELETE /api/models/ppv`. If 200, verify dashboards/workflows removed. If 409 (blocked by seed data), log and verify model still listed — this is expected behavior.\n4. Use generous timeouts (120s for test, 30s for individual waits) since model install involves triplestore writes + seed materialization.\n5. Dashboard IDs are dynamic UUIDs — the test must query the list API and find IDs by name before opening.\n\nKey API details:\n- `POST /api/models/install` — body: `{\"path\": \"/app/models/ppv\"}`, returns `{\"model_id\": \"ppv\", \"message\": \"...\", \"warnings\": []}`\n- `DELETE /api/models/ppv` — returns 200 on success, 409 if user data exists, 404 if not installed\n- `GET /api/dashboard` — returns `[{\"id\": \"uuid\", \"name\": \"...\", \"description\": \"...\", \"layout\": \"...\"}]`\n- `GET /api/workflow` — returns `[{\"id\": \"uuid\", \"name\": \"...\", \"description\": \"...\", \"step_count\": N}]`\n- All API calls need the auth cookie: `Cookie: sempkm_session=${sessionToken}`\n- The session token comes from the `ownerPage` fixture: `const sessionToken = await page.evaluate(() => document.cookie.match(/sempkm_session=([^;]+)/)?.[1]);`\n\nNo openWorkflowTab helper exists in dockview.ts. Use `page.evaluate()` directly with `window.SemPKM.openWorkflowTab(id, name)` and then wait for a workflow-related selector.\n\n## Must-Haves\n\n- [ ] Test installs PPV v2 and verifies 5 dashboards + 5 workflows created\n- [ ] Test opens a dashboard tab and verifies gridstack renders\n- [ ] Test launches a workflow and verifies workflow UI renders\n- [ ] Test handles uninstall 409 gracefully (seed data blocks removal)\n- [ ] Test is idempotent (pre-clean handles leftover state)\n\n## Verification\n\n- `npx playwright test e2e/tests/47-ppv-v2/ --project=chromium` passes against the running test stack\n- If the test stack is not running, verify the test file compiles: `cd e2e && npx tsc --noEmit`",
+      "estimate": "1h",
+      "files": [
+        "e2e/tests/47-ppv-v2/ppv-v2-lifecycle.spec.ts"
+      ],
+      "verify": "cd e2e && npx tsc --noEmit 2>&1 | grep -c 'error' | grep -q '^0$' && echo 'TypeScript compiles OK' || echo 'TypeScript errors found'",
+      "inputs": [
+        "`models/ppv/seed/ppv.jsonld` — seed data with GuidingPrinciples and PillarScore instances (from T01)",
+        "`models/ppv/dashboards/ppv.json` — 5 dashboard definitions created in S03",
+        "`models/ppv/workflows/ppv.json` — 5 workflow definitions created in S03",
+        "`e2e/fixtures/auth.ts` — ownerPage/ownerRequest fixtures for authenticated API calls",
+        "`e2e/helpers/dockview.ts` — openDashboardTab helper for dashboard UI testing",
+        "`e2e/helpers/wait-for.ts` — waitForWorkspace, waitForIdle helpers",
+        "`e2e/tests/26-mental-models/mental-model-expansion.spec.ts` — reference pattern for model install/uninstall E2E tests"
+      ],
+      "expected_output": [
+        "`e2e/tests/47-ppv-v2/ppv-v2-lifecycle.spec.ts` — Playwright test covering PPV v2 install → dashboard/workflow verification → UI rendering → uninstall"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M047",
+      "slice_id": "S04",
+      "id": "T03",
+      "title": "Write PPV v2 user guide chapter and update all three index files",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Create the PPV model user guide chapter and update all three index files that must stay in sync (KNOWLEDGE.md rule: 'User guide has THREE files that must stay in sync').\n\n## Steps\n\n1. Create `docs/guide/50-ppv-model.md` with content covering:\n   - What the PPV model is (Pillars, Pipelines, Vaults — August Bradley's system)\n   - Types included: PillarGroup, Pillar, ValueGoal, GoalOutcome, Project, ActionItem, WeeklyReview, MonthlyReview, QuarterlyReview, YearlyReview, PillarScore, GuidingPrinciples\n   - 5 dashboards: Action Items (task management), Life Dashboard (pillar overview), Projects Board (project status), Goals Overview (value goals → outcomes), Review Hub (review navigation)\n   - 5 workflows: Daily Check-in, Weekly Review (with pillar scoring), Monthly Review, Quarterly Review, Yearly Review\n   - The review system: weekly → monthly → quarterly → yearly hierarchy, pillar scoring, enriched reflection fields\n   - Installation: standard model install from admin page\n   - Seed data: demo instances provided for exploring before adding own data\n2. Update `docs/guide/README.md` — add entry `50. [PPV Model](50-ppv-model.md)` after line 76 (49. Media Scheduler).\n3. Update `docs/guide/index.html` — add `<li><a href=\"#\" data-file=\"50-ppv-model.md\">50. PPV Model</a></li>` after the 49. Media Scheduler entry.\n4. Update `backend/app/shell/router.py` — add `{\"filename\": \"50-ppv-model.md\", \"title\": \"50. PPV Model\", \"icon\": \"compass\"}` to the GUIDE_SECTIONS chapters list, before the \"38. Hosted Demo\" entry (which is the last non-appendix chapter).\n\n## Must-Haves\n\n- [ ] `docs/guide/50-ppv-model.md` exists with meaningful content (not a stub)\n- [ ] `docs/guide/README.md` references the new chapter\n- [ ] `docs/guide/index.html` references the new chapter\n- [ ] `backend/app/shell/router.py` GUIDE_SECTIONS includes the new chapter entry\n\n## Verification\n\n- `test -f docs/guide/50-ppv-model.md && echo 'Guide exists'`\n- `grep -q '50-ppv-model' docs/guide/README.md && echo 'README OK'`\n- `grep -q '50-ppv-model' docs/guide/index.html && echo 'index.html OK'`\n- `grep -q '50-ppv-model' backend/app/shell/router.py && echo 'router.py OK'`",
+      "estimate": "30m",
+      "files": [
+        "docs/guide/50-ppv-model.md",
+        "docs/guide/README.md",
+        "docs/guide/index.html",
+        "backend/app/shell/router.py"
+      ],
+      "verify": "test -f docs/guide/50-ppv-model.md && grep -q '50-ppv-model' docs/guide/README.md && grep -q '50-ppv-model' docs/guide/index.html && grep -q '50-ppv-model' backend/app/shell/router.py && echo 'All 4 files OK'",
+      "inputs": [
+        "`docs/guide/49-media-scheduler.md` — reference for chapter format and style",
+        "`docs/guide/README.md` — table of contents to update",
+        "`docs/guide/index.html` — HTML sidebar to update",
+        "`backend/app/shell/router.py` — GUIDE_SECTIONS list to update (lines 31-145)",
+        "`models/ppv/manifest.yaml` — source of truth for PPV model metadata",
+        "`models/ppv/dashboards/ppv.json` — dashboard names and descriptions for documentation",
+        "`models/ppv/workflows/ppv.json` — workflow names and descriptions for documentation"
+      ],
+      "expected_output": [
+        "`docs/guide/50-ppv-model.md` — new PPV v2 user guide chapter",
+        "`docs/guide/README.md` — updated with chapter 50 entry",
+        "`docs/guide/index.html` — updated with chapter 50 sidebar entry",
+        "`backend/app/shell/router.py` — updated GUIDE_SECTIONS with chapter 50"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
     }
   ],
   "decisions": [
@@ -37982,6 +38102,39 @@
       "verdict": "✅ pass",
       "duration_ms": 500,
       "created_at": "2026-04-05T00:10:44.366Z"
+    },
+    {
+      "id": 199,
+      "task_id": "T01",
+      "slice_id": "S04",
+      "milestone_id": "M047",
+      "command": "python3 -c \"...assert types.get('ppv:GuidingPrinciples')==1; assert types.get('ppv:PillarScore')==3...\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 200,
+      "created_at": "2026-04-05T00:24:59.464Z"
+    },
+    {
+      "id": 200,
+      "task_id": "T01",
+      "slice_id": "S04",
+      "milestone_id": "M047",
+      "command": "python3 -c \"...assert 'ppv:wins' in weekly...\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 150,
+      "created_at": "2026-04-05T00:24:59.464Z"
+    },
+    {
+      "id": 201,
+      "task_id": "T01",
+      "slice_id": "S04",
+      "milestone_id": "M047",
+      "command": "python3 -c \"...reference + enriched field check all 4 reviews...\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 200,
+      "created_at": "2026-04-05T00:24:59.464Z"
     }
   ]
 }

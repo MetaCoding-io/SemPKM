@@ -331,11 +331,60 @@
     },
 
     {
+      "@id": "ppv:seed-guiding-principles",
+      "@type": "ppv:GuidingPrinciples",
+      "dcterms:title": "My Guiding Principles",
+      "ppv:values": "Integrity, Growth, Impact, Connection, Excellence",
+      "ppv:purpose": "To build systems and knowledge that empower people to live intentionally, making each day a deliberate step toward the life they envision.",
+      "ppv:meaning": "A life well-lived means continuous growth across all pillars — not perfection, but consistent forward motion guided by clear values and honest self-assessment.",
+      "ppv:manifestation": "I show up fully in every domain: disciplined in health, ambitious in career, present in relationships. I build before I consume. I reflect before I react.",
+      "ppv:foundationalStatement": "Every system I build, every habit I cultivate, and every relationship I nurture is an expression of who I am becoming. Structure creates freedom.",
+      "ppv:guidingWord": "Intentional",
+      "dcterms:created": { "@value": "2026-01-01T09:00:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
+      "@id": "ppv:seed-score-health-w1",
+      "@type": "ppv:PillarScore",
+      "dcterms:title": "Health & Fitness — Week of March 3",
+      "ppv:score": { "@value": "8", "@type": "xsd:integer" },
+      "ppv:wentWell": "Hit all four training runs this week including the tempo session. Sleep consistency improved — averaged 7.5 hours with consistent 10pm bedtime.",
+      "ppv:needsAttention": "Hydration dropped off mid-week. Need to bring water bottle to afternoon meetings. Post-run stretching was skipped twice.",
+      "ppv:weeklyReview": { "@id": "ppv:seed-review-week-mar3" },
+      "ppv:pillar": { "@id": "ppv:seed-pillar-health" },
+      "dcterms:created": { "@value": "2026-03-09T18:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-score-career-w1",
+      "@type": "ppv:PillarScore",
+      "dcterms:title": "Career Development — Week of March 3",
+      "ppv:score": { "@value": "6", "@type": "xsd:integer" },
+      "ppv:wentWell": "Completed the architecture review for the new microservice. Got positive feedback on the technical design doc from the senior staff engineer.",
+      "ppv:needsAttention": "Didn't make progress on the conference abstract. Need to block dedicated time for writing instead of letting meetings fill the calendar.",
+      "ppv:weeklyReview": { "@id": "ppv:seed-review-week-mar3" },
+      "ppv:pillar": { "@id": "ppv:seed-pillar-career" },
+      "dcterms:created": { "@value": "2026-03-09T18:00:00Z", "@type": "xsd:dateTime" }
+    },
+    {
+      "@id": "ppv:seed-score-relationships-w1",
+      "@type": "ppv:PillarScore",
+      "dcterms:title": "Relationships — Week of March 3",
+      "ppv:score": { "@value": "7", "@type": "xsd:integer" },
+      "ppv:wentWell": "Sunday family dinner was the best one yet — tried the new pasta recipe and everyone loved it. Had a meaningful catch-up call with my college friend.",
+      "ppv:needsAttention": "Missed replying to two friends' messages this week. Need a system for staying on top of social messages without letting them pile up.",
+      "ppv:weeklyReview": { "@id": "ppv:seed-review-week-mar3" },
+      "ppv:pillar": { "@id": "ppv:seed-pillar-relationships" },
+      "dcterms:created": { "@value": "2026-03-09T18:00:00Z", "@type": "xsd:dateTime" }
+    },
+
+    {
       "@id": "ppv:seed-review-yearly-2026",
       "@type": "ppv:YearlyReview",
       "dcterms:title": "2026 Annual Review",
       "ppv:cycle": "yearly",
       "ppv:yearName": "2026",
+      "ppv:intentionWord": "Momentum",
+      "ppv:yearTheme": "Build the scaffolding for the life I want — health systems, career trajectory, relationship rituals — so that daily execution becomes automatic and energy goes to what matters.",
       "ppv:quarters": [
         { "@id": "ppv:seed-review-q1-2026" }
       ],
@@ -348,6 +397,12 @@
       "ppv:cycle": "quarterly",
       "ppv:quarterName": "Q1 2026",
       "ppv:yearLink": { "@id": "ppv:seed-review-yearly-2026" },
+      "ppv:accomplishments": "Established consistent running habit (4x/week for 8 weeks). Launched meal prep system. Delivered well-received technical design doc at work.",
+      "ppv:disappointments": "Conference abstract still not started. Missed two family dinners due to work travel. Didn't start the strength training progression.",
+      "ppv:whatWorked": "Sunday planning sessions made weekday execution almost automatic. Stacking habits (morning run → cold shower → journaling) created reliable momentum.",
+      "ppv:whatDidntWork": "Trying to do deep work in the open office. Relying on willpower for evening workouts instead of scheduling them. Not saying no to optional meetings.",
+      "ppv:howToImprove": "Block two 90-minute deep work sessions per week in a private room. Move all workouts to morning. Set a hard cap of 4 meetings per day.",
+      "ppv:annualVisionNotes": "On track for the health pillar. Career pillar needs a forcing function for the conference keynote — consider committing publicly. Relationship pillar is steady but could use more intentional 1:1 time.",
       "dcterms:created": { "@value": "2026-01-01T09:00:00Z", "@type": "xsd:dateTime" }
     },
     {
@@ -360,6 +415,10 @@
       "ppv:quarter": { "@id": "ppv:seed-review-q1-2026" },
       "ppv:gratitude": "Grateful for consistent running habit finally clicking after years of false starts.",
       "ppv:learnedThisMonth": "Learned that meal prepping on Sunday saves both time and decision fatigue during the week.",
+      "ppv:biggestWins": "Completed all four weeks of half marathon training without missing a single run. Family dinner tradition hit 8 consecutive weeks.",
+      "ppv:biggestChallenges": "Work travel disrupted two weeks of meal prep. Struggled to maintain evening focus after long days.",
+      "ppv:focusAreas": "Lock in the 10K distance as comfortable. Start conference abstract draft. Add one new family recipe per week.",
+      "ppv:habitsToAdjust": "Move meal prep to Saturday evening when Sunday mornings get crowded. Replace phone scrolling before bed with 10 minutes of reading.",
       "dcterms:created": { "@value": "2026-03-01T09:00:00Z", "@type": "xsd:dateTime" }
     },
     {
@@ -371,6 +430,9 @@
       "schema:startDate": { "@value": "2026-03-03", "@type": "xsd:date" },
       "schema:endDate": { "@value": "2026-03-09", "@type": "xsd:date" },
       "ppv:month": { "@id": "ppv:seed-review-march-2026" },
+      "ppv:wins": "Nailed all four training runs including the tempo session. Meal prep system produced five days of lunches in under two hours. Got the architecture review approved on first pass.",
+      "ppv:challenges": "Wednesday was a complete wash — back-to-back meetings from 9am to 5pm left zero time for deep work or the evening run. Need better calendar boundaries.",
+      "ppv:supportingPriorities": "Morning routine consistency (5:30am wake, run, cold shower) is the foundation everything else rests on. Protect it at all costs.",
       "dcterms:created": { "@value": "2026-03-03T09:00:00Z", "@type": "xsd:dateTime" }
     }
   ]
