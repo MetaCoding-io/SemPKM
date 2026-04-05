@@ -7,10 +7,13 @@ Uses application/x-www-form-urlencoded for SPARQL operations per RDF4J
 protocol requirements (not raw SPARQL body).
 """
 
+import time
+
 import httpx
 from opentelemetry import trace
 
 from app.config import TIMEOUT_DEFAULT
+from app.middleware.timing import record_sparql_timing
 
 tracer = trace.get_tracer("sempkm.triplestore")
 
@@ -45,12 +48,14 @@ class TriplestoreClient:
         with tracer.start_as_current_span("sparql.query") as span:
             span.set_attribute("sparql.type", "SELECT")
             span.set_attribute("sparql.text", sparql[:500])
+            t0 = time.monotonic()
             resp = await self._client.post(
                 self._repo_url,
                 data={"query": sparql},
                 headers={"Accept": "application/sparql-results+json"},
             )
             resp.raise_for_status()
+            record_sparql_timing("sparql.query", (time.monotonic() - t0) * 1000.0)
             result = resp.json()
             span.set_attribute(
                 "sparql.result_count",
@@ -68,11 +73,13 @@ class TriplestoreClient:
         with tracer.start_as_current_span("sparql.update") as span:
             span.set_attribute("sparql.type", "UPDATE")
             span.set_attribute("sparql.text", sparql[:500])
+            t0 = time.monotonic()
             resp = await self._client.post(
                 f"{self._repo_url}/statements",
                 data={"update": sparql},
             )
             resp.raise_for_status()
+            record_sparql_timing("sparql.update", (time.monotonic() - t0) * 1000.0)
 
     async def begin_transaction(self) -> str:
         """Begin an RDF4J transaction.
@@ -144,12 +151,14 @@ class TriplestoreClient:
         with tracer.start_as_current_span("sparql.construct") as span:
             span.set_attribute("sparql.type", "CONSTRUCT")
             span.set_attribute("sparql.text", sparql[:500])
+            t0 = time.monotonic()
             resp = await self._client.post(
                 self._repo_url,
                 data={"query": sparql},
                 headers={"Accept": "text/turtle"},
             )
             resp.raise_for_status()
+            record_sparql_timing("sparql.construct", (time.monotonic() - t0) * 1000.0)
             return resp.content
 
     async def insert_graph(self, turtle_data: str, graph_iri: str) -> None:
@@ -163,6 +172,7 @@ class TriplestoreClient:
             span.set_attribute("sparql.type", "INSERT_GRAPH")
             span.set_attribute("sparql.graph_iri", graph_iri)
             span.set_attribute("sparql.data_size", len(turtle_data))
+            t0 = time.monotonic()
             resp = await self._client.post(
                 f"{self._repo_url}/statements",
                 content=turtle_data.encode("utf-8"),
@@ -170,6 +180,9 @@ class TriplestoreClient:
                 headers={"Content-Type": "text/turtle"},
             )
             resp.raise_for_status()
+            record_sparql_timing(
+                "sparql.insert_graph", (time.monotonic() - t0) * 1000.0
+            )
 
     async def close(self) -> None:
         """Close the underlying httpx client."""

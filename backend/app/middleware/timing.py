@@ -4,11 +4,16 @@ Measures request durations, logs slow requests, adds Server-Timing
 headers, accumulates per-path timing statistics in memory, and exposes
 a top-5 slowest endpoint report via an admin API.
 
+Per-request SPARQL query timings are accumulated via a ContextVar and
+serialized into the Server-Timing header as individual entries alongside
+the total.
+
 Delivers requirement PERF-08 (backend profiling).
 """
 
 import logging
 import time
+from contextvars import ContextVar
 from typing import Any
 
 from fastapi import APIRouter, Depends, Request
@@ -76,6 +81,26 @@ def reset_timing_stats() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Per-request SPARQL timing accumulation (ContextVar)
+# ---------------------------------------------------------------------------
+
+_sparql_timings: ContextVar[list[tuple[str, float]] | None] = ContextVar(
+    "_sparql_timings", default=None
+)
+
+
+def record_sparql_timing(name: str, duration_ms: float) -> None:
+    """Record a SPARQL operation timing entry for the current request.
+
+    No-op if the ContextVar has not been initialised for this request
+    (i.e. the call originates outside an HTTP request context).
+    """
+    timings = _sparql_timings.get()
+    if timings is not None:
+        timings.append((name, duration_ms))
+
+
+# ---------------------------------------------------------------------------
 # Middleware
 # ---------------------------------------------------------------------------
 
@@ -88,34 +113,44 @@ class TimingMiddleware(BaseHTTPMiddleware):
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
-        start = time.monotonic()
-        response = await call_next(request)
-        duration_ms = (time.monotonic() - start) * 1000.0
+        # Initialise per-request SPARQL timing accumulator
+        token = _sparql_timings.set([])
+        try:
+            start = time.monotonic()
+            response = await call_next(request)
+            duration_ms = (time.monotonic() - start) * 1000.0
 
-        # Add Server-Timing header
-        response.headers["Server-Timing"] = f"total;dur={duration_ms:.2f}"
+            # Build Server-Timing header with per-query breakdown
+            parts: list[str] = []
+            sparql_entries = _sparql_timings.get() or []
+            for idx, (name, dur) in enumerate(sparql_entries, start=1):
+                parts.append(f"{name}.{idx};dur={dur:.2f}")
+            parts.append(f"total;dur={duration_ms:.2f}")
+            response.headers["Server-Timing"] = ", ".join(parts)
 
-        path = request.url.path
-        method = request.method
-        status_code = response.status_code
+            path = request.url.path
+            method = request.method
+            status_code = response.status_code
 
-        # Log request timing
-        logger.debug(
-            "%s %s %s %.1fms", method, path, status_code, duration_ms
-        )
-        if duration_ms > _SLOW_REQUEST_THRESHOLD_MS:
-            logger.info(
-                "Slow request: %s %s %s %.1fms",
-                method,
-                path,
-                status_code,
-                duration_ms,
+            # Log request timing
+            logger.debug(
+                "%s %s %s %.1fms", method, path, status_code, duration_ms
             )
+            if duration_ms > _SLOW_REQUEST_THRESHOLD_MS:
+                logger.info(
+                    "Slow request: %s %s %s %.1fms",
+                    method,
+                    path,
+                    status_code,
+                    duration_ms,
+                )
 
-        # Accumulate stats
-        _record_timing(path, duration_ms)
+            # Accumulate stats
+            _record_timing(path, duration_ms)
 
-        return response
+            return response
+        finally:
+            _sparql_timings.reset(token)
 
 
 # ---------------------------------------------------------------------------

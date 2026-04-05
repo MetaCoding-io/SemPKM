@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T03",
+  "unitId": "M049/S02/T03",
+  "timestamp": 1775421547531,
+  "passed": false,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "cd backend",
+      "exitCode": 0,
+      "durationMs": 24,
+      "verdict": "pass"
+    },
+    {
+      "command": ".venv/bin/python -m pytest tests/test_tracing.py -v",
+      "exitCode": 127,
+      "durationMs": 24,
+      "verdict": "fail"
+    },
+    {
+      "command": ".venv/bin/python -m pytest tests/test_shapes_cache.py tests/test_object_query_opt.py tests/test_object_parallel.py -v",
+      "exitCode": 127,
+      "durationMs": 24,
+      "verdict": "fail"
+    }
+  ],
+  "retryAttempt": 1,
+  "maxRetries": 2
+}

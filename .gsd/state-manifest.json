@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-05T20:39:03.663Z",
+  "exported_at": "2026-04-05T20:53:53.723Z",
   "milestones": [
     {
       "id": "M001",
@@ -8005,16 +8005,16 @@
       "milestone_id": "M049",
       "id": "S02",
       "title": "OpenTelemetry + Jaeger Tracing",
-      "status": "pending",
+      "status": "complete",
       "risk": "medium — new dependencies (OTel SDK, Jaeger container) may have unexpected interaction with existing middleware or Docker networking",
       "depends": [
         "S01"
       ],
       "demo": "Open an object tab. Navigate to Jaeger UI at localhost:16686. Find the trace for the request showing FastAPI → TriplestoreClient → RDF4J span breakdown with timing for each SPARQL query.",
       "created_at": "2026-04-05T17:51:26.699Z",
-      "completed_at": null,
-      "full_summary_md": "",
-      "full_uat_md": "",
+      "completed_at": "2026-04-05T20:41:17.867Z",
+      "full_summary_md": "---\nid: S02\nparent: M049\nmilestone: M049\nprovides:\n  - OTel tracing infrastructure (setup_tracing/shutdown_tracing API)\n  - Jaeger v2 Docker service on sempkm network\n  - SPARQL semantic span attributes for downstream analysis\n  - otel_enabled/otel_exporter_endpoint config settings\nrequires:\n  - slice: S01\n    provides: Optimized object query path that tracing spans will measure\naffects:\n  - S03\nkey_files:\n  - backend/app/monitoring/tracing.py\n  - backend/app/main.py\n  - backend/app/triplestore/client.py\n  - backend/app/config.py\n  - backend/tests/test_tracing.py\n  - backend/pyproject.toml\n  - backend/uv.lock\n  - docker-compose.yml\nkey_decisions:\n  - D383: Jaeger v2 over v1 — v1 reached EOL Dec 2025, v2 built on OTel Collector framework\n  - D387: OTel init ordering — setup_tracing() before TriplestoreClient, shutdown before client.close()\npatterns_established:\n  - No-op tracer pattern: when otel_enabled=False, trace.get_tracer() returns no-op tracer — all span operations become zero-cost. No conditional checks needed in instrumented code.\n  - Semantic SPARQL span attributes: sparql.type, sparql.text (truncated 500), sparql.result_count, sparql.graph_iri, sparql.data_size — consistent schema across all 4 TriplestoreClient methods.\n  - OTel test pattern: _force_set_tracer_provider() + InMemorySpanExporter + SimpleSpanProcessor for capturing and asserting span attributes in unit tests without Jaeger.\nobservability_surfaces:\n  - OTel spans for every FastAPI request (auto-instrumented, excludes health/monitoring)\n  - OTel spans for every httpx HTTP call (auto-instrumented via HTTPXClientInstrumentor)\n  - Custom semantic spans: sparql.query, sparql.update, sparql.construct, sparql.insert_graph with SPARQL-specific attributes\n  - Jaeger UI at localhost:16686 for trace visualization (service name: sempkm-api)\n  - BatchSpanProcessor logs export failures — Jaeger unavailability is silent (app continues working)\ndrill_down_paths:\n  - .gsd/milestones/M049/slices/S02/tasks/T01-SUMMARY.md\n  - .gsd/milestones/M049/slices/S02/tasks/T02-SUMMARY.md\n  - .gsd/milestones/M049/slices/S02/tasks/T03-SUMMARY.md\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-04-05T20:41:17.868Z\nblocker_discovered: false\n---\n\n# S02: OpenTelemetry + Jaeger Tracing\n\n**Added OpenTelemetry distributed tracing with Jaeger v2 backend, instrumenting FastAPI requests and all 4 TriplestoreClient SPARQL methods with semantic span attributes, plus 10 unit tests.**\n\n## What Happened\n\nThree tasks delivered a complete distributed tracing infrastructure:\n\n**T01 — Dependencies & Configuration:** Added 6 OpenTelemetry packages (core 1.40.0, instrumentation 0.61b0 — same release train) to pyproject.toml. Added `otel_enabled` (default False) and `otel_exporter_endpoint` settings to the config class. Added Jaeger v2 service to docker-compose.yml (OTLP HTTP on 4318, UI on 16686, 512MB mem limit) and wired OTEL_ENABLED/OTEL_EXPORTER_ENDPOINT env vars to the api service.\n\n**T02 — Tracing Module & Instrumentation:** Created `backend/app/monitoring/tracing.py` with `setup_tracing()` and `shutdown_tracing()` functions. setup_tracing() creates a TracerProvider with OTLP/HTTP BatchSpanProcessor, instruments FastAPI (excluding health/monitoring URLs), and globally instruments httpx. Critical ordering: setup_tracing() is called at lifespan line 144, before TriplestoreClient creation at line 147, so HTTPXClientInstrumentor patches httpx before any AsyncClient is instantiated. shutdown_tracing() is called before client.close() to flush buffered spans while connections are alive. Added custom spans to all 4 main TriplestoreClient methods (query, update, construct, insert_graph) with semantic attributes: sparql.type, sparql.text (truncated to 500 chars), sparql.result_count, sparql.graph_iri, sparql.data_size. No conditional otel_enabled checks in client.py — the no-op tracer pattern means span operations cost ~1μs when tracing is disabled.\n\n**T03 — Unit Tests:** Created 10 tests across 3 classes covering setup/shutdown lifecycle (disabled returns None, enabled returns TracerProvider, None shutdown is safe), all 4 TriplestoreClient span types with attribute verification via InMemorySpanExporter, text truncation at 500 chars, and result count reflecting SPARQL bindings. Key test engineering: built `_force_set_tracer_provider()` helper to bypass OTel's Once guard and re-bind module-level tracers between tests. All 22 S01 regression tests pass (shapes cache, query optimization, parallelization).\n\n## Verification\n\nAll slice verification checks pass:\n\n1. `cd backend && .venv/bin/python -m pytest tests/test_tracing.py -v` — 10/10 tests pass (0.42s)\n2. `cd backend && .venv/bin/python -m pytest tests/test_shapes_cache.py tests/test_object_query_opt.py tests/test_object_parallel.py -v` — 22/22 tests pass (1.36s), zero regressions\n3. `cd backend && uv lock --check` — lockfile consistent (exit 0)\n4. `cd backend && .venv/bin/python -c \"from app.monitoring.tracing import setup_tracing, shutdown_tracing; print('OK')\"` — OK\n5. `cd backend && .venv/bin/python -c \"from app.triplestore.client import TriplestoreClient; print('OK')\"` — OK\n6. `cd backend && .venv/bin/python -c \"from app.config import settings; assert hasattr(settings, 'otel_enabled'); print('OK')\"` — OK\n7. `grep -q 'jaeger' docker-compose.yml` — exit 0\n8. `grep -q 'OTEL_ENABLED' docker-compose.yml` — exit 0\n9. `grep -q 'start_as_current_span' backend/app/triplestore/client.py` — exit 0\n10. `grep -q 'setup_tracing' backend/app/main.py` — exit 0\n\n## Requirements Advanced\n\nNone.\n\n## Requirements Validated\n\nNone.\n\n## New Requirements Surfaced\n\nNone.\n\n## Requirements Invalidated or Re-scoped\n\nNone.\n\n## Deviations\n\nMinor: OTel package versions resolved to 1.40.0/0.61b0 (latest compatible with ~=1.31/~=0.52b0 pins). InMemorySpanExporter import path differs from plan. T03 required _force_set_tracer_provider() helper not anticipated in the plan to handle OTel global state between tests. None of these changed scope or outcomes.\n\n## Known Limitations\n\nJaeger is not yet running in production — only in the Docker Compose dev stack. Tracing is disabled by default (otel_enabled=False). The test stack (docker-compose.test.yml) does not include Jaeger. E2E verification of the Jaeger UI with real traces is deferred to manual/integration testing.\n\n## Follow-ups\n\nS03 will add Server-Timing headers and an admin performance dashboard that consume the same OTel spans.\n\n## Files Created/Modified\n\n- `backend/pyproject.toml` — Added 6 OpenTelemetry packages to dependencies\n- `backend/uv.lock` — Regenerated lockfile with OTel packages\n- `backend/app/config.py` — Added otel_enabled and otel_exporter_endpoint settings\n- `docker-compose.yml` — Added Jaeger v2 service and OTEL env vars on api service\n- `backend/app/monitoring/tracing.py` — New OTel setup/shutdown module with FastAPI+httpx instrumentation\n- `backend/app/main.py` — Wired setup_tracing/shutdown_tracing into lifespan\n- `backend/app/triplestore/client.py` — Added custom semantic spans to query/update/construct/insert_graph\n- `backend/tests/test_tracing.py` — 10 unit tests covering tracing lifecycle, all 4 span types, truncation, result counts\n",
+      "full_uat_md": "# S02: OpenTelemetry + Jaeger Tracing — UAT\n\n**Milestone:** M049\n**Written:** 2026-04-05T20:41:17.868Z\n\n# S02 UAT: OpenTelemetry + Jaeger Tracing\n\n## Preconditions\n- Docker Compose dev stack running (`docker compose up -d`)\n- Backend venv installed with OTel packages (`cd backend && uv sync`)\n- `OTEL_ENABLED=true` in environment (default in docker-compose.yml)\n\n---\n\n## Test 1: Tracing disabled by default in local dev (no Docker)\n\n**Steps:**\n1. Run `cd backend && .venv/bin/python -c \"from app.config import settings; print(settings.otel_enabled)\"`\n2. Observe output\n\n**Expected:** Prints `False` — tracing is off by default when OTEL_ENABLED env var is not set.\n\n---\n\n## Test 2: OTel packages importable\n\n**Steps:**\n1. Run `cd backend && .venv/bin/python -c \"from opentelemetry import trace; from opentelemetry.sdk.trace import TracerProvider; from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter; from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor; from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor; print('All 5 OTel modules OK')\"`\n\n**Expected:** Prints \"All 5 OTel modules OK\" with no ImportError.\n\n---\n\n## Test 3: Tracing module setup/shutdown lifecycle\n\n**Steps:**\n1. Run `cd backend && .venv/bin/python -m pytest tests/test_tracing.py::TestSetupTracing -v`\n2. Run `cd backend && .venv/bin/python -m pytest tests/test_tracing.py::TestShutdownTracing -v`\n\n**Expected:** All 4 lifecycle tests pass — disabled returns None, enabled returns TracerProvider, None shutdown is safe, provider shutdown calls flush.\n\n---\n\n## Test 4: Custom SPARQL spans with semantic attributes\n\n**Steps:**\n1. Run `cd backend && .venv/bin/python -m pytest tests/test_tracing.py::TestTriplestoreClientSpans -v`\n\n**Expected:** All 6 span tests pass:\n- query → span \"sparql.query\" with sparql.type=\"SELECT\", sparql.text present, sparql.result_count=0\n- update → span \"sparql.update\" with sparql.type=\"UPDATE\"\n- construct → span \"sparql.construct\" with sparql.type=\"CONSTRUCT\"\n- insert_graph → span \"sparql.insert_graph\" with sparql.graph_iri and sparql.data_size\n- Long query text truncated to ≤500 chars\n- Result count reflects actual SPARQL bindings count\n\n---\n\n## Test 5: Jaeger v2 service in Docker Compose\n\n**Steps:**\n1. Run `docker compose config --services | grep jaeger`\n2. Run `grep -A8 'jaeger:' docker-compose.yml`\n\n**Expected:**\n- jaeger service listed\n- Image is `jaegertracing/jaeger:2`\n- Ports 16686 (UI) and 4318 (OTLP HTTP) mapped\n- MEMORY_MAX_TRACES=10000\n- mem_limit: 512m\n- Connected to sempkm network\n\n---\n\n## Test 6: Tracing wired into FastAPI lifespan at correct position\n\n**Steps:**\n1. Run `grep -n 'setup_tracing\\|TriplestoreClient(' backend/app/main.py | head -5`\n2. Run `grep -n 'shutdown_tracing\\|await client.close' backend/app/main.py | head -5`\n\n**Expected:**\n- setup_tracing line number < TriplestoreClient line number (init before client)\n- shutdown_tracing line number < client.close() line number (flush spans before closing HTTP)\n\n---\n\n## Test 7: No regressions on S01 optimization tests\n\n**Steps:**\n1. Run `cd backend && .venv/bin/python -m pytest tests/test_shapes_cache.py tests/test_object_query_opt.py tests/test_object_parallel.py -v`\n\n**Expected:** All 22 tests pass — shapes cache TTL, union query optimization, deduplication, async parallelization, timing logs all unaffected by tracing additions.\n\n---\n\n## Test 8: Jaeger UI accessible (Docker stack running)\n\n**Precondition:** `docker compose up -d` with jaeger service running\n\n**Steps:**\n1. Open browser to `http://localhost:16686`\n2. Check for Jaeger UI\n\n**Expected:** Jaeger search page renders. Service dropdown may be empty if no requests have been traced yet.\n\n---\n\n## Edge Cases\n\n### E1: App runs normally when Jaeger is unreachable\nWith `OTEL_ENABLED=true` but Jaeger container stopped, the app should start and serve requests normally. BatchSpanProcessor silently drops spans when the exporter endpoint is unreachable.\n\n### E2: No-op tracer overhead when disabled\nWith `OTEL_ENABLED=false`, TriplestoreClient span operations use the no-op tracer. Overhead is ~1μs per span creation — functionally zero impact on query performance.\n\n### E3: SPARQL text truncation prevents large query logging\nA 10KB SPARQL query should have sparql.text attribute truncated to exactly 500 characters in the span, preventing trace storage bloat.\n",
       "goal": "Add OpenTelemetry distributed tracing with Jaeger backend, instrumenting FastAPI requests and TriplestoreClient SPARQL operations with custom spans.",
       "success_criteria": "**Must-Haves:**\n- OTel SDK packages added to pyproject.toml with consistent version pinning\n- Jaeger v2 service in docker-compose.yml with OTLP HTTP receiver\n- `otel_enabled` / `otel_exporter_endpoint` settings in config.py (default off)\n- `backend/app/monitoring/tracing.py` module with setup/shutdown lifecycle\n- FastAPI auto-instrumentation via FastAPIInstrumentor\n- httpx auto-instrumentation via HTTPXClientInstrumentor\n- Custom semantic spans on TriplestoreClient query/update/construct/insert_graph\n- Span attributes: sparql.type, sparql.text (truncated), sparql.result_count\n- Tracing is no-op when `otel_enabled=False` — zero conditional logic in business code\n- setup_tracing() called before TriplestoreClient creation in lifespan\n- Excluded URLs for health/monitoring endpoints\n- Unit tests proving enabled/disabled behavior, span attributes, and lifespan ordering\n\n**Threat Surface:**\n- **Abuse**: None — tracing is internal infrastructure, not user-facing\n- **Data exposure**: SPARQL query text in span attributes is truncated to 500 chars to prevent large query leakage to Jaeger\n- **Input trust**: None — no user input flows through the tracing code path\n\n**Proof Level:**\n- This slice proves: contract (tracing wiring is correct, spans fire with right attributes)\n- Real runtime required: no (unit tests with OTel test exporter prove behavior)\n- Human/UAT required: yes (Jaeger UI visual verification is the demo, done post-deploy)\n\n**Verification:**\n- `cd backend && .venv/bin/python -m pytest tests/test_tracing.py -v` — all tests pass\n- `cd backend && .venv/bin/python -c \"from app.monitoring.tracing import setup_tracing, shutdown_tracing\"` — imports work\n- `cd backend && .venv/bin/python -c \"from opentelemetry import trace; print(trace.get_tracer('test'))\"` — OTel SDK installed\n- Existing test suite: `cd backend && .venv/bin/python -m pytest tests/test_shapes_cache.py tests/test_object_query_opt.py tests/test_object_parallel.py -v` — zero regressions\n\n**Observability / Diagnostics:**\n- Runtime signals: OTel spans exported to Jaeger (when enabled), INFO log \"OpenTelemetry tracing initialized\" on startup, no log when disabled\n- Inspection surfaces: Jaeger UI at localhost:16686 shows `sempkm-api` service with request→httpx→sparql span tree\n- Failure visibility: BatchSpanProcessor logs export failures to Python logging; Jaeger unavailability doesn't crash the app\n- Redaction constraints: SPARQL text truncated to 500 chars in spans; no secrets in span attributes\n\n**Integration Closure:**\n- Upstream surfaces consumed: `backend/app/config.py` (Settings), `backend/app/main.py` (lifespan), `backend/app/triplestore/client.py` (SPARQL methods)\n- New wiring: tracing.py module, lifespan setup/shutdown calls, OTEL env vars in docker-compose\n- What remains: S03 adds Server-Timing headers reading from OTel spans + admin performance dashboard",
       "proof_level": "contract",
@@ -8038,11 +8038,11 @@
       "completed_at": null,
       "full_summary_md": "",
       "full_uat_md": "",
-      "goal": "Enhance developer visibility with per-query Server-Timing headers, build an admin performance dashboard with Chart.js percentile charts, and lazy-load non-essential panels.",
-      "success_criteria": "- Server-Timing header includes named sparql entries with durations on htmx responses\n- /admin/performance page renders Chart.js p50/p95/p99 latency charts from real timing data\n- Inbox panel uses hx-trigger=revealed instead of hx-trigger=load\n- Collaboration panel uses hx-trigger=revealed instead of hx-trigger=load\n- No HTTP requests for inbox/collaboration on page load (verified via Network tab)",
-      "proof_level": "integration — Server-Timing visible in DevTools, admin dashboard renders real data",
-      "integration_closure": "TimingMiddleware collects per-query timing from request-scoped accumulator, serializes to Server-Timing header. Admin page reads timing stats from existing /api/admin/timing-report endpoint.",
-      "observability_impact": "Server-Timing headers on all responses. /admin/performance dashboard with percentile charts. Right-pane panels lazy-loaded to reduce background request noise.",
+      "goal": "Add per-query Server-Timing header breakdown, an admin performance dashboard with Chart.js percentile charts, and lazy-load inbox/collaboration panels on reveal instead of page load.",
+      "success_criteria": "- Server-Timing response header includes per-SPARQL-query timing entries (e.g. `sparql.1;dur=X, sparql.2;dur=Y`) alongside the existing `total;dur=Z`\n- GET /admin/performance returns 200 for owner role, renders Chart.js bar charts with p50/p95/p99 data from timing stats\n- Admin index page has a card linking to /admin/performance\n- Inbox panel uses `hx-trigger=\"revealed, every 60s\"` instead of `hx-trigger=\"load, every 60s\"`\n- Collaboration panel uses `hx-trigger=\"revealed\"` instead of `hx-trigger=\"load\"`\n- All S01+S02 regression tests still pass (22+10=32 tests)",
+      "proof_level": "Contract — unit tests prove Server-Timing header content and admin route access; template inspection proves lazy-load triggers.",
+      "integration_closure": "- Upstream: `TimingMiddleware` (S01 timing stats), `TriplestoreClient` OTel spans (S02)\n- New wiring: ContextVar in timing.py ↔ client.py for request-scoped SPARQL timing accumulation; new admin route + template\n- After this: milestone is complete — all three slices delivered",
+      "observability_impact": "- Server-Timing header now exposes per-query breakdown in browser DevTools Network tab\n- Admin performance dashboard provides visual percentile charts at /admin/performance\n- Inbox/collab panels no longer fire requests on page load when collapsed",
       "sequence": 0,
       "replan_triggered_at": null
     }
@@ -32351,6 +32351,129 @@
       "observability_impact": "",
       "full_plan_md": "",
       "sequence": 0
+    },
+    {
+      "milestone_id": "M049",
+      "slice_id": "S03",
+      "id": "T01",
+      "title": "Added ContextVar-based SPARQL timing accumulation so Server-Timing header includes per-query breakdown entries alongside request total",
+      "status": "complete",
+      "one_liner": "Added ContextVar-based SPARQL timing accumulation so Server-Timing header includes per-query breakdown entries alongside request total",
+      "narrative": "Added _sparql_timings ContextVar to timing.py with a record_sparql_timing(name, duration_ms) helper. The middleware initializes the ContextVar before call_next() and resets it in a finally block. Accumulated entries are serialized as sparql.query.1;dur=X.XX into the Server-Timing header. Instrumented all 4 triplestore client span methods (query, update, construct, insert_graph) with time.monotonic() timing and record_sparql_timing() calls. Created 7 tests covering header content, ContextVar isolation, exception safety, and no-op behavior outside request context.",
+      "verification_result": "7/7 new Server-Timing tests pass. 32/32 S01+S02 regression tests pass. grep confirms ContextVar usage in timing.py and record_sparql_timing integration in client.py.",
+      "duration": "",
+      "completed_at": "2026-04-05T20:53:53.687Z",
+      "blocker_discovered": false,
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/middleware/timing.py",
+        "backend/app/triplestore/client.py",
+        "backend/tests/test_server_timing.py"
+      ],
+      "key_decisions": [
+        "Used name.N format (sparql.query.1) for Server-Timing entry names to keep entries unique when same span type called multiple times per request"
+      ],
+      "full_summary_md": "---\nid: T01\nparent: S03\nmilestone: M049\nkey_files:\n  - backend/app/middleware/timing.py\n  - backend/app/triplestore/client.py\n  - backend/tests/test_server_timing.py\nkey_decisions:\n  - Used name.N format (sparql.query.1) for Server-Timing entry names to keep entries unique when same span type called multiple times per request\nduration: \nverification_result: passed\ncompleted_at: 2026-04-05T20:53:53.687Z\nblocker_discovered: false\n---\n\n# T01: Added ContextVar-based SPARQL timing accumulation so Server-Timing header includes per-query breakdown entries alongside request total\n\n**Added ContextVar-based SPARQL timing accumulation so Server-Timing header includes per-query breakdown entries alongside request total**\n\n## What Happened\n\nAdded _sparql_timings ContextVar to timing.py with a record_sparql_timing(name, duration_ms) helper. The middleware initializes the ContextVar before call_next() and resets it in a finally block. Accumulated entries are serialized as sparql.query.1;dur=X.XX into the Server-Timing header. Instrumented all 4 triplestore client span methods (query, update, construct, insert_graph) with time.monotonic() timing and record_sparql_timing() calls. Created 7 tests covering header content, ContextVar isolation, exception safety, and no-op behavior outside request context.\n\n## Verification\n\n7/7 new Server-Timing tests pass. 32/32 S01+S02 regression tests pass. grep confirms ContextVar usage in timing.py and record_sparql_timing integration in client.py.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python -m pytest tests/test_server_timing.py -v` | 0 | ✅ pass | 3400ms |\n| 2 | `rg 'ContextVar' backend/app/middleware/timing.py` | 0 | ✅ pass | 100ms |\n| 3 | `rg 'record_sparql_timing' backend/app/triplestore/client.py` | 0 | ✅ pass | 100ms |\n| 4 | `cd backend && .venv/bin/python -m pytest tests/test_shapes_cache.py tests/test_object_query_opt.py tests/test_object_parallel.py tests/test_tracing.py -v` | 0 | ✅ pass | 9100ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/middleware/timing.py`\n- `backend/app/triplestore/client.py`\n- `backend/tests/test_server_timing.py`\n",
+      "description": "## Description\n\nAdd request-scoped SPARQL timing accumulation using `contextvars.ContextVar` so the `Server-Timing` response header includes per-query breakdown entries alongside the existing total.\n\n## Steps\n\n1. Read `backend/app/middleware/timing.py` and `backend/app/triplestore/client.py` to confirm current state.\n2. In `timing.py`, add `from contextvars import ContextVar` and create `_sparql_timings: ContextVar[list[tuple[str, float]]] = ContextVar('_sparql_timings', default=None)`. Export a helper `record_sparql_timing(name: str, duration_ms: float)` that appends to the list if the var is set.\n3. In `TimingMiddleware.dispatch()`, before `call_next()`: set the ContextVar to an empty list via `token = _sparql_timings.set([])`. After `call_next()`: read the accumulated list, serialize each entry as `sparql.N;dur=X.XX` (1-indexed), append to the existing `total;dur=Y.YY` Server-Timing value. Reset the ContextVar via `_sparql_timings.reset(token)` in a finally block.\n4. In `client.py`, import `time` and `record_sparql_timing` from `app.middleware.timing`. In each of the 4 span methods (`query`, `update`, `construct`, `insert_graph`), wrap the HTTP call with `time.monotonic()` before/after, compute `duration_ms`, and call `record_sparql_timing(span_name, duration_ms)`. The span_name should match the OTel span name (e.g. `sparql.query`, `sparql.update`).\n5. Create `backend/tests/test_server_timing.py` with tests:\n   - Test that Server-Timing header contains `total;dur=` (baseline)\n   - Test that after mocking TriplestoreClient methods to call `record_sparql_timing`, the header contains numbered `sparql.N;dur=` entries\n   - Test that ContextVar is properly reset between requests (no leaking)\n\n## Must-Haves\n\n- [ ] ContextVar reset in finally block to prevent cross-request leaking\n- [ ] Incrementing index for unique Server-Timing entry names\n- [ ] No import cycle between timing.py and client.py\n- [ ] record_sparql_timing is a no-op if ContextVar is None (not set)\n\n## Verification\n\n- `cd backend && .venv/bin/python -m pytest tests/test_server_timing.py -v` — all tests pass\n- `rg 'ContextVar' backend/app/middleware/timing.py` — confirms ContextVar usage\n- `rg 'record_sparql_timing' backend/app/triplestore/client.py` — confirms client integration\n- `cd backend && .venv/bin/python -m pytest tests/test_shapes_cache.py tests/test_object_query_opt.py tests/test_object_parallel.py tests/test_tracing.py -v` — 32 S01+S02 regression tests pass",
+      "estimate": "45m",
+      "files": [
+        "backend/app/middleware/timing.py",
+        "backend/app/triplestore/client.py",
+        "backend/tests/test_server_timing.py"
+      ],
+      "verify": "cd backend && .venv/bin/python -m pytest tests/test_server_timing.py -v && .venv/bin/python -m pytest tests/test_shapes_cache.py tests/test_object_query_opt.py tests/test_object_parallel.py tests/test_tracing.py -v",
+      "inputs": [
+        "`backend/app/middleware/timing.py` — existing TimingMiddleware with Server-Timing: total;dur=X",
+        "`backend/app/triplestore/client.py` — existing OTel-instrumented SPARQL client with 4 span methods"
+      ],
+      "expected_output": [
+        "`backend/app/middleware/timing.py` — extended with ContextVar, record_sparql_timing(), per-query Server-Timing serialization",
+        "`backend/app/triplestore/client.py` — extended with time.monotonic() + record_sparql_timing() calls in each span method",
+        "`backend/tests/test_server_timing.py` — new unit tests for Server-Timing header content and ContextVar isolation"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M049",
+      "slice_id": "S03",
+      "id": "T02",
+      "title": "Create admin performance dashboard with Chart.js percentile charts",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "## Description\n\nAdd a `/admin/performance` HTML page with Chart.js bar charts showing endpoint percentile timing data, fed by the existing `get_timing_report()` function with p50/p99 additions.\n\n## Steps\n\n1. Read `backend/app/middleware/timing.py` `get_timing_report()` to see current fields. Extend it to also compute `p50_ms` and `p99_ms` alongside existing `p95_ms`. Same percentile index computation pattern.\n2. Add a new route in `backend/app/admin/router.py`:\n   ```python\n   @router.get(\"/performance\")\n   async def admin_performance(request: Request, user: User = Depends(require_role(\"owner\"))):\n   ```\n   This route calls `get_timing_report(top_n=10)` and passes results + metadata (total_requests, collection_period_seconds) as template context.\n3. Create `backend/app/templates/admin/performance.html` extending `base.html`:\n   - Stats cards row: total requests, collection period, unique endpoints tracked\n   - A bar chart (Chart.js via CDN `https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js`) showing grouped bars for p50/p95/p99 per endpoint (top 10)\n   - A table below with all stats (path, count, avg, p50, p95, p99, max)\n   - Use the `{% block content %}` pattern from other admin templates\n   - Use htmx block_name=\"content\" for sidebar navigation support\n4. Add a Performance card to `backend/app/templates/admin/index.html` in the `dashboard-cards` div, matching the existing card style. Link to `/admin/performance` with htmx attributes.\n5. Add a simple route test in `backend/tests/test_admin_performance.py`: mock the timing stats, hit GET /admin/performance, assert 200.\n\n## Must-Haves\n\n- [ ] get_timing_report() returns p50_ms and p99_ms in addition to existing fields\n- [ ] /admin/performance requires owner role\n- [ ] Chart.js loaded via CDN (no local file dependency)\n- [ ] Admin index has a Performance card\n- [ ] Template uses block_name=\"content\" for htmx partial rendering\n\n## Verification\n\n- `cd backend && .venv/bin/python -m pytest tests/test_admin_performance.py -v` — route test passes\n- `grep -q 'performance' backend/app/templates/admin/index.html` — card exists\n- `test -f backend/app/templates/admin/performance.html` — template exists\n- `rg 'p50_ms' backend/app/middleware/timing.py` — p50 computed\n- `rg 'p99_ms' backend/app/middleware/timing.py` — p99 computed",
+      "estimate": "45m",
+      "files": [
+        "backend/app/middleware/timing.py",
+        "backend/app/admin/router.py",
+        "backend/app/templates/admin/performance.html",
+        "backend/app/templates/admin/index.html",
+        "backend/tests/test_admin_performance.py"
+      ],
+      "verify": "cd backend && .venv/bin/python -m pytest tests/test_admin_performance.py -v && grep -q 'performance' backend/app/templates/admin/index.html && test -f backend/app/templates/admin/performance.html",
+      "inputs": [
+        "`backend/app/middleware/timing.py` — get_timing_report() with p95_ms (T01 may have already modified this file)",
+        "`backend/app/admin/router.py` — existing admin routes with templates_response helper",
+        "`backend/app/templates/admin/index.html` — existing admin portal with dashboard-cards div"
+      ],
+      "expected_output": [
+        "`backend/app/middleware/timing.py` — get_timing_report() extended with p50_ms and p99_ms",
+        "`backend/app/admin/router.py` — new GET /admin/performance route",
+        "`backend/app/templates/admin/performance.html` — new Chart.js dashboard template",
+        "`backend/app/templates/admin/index.html` — Performance card added to dashboard-cards",
+        "`backend/tests/test_admin_performance.py` — route access test"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M049",
+      "slice_id": "S03",
+      "id": "T03",
+      "title": "Lazy-load inbox and collaboration panels on reveal (R001)",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "## Description\n\nChange the inbox and collaboration right-pane panels from `hx-trigger=\"load\"` to `hx-trigger=\"revealed\"` so they only fire HTTP requests when scrolled into view / expanded, not on every page load. This delivers requirement R001.\n\n## Steps\n\n1. Read `backend/app/templates/browser/partials/inbox_panel.html`. Change `hx-trigger=\"load, every 60s\"` to `hx-trigger=\"revealed, every 60s\"`. The `revealed` trigger fires when the element enters the viewport via IntersectionObserver. The `every 60s` continues independently after first reveal to keep the inbox fresh.\n2. Read `backend/app/templates/browser/partials/collaboration_panel.html`. Change `hx-trigger=\"load\"` to `hx-trigger=\"revealed\"`.\n3. Verify the changes are correct by grepping for the old and new patterns.\n\n## Must-Haves\n\n- [ ] Inbox panel: `hx-trigger=\"revealed, every 60s\"` (not `load`)\n- [ ] Collaboration panel: `hx-trigger=\"revealed\"` (not `load`)\n- [ ] No other htmx attributes changed\n\n## Verification\n\n- `grep 'hx-trigger' backend/app/templates/browser/partials/inbox_panel.html` — shows `revealed, every 60s`\n- `grep 'hx-trigger' backend/app/templates/browser/partials/collaboration_panel.html` — shows `revealed`\n- `! grep 'hx-trigger=\"load' backend/app/templates/browser/partials/inbox_panel.html` — no load trigger\n- `! grep 'hx-trigger=\"load' backend/app/templates/browser/partials/collaboration_panel.html` — no load trigger",
+      "estimate": "10m",
+      "files": [
+        "backend/app/templates/browser/partials/inbox_panel.html",
+        "backend/app/templates/browser/partials/collaboration_panel.html"
+      ],
+      "verify": "grep 'revealed' backend/app/templates/browser/partials/inbox_panel.html && grep 'revealed' backend/app/templates/browser/partials/collaboration_panel.html && ! grep 'hx-trigger=\"load' backend/app/templates/browser/partials/inbox_panel.html && ! grep 'hx-trigger=\"load' backend/app/templates/browser/partials/collaboration_panel.html",
+      "inputs": [
+        "`backend/app/templates/browser/partials/inbox_panel.html` — current hx-trigger=\"load, every 60s\"",
+        "`backend/app/templates/browser/partials/collaboration_panel.html` — current hx-trigger=\"load\""
+      ],
+      "expected_output": [
+        "`backend/app/templates/browser/partials/inbox_panel.html` — changed to hx-trigger=\"revealed, every 60s\"",
+        "`backend/app/templates/browser/partials/collaboration_panel.html` — changed to hx-trigger=\"revealed\""
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
     }
   ],
   "decisions": [
@@ -36985,6 +37108,18 @@
       "revisable": "Yes",
       "made_by": "agent",
       "superseded_by": null
+    },
+    {
+      "seq": 417,
+      "id": "D387",
+      "when_context": "M049/S02",
+      "scope": "architecture/observability",
+      "decision": "OTel tracing initialization ordering in FastAPI lifespan",
+      "choice": "setup_tracing() called BEFORE TriplestoreClient creation, shutdown_tracing() called BEFORE client.close(). HTTPXClientInstrumentor must be activated before any httpx.AsyncClient is instantiated. Shutdown flushes buffered spans while HTTP connections are still alive.",
+      "rationale": "HTTPXClientInstrumentor monkey-patches httpx.AsyncClient — if called after client creation, SPARQL HTTP spans are not captured. shutdown_tracing() before client.close() ensures BatchSpanProcessor can flush pending spans via the still-open HTTP connection to Jaeger.",
+      "revisable": "Yes",
+      "made_by": "agent",
+      "superseded_by": null
     }
   ],
   "verification_evidence": [
@@ -39748,6 +39883,50 @@
       "verdict": "✅ pass",
       "duration_ms": 10,
       "created_at": "2026-04-05T20:39:03.627Z"
+    },
+    {
+      "id": 252,
+      "task_id": "T01",
+      "slice_id": "S03",
+      "milestone_id": "M049",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_server_timing.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 3400,
+      "created_at": "2026-04-05T20:53:53.687Z"
+    },
+    {
+      "id": 253,
+      "task_id": "T01",
+      "slice_id": "S03",
+      "milestone_id": "M049",
+      "command": "rg 'ContextVar' backend/app/middleware/timing.py",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-05T20:53:53.687Z"
+    },
+    {
+      "id": 254,
+      "task_id": "T01",
+      "slice_id": "S03",
+      "milestone_id": "M049",
+      "command": "rg 'record_sparql_timing' backend/app/triplestore/client.py",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-05T20:53:53.687Z"
+    },
+    {
+      "id": 255,
+      "task_id": "T01",
+      "slice_id": "S03",
+      "milestone_id": "M049",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_shapes_cache.py tests/test_object_query_opt.py tests/test_object_parallel.py tests/test_tracing.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 9100,
+      "created_at": "2026-04-05T20:53:53.687Z"
     }
   ]
 }
