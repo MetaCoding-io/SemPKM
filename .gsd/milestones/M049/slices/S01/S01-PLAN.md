@@ -44,7 +44,7 @@ Add a TTL-cached shapes graph to ShapesService so repeated calls return cached r
   - Estimate: 45m
   - Files: backend/app/services/shapes.py, backend/tests/test_shapes_cache.py
   - Verify: cd backend && python -m pytest tests/test_shapes_cache.py -v && python -m pytest tests/ -x --timeout=60
-- [ ] **T02: Combine multi-graph property queries and consolidate label batches in get_object** — ## Description
+- [x] **T02: Replaced 3 sequential SPARQL property queries with 1 UNION query and consolidated 5 label batch calls into 1 in get_object handler** — ## Description
 
 The `get_object` handler in `backend/app/browser/objects.py` makes 3 separate SPARQL queries to fetch properties from current, inferred, and mirrored graphs — each is a sequential HTTP round-trip to RDF4J. It also makes up to 5 separate `label_service.resolve_batch()` calls sequentially.
 

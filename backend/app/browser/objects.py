@@ -160,32 +160,51 @@ async def get_object(
     if not _validate_iri(decoded_iri):
         raise HTTPException(status_code=400, detail="Invalid IRI")
 
-    # Query user-created properties from current graph
-    props_sparql = f"""
-    SELECT ?p ?o WHERE {{
-      GRAPH <{CURRENT_GRAPH}> {{
-        <{decoded_iri}> ?p ?o .
-      }}
+    # Query properties from all three graphs in a single UNION query
+    # (replaces 3 sequential SPARQL round-trips with 1)
+    props_union_sparql = f"""
+    SELECT ?p ?o ?source WHERE {{
+      {{ GRAPH <{CURRENT_GRAPH}> {{ <{decoded_iri}> ?p ?o }} BIND("user" AS ?source) }}
+      UNION
+      {{ GRAPH <urn:sempkm:inferred> {{ <{decoded_iri}> ?p ?o }} BIND("inferred" AS ?source) }}
+      UNION
+      {{ GRAPH <urn:sempkm:mirrored> {{ <{decoded_iri}> ?p ?o }} BIND("mirrored" AS ?source) }}
     }}
     """
 
     try:
-        result = await client.query(props_sparql)
-        bindings = result.get("results", {}).get("bindings", [])
+        result = await client.query(props_union_sparql)
+        all_bindings = result.get("results", {}).get("bindings", [])
     except Exception:
         logger.warning("Failed to query object %s", decoded_iri, exc_info=True)
-        bindings = []
+        all_bindings = []
 
     values: dict[str, list[str]] = {}
     type_iris: list[str] = []
     body_text = ""
     rdf_type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
     sempkm_body = "urn:sempkm:body"
+    inferred_values: dict[str, list[str]] = {}
+    mirrored_values: dict[str, list[str]] = {}
 
-    for b in bindings:
+    # Partition bindings by source graph first — UNION order is not guaranteed,
+    # so user bindings must be fully collected before deduplication runs.
+    _user_bindings: list[dict] = []
+    _inferred_bindings: list[dict] = []
+    _mirrored_bindings: list[dict] = []
+    for b in all_bindings:
+        source = b.get("source", {}).get("value", "user")
+        if source == "user":
+            _user_bindings.append(b)
+        elif source == "inferred":
+            _inferred_bindings.append(b)
+        else:
+            _mirrored_bindings.append(b)
+
+    # Pass 1: user bindings (populates values, type_iris, body_text)
+    for b in _user_bindings:
         pred = b["p"]["value"]
         obj_val = b["o"]["value"]
-
         if pred == rdf_type:
             type_iris.append(obj_val)
         elif pred == sempkm_body:
@@ -195,68 +214,31 @@ async def get_object(
                 values[pred] = []
             values[pred].append(obj_val)
 
-    # Query inferred properties from the inferred graph (for right column)
-    inferred_props_sparql = f"""
-    SELECT ?p ?o WHERE {{
-      GRAPH <urn:sempkm:inferred> {{
-        <{decoded_iri}> ?p ?o .
-      }}
-    }}
-    """
+    # Pass 2: inferred bindings (dedup against user values)
+    for b in _inferred_bindings:
+        pred = b["p"]["value"]
+        obj_val = b["o"]["value"]
+        if pred == rdf_type or pred == sempkm_body:
+            continue
+        if pred in values and obj_val in values[pred]:
+            continue
+        if pred not in inferred_values:
+            inferred_values[pred] = []
+        inferred_values[pred].append(obj_val)
 
-    inferred_values: dict[str, list[str]] = {}
-    try:
-        inf_result = await client.query(inferred_props_sparql)
-        inf_bindings = inf_result.get("results", {}).get("bindings", [])
-        for b in inf_bindings:
-            pred = b["p"]["value"]
-            obj_val = b["o"]["value"]
-            # Skip rdf:type and body -- only show object/data properties
-            if pred == rdf_type or pred == sempkm_body:
-                continue
-            # Deduplicate: skip if same triple exists in user-created data
-            if pred in values and obj_val in values[pred]:
-                continue
-            if pred not in inferred_values:
-                inferred_values[pred] = []
-            inferred_values[pred].append(obj_val)
-    except Exception:
-        logger.warning(
-            "Failed to query inferred properties for %s",
-            decoded_iri, exc_info=True,
-        )
-
-    # Query mirrored properties from the mirrored graph
-    mirrored_props_sparql = f"""
-    SELECT ?p ?o WHERE {{
-      GRAPH <urn:sempkm:mirrored> {{
-        <{decoded_iri}> ?p ?o .
-      }}
-    }}
-    """
-
-    mirrored_values: dict[str, list[str]] = {}
-    try:
-        mir_result = await client.query(mirrored_props_sparql)
-        mir_bindings = mir_result.get("results", {}).get("bindings", [])
-        for b in mir_bindings:
-            pred = b["p"]["value"]
-            obj_val = b["o"]["value"]
-            if pred == rdf_type or pred == sempkm_body:
-                continue
-            # Deduplicate: skip if same triple exists in user-created or inferred data
-            if pred in values and obj_val in values[pred]:
-                continue
-            if pred in inferred_values and obj_val in inferred_values[pred]:
-                continue
-            if pred not in mirrored_values:
-                mirrored_values[pred] = []
-            mirrored_values[pred].append(obj_val)
-    except Exception:
-        logger.warning(
-            "Failed to query mirrored properties for %s",
-            decoded_iri, exc_info=True,
-        )
+    # Pass 3: mirrored bindings (dedup against user + inferred values)
+    for b in _mirrored_bindings:
+        pred = b["p"]["value"]
+        obj_val = b["o"]["value"]
+        if pred == rdf_type or pred == sempkm_body:
+            continue
+        if pred in values and obj_val in values[pred]:
+            continue
+        if pred in inferred_values and obj_val in inferred_values[pred]:
+            continue
+        if pred not in mirrored_values:
+            mirrored_values[pred] = []
+        mirrored_values[pred].append(obj_val)
 
     form = None
     if type_iris:
@@ -296,8 +278,42 @@ async def get_object(
                         ref_iris.add(v)
                         ref_type_map[v] = prop.target_class
 
-    ref_labels = await label_service.resolve_batch(list(ref_iris)) if ref_iris else {}
-    type_labels = await label_service.resolve_batch(list(type_class_iris)) if type_class_iris else {}
+    # Collect ALL IRIs that need labels into a single set, then resolve
+    # in one batch call (replaces 5 sequential resolve_batch calls)
+    all_label_iris: set[str] = set()
+
+    # 1. Reference IRIs and type class IRIs
+    all_label_iris.update(ref_iris)
+    all_label_iris.update(type_class_iris)
+
+    # 2. Object IRI and its type IRIs
+    all_label_iris.add(decoded_iri)
+    all_label_iris.update(type_iris)
+
+    # 3. Inferred property IRIs (predicates and IRI objects)
+    for pred, vals in inferred_values.items():
+        all_label_iris.add(pred)
+        for v in vals:
+            if v.startswith("http") or v.startswith("urn:"):
+                all_label_iris.add(v)
+
+    # 4. Mirrored property IRIs (predicates and IRI objects)
+    for pred, vals in mirrored_values.items():
+        all_label_iris.add(pred)
+        for v in vals:
+            if v.startswith("http") or v.startswith("urn:"):
+                all_label_iris.add(v)
+
+    # Single batch resolution for all IRIs
+    all_labels = (
+        await label_service.resolve_batch(list(all_label_iris))
+        if all_label_iris
+        else {}
+    )
+
+    # Extract sub-results from the single response
+    ref_labels: dict[str, str] = {iri: all_labels.get(iri, iri) for iri in ref_iris}
+    type_labels: dict[str, str] = {iri: all_labels.get(iri, iri) for iri in type_class_iris}
 
     # Build tooltip: "TypeLabel: ObjectLabel"
     ref_tooltips: dict[str, str] = {}
@@ -312,41 +328,30 @@ async def get_object(
         else:
             ref_tooltips[iri] = obj_label
 
-    # Resolve object label and type label
-    iris_to_resolve = [decoded_iri] + type_iris
-    labels = await label_service.resolve_batch(iris_to_resolve)
-    object_label = labels.get(decoded_iri, decoded_iri)
-    object_type_label = labels.get(type_iris[0], "") if type_iris else ""
+    # Extract object label and type label from consolidated results
+    object_label = all_labels.get(decoded_iri, decoded_iri)
+    object_type_label = all_labels.get(type_iris[0], "") if type_iris else ""
 
     # Resolve type icon for the tab bar
     object_type_iri = type_iris[0] if type_iris else ""
     type_icon = icon_svc.get_type_icon(object_type_iri, context="tab") if object_type_iri else None
 
-    # Resolve labels for inferred property IRIs (predicates and IRI objects)
-    inferred_iris_to_resolve: set[str] = set()
+    # Extract inferred and mirrored label subsets from consolidated results
+    inferred_labels: dict[str, str] = {}
     for pred, vals in inferred_values.items():
-        inferred_iris_to_resolve.add(pred)
+        if pred in all_labels:
+            inferred_labels[pred] = all_labels[pred]
         for v in vals:
-            if v.startswith("http") or v.startswith("urn:"):
-                inferred_iris_to_resolve.add(v)
-    inferred_labels = (
-        await label_service.resolve_batch(list(inferred_iris_to_resolve))
-        if inferred_iris_to_resolve
-        else {}
-    )
+            if (v.startswith("http") or v.startswith("urn:")) and v in all_labels:
+                inferred_labels[v] = all_labels[v]
 
-    # Resolve labels for mirrored property IRIs (predicates and IRI objects)
-    mirrored_iris_to_resolve: set[str] = set()
+    mirrored_labels: dict[str, str] = {}
     for pred, vals in mirrored_values.items():
-        mirrored_iris_to_resolve.add(pred)
+        if pred in all_labels:
+            mirrored_labels[pred] = all_labels[pred]
         for v in vals:
-            if v.startswith("http") or v.startswith("urn:"):
-                mirrored_iris_to_resolve.add(v)
-    mirrored_labels = (
-        await label_service.resolve_batch(list(mirrored_iris_to_resolve))
-        if mirrored_iris_to_resolve
-        else {}
-    )
+            if (v.startswith("http") or v.startswith("urn:")) and v in all_labels:
+                mirrored_labels[v] = all_labels[v]
 
     # Build read_values: user values + inferred values + mirrored values merged, each tagged with source.
     # Keeps original `values` dict untouched for the edit form.
