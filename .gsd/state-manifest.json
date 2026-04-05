@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-05T00:06:40.699Z",
+  "exported_at": "2026-04-05T00:10:44.402Z",
   "milestones": [
     {
       "id": "M001",
@@ -31173,19 +31173,25 @@
       "milestone_id": "M047",
       "slice_id": "S03",
       "id": "T03",
-      "title": "Migrate seed.py workflows + add tests for resolution and content validation",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Trimmed SEED_WORKFLOWS to 1 generic entry, added unresolved dashboard_name integration test and seed/content validation tests — 35 tests pass",
+      "status": "complete",
+      "one_liner": "Trimmed SEED_WORKFLOWS to 1 generic entry, added unresolved dashboard_name integration test and seed/content validation tests — 35 tests pass",
+      "narrative": "Removed 4 PPV-specific workflows (Weekly/Monthly/Quarterly/Yearly Review) and the _PPV namespace constant from seed.py, leaving only the generic \"Create & Review\" workflow. PPV review workflows are now model-sourced via models/ppv/workflows/ppv.json and installed through the TBox lifecycle. Added TestSeedWorkflows class with count and no-PPV-reference tests, updated test_real_ppv_dashboards to assert >= 5 dashboards with name-level checks, and added an unresolved dashboard_name integration test that creates a minimal v2 model archive to exercise the real install path in degraded mode.",
+      "verification_result": "35 tests pass across test_tbox_loader.py and test_tbox_lifecycle.py. Seed workflow count assertion confirms exactly 1 entry. No _PPV constant remains in seed.py.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-05T00:10:44.366Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "The unresolved dashboard name integration test required creating full minimal v2 model archives (ontology/shapes/views JSON-LD files) because ModelService.install() validates the full archive before processing TBox entrypoints.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/dashboard/seed.py",
+        "backend/tests/test_tbox_loader.py",
+        "backend/tests/test_tbox_lifecycle.py"
+      ],
+      "key_decisions": [
+        "Unresolved dashboard name integration test creates a full minimal v2 model archive to exercise the real install pipeline rather than mocking around it"
+      ],
+      "full_summary_md": "---\nid: T03\nparent: S03\nmilestone: M047\nkey_files:\n  - backend/app/dashboard/seed.py\n  - backend/tests/test_tbox_loader.py\n  - backend/tests/test_tbox_lifecycle.py\nkey_decisions:\n  - Unresolved dashboard name integration test creates a full minimal v2 model archive to exercise the real install pipeline rather than mocking around it\nduration: \nverification_result: passed\ncompleted_at: 2026-04-05T00:10:44.366Z\nblocker_discovered: false\n---\n\n# T03: Trimmed SEED_WORKFLOWS to 1 generic entry, added unresolved dashboard_name integration test and seed/content validation tests — 35 tests pass\n\n**Trimmed SEED_WORKFLOWS to 1 generic entry, added unresolved dashboard_name integration test and seed/content validation tests — 35 tests pass**\n\n## What Happened\n\nRemoved 4 PPV-specific workflows (Weekly/Monthly/Quarterly/Yearly Review) and the _PPV namespace constant from seed.py, leaving only the generic \"Create & Review\" workflow. PPV review workflows are now model-sourced via models/ppv/workflows/ppv.json and installed through the TBox lifecycle. Added TestSeedWorkflows class with count and no-PPV-reference tests, updated test_real_ppv_dashboards to assert >= 5 dashboards with name-level checks, and added an unresolved dashboard_name integration test that creates a minimal v2 model archive to exercise the real install path in degraded mode.\n\n## Verification\n\n35 tests pass across test_tbox_loader.py and test_tbox_lifecycle.py. Seed workflow count assertion confirms exactly 1 entry. No _PPV constant remains in seed.py.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python -m pytest tests/test_tbox_loader.py tests/test_tbox_lifecycle.py -v` | 0 | ✅ pass | 950ms |\n| 2 | `cd backend && .venv/bin/python -c \"from app.dashboard.seed import SEED_WORKFLOWS; assert len(SEED_WORKFLOWS)==1; print('OK')\"` | 0 | ✅ pass | 500ms |\n\n## Deviations\n\nThe unresolved dashboard name integration test required creating full minimal v2 model archives (ontology/shapes/views JSON-LD files) because ModelService.install() validates the full archive before processing TBox entrypoints.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/dashboard/seed.py`\n- `backend/tests/test_tbox_loader.py`\n- `backend/tests/test_tbox_lifecycle.py`\n",
       "description": "Three pieces: (1) Remove the 4 PPV-specific workflows from `SEED_WORKFLOWS` in seed.py, keeping only \"Create & Review\". (2) Add test coverage for dashboard_name→UUID resolution in ModelService. (3) Update existing tbox_loader tests and add real PPV workflows content validation.\n\n**seed.py changes:** Remove \"Weekly Review\", \"Monthly Review\", \"Quarterly Review\", \"Yearly Review\" entries from `SEED_WORKFLOWS` list. Keep \"Create & Review\" (generic, no PPV references). Remove the `_PPV` namespace constant since it's no longer used.\n\n**Tests to add/update in `test_tbox_lifecycle.py`:**\n- `test_install_v2_resolves_dashboard_names` — create a v2 manifest with workflow steps containing `dashboard_name` references → verify after install, workflow steps have `dashboard_id` (not `dashboard_name`)\n- `test_install_v2_unresolved_dashboard_name_logs_warning` — workflow references a dashboard name that doesn't exist in the model → verify install succeeds (degraded mode) and step retains `dashboard_name`\n\n**Tests to add/update in `test_tbox_loader.py`:**\n- `test_real_ppv_workflows` — load real PPV workflows file, verify 5 workflows with expected names and step counts\n- Update `test_real_ppv_dashboards` assertion: `len(result) >= 5` (previously >= 1)\n\n**Tests to add in `test_data_widgets.py` or standalone:**\n- `test_seed_workflows_count` — verify SEED_WORKFLOWS has exactly 1 entry (\"Create & Review\")\n\n**Verification of seed.py:**\n`python3 -c \"from app.dashboard.seed import SEED_WORKFLOWS; assert len(SEED_WORKFLOWS)==1, f'Expected 1, got {len(SEED_WORKFLOWS)}'; print('OK: 1 seed workflow')\"` (run from backend/)",
       "estimate": "45m",
       "files": [
@@ -37954,6 +37960,28 @@
       "verdict": "✅ pass",
       "duration_ms": 50,
       "created_at": "2026-04-05T00:06:40.662Z"
+    },
+    {
+      "id": 197,
+      "task_id": "T03",
+      "slice_id": "S03",
+      "milestone_id": "M047",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_tbox_loader.py tests/test_tbox_lifecycle.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 950,
+      "created_at": "2026-04-05T00:10:44.366Z"
+    },
+    {
+      "id": 198,
+      "task_id": "T03",
+      "slice_id": "S03",
+      "milestone_id": "M047",
+      "command": "cd backend && .venv/bin/python -c \"from app.dashboard.seed import SEED_WORKFLOWS; assert len(SEED_WORKFLOWS)==1; print('OK')\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 500,
+      "created_at": "2026-04-05T00:10:44.366Z"
     }
   ]
 }

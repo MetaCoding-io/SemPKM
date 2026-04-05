@@ -408,3 +408,70 @@ class TestModelServiceTboxLifecycle:
         remaining = await dash_service.list_for_user(user_id)
         assert len(remaining) == 1
         assert remaining[0].name == "User Dash"
+
+    @pytest.mark.asyncio
+    async def test_install_v2_unresolved_dashboard_name_logs_warning(self, dash_service, wf_service, user_id):
+        """Workflow referencing a non-existent dashboard name installs in degraded mode."""
+        from app.services.models import ModelService
+        import json
+        import tempfile
+        from pathlib import Path
+
+        # Create a minimal v2 model with a workflow referencing a missing dashboard
+        with tempfile.TemporaryDirectory() as tmpdir:
+            model_dir = Path(tmpdir)
+            # Manifest
+            (model_dir / "manifest.yaml").write_text(
+                "manifest_version: '2.0'\n"
+                "modelId: test-unresolved\n"
+                "version: 1.0.0\n"
+                "name: Test Unresolved\n"
+                "namespace: 'urn:sempkm:model:test-unresolved:'\n"
+                "entrypoints:\n"
+                "  workflows: workflows/test.json\n"
+            )
+            # Minimal JSON-LD files required by loader (ontology, shapes, views)
+            minimal_jsonld = json.dumps({
+                "@context": {"rdfs": "http://www.w3.org/2000/01/rdf-schema#"},
+                "@graph": [],
+            })
+            for subdir in ("ontology", "shapes", "views"):
+                d = model_dir / subdir
+                d.mkdir()
+                (d / "test-unresolved.jsonld").write_text(minimal_jsonld)
+            wf_dir = model_dir / "workflows"
+            wf_dir.mkdir()
+            (wf_dir / "test.json").write_text(json.dumps({
+                "workflows": [
+                    {
+                        "name": "Test Workflow",
+                        "steps": [
+                            {
+                                "type": "dashboard",
+                                "label": "Missing Dashboard",
+                                "config": {"dashboard_name": "Nonexistent Dashboard"},
+                            },
+                        ],
+                    },
+                ],
+            }))
+
+            client = _mock_triplestore()
+            service = ModelService(
+                triplestore_client=client,
+                event_store=_mock_event_store(),
+                prefix_registry=_mock_prefix_registry(),
+                dashboard_service=dash_service,
+                workflow_service=wf_service,
+            )
+
+            result = await service.install(model_dir, user_id=user_id)
+            assert result.success, f"Install failed: {result.errors}"
+            assert result.workflows_created == 1
+
+            # Verify the unresolved step retains dashboard_name
+            model_wfs = await wf_service.list_by_model("test-unresolved")
+            assert len(model_wfs) == 1
+            step = model_wfs[0].steps[0]
+            assert step["config"]["dashboard_name"] == "Nonexistent Dashboard"
+            assert "dashboard_id" not in step["config"]

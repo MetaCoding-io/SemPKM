@@ -50,7 +50,7 @@ Same resolution must be added to `refresh_artifacts()` which does delete+recreat
   - Estimate: 1h
   - Files: models/ppv/workflows/ppv.json, models/ppv/manifest.yaml, backend/app/services/models.py
   - Verify: python3 -c "import json; w=json.load(open('models/ppv/workflows/ppv.json')); assert len(w['workflows'])==5, f'Expected 5, got {len(w["workflows"])}'; print('OK: 5 workflows')" && python3 -c "import yaml; m=yaml.safe_load(open('models/ppv/manifest.yaml')); assert m['entrypoints'].get('workflows')=='workflows/ppv.json', 'Missing workflows entrypoint'; print('OK: manifest has workflows entrypoint')" && cd backend && .venv/bin/python -m pytest tests/test_tbox_lifecycle.py -v
-- [ ] **T03: Migrate seed.py workflows + add tests for resolution and content validation** — Three pieces: (1) Remove the 4 PPV-specific workflows from `SEED_WORKFLOWS` in seed.py, keeping only "Create & Review". (2) Add test coverage for dashboard_name→UUID resolution in ModelService. (3) Update existing tbox_loader tests and add real PPV workflows content validation.
+- [x] **T03: Trimmed SEED_WORKFLOWS to 1 generic entry, added unresolved dashboard_name integration test and seed/content validation tests — 35 tests pass** — Three pieces: (1) Remove the 4 PPV-specific workflows from `SEED_WORKFLOWS` in seed.py, keeping only "Create & Review". (2) Add test coverage for dashboard_name→UUID resolution in ModelService. (3) Update existing tbox_loader tests and add real PPV workflows content validation.
 
 **seed.py changes:** Remove "Weekly Review", "Monthly Review", "Quarterly Review", "Yearly Review" entries from `SEED_WORKFLOWS` list. Keep "Create & Review" (generic, no PPV references). Remove the `_PPV` namespace constant since it's no longer used.
 

@@ -16,11 +16,10 @@ from app.workflow.service import WorkflowService
 
 logger = logging.getLogger(__name__)
 
-# PPV namespace — matches models/ppv/ontology/ppv.jsonld
-_PPV = "urn:sempkm:model:ppv:"
-
 # All seed workflows defined declaratively.  Each entry is passed
 # directly to WorkflowService.create() (minus ``user_id``).
+# PPV-specific review workflows are now model-sourced (models/ppv/workflows/)
+# and installed via TBox lifecycle — only the generic sample remains here.
 SEED_WORKFLOWS: list[dict] = [
     {
         "name": "Create & Review",
@@ -38,100 +37,6 @@ SEED_WORKFLOWS: list[dict] = [
                     "spec_iri": "",
                     "renderer_type": "table",
                 },
-            },
-        ],
-    },
-    {
-        "name": "Weekly Review",
-        "description": "Walk through your week: review past entries, log completed work, create a weekly review, and confirm.",
-        "steps": [
-            {
-                "type": "view",
-                "label": "Past Reviews",
-                "config": {"spec_iri": f"{_PPV}view-weekly-table", "renderer_type": "table"},
-            },
-            {
-                "type": "view",
-                "label": "Completed Work",
-                "config": {"spec_iri": f"{_PPV}view-action-table", "renderer_type": "table"},
-            },
-            {
-                "type": "form",
-                "label": "Create Review",
-                "config": {"target_class": f"{_PPV}WeeklyReview"},
-            },
-            {
-                "type": "view",
-                "label": "Confirm",
-                "config": {"spec_iri": f"{_PPV}view-review-graph", "renderer_type": "graph"},
-            },
-        ],
-    },
-    {
-        "name": "Monthly Review",
-        "description": "Reflect on the month: review past monthly entries, scan weekly reviews, create a monthly review, and check goal progress.",
-        "steps": [
-            {
-                "type": "view",
-                "label": "Past Reviews",
-                "config": {"spec_iri": f"{_PPV}view-monthly-table", "renderer_type": "table"},
-            },
-            {
-                "type": "view",
-                "label": "This Month's Weeks",
-                "config": {"spec_iri": f"{_PPV}view-weekly-table", "renderer_type": "table"},
-            },
-            {
-                "type": "form",
-                "label": "Create Review",
-                "config": {"target_class": f"{_PPV}MonthlyReview"},
-            },
-            {
-                "type": "view",
-                "label": "Goal Progress",
-                "config": {"spec_iri": f"{_PPV}view-goaloutcome-table", "renderer_type": "table"},
-            },
-        ],
-    },
-    {
-        "name": "Quarterly Review",
-        "description": "Quarterly check-in: review past quarterly entries, create a review, and assess goals.",
-        "steps": [
-            {
-                "type": "view",
-                "label": "Past Reviews",
-                "config": {"spec_iri": f"{_PPV}view-quarterly-table", "renderer_type": "table"},
-            },
-            {
-                "type": "form",
-                "label": "Create Review",
-                "config": {"target_class": f"{_PPV}QuarterlyReview"},
-            },
-            {
-                "type": "view",
-                "label": "Goals Overview",
-                "config": {"spec_iri": f"{_PPV}view-valuegoal-table", "renderer_type": "table"},
-            },
-        ],
-    },
-    {
-        "name": "Yearly Review",
-        "description": "Annual reflection: review past yearly entries, create a review, and see the full value-goal hierarchy.",
-        "steps": [
-            {
-                "type": "view",
-                "label": "Past Reviews",
-                "config": {"spec_iri": f"{_PPV}view-yearly-table", "renderer_type": "table"},
-            },
-            {
-                "type": "form",
-                "label": "Create Review",
-                "config": {"target_class": f"{_PPV}YearlyReview"},
-            },
-            {
-                "type": "view",
-                "label": "Full Hierarchy",
-                "config": {"spec_iri": f"{_PPV}view-hierarchy-graph", "renderer_type": "graph"},
             },
         ],
     },

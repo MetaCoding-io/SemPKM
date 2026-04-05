@@ -99,7 +99,7 @@ class TestLoadTboxDashboards:
             load_tbox_dashboards(tmp_path, manifest)
 
     def test_real_ppv_dashboards(self):
-        """Load the real PPV dashboards file."""
+        """Load the real PPV dashboards file — 5 dashboards with names and blocks."""
         ppv_dir = MODELS_DIR / "ppv"
         if not ppv_dir.exists():
             pytest.skip("ppv model not found")
@@ -107,8 +107,16 @@ class TestLoadTboxDashboards:
         manifest = parse_manifest(ppv_dir)
         result = load_tbox_dashboards(ppv_dir, manifest)
         assert result is not None
-        assert len(result) >= 1
-        assert result[0]["name"]  # has a name
+        assert len(result) >= 5
+        names = [d["name"] for d in result]
+        assert "Action Items" in names
+        assert "Life Dashboard" in names
+        assert "Projects Board" in names
+        assert "Goals Overview" in names
+        assert "Review Hub" in names
+        for dash in result:
+            assert "blocks" in dash
+            assert len(dash["blocks"]) >= 1
 
 
 class TestLoadTboxWorkflows:
@@ -246,3 +254,24 @@ class TestResolveDashboardNames:
         assert "dashboard_id" not in original_step["config"]
         # Resolved has the new value
         assert resolved[0]["config"]["dashboard_id"] == "uuid-999"
+
+
+class TestSeedWorkflows:
+    """Verify seed.py SEED_WORKFLOWS after PPV migration to model-sourced workflows."""
+
+    def test_seed_workflows_count(self):
+        """SEED_WORKFLOWS has exactly 1 entry (Create & Review only)."""
+        from app.dashboard.seed import SEED_WORKFLOWS
+        assert len(SEED_WORKFLOWS) == 1
+        assert SEED_WORKFLOWS[0]["name"] == "Create & Review"
+
+    def test_seed_workflows_no_ppv_references(self):
+        """SEED_WORKFLOWS has no PPV-specific references."""
+        from app.dashboard.seed import SEED_WORKFLOWS
+        ppv_ns = "urn:sempkm:model:ppv:"
+        for wf in SEED_WORKFLOWS:
+            for step in wf["steps"]:
+                config = step.get("config", {})
+                for value in config.values():
+                    if isinstance(value, str):
+                        assert ppv_ns not in value, f"PPV reference found in seed: {value}"
