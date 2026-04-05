@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-05T20:53:53.723Z",
+  "exported_at": "2026-04-05T20:58:54.366Z",
   "milestones": [
     {
       "id": "M001",
@@ -32400,19 +32400,27 @@
       "milestone_id": "M049",
       "slice_id": "S03",
       "id": "T02",
-      "title": "Create admin performance dashboard with Chart.js percentile charts",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Added /admin/performance dashboard with Chart.js grouped bar chart showing p50/p95/p99 latency percentiles for top-10 endpoints, plus detail table and stats cards",
+      "status": "complete",
+      "one_liner": "Added /admin/performance dashboard with Chart.js grouped bar chart showing p50/p95/p99 latency percentiles for top-10 endpoints, plus detail table and stats cards",
+      "narrative": "Extended get_timing_report() with p50_ms and p99_ms fields. Added GET /admin/performance route (owner-only, htmx block_name=\"content\" support). Created performance.html template with stats cards, Chart.js CDN bar chart, and detail table. Added Performance card to admin index. Wrote 11 tests covering route access, auth, template rendering (including custom Jinja2 filter registration), empty state, htmx partial, and percentile computation accuracy.",
+      "verification_result": "11/11 test_admin_performance passed. 7/7 test_server_timing passed. 32/32 S01+S02 regression tests passed. 20/20 test_timing_middleware passed. Template exists, Performance card present in index, p50_ms and p99_ms confirmed in timing.py.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-05T20:58:54.330Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "Test setup required registering custom Jinja2 filters (asset_url, dict_without, urlencode, compact_iri) from template_helpers.py because base.html uses them.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/middleware/timing.py",
+        "backend/app/admin/router.py",
+        "backend/app/templates/admin/performance.html",
+        "backend/app/templates/admin/index.html",
+        "backend/tests/test_admin_performance.py"
+      ],
+      "key_decisions": [
+        "Used full-page render with real template engine in tests rather than mocking — catches template rendering issues like missing filters"
+      ],
+      "full_summary_md": "---\nid: T02\nparent: S03\nmilestone: M049\nkey_files:\n  - backend/app/middleware/timing.py\n  - backend/app/admin/router.py\n  - backend/app/templates/admin/performance.html\n  - backend/app/templates/admin/index.html\n  - backend/tests/test_admin_performance.py\nkey_decisions:\n  - Used full-page render with real template engine in tests rather than mocking — catches template rendering issues like missing filters\nduration: \nverification_result: passed\ncompleted_at: 2026-04-05T20:58:54.330Z\nblocker_discovered: false\n---\n\n# T02: Added /admin/performance dashboard with Chart.js grouped bar chart showing p50/p95/p99 latency percentiles for top-10 endpoints, plus detail table and stats cards\n\n**Added /admin/performance dashboard with Chart.js grouped bar chart showing p50/p95/p99 latency percentiles for top-10 endpoints, plus detail table and stats cards**\n\n## What Happened\n\nExtended get_timing_report() with p50_ms and p99_ms fields. Added GET /admin/performance route (owner-only, htmx block_name=\"content\" support). Created performance.html template with stats cards, Chart.js CDN bar chart, and detail table. Added Performance card to admin index. Wrote 11 tests covering route access, auth, template rendering (including custom Jinja2 filter registration), empty state, htmx partial, and percentile computation accuracy.\n\n## Verification\n\n11/11 test_admin_performance passed. 7/7 test_server_timing passed. 32/32 S01+S02 regression tests passed. 20/20 test_timing_middleware passed. Template exists, Performance card present in index, p50_ms and p99_ms confirmed in timing.py.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python -m pytest tests/test_admin_performance.py -v` | 0 | ✅ pass | 790ms |\n| 2 | `cd backend && .venv/bin/python -m pytest tests/test_server_timing.py -v` | 0 | ✅ pass | 400ms |\n| 3 | `cd backend && .venv/bin/python -m pytest tests/test_shapes_cache.py tests/test_object_query_opt.py tests/test_object_parallel.py tests/test_tracing.py -v` | 0 | ✅ pass | 1460ms |\n| 4 | `cd backend && .venv/bin/python -m pytest tests/test_timing_middleware.py -v` | 0 | ✅ pass | 660ms |\n| 5 | `grep -q performance backend/app/templates/admin/index.html` | 0 | ✅ pass | 50ms |\n| 6 | `test -f backend/app/templates/admin/performance.html` | 0 | ✅ pass | 10ms |\n| 7 | `rg p50_ms backend/app/middleware/timing.py` | 0 | ✅ pass | 20ms |\n| 8 | `rg p99_ms backend/app/middleware/timing.py` | 0 | ✅ pass | 20ms |\n\n## Deviations\n\nTest setup required registering custom Jinja2 filters (asset_url, dict_without, urlencode, compact_iri) from template_helpers.py because base.html uses them.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/middleware/timing.py`\n- `backend/app/admin/router.py`\n- `backend/app/templates/admin/performance.html`\n- `backend/app/templates/admin/index.html`\n- `backend/tests/test_admin_performance.py`\n",
       "description": "## Description\n\nAdd a `/admin/performance` HTML page with Chart.js bar charts showing endpoint percentile timing data, fed by the existing `get_timing_report()` function with p50/p99 additions.\n\n## Steps\n\n1. Read `backend/app/middleware/timing.py` `get_timing_report()` to see current fields. Extend it to also compute `p50_ms` and `p99_ms` alongside existing `p95_ms`. Same percentile index computation pattern.\n2. Add a new route in `backend/app/admin/router.py`:\n   ```python\n   @router.get(\"/performance\")\n   async def admin_performance(request: Request, user: User = Depends(require_role(\"owner\"))):\n   ```\n   This route calls `get_timing_report(top_n=10)` and passes results + metadata (total_requests, collection_period_seconds) as template context.\n3. Create `backend/app/templates/admin/performance.html` extending `base.html`:\n   - Stats cards row: total requests, collection period, unique endpoints tracked\n   - A bar chart (Chart.js via CDN `https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js`) showing grouped bars for p50/p95/p99 per endpoint (top 10)\n   - A table below with all stats (path, count, avg, p50, p95, p99, max)\n   - Use the `{% block content %}` pattern from other admin templates\n   - Use htmx block_name=\"content\" for sidebar navigation support\n4. Add a Performance card to `backend/app/templates/admin/index.html` in the `dashboard-cards` div, matching the existing card style. Link to `/admin/performance` with htmx attributes.\n5. Add a simple route test in `backend/tests/test_admin_performance.py`: mock the timing stats, hit GET /admin/performance, assert 200.\n\n## Must-Haves\n\n- [ ] get_timing_report() returns p50_ms and p99_ms in addition to existing fields\n- [ ] /admin/performance requires owner role\n- [ ] Chart.js loaded via CDN (no local file dependency)\n- [ ] Admin index has a Performance card\n- [ ] Template uses block_name=\"content\" for htmx partial rendering\n\n## Verification\n\n- `cd backend && .venv/bin/python -m pytest tests/test_admin_performance.py -v` — route test passes\n- `grep -q 'performance' backend/app/templates/admin/index.html` — card exists\n- `test -f backend/app/templates/admin/performance.html` — template exists\n- `rg 'p50_ms' backend/app/middleware/timing.py` — p50 computed\n- `rg 'p99_ms' backend/app/middleware/timing.py` — p99 computed",
       "estimate": "45m",
       "files": [
@@ -39927,6 +39935,94 @@
       "verdict": "✅ pass",
       "duration_ms": 9100,
       "created_at": "2026-04-05T20:53:53.687Z"
+    },
+    {
+      "id": 256,
+      "task_id": "T02",
+      "slice_id": "S03",
+      "milestone_id": "M049",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_admin_performance.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 790,
+      "created_at": "2026-04-05T20:58:54.330Z"
+    },
+    {
+      "id": 257,
+      "task_id": "T02",
+      "slice_id": "S03",
+      "milestone_id": "M049",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_server_timing.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 400,
+      "created_at": "2026-04-05T20:58:54.330Z"
+    },
+    {
+      "id": 258,
+      "task_id": "T02",
+      "slice_id": "S03",
+      "milestone_id": "M049",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_shapes_cache.py tests/test_object_query_opt.py tests/test_object_parallel.py tests/test_tracing.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1460,
+      "created_at": "2026-04-05T20:58:54.330Z"
+    },
+    {
+      "id": 259,
+      "task_id": "T02",
+      "slice_id": "S03",
+      "milestone_id": "M049",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_timing_middleware.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 660,
+      "created_at": "2026-04-05T20:58:54.330Z"
+    },
+    {
+      "id": 260,
+      "task_id": "T02",
+      "slice_id": "S03",
+      "milestone_id": "M049",
+      "command": "grep -q performance backend/app/templates/admin/index.html",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-04-05T20:58:54.330Z"
+    },
+    {
+      "id": 261,
+      "task_id": "T02",
+      "slice_id": "S03",
+      "milestone_id": "M049",
+      "command": "test -f backend/app/templates/admin/performance.html",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 10,
+      "created_at": "2026-04-05T20:58:54.330Z"
+    },
+    {
+      "id": 262,
+      "task_id": "T02",
+      "slice_id": "S03",
+      "milestone_id": "M049",
+      "command": "rg p50_ms backend/app/middleware/timing.py",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 20,
+      "created_at": "2026-04-05T20:58:54.330Z"
+    },
+    {
+      "id": 263,
+      "task_id": "T02",
+      "slice_id": "S03",
+      "milestone_id": "M049",
+      "command": "rg p99_ms backend/app/middleware/timing.py",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 20,
+      "created_at": "2026-04-05T20:58:54.330Z"
     }
   ]
 }

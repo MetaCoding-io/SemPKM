@@ -35,7 +35,7 @@ Add request-scoped SPARQL timing accumulation using `contextvars.ContextVar` so 
   - Estimate: 45m
   - Files: backend/app/middleware/timing.py, backend/app/triplestore/client.py, backend/tests/test_server_timing.py
   - Verify: cd backend && .venv/bin/python -m pytest tests/test_server_timing.py -v && .venv/bin/python -m pytest tests/test_shapes_cache.py tests/test_object_query_opt.py tests/test_object_parallel.py tests/test_tracing.py -v
-- [ ] **T02: Create admin performance dashboard with Chart.js percentile charts** — ## Description
+- [x] **T02: Added /admin/performance dashboard with Chart.js grouped bar chart showing p50/p95/p99 latency percentiles for top-10 endpoints, plus detail table and stats cards** — ## Description
 
 Add a `/admin/performance` HTML page with Chart.js bar charts showing endpoint percentile timing data, fed by the existing `get_timing_report()` function with p50/p99 additions.
 

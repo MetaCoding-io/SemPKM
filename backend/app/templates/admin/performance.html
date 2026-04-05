@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% block page_css %}
+<style>
+.perf-stats-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+.perf-stat-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    min-width: 160px;
+    flex: 1;
+}
+.perf-stat-card .stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+}
+.perf-stat-card .stat-label {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin-top: 2px;
+}
+.perf-chart-container {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    max-height: 420px;
+}
+.perf-chart-container canvas {
+    max-height: 360px;
+}
+.perf-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+.perf-table th,
+.perf-table td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+}
+.perf-table th {
+    font-weight: 600;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+.perf-table td {
+    font-variant-numeric: tabular-nums;
+}
+.perf-table tr:hover {
+    background: var(--color-surface-hover, rgba(0,0,0,0.02));
+}
+.perf-empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--color-text-muted);
+}
+</style>
+{% endblock %}
+
+{% block title %}SemPKM - Performance Dashboard{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+    <h1>Performance Dashboard</h1>
+    <p class="lead">Endpoint timing percentiles collected in-memory since last restart.</p>
+
+    <div class="perf-stats-row">
+        <div class="perf-stat-card">
+            <div class="stat-value">{{ total_requests }}</div>
+            <div class="stat-label">Total Requests</div>
+        </div>
+        <div class="perf-stat-card">
+            <div class="stat-value">{{ unique_endpoints }}</div>
+            <div class="stat-label">Unique Endpoints</div>
+        </div>
+        <div class="perf-stat-card">
+            <div class="stat-value">
+                {% if collection_period_seconds < 60 %}
+                    {{ collection_period_seconds | round(0) | int }}s
+                {% elif collection_period_seconds < 3600 %}
+                    {{ (collection_period_seconds / 60) | round(1) }}m
+                {% else %}
+                    {{ (collection_period_seconds / 3600) | round(1) }}h
+                {% endif %}
+            </div>
+            <div class="stat-label">Collection Period</div>
+        </div>
+    </div>
+
+    {% if report | length > 0 %}
+    <div class="perf-chart-container">
+        <canvas id="perf-chart"></canvas>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table class="perf-table">
+            <thead>
+                <tr>
+                    <th>Endpoint</th>
+                    <th>Count</th>
+                    <th>Avg (ms)</th>
+                    <th>p50 (ms)</th>
+                    <th>p95 (ms)</th>
+                    <th>p99 (ms)</th>
+                    <th>Max (ms)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ep in report %}
+                <tr>
+                    <td><code>{{ ep.path }}</code></td>
+                    <td>{{ ep.count }}</td>
+                    <td>{{ ep.avg_ms }}</td>
+                    <td>{{ ep.p50_ms }}</td>
+                    <td>{{ ep.p95_ms }}</td>
+                    <td>{{ ep.p99_ms }}</td>
+                    <td>{{ ep.max_ms }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="perf-empty">
+        <p>No timing data collected yet. Timing statistics accumulate as requests are served.</p>
+    </div>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+    var reportData = {{ report | tojson }};
+    if (!reportData || reportData.length === 0) return;
+
+    var labels = reportData.map(function(ep) {
+        // Truncate long paths for chart labels
+        var p = ep.path;
+        return p.length > 30 ? '…' + p.slice(-28) : p;
+    });
+
+    var ctx = document.getElementById('perf-chart');
+    if (!ctx) return;
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'p50 (ms)',
+                    data: reportData.map(function(ep) { return ep.p50_ms; }),
+                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'p95 (ms)',
+                    data: reportData.map(function(ep) { return ep.p95_ms; }),
+                    backgroundColor: 'rgba(245, 158, 11, 0.7)',
+                    borderColor: 'rgba(245, 158, 11, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'p99 (ms)',
+                    data: reportData.map(function(ep) { return ep.p99_ms; }),
+                    backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                    borderColor: 'rgba(239, 68, 68, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' },
+                title: {
+                    display: true,
+                    text: 'Endpoint Latency Percentiles (Top 10 by Avg)',
+                    font: { size: 14 }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Milliseconds' }
+                },
+                x: {
+                    ticks: { maxRotation: 45, minRotation: 20 }
+                }
+            }
+        }
+    });
+})();
+</script>
+{% endblock %}

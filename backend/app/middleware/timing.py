@@ -46,7 +46,7 @@ def get_timing_report(top_n: int = 5) -> list[dict[str, Any]]:
     """Compute per-path timing stats sorted by avg_ms descending.
 
     Returns at most *top_n* entries, each containing:
-      path, count, avg_ms, max_ms, min_ms, p95_ms, total_ms
+      path, count, avg_ms, max_ms, min_ms, p50_ms, p95_ms, p99_ms, total_ms
     """
     report: list[dict[str, Any]] = []
     for path, durations in _timing_stats.items():
@@ -55,9 +55,9 @@ def get_timing_report(top_n: int = 5) -> list[dict[str, Any]]:
         sorted_d = sorted(durations)
         count = len(sorted_d)
         total = sum(sorted_d)
-        p95_idx = int(count * 0.95)
-        # Clamp index to valid range (at least 0, at most last element)
-        p95_idx = min(p95_idx, count - 1)
+        p50_idx = min(int(count * 0.50), count - 1)
+        p95_idx = min(int(count * 0.95), count - 1)
+        p99_idx = min(int(count * 0.99), count - 1)
         report.append(
             {
                 "path": path,
@@ -65,7 +65,9 @@ def get_timing_report(top_n: int = 5) -> list[dict[str, Any]]:
                 "avg_ms": round(total / count, 2),
                 "max_ms": round(sorted_d[-1], 2),
                 "min_ms": round(sorted_d[0], 2),
+                "p50_ms": round(sorted_d[p50_idx], 2),
                 "p95_ms": round(sorted_d[p95_idx], 2),
+                "p99_ms": round(sorted_d[p99_idx], 2),
                 "total_ms": round(total, 2),
             }
         )

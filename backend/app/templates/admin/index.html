@@ -56,6 +56,14 @@
                 Manage Endpoints
             </a>
         </div>
+        <div class="card">
+            <h2>Performance</h2>
+            <p>View endpoint latency percentiles, request counts, and timing breakdowns collected since last restart.</p>
+            <a href="/admin/performance" class="btn btn-primary"
+               hx-get="/admin/performance" hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
+                View Dashboard
+            </a>
+        </div>
     </div>
 </div>
 {% endblock %}

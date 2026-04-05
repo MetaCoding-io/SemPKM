@@ -5,6 +5,7 @@ Uses ModelService, WebhookService, and AuthService via FastAPI dependency inject
 """
 
 import logging
+import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -61,6 +62,34 @@ async def _security_audit(request: Request, event_type: str, **kwargs) -> None:
     if factory is None:
         return
     await log_security_event(factory, event_type, _client_ip(request), **kwargs)
+
+
+@router.get("/performance")
+async def admin_performance(request: Request, user: User = Depends(require_role("owner"))):
+    """Render the performance dashboard with Chart.js percentile charts.
+
+    Shows top-10 slowest endpoints with p50/p95/p99 bar chart and detail table.
+    """
+    from app.middleware.timing import get_timing_report, _timing_stats, _collection_start
+
+    report = get_timing_report(top_n=10)
+    total_requests = sum(len(v) for v in _timing_stats.values())
+    collection_seconds = time.monotonic() - _collection_start
+    unique_endpoints = len(_timing_stats)
+
+    context = {
+        "request": request,
+        "report": report,
+        "total_requests": total_requests,
+        "collection_period_seconds": round(collection_seconds, 2),
+        "unique_endpoints": unique_endpoints,
+        "user": user,
+    }
+    if _is_htmx_request(request):
+        return templates_response(
+            request, "admin/performance.html", context, block_name="content"
+        )
+    return templates_response(request, "admin/performance.html", context)
 
 
 @router.get("/")
