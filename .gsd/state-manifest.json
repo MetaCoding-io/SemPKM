@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-05T18:42:51.467Z",
+  "exported_at": "2026-04-05T18:54:38.334Z",
   "milestones": [
     {
       "id": "M001",
@@ -7943,16 +7943,16 @@
       "milestone_id": "M048",
       "id": "S03",
       "title": "Object Delete UI",
-      "status": "pending",
+      "status": "complete",
       "risk": "low",
       "depends": [
         "S01"
       ],
       "demo": "Click delete button on object toolbar → confirmation dialog → object removed from explorer tree, views, and SPARQL. Also accessible via command palette 'Delete Object' command.",
       "created_at": "2026-04-05T17:54:07.579Z",
-      "completed_at": null,
-      "full_summary_md": "",
-      "full_uat_md": "",
+      "completed_at": "2026-04-05T18:44:34.036Z",
+      "full_summary_md": "---\nid: S03\nparent: M048\nmilestone: M048\nprovides:\n  - deleteObject(iri, label) function exported as window.SemPKM.deleteObject\n  - Inbound edge cleanup in bulk_delete_objects() — no dangling references after delete\nrequires:\n  - slice: S01\n    provides: Table/Cards views render correctly for verifying delete removes objects from views\naffects:\n  []\nkey_files:\n  - backend/app/browser/objects.py\n  - backend/tests/test_object_delete_inbound.py\n  - frontend/static/js/workspace.js\n  - backend/app/templates/browser/object_tab.html\n  - backend/app/templates/browser/tree_children.html\n  - frontend/static/css/workspace.css\nkey_decisions:\n  - D384: bulk_delete_objects cascades to inbound edges (triples where deleted IRI is the object)\n  - Placed delete button between star-btn and properties-toggle for consistent toolbar grouping\n  - Moved empty-bindings guard to check combined materialize_deletes list instead of early-exiting on empty outbound bindings alone\npatterns_established:\n  - Shared deleteObject(iri, label) function pattern: confirmation dialog → API call → close tab → refresh tree → toast. Reusable for any future single-object destructive action.\n  - Three-surface action wiring: toolbar button + command palette + explorer hover action, all calling the same exported SemPKM.* function\nobservability_surfaces:\n  - none\ndrill_down_paths:\n  - .gsd/milestones/M048/slices/S03/tasks/T01-SUMMARY.md\n  - .gsd/milestones/M048/slices/S03/tasks/T02-SUMMARY.md\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-04-05T18:44:34.037Z\nblocker_discovered: false\n---\n\n# S03: Object Delete UI\n\n**Single-object delete works from object toolbar, explorer tree hover action, and command palette, with backend inbound edge cleanup preventing dangling references.**\n\n## What Happened\n\nThis slice delivered full single-object delete functionality across three UI surfaces, backed by a correctness fix to the backend delete logic.\n\n**T01 — Backend inbound edge cleanup:** The existing `bulk_delete_objects()` only deleted triples where the deleted IRI was the subject (`<iri> ?p ?o`). A second SPARQL query now also collects inbound edges (`?s ?p <iri>`) and appends them to the same `materialize_deletes` list, so they're part of the same Operation and audit trail. The empty-bindings guard was moved from after the outbound query to after both queries, fixing a subtle bug where objects with only inbound references (no outbound triples) would have been silently skipped. 7 unit tests cover inbound edge inclusion, outbound regression, query failure handling, and edge cases.\n\n**T02 — Frontend delete UI on three surfaces:**\n1. **Object toolbar** — `.delete-btn` with trash-2 Lucide icon, placed between star button and properties toggle. CSS follows the `.star-btn` pattern per CLAUDE.md conventions (flex-shrink: 0, stroke: currentColor, CSS-only sizing).\n2. **Command palette** — 'Delete Object' entry in the Objects section. Uses `getActiveTabIri()` and skips `view:` prefixed tabs. Gets label from `_tabMeta` for the confirmation dialog.\n3. **Explorer tree** — `.tree-leaf-action` hover button using existing CSS (opacity 0→1 on hover, red on action hover).\n\nAll three surfaces call the shared `deleteObject(iri, label)` function which shows a confirmation dialog via `showConfirmDialog()`, calls `/browser/objects/delete` with `{ iris: [iri] }`, then closes the tab, refreshes the nav tree, and shows a success toast. The function is exported as `window.SemPKM.deleteObject` for cross-template access.\n\n## Verification\n\nAll slice-level verifications passed:\n1. Backend tests: `cd backend && .venv/bin/python -m pytest tests/test_object_delete_inbound.py -v` — 7/7 passed (0.67s)\n2. Frontend checks: grep confirmed `function deleteObject` in workspace.js, `delete-btn` in object_tab.html, `delete-object` command ID in workspace.js, `deleteObject` in tree_children.html, `.delete-btn` in workspace.css — all present\n3. SemPKM.deleteObject exported at line 3852 of workspace.js\n\n## Requirements Advanced\n\nNone.\n\n## Requirements Validated\n\nNone.\n\n## New Requirements Surfaced\n\nNone.\n\n## Requirements Invalidated or Re-scoped\n\nNone.\n\n## Deviations\n\nMoved the empty-bindings guard in bulk_delete_objects() from after the outbound query to after both queries (outbound + inbound). This is a correctness improvement beyond the plan — objects with only inbound references are now properly cleaned up rather than silently skipped.\n\n## Known Limitations\n\nThe slice plan mentions T01 verify path as `cd backend && .venv/bin/python -m pytest tests/test_object_delete_inbound.py -v` which assumes CWD is project root. The actual backend venv is at `backend/.venv/bin/python`. Task executors used the correct path.\n\n## Follow-ups\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/browser/objects.py` — Added inbound edge SPARQL query to bulk_delete_objects() and moved empty-bindings guard after both queries\n- `backend/tests/test_object_delete_inbound.py` — New: 7 unit tests covering inbound edge cleanup, outbound regression, query failure handling\n- `frontend/static/js/workspace.js` — Added deleteObject() function, command palette 'Delete Object' entry, window.SemPKM.deleteObject export\n- `backend/app/templates/browser/object_tab.html` — Added .delete-btn with trash-2 icon to object toolbar\n- `backend/app/templates/browser/tree_children.html` — Added .tree-leaf-action delete button for explorer hover\n- `frontend/static/css/workspace.css` — Added .delete-btn styles following .star-btn pattern\n",
+      "full_uat_md": "# S03: Object Delete UI — UAT\n\n**Milestone:** M048\n**Written:** 2026-04-05T18:44:34.037Z\n\n## UAT: Object Delete UI\n\n### Preconditions\n- SemPKM running with at least one Mental Model installed\n- At least 3 objects exist (to test delete without emptying the store)\n- User is logged in with owner role\n\n---\n\n### Test 1: Delete from Object Toolbar\n\n1. Open an object by clicking it in the explorer tree\n2. Verify the object tab opens with a trash icon (trash-2) in the toolbar, between the star button and properties toggle\n3. Click the trash icon\n4. **Expected:** A confirmation dialog appears with text: 'Delete \"[object label]\"? This cannot be undone.'\n5. Click the confirm button\n6. **Expected:** The object tab closes, the explorer tree refreshes (object no longer listed), and a toast says \"Object deleted\"\n7. Open Table View from explorer → verify the deleted object is not in the table\n8. Run SPARQL: `SELECT * WHERE { <deleted_iri> ?p ?o }` → **Expected:** zero results\n9. Run SPARQL: `SELECT * WHERE { ?s ?p <deleted_iri> }` → **Expected:** zero results (inbound edges cleaned up)\n\n### Test 2: Delete from Command Palette\n\n1. Open an object tab (click any object in explorer)\n2. Press Ctrl+K to open the command palette\n3. Type \"Delete\" to filter commands\n4. **Expected:** \"Delete Object\" appears in the Objects section\n5. Select \"Delete Object\"\n6. **Expected:** Confirmation dialog appears with the active object's label\n7. Confirm the delete\n8. **Expected:** Tab closes, explorer refreshes, toast shown\n\n### Test 3: Command Palette — No Object Selected\n\n1. Open a view tab (e.g., Table View) so no object tab is active\n2. Press Ctrl+K → type \"Delete\" → select \"Delete Object\"\n3. **Expected:** Toast says \"No object selected\" — no confirmation dialog appears\n\n### Test 4: Delete from Explorer Tree Hover\n\n1. Hover over an object in the explorer tree\n2. **Expected:** A small trash icon appears on the right side of the tree item row\n3. Click the trash icon\n4. **Expected:** Confirmation dialog with the object's label\n5. Confirm the delete\n6. **Expected:** Object disappears from explorer tree, toast shown\n7. If the deleted object had a tab open, verify the tab is closed\n\n### Test 5: Cancel Delete — Confirmation Dialog Dismiss\n\n1. Open an object tab\n2. Click the toolbar trash icon\n3. **Expected:** Confirmation dialog appears\n4. Click \"Cancel\" or press Escape\n5. **Expected:** Dialog closes, object is NOT deleted, tab remains open, explorer unchanged\n\n### Test 6: Inbound Edge Cleanup\n\n1. Create Object A and Object B\n2. Add a relationship from Object B pointing to Object A (e.g., an edge where A is the target)\n3. Delete Object A via any surface\n4. Run SPARQL: `SELECT * WHERE { ?s ?p <object_a_iri> }` → **Expected:** zero results (inbound edge from B→A removed)\n5. Open Object B → verify no broken references in its properties/relations\n\n### Test 7: Delete Button Styling\n\n1. Open an object tab\n2. Verify the delete (trash) icon is muted grey by default\n3. Hover over the delete icon\n4. **Expected:** Icon turns red (var(--color-error))\n5. Verify the icon doesn't shrink or disappear in the flex toolbar layout\n",
       "goal": "Single-object delete works from three UI surfaces (object toolbar, explorer tree hover, command palette), with backend inbound edge cleanup so no dangling references remain.",
       "success_criteria": "- Delete button visible on object toolbar, triggers confirmation dialog, removes object on confirm\n- Explorer tree leaf shows trash icon on hover, triggers same delete flow\n- Command palette \"Delete Object\" command deletes the active tab's object\n- Backend deletes both outbound (`<iri> ?p ?o`) AND inbound (`?s ?p <iri>`) triples\n- After delete: tab closes, explorer tree refreshes, toast confirms deletion\n- Unit test for inbound edge cleanup passes",
       "proof_level": "Integration — real backend endpoint + UI wiring, but no E2E browser test (project has no frontend test framework)",
@@ -7973,11 +7973,11 @@
       "completed_at": null,
       "full_summary_md": "",
       "full_uat_md": "",
-      "goal": "Add backend Docker entrypoint script that fixes volume permissions idempotently, and diagnose/fix the model loading issue where not all shapes load.",
-      "success_criteria": "Backend container starts without SQLite permission errors on fresh and existing volumes. Business-planning model installs with all 33 NodeShapes in the shapes graph.",
-      "proof_level": "operational — Docker lifecycle test on fresh volume + SPARQL verification of shape count",
-      "integration_closure": "Ensures clean deploys for all downstream milestones and testing",
-      "observability_impact": "Entrypoint script logs permission fix actions for debugging container startup issues",
+      "goal": "Docker fresh-volume deploy succeeds with robust entrypoint, and reinstalled business-planning model loads all 33 NodeShapes.",
+      "success_criteria": "- `backend/docker-entrypoint.sh` exists and is referenced by Dockerfile ENTRYPOINT\n- `docker compose down -v && docker compose up --build -d` succeeds, all services healthy\n- SPARQL query against `urn:sempkm:model:business-planning:shapes` returns 33 NodeShapes after model reinstall",
+      "proof_level": "This slice proves: operational. Real runtime required: yes. Human/UAT required: no.",
+      "integration_closure": "- Upstream surfaces consumed: `frontend/docker-entrypoint.sh` (pattern reference), `backend/Dockerfile` (modified), `docker-compose.yml` (unchanged)\n- New wiring: ENTRYPOINT directive in backend Dockerfile pointing to `docker-entrypoint.sh`\n- What remains before milestone is truly usable end-to-end: nothing — this is the final slice in M048",
+      "observability_impact": "- Runtime signals: entrypoint echoes `mkdir -p` success to stdout (visible in `docker compose logs api`)\n- Inspection surfaces: `docker compose ps` for service health, `docker compose logs api` for entrypoint output\n- Failure visibility: entrypoint failure → container exits immediately → visible in `docker compose ps`\n- Redaction constraints: none",
       "sequence": 0,
       "replan_triggered_at": null
     },
@@ -32016,6 +32016,83 @@
       "sequence": 0
     },
     {
+      "milestone_id": "M048",
+      "slice_id": "S04",
+      "id": "T01",
+      "title": "Added backend/docker-entrypoint.sh ensuring /app/data/apps and /app/data/imports exist on startup, wired into Dockerfile as ENTRYPOINT",
+      "status": "complete",
+      "one_liner": "Added backend/docker-entrypoint.sh ensuring /app/data/apps and /app/data/imports exist on startup, wired into Dockerfile as ENTRYPOINT",
+      "narrative": "Created backend/docker-entrypoint.sh with set -e, mkdir -p /app/data/apps /app/data/imports, and exec \"$@\" to hand off to CMD. Updated backend/Dockerfile to COPY the script, chmod +x it before USER sempkm, and set ENTRYPOINT between USER and CMD. The script runs as user sempkm — no privilege escalation needed since /app/data is already owned by sempkm via existing chown in the Dockerfile. Deliberately omitted alembic migration from the entrypoint since it's already handled in the app's lifespan startup.",
+      "verification_result": "Ran docker compose build api — build completed successfully (exit 0, 3.8s). Entrypoint script copied as layer 13/14, chmod'd as layer 14/14. Image built and tagged as sempkm-api.",
+      "duration": "",
+      "completed_at": "2026-04-05T18:54:38.292Z",
+      "blocker_discovered": false,
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/docker-entrypoint.sh",
+        "backend/Dockerfile"
+      ],
+      "key_decisions": [
+        "Entrypoint creates /app/data/apps and /app/data/imports only — no alembic migration (already in app lifespan startup)"
+      ],
+      "full_summary_md": "---\nid: T01\nparent: S04\nmilestone: M048\nkey_files:\n  - backend/docker-entrypoint.sh\n  - backend/Dockerfile\nkey_decisions:\n  - Entrypoint creates /app/data/apps and /app/data/imports only — no alembic migration (already in app lifespan startup)\nduration: \nverification_result: passed\ncompleted_at: 2026-04-05T18:54:38.291Z\nblocker_discovered: false\n---\n\n# T01: Added backend/docker-entrypoint.sh ensuring /app/data/apps and /app/data/imports exist on startup, wired into Dockerfile as ENTRYPOINT\n\n**Added backend/docker-entrypoint.sh ensuring /app/data/apps and /app/data/imports exist on startup, wired into Dockerfile as ENTRYPOINT**\n\n## What Happened\n\nCreated backend/docker-entrypoint.sh with set -e, mkdir -p /app/data/apps /app/data/imports, and exec \"$@\" to hand off to CMD. Updated backend/Dockerfile to COPY the script, chmod +x it before USER sempkm, and set ENTRYPOINT between USER and CMD. The script runs as user sempkm — no privilege escalation needed since /app/data is already owned by sempkm via existing chown in the Dockerfile. Deliberately omitted alembic migration from the entrypoint since it's already handled in the app's lifespan startup.\n\n## Verification\n\nRan docker compose build api — build completed successfully (exit 0, 3.8s). Entrypoint script copied as layer 13/14, chmod'd as layer 14/14. Image built and tagged as sempkm-api.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `docker compose build api` | 0 | ✅ pass | 3800ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/docker-entrypoint.sh`\n- `backend/Dockerfile`\n",
+      "description": "Create a `backend/docker-entrypoint.sh` script that ensures data subdirectories exist before handing off to the CMD. Update `backend/Dockerfile` to COPY and ENTRYPOINT the script.\n\n**Context:** The backend currently has no entrypoint — it jumps straight to `CMD [\"uvicorn\", ...]`. The frontend already has an entrypoint pattern at `frontend/docker-entrypoint.sh` that can be referenced. The backend runs as user `sempkm` (uid 1000) with `security_opt: no-new-privileges:true` and `cap_drop: ALL`, so gosu/su-exec are NOT viable. The entrypoint must run as `sempkm`.\n\n**Important:** Alembic migrations are already run inside the app's lifespan startup in `backend/app/main.py` (line ~328: `alembic_command.upgrade(alembic_cfg, \"head\")`). Do NOT add `alembic upgrade head` to the entrypoint — it would conflict with the async migration logic.\n\nSteps:\n1. Create `backend/docker-entrypoint.sh`:\n   - `#!/bin/sh`\n   - `set -e`\n   - `mkdir -p /app/data/apps /app/data/imports` — ensure subdirectories exist for app data and imports\n   - `exec \"$@\"` — hand off to CMD\n2. Update `backend/Dockerfile`:\n   - After the `COPY app/ app/` line, add `COPY docker-entrypoint.sh /app/docker-entrypoint.sh`\n   - Add `RUN chmod +x /app/docker-entrypoint.sh` (before `USER sempkm`)\n   - Add `ENTRYPOINT [\"/app/docker-entrypoint.sh\"]` between `USER sempkm` and `CMD`\n3. Verify: `docker compose build api` succeeds without errors.",
+      "estimate": "15m",
+      "files": [
+        "backend/docker-entrypoint.sh",
+        "backend/Dockerfile"
+      ],
+      "verify": "docker compose build api 2>&1 | tail -5 && echo 'Build succeeded'",
+      "inputs": [
+        "`frontend/docker-entrypoint.sh` — reference pattern for the entrypoint script",
+        "`backend/Dockerfile` — current Dockerfile to modify"
+      ],
+      "expected_output": [
+        "`backend/docker-entrypoint.sh` — new entrypoint script ensuring data subdirectories exist",
+        "`backend/Dockerfile` — updated with COPY, chmod, and ENTRYPOINT directives"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M048",
+      "slice_id": "S04",
+      "id": "T02",
+      "title": "Verify fresh-volume Docker deploy and reinstall business-planning model",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Run the full fresh-volume Docker deploy cycle and fix the stale business-planning model by reinstalling it. This is primarily an operational/verification task — code changes only if issues are discovered.\n\n**Context — stale model data:** The business-planning model was installed 2026-03-23 from an older archive with only 2 NodeShapes (EisenhowerMatrix + EisenhowerItem). The current archive at `models/business-planning/shapes/business-planning.jsonld` has 33 NodeShapes across 1665 triples. The install pipeline is correct — this is a stale data issue.\n\n**Context — user-data guard:** The `remove()` method in `backend/app/services/models.py:754` checks for user data before allowing removal. Since the installed model created seed data (Eisenhower instances exist in `urn:sempkm:current`), the standard uninstall will be BLOCKED with: \"Cannot remove model 'business-planning': user data exists for types: ...\"\n\n**Context — model named graphs:** The model uses these named graphs (from `backend/app/models/registry.py:25`, class `ModelGraphs`):\n- `urn:sempkm:model:business-planning:ontology`\n- `urn:sempkm:model:business-planning:shapes`\n- `urn:sempkm:model:business-planning:views`\n- `urn:sempkm:model:business-planning:seed`\n- `urn:sempkm:model:business-planning:rules`\n- Registration triples in `urn:sempkm:models`\n\nSteps:\n1. Bring up Docker stack fresh: `docker compose down -v && docker compose up --build -d`\n2. Wait for all services healthy: `docker compose ps` — all should show \"healthy\"\n3. Check `docker compose logs api` for entrypoint output (mkdir should succeed)\n4. Install business-planning model via API: `curl -s -X POST http://localhost:8001/api/models/business-planning/install`\n5. Verify 33 NodeShapes loaded via SPARQL query against the triplestore:\n   ```\n   curl -s -X POST http://localhost:8001/api/sparql \\\n     -H 'Content-Type: application/json' \\\n     -d '{\"query\": \"SELECT (COUNT(?s) AS ?count) WHERE { GRAPH <urn:sempkm:model:business-planning:shapes> { ?s a <http://www.w3.org/ns/shacl#NodeShape> } }\"}'\n   ```\n   Expected: count = 33\n6. If the fresh-volume install succeeds with 33 shapes, the stale data theory is confirmed and the fix is simply 'reinstall from current archive on fresh data'.\n\n**If Docker is not available in the execution environment:** Document the verification commands in a runnable script `scripts/verify-docker-fresh.sh` so it can be run manually.",
+      "estimate": "25m",
+      "files": [
+        "scripts/verify-docker-fresh.sh"
+      ],
+      "verify": "test -f scripts/verify-docker-fresh.sh && echo 'Verification script exists'",
+      "inputs": [
+        "`backend/docker-entrypoint.sh` — the new entrypoint from T01",
+        "`backend/Dockerfile` — updated Dockerfile from T01",
+        "`docker-compose.yml` — Docker compose configuration",
+        "`models/business-planning/shapes/business-planning.jsonld` — current model archive with 33 NodeShapes"
+      ],
+      "expected_output": [
+        "`scripts/verify-docker-fresh.sh` — runnable verification script for fresh-volume deploy + model install"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
       "milestone_id": "M049",
       "slice_id": "S01",
       "id": "T01",
@@ -39165,6 +39242,17 @@
       "verdict": "✅ pass",
       "duration_ms": 640,
       "created_at": "2026-04-05T18:42:51.433Z"
+    },
+    {
+      "id": 222,
+      "task_id": "T01",
+      "slice_id": "S04",
+      "milestone_id": "M048",
+      "command": "docker compose build api",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 3800,
+      "created_at": "2026-04-05T18:54:38.292Z"
     }
   ]
 }

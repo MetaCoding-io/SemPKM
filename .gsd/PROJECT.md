@@ -783,6 +783,8 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
+**In progress: M048 Critical Bug Fixes (2026-04-05)** — S01 ✅ (Table/Cards views + creation timestamps), S02 ✅ (Diff-based save), S03 ✅ (Object Delete UI with inbound edge cleanup + 3-surface delete), S04 ⬜ (Docker permissions + model loading)
+
 **Latest shipped: M047 PPV Model v2 — Versioned Manifests, TBox Dashboards/Workflows & Review System (2026-04-05)**
 - Manifest v2 format: optional `manifest_version` field, `dashboards`/`workflows` entrypoints, backward-compatible with all 8 v1 models
 - source_model column on dashboard_specs/workflow_specs for model-sourced surface tracking, with install/uninstall/refresh lifecycle

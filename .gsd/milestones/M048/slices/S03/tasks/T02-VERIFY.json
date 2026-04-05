@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T02",
+  "unitId": "M048/S03/T02",
+  "timestamp": 1775414574421,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "grep -q 'function deleteObject' frontend/static/js/workspace.js",
+      "exitCode": 0,
+      "durationMs": 6,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -q 'delete-btn' backend/app/templates/browser/object_tab.html",
+      "exitCode": 0,
+      "durationMs": 4,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -q 'delete-object' frontend/static/js/workspace.js",
+      "exitCode": 0,
+      "durationMs": 5,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -q 'deleteObject' backend/app/templates/browser/tree_children.html",
+      "exitCode": 0,
+      "durationMs": 5,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -q '.delete-btn' frontend/static/css/workspace.css",
+      "exitCode": 0,
+      "durationMs": 4,
+      "verdict": "pass"
+    },
+    {
+      "command": "echo 'All checks pass'",
+      "exitCode": 0,
+      "durationMs": 4,
+      "verdict": "pass"
+    }
+  ]
+}
