@@ -10,19 +10,13 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Active milestone:** M049 — Backend Performance & Observability (in progress)
+**Last completed milestone:** M049 — Backend Performance & Observability (2026-04-05)
 
-**Completed slices:**
-- S01 ✅ — Query Optimization & Caching: Replaced sequential SPARQL waterfall with UNION query + asyncio.gather parallelization. Added ShapesService caching with TTL. Object tab loads ~3x faster.
-- S02 ✅ — OpenTelemetry + Jaeger Tracing: Added distributed tracing with Jaeger v2 backend. FastAPI auto-instrumentation + custom semantic SPARQL spans on all 4 TriplestoreClient methods. 10 unit tests. Tracing disabled by default, zero overhead when off.
+Eliminated the sequential SPARQL query waterfall in object tab loads (3→1 queries, 5→1 label batches, asyncio.gather parallelization), added OpenTelemetry distributed tracing with Jaeger v2 backend, and built Server-Timing headers plus an admin performance dashboard with p50/p95/p99 percentile charts. 70 new tests. R001 (lazy-loaded panels) validated.
 
-**Remaining:** S03 — Server-Timing Headers & Admin Dashboard (depends on S01, S02)
-
-**Last completed milestone:** M048 — Critical Bug Fixes (2026-04-05)
+**Previous milestone:** M048 — Critical Bug Fixes (2026-04-05)
 
 Fixed five showstopper bugs: broken Table/Cards view rendering (missing SPARQL PREFIX declarations in reconstructed queries), phantom save events (save now diff-based — only changed properties generate events), missing delete UI (toolbar + command palette + explorer hover with inbound edge cleanup), absent creation timestamps (auto-injected dcterms:created/modified on object creation), and Docker fresh-volume deploy failures (entrypoint script, consolidated lucene volume, triplestore readiness polling). 45 new unit tests across 4 test files.
-
-The full CRUD cycle (create → edit → save → delete) now works correctly with clean event logs, views render all objects, and Docker deploys succeed on fresh volumes.
 
 ## Requirements
 
@@ -60,8 +54,8 @@ The full CRUD cycle (create → edit → save → delete) now works correctly wi
 - ✓ Global settings system — v2.0
 - ✓ Event log explorer, LLM connection, guided tours — v2.0
 
-### Validated (v2.1–v2.6 + M002–M048)
+### Validated (v2.1–v2.6 + M002–M049)
 
-All features from v2.1 through v2.6 and milestones M002 through M048 validated. See REQUIREMENTS.md for full details.
+All features from v2.1 through v2.6 and milestones M002 through M049 validated. See REQUIREMENTS.md for full details.
 
-Key milestones: Full-text search (v2.2), SPARQL console (v2.2), Dockview workspace (v2.3), OWL inference + SHACL-AF rules (v2.4), Obsidian import + WebID + IndieAuth (v2.5), Federation + VFS + Canvas (v2.6), Security hardening (M002), Knowledge organization (M003), Ontology system (M004), Platform polish (M005), Dashboards & workflows (M006–M007), Spatial canvas (M008), App platform (M009), RSS reader (M010), 4 mental models (M011), Workspace polish (M012), API surface (M013), Browser extension (M014–M015, M028), 9 sync apps (M016–M024), Demo instance (M025), Homepage (M026), Notion import (M027), Frontend performance (M029), Lint UX (M030), Saved views + kanban + graph3D + calendar + timeline + map (M031–M034), AI copilot (M035), Business planning models (M036), Mobile app (M037), Media scheduler (M038), RDF import (M039), Context rules (M040), Notifications (M041), SPARQL security (M043), Frontend cleanup (M044), Backend security (M045), E2E tests (M046), PPV model (M047), **Critical bug fixes (M048)**.
+Key milestones: Full-text search (v2.2), SPARQL console (v2.2), Dockview workspace (v2.3), OWL inference + SHACL-AF rules (v2.4), Obsidian import + WebID + IndieAuth (v2.5), Federation + VFS + Canvas (v2.6), Security hardening (M002), Knowledge organization (M003), Ontology system (M004), Platform polish (M005), Dashboards & workflows (M006–M007), Spatial canvas (M008), App platform (M009), RSS reader (M010), 4 mental models (M011), Workspace polish (M012), API surface (M013), Browser extension (M014–M015, M028), 9 sync apps (M016–M024), Demo instance (M025), Homepage (M026), Notion import (M027), Frontend performance (M029), Lint UX (M030), Saved views + kanban + graph3D + calendar + timeline + map (M031–M034), AI copilot (M035), Business planning models (M036), Mobile app (M037), Media scheduler (M038), RDF import (M039), Context rules (M040), Notifications (M041), SPARQL security (M043), Frontend cleanup (M044), Backend security (M045), E2E tests (M046), PPV model (M047), Critical bug fixes (M048), **Backend performance & observability (M049)**.
