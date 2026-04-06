@@ -49,34 +49,6 @@ This file is the explicit capability and coverage contract for the project.
 - Primary owning slice: M054/S01
 - Validation: Create config with filter=Tasks, group=Status, sort=Due Date → explorer tree shows type-filtered objects grouped by status values with correct sort order. Unit tests prove SPARQL generation for multi-level configs.
 
-### R018 — Hover popover appears correctly anchored to the hovered graph node, not displaced
-- Class: functional
-- Status: active
-- Description: Hover popover appears correctly anchored to the hovered graph node, not displaced
-- Why it matters: Bug fix — current model detail graph has popover displacement issues inside dockview panels
-- Source: M056
-- Primary owning slice: M056/S02
-- Supporting slices: M056/S01
-- Validation: Hover any node in the ontology graph → popover appears adjacent to the node, not displaced to a far corner. Uses graph.js body-appended popover pattern.
-
-### R020 — Multi-select model filter updates ontology graph in real-time without page reload
-- Class: functional
-- Status: active
-- Description: Multi-select model filter updates ontology graph in real-time without page reload
-- Why it matters: Users need to focus on specific model subsets rather than seeing all 170+ nodes at once
-- Source: M056
-- Primary owning slice: M056/S02
-- Validation: Filter to show only CRM → graph re-renders with just CRM types plus gist connections. Uncheck CRM, check business-planning → graph updates live.
-
-### R022 — Ontology graph state (positions, zoom, pan) persists when switching between TBox/ABox/RBox tabs
-- Class: functional
-- Status: active
-- Description: Ontology graph state (positions, zoom, pan) persists when switching between TBox/ABox/RBox tabs
-- Why it matters: Explicit user request — switching tabs should not reset graph position
-- Source: M056
-- Primary owning slice: M056/S02
-- Validation: Position/zoom graph → switch to ABox → switch back to TBox → graph in same position. cy.resize() called on tab activation.
-
 ## Validated
 
 ### R001 — Non-object-contextual panels (inbox, collaboration) lazy-load on reveal rather than on page load — use hx-trigger="revealed" instead of hx-trigger="load"
@@ -190,6 +162,16 @@ This file is the explicit capability and coverage contract for the project.
 - Primary owning slice: M055/S02
 - Validation: Duplicate of R014 — same 8 E2E tests validate both requirements. Validated in M055/S02.
 
+### R018 — Hover popover appears correctly anchored to the hovered graph node, not displaced
+- Class: functional
+- Status: validated
+- Description: Hover popover appears correctly anchored to the hovered graph node, not displaced
+- Why it matters: Bug fix — current model detail graph has popover displacement issues inside dockview panels
+- Source: M056
+- Primary owning slice: M056/S02
+- Supporting slices: M056/S01
+- Validation: T02 implemented body-appended hover popover using graph.js pattern — document.body.appendChild, position:fixed, getBoundingClientRect + renderedPosition anchoring, viewport clamping, 250ms show delay, 100ms hide with hover-into-popover. Cleanup via registerCleanup(). Validated in M056/S02/T02.
+
 ### R019 — Ontology Viewer TBox tab shows a hierarchical graph of all installed model classes with gist at the top layer
 - Class: functional
 - Status: validated
@@ -199,6 +181,15 @@ This file is the explicit capability and coverage contract for the project.
 - Primary owning slice: M056/S01
 - Validation: GET /browser/ontology/tbox/graph-data returns all TBox classes + subClassOf edges. ontology-graph.js renders dagre TB hierarchy with gist at top. 16 unit tests pass. Validated in M056/S01.
 
+### R020 — Multi-select model filter updates ontology graph in real-time without page reload
+- Class: functional
+- Status: validated
+- Description: Multi-select model filter updates ontology graph in real-time without page reload
+- Why it matters: Users need to focus on specific model subsets rather than seeing all 170+ nodes at once
+- Source: M056
+- Primary owning slice: M056/S02
+- Validation: S02/T01: _buildFilterUI() extracts distinct sources from graph data, builds sorted checkbox UI with color dots. _applySourceFilter() uses cy.batch() to hide/show nodes and connected edges. 'All' checkbox toggles all sources. filterTboxBySource() exported for programmatic use. Code verified on disk. Validated in M056/S02.
+
 ### R021 — Clicking a graph node shows class detail (properties, relationships, instance count) in a bottom detail panel
 - Class: functional
 - Status: validated
@@ -207,6 +198,15 @@ This file is the explicit capability and coverage contract for the project.
 - Source: M056
 - Primary owning slice: M056/S01
 - Validation: Node tap event in ontology-graph.js calls loadClassDetail() which loads class properties, relationships, and instance count via /browser/ontology/tbox/detail. Validated in M056/S01.
+
+### R022 — Ontology graph state (positions, zoom, pan) persists when switching between TBox/ABox/RBox tabs
+- Class: functional
+- Status: validated
+- Description: Ontology graph state (positions, zoom, pan) persists when switching between TBox/ABox/RBox tabs
+- Why it matters: Explicit user request — switching tabs should not reset graph position
+- Source: M056
+- Primary owning slice: M056/S02
+- Validation: S02/T01: switchOntologyTab() calls cy.resize() when TBox tab is activated. No cy.fit() in tab switch path — only in toggleTboxView(). Preserves zoom/pan state across tab switches. Code verified on disk (grep confirms single cy.fit() in toggleTboxView only). Validated in M056/S02.
 
 ## Traceability
 
@@ -229,15 +229,15 @@ This file is the explicit capability and coverage contract for the project.
 | R015 | functional | validated | M055/S01 | none | 6 Playwright E2E tests in e2e/tests/55-browser-history/history.spec.ts pass on Chromium and Firefox. Tests 1-3 prove pushState on tab open, URL update on switch, and back/forward navigation. Validated in M055/S01. |
 | R016 | functional | validated | M055/S01 | none | E2E test 4 navigates to /browser/?tab=<iri> and confirms correct object tab opens on page load. Deep-link handler supports all 9 tab ID formats. Manual verification: deep-link works, refresh preserves tab. Validated in M055/S01. |
 | R017 | functional | validated | M055/S02 | none | Duplicate of R014 — same 8 E2E tests validate both requirements. Validated in M055/S02. |
-| R018 | functional | active | M056/S02 | M056/S01 | Hover any node in the ontology graph → popover appears adjacent to the node, not displaced to a far corner. Uses graph.js body-appended popover pattern. |
+| R018 | functional | validated | M056/S02 | M056/S01 | T02 implemented body-appended hover popover using graph.js pattern — document.body.appendChild, position:fixed, getBoundingClientRect + renderedPosition anchoring, viewport clamping, 250ms show delay, 100ms hide with hover-into-popover. Cleanup via registerCleanup(). Validated in M056/S02/T02. |
 | R019 | functional | validated | M056/S01 | none | GET /browser/ontology/tbox/graph-data returns all TBox classes + subClassOf edges. ontology-graph.js renders dagre TB hierarchy with gist at top. 16 unit tests pass. Validated in M056/S01. |
-| R020 | functional | active | M056/S02 | none | Filter to show only CRM → graph re-renders with just CRM types plus gist connections. Uncheck CRM, check business-planning → graph updates live. |
+| R020 | functional | validated | M056/S02 | none | S02/T01: _buildFilterUI() extracts distinct sources from graph data, builds sorted checkbox UI with color dots. _applySourceFilter() uses cy.batch() to hide/show nodes and connected edges. 'All' checkbox toggles all sources. filterTboxBySource() exported for programmatic use. Code verified on disk. Validated in M056/S02. |
 | R021 | functional | validated | M056/S01 | none | Node tap event in ontology-graph.js calls loadClassDetail() which loads class properties, relationships, and instance count via /browser/ontology/tbox/detail. Validated in M056/S01. |
-| R022 | functional | active | M056/S02 | none | Position/zoom graph → switch to ABox → switch back to TBox → graph in same position. cy.resize() called on tab activation. |
+| R022 | functional | validated | M056/S02 | none | S02/T01: switchOntologyTab() calls cy.resize() when TBox tab is activated. No cy.fit() in tab switch path — only in toggleTboxView(). Preserves zoom/pan state across tab switches. Code verified on disk (grep confirms single cy.fit() in toggleTboxView only). Validated in M056/S02. |
 
 ## Coverage Summary
 
-- Active requirements: 8
-- Mapped to slices: 8
-- Validated: 14 (R001, R002, R004, R005, R006, R011, R012, R013, R014, R015, R016, R017, R019, R021)
+- Active requirements: 5
+- Mapped to slices: 5
+- Validated: 17 (R001, R002, R004, R005, R006, R011, R012, R013, R014, R015, R016, R017, R018, R019, R020, R021, R022)
 - Unmapped active requirements: 0
