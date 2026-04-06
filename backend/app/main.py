@@ -353,9 +353,13 @@ async def lifespan(app: FastAPI):
     auth_service = AuthService(async_session_factory)
     app.state.auth_service = auth_service
 
-    # Create ExplorerConfigService and store on app state
+    # Create ExplorerConfigService and seed presets
     from app.browser.explorer_config_service import ExplorerConfigService
     app.state.explorer_config_service = ExplorerConfigService(async_session_factory)
+    try:
+        await app.state.explorer_config_service.get_or_create_presets()
+    except Exception:
+        logger.warning("Failed to seed explorer config presets", exc_info=True)
 
     # Create DashboardService and store on app state
     from app.dashboard.service import DashboardService

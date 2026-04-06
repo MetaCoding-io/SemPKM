@@ -28,7 +28,7 @@ Constraints:
   - Estimate: 2h
   - Files: backend/app/browser/explorer_models.py, backend/app/browser/explorer_config_service.py, backend/migrations/versions/026_add_explorer_configs.py, backend/app/browser/workspace.py, backend/app/main.py, backend/tests/test_explorer_config_service.py
   - Verify: cd backend && .venv/bin/python -m pytest tests/test_explorer_config_service.py -v && .venv/bin/python -c "from app.browser.explorer_models import ExplorerConfigSpec; print('Model OK')" && .venv/bin/python -c "from app.browser.explorer_config_service import ExplorerConfigService; print('Service OK')"
-- [ ] **T02: Frontend config selector with save/load persistence and preset options** — Add a config selector UI above the config builder panel that shows saved configs and presets. Wire save/load to the CRUD API. Add Hierarchy as a special option alongside the composable presets.
+- [x] **T02: Added config selector dropdown with presets (By Type, By Tag, Hierarchy), save/load/delete for named configs, localStorage persistence across page reloads, and builder panel hide for Hierarchy mode** — Add a config selector UI above the config builder panel that shows saved configs and presets. Wire save/load to the CRUD API. Add Hierarchy as a special option alongside the composable presets.
 
 Steps:
 1. Update `backend/app/templates/browser/explorer_config_panel.html` to add:

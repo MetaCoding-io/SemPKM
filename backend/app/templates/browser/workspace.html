@@ -337,4 +337,10 @@ document.addEventListener('sempkm:demo-tour-done', function() {
 <script id="chartjs-loader-config" data-chartjs-src="{{ 'chartjs.js' | asset_url }}"></script>
 <script src="/js/context-indicator.js"></script>
 <script src="/js/explorer-config.js"></script>
+<script>
+// Load explorer config list on page init
+if (window.SemPKM && window.SemPKM.loadConfigList) {
+    window.SemPKM.loadConfigList();
+}
+</script>
 {% endblock %}

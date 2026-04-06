@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T04:58:52.295Z",
+  "exported_at": "2026-04-06T05:18:53.792Z",
   "milestones": [
     {
       "id": "M001",
@@ -34533,19 +34533,29 @@
       "milestone_id": "M054",
       "slice_id": "S02",
       "id": "T02",
-      "title": "Frontend config selector with save/load persistence and preset options",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Added config selector dropdown with presets (By Type, By Tag, Hierarchy), save/load/delete for named configs, localStorage persistence across page reloads, and builder panel hide for Hierarchy mode",
+      "status": "complete",
+      "one_liner": "Added config selector dropdown with presets (By Type, By Tag, Hierarchy), save/load/delete for named configs, localStorage persistence across page reloads, and builder panel hide for Hierarchy mode",
+      "narrative": "Extended the explorer config panel with a selector row containing a dropdown (Presets + Saved Configs optgroups), name input, Save and Delete buttons. Extended explorer-config.js with 6 new functions for config CRUD, Hierarchy pseudo-preset handling, and localStorage persistence. Fixed preset seeding in app startup and delete button state after config restoration.",
+      "verification_result": "24/24 backend unit tests pass. Browser verification confirmed: preset selection renders correct tree views, Hierarchy uses legacy mode, save persists to API, reload restores from localStorage, delete removes config and resets tree.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-06T05:18:53.750Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "API paths use /browser/api/explorer/configs (workspace_router mount prefix). Added get_or_create_presets() to startup lifespan. Added _updateDeleteButton() call after localStorage restoration.",
+      "known_issues": "Migration 026 wasn't volume-mounted into container, required manual docker compose cp.",
+      "key_files": [
+        "frontend/static/js/explorer-config.js",
+        "backend/app/templates/browser/explorer_config_panel.html",
+        "frontend/static/css/explorer-config.css",
+        "backend/app/main.py",
+        "backend/app/templates/browser/workspace.html"
+      ],
+      "key_decisions": [
+        "Hierarchy is a pseudo-preset using sentinel value __hierarchy__, not stored as ExplorerConfig",
+        "Preset seeding moved to app startup lifespan via get_or_create_presets()",
+        "API paths use /browser/api/explorer/configs matching workspace_router mount under /browser prefix"
+      ],
+      "full_summary_md": "---\nid: T02\nparent: S02\nmilestone: M054\nkey_files:\n  - frontend/static/js/explorer-config.js\n  - backend/app/templates/browser/explorer_config_panel.html\n  - frontend/static/css/explorer-config.css\n  - backend/app/main.py\n  - backend/app/templates/browser/workspace.html\nkey_decisions:\n  - Hierarchy is a pseudo-preset using sentinel value __hierarchy__, not stored as ExplorerConfig\n  - Preset seeding moved to app startup lifespan via get_or_create_presets()\n  - API paths use /browser/api/explorer/configs matching workspace_router mount under /browser prefix\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T05:18:53.750Z\nblocker_discovered: false\n---\n\n# T02: Added config selector dropdown with presets (By Type, By Tag, Hierarchy), save/load/delete for named configs, localStorage persistence across page reloads, and builder panel hide for Hierarchy mode\n\n**Added config selector dropdown with presets (By Type, By Tag, Hierarchy), save/load/delete for named configs, localStorage persistence across page reloads, and builder panel hide for Hierarchy mode**\n\n## What Happened\n\nExtended the explorer config panel with a selector row containing a dropdown (Presets + Saved Configs optgroups), name input, Save and Delete buttons. Extended explorer-config.js with 6 new functions for config CRUD, Hierarchy pseudo-preset handling, and localStorage persistence. Fixed preset seeding in app startup and delete button state after config restoration.\n\n## Verification\n\n24/24 backend unit tests pass. Browser verification confirmed: preset selection renders correct tree views, Hierarchy uses legacy mode, save persists to API, reload restores from localStorage, delete removes config and resets tree.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python -m pytest tests/test_explorer_config_service.py -v` | 0 | ✅ pass | 630ms |\n\n## Deviations\n\nAPI paths use /browser/api/explorer/configs (workspace_router mount prefix). Added get_or_create_presets() to startup lifespan. Added _updateDeleteButton() call after localStorage restoration.\n\n## Known Issues\n\nMigration 026 wasn't volume-mounted into container, required manual docker compose cp.\n\n## Files Created/Modified\n\n- `frontend/static/js/explorer-config.js`\n- `backend/app/templates/browser/explorer_config_panel.html`\n- `frontend/static/css/explorer-config.css`\n- `backend/app/main.py`\n- `backend/app/templates/browser/workspace.html`\n",
       "description": "Add a config selector UI above the config builder panel that shows saved configs and presets. Wire save/load to the CRUD API. Add Hierarchy as a special option alongside the composable presets.\n\nSteps:\n1. Update `backend/app/templates/browser/explorer_config_panel.html` to add:\n   - A config selector row above the config builder with a `<select>` dropdown listing saved configs and presets\n   - A name `<input>` for saving/naming configs\n   - 'Save' and 'Delete' buttons next to the selector\n   - The selector has option groups: 'Presets' (By Type, By Tag, Hierarchy) and 'Saved Configs'\n2. Update `frontend/static/js/explorer-config.js` to add config persistence:\n   - `loadConfigList()` — fetches GET /api/explorer/configs, populates selector dropdown with presets + user configs\n   - `saveCurrentConfig()` — reads name input + current dropdown values, POST /api/explorer/configs\n   - `loadSelectedConfig(id)` — applies config from selector (sets dropdowns from config_json, calls applyExplorerConfig)\n   - `deleteSelectedConfig(id)` — DELETE /api/explorer/configs/{id}, refreshes list\n   - Hierarchy preset: when selected, calls the legacy `htmx.ajax('GET', '/browser/explorer/tree?mode=hierarchy', ...)` instead of the composable config tree. This is a special case — hierarchy is NOT an ExplorerConfig.\n   - On page load: call `loadConfigList()` to populate selector. Restore last active config from localStorage UUID reference.\n   - After save/delete: refresh the config list dropdown.\n3. Update `frontend/static/css/explorer-config.css` to style the config selector row, name input, and save/delete buttons.\n4. Call initExplorerConfig + loadConfigList on page load from workspace.html or workspace.js initialization.\n\nConstraints:\n- Hierarchy uses the legacy mode=hierarchy endpoint, not the config-tree endpoint. When hierarchy is selected, hide the config builder panel (filter/group/sort don't apply).\n- Active config ID stored in localStorage key 'sempkm_explorer_active_config' — just the UUID string.\n- Config selector uses apiFetch() for all API calls (Knowledge Pattern #13).\n- Presets from API have is_preset=true — disable the Delete button for presets.\n- After applying a saved config, the summary bar should update to show the config name.",
       "estimate": "2h",
       "files": [
@@ -43476,6 +43486,17 @@
       "verdict": "✅ pass",
       "duration_ms": 500,
       "created_at": "2026-04-06T04:58:52.257Z"
+    },
+    {
+      "id": 368,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M054",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_explorer_config_service.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 630,
+      "created_at": "2026-04-06T05:18:53.751Z"
     }
   ]
 }
