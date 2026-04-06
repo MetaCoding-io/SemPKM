@@ -31,6 +31,7 @@ from app.dependencies import (
 )
 from app.ontology.service import OntologyService
 from app.inference.entailments import ENTAILMENT_TYPES, MANIFEST_KEY_TO_TYPE, TYPE_TO_MANIFEST_KEY
+from app.models.manifest import parse_manifest
 from app.services.labels import LabelService
 from app.services.models import ModelService
 from app.services.ops_log import OperationsLogService
@@ -54,6 +55,55 @@ def _is_htmx_request(request: Request) -> bool:
 def _client_ip(request: Request) -> str:
     """Extract client IP from request for audit logging."""
     return request.client.host if request.client else "unknown"
+
+
+def scan_available_models(models_dir: str, installed_ids: set[str]) -> list[dict]:
+    """Scan a directory for bundled Mental Model archives not yet installed.
+
+    Iterates subdirectories of models_dir, parses each manifest.yaml,
+    and returns metadata for models whose modelId is not in installed_ids.
+
+    Args:
+        models_dir: Filesystem path to the models directory (e.g. '/app/models').
+        installed_ids: Set of model IDs already installed.
+
+    Returns:
+        List of dicts with keys: model_id, name, description, version, path,
+        type_count (number of icon entries with distinct types), icon_count.
+    """
+    available: list[dict] = []
+    models_path = Path(models_dir)
+    if not models_path.is_dir():
+        logger.warning("Models directory does not exist: %s", models_dir)
+        return available
+
+    for child in sorted(models_path.iterdir()):
+        if not child.is_dir():
+            continue
+        try:
+            manifest = parse_manifest(child)
+        except Exception:
+            logger.warning("Skipping %s: invalid or missing manifest", child.name)
+            continue
+
+        if manifest.modelId in installed_ids:
+            continue
+
+        icons = manifest.icons or []
+        distinct_types = {icon.type for icon in icons}
+
+        available.append({
+            "model_id": manifest.modelId,
+            "name": manifest.name,
+            "description": manifest.description,
+            "version": manifest.version,
+            "path": str(child),
+            "type_count": len(distinct_types),
+            "icon_count": len(icons),
+        })
+
+    logger.info("Scanned %s: found %d available models", models_dir, len(available))
+    return available
 
 
 async def _security_audit(request: Request, event_type: str, **kwargs) -> None:
@@ -244,9 +294,12 @@ async def admin_models(
         logger.warning("Failed to load custom types for admin page", exc_info=True)
         custom_types = {"classes": [], "object_properties": [], "datatype_properties": []}
     all_properties = list(custom_types.get("object_properties", [])) + list(custom_types.get("datatype_properties", []))
+    installed_ids = {m.model_id for m in models}
+    available_models = scan_available_models("/app/models", installed_ids)
     context = {
         "request": request,
         "models": models,
+        "available_models": available_models,
         "user": user,
         "gist": gist_summary,
         "custom_types": custom_types,
@@ -479,7 +532,9 @@ async def admin_models_install(
     """
     result = await model_service.install(Path(path))
     models = await model_service.list_models()
-    context = {"request": request, "models": models}
+    installed_ids = {m.model_id for m in models}
+    available_models = scan_available_models("/app/models", installed_ids)
+    context = {"request": request, "models": models, "available_models": available_models}
 
     if not result.success:
         error_msg = "; ".join(result.errors)
@@ -543,7 +598,9 @@ async def admin_models_remove(
     """
     result = await model_service.remove(model_id)
     models = await model_service.list_models()
-    context = {"request": request, "models": models}
+    installed_ids = {m.model_id for m in models}
+    available_models = scan_available_models("/app/models", installed_ids)
+    context = {"request": request, "models": models, "available_models": available_models}
 
     if not result.success:
         error_msg = "; ".join(result.errors)
@@ -633,7 +690,9 @@ async def admin_models_refresh_artifacts(
         else:
             # List page — return model table partial
             models = await model_service.list_models()
-            context = {"request": request, "models": models, "error": error_msg}
+            installed_ids = {m.model_id for m in models}
+            available_models = scan_available_models("/app/models", installed_ids)
+            context = {"request": request, "models": models, "available_models": available_models, "error": error_msg}
             return templates_response(request, "admin/models.html", context, block_name="model_table")
     else:
         # Invalidate ViewSpec cache after successful artifact refresh
@@ -660,7 +719,9 @@ async def admin_models_refresh_artifacts(
         else:
             # List page — return model table partial
             models = await model_service.list_models()
-            context = {"request": request, "models": models, "success": success_msg}
+            installed_ids = {m.model_id for m in models}
+            available_models = scan_available_models("/app/models", installed_ids)
+            context = {"request": request, "models": models, "available_models": available_models, "success": success_msg}
             return templates_response(request, "admin/models.html", context, block_name="model_table")
 
 

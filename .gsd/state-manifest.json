@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T02:48:27.127Z",
+  "exported_at": "2026-04-06T03:05:50.311Z",
   "milestones": [
     {
       "id": "M001",
@@ -1935,22 +1935,75 @@
     },
     {
       "id": "M053",
-      "title": "",
+      "title": "Model Marketplace",
       "status": "active",
       "depends_on": [],
       "created_at": "2026-04-05T17:38:45.585Z",
       "completed_at": null,
-      "vision": "",
-      "success_criteria": [],
-      "key_risks": [],
-      "proof_strategy": [],
-      "verification_contract": "",
-      "verification_integration": "",
-      "verification_operational": "",
-      "verification_uat": "",
-      "definition_of_done": [],
-      "requirement_coverage": "",
-      "boundary_map_markdown": ""
+      "vision": "Cloud-hosted model registry so users can discover, browse, and install Mental Models from an in-app marketplace without filesystem access. Replaces the current path-based install flow with a browsable catalog backed by a static JSON registry and downloadable .tar.gz archives.",
+      "success_criteria": [
+        "Admin → Mental Models shows available bundled models as clickable install cards (no path typing needed)",
+        "Browse Marketplace section shows models from a remote registry with descriptions, versions, and tags",
+        "Click Install on a marketplace model → download + verify + extract + install succeeds → model types appear in explorer",
+        "Installed models show 'Up to date' or 'Update available' badge based on registry comparison",
+        "App functions normally when registry is unreachable (offline fallback)",
+        "Downloaded marketplace models persist in /app/data/models/ across container restarts",
+        "All archive downloads verified by SHA-256 hash; tarfile extraction rejects path traversal"
+      ],
+      "key_risks": [
+        {
+          "risk": "Tarfile path traversal in downloaded archives",
+          "whyItMatters": "Model archives contain executable SHACL-AF rules — a malicious archive could write files outside the model directory"
+        },
+        {
+          "risk": "Network reliability during install",
+          "whyItMatters": "Download could fail mid-stream, leaving partial state; must be atomic (tempdir + move)"
+        },
+        {
+          "risk": "refresh_artifacts() and 6 other modules hardcode /app/models/ path",
+          "whyItMatters": "Downloaded models live in /app/data/models/ — all path resolution code must search both directories"
+        },
+        {
+          "risk": "Registry unavailability should not break the app",
+          "whyItMatters": "Network failures, DNS issues, or GitHub Pages outages must not affect existing model management"
+        }
+      ],
+      "proof_strategy": [
+        {
+          "riskOrUnknown": "Archive extraction security",
+          "retireIn": "S02",
+          "whatWillBeProven": "Unit tests prove path traversal, symlinks, and oversized archives are rejected"
+        },
+        {
+          "riskOrUnknown": "Multi-path model resolution",
+          "retireIn": "S02",
+          "whatWillBeProven": "refresh_artifacts() and all /app/models references work with /app/data/models/ as secondary path"
+        },
+        {
+          "riskOrUnknown": "Offline fallback",
+          "retireIn": "S02",
+          "whatWillBeProven": "Registry fetch timeout returns empty catalog gracefully — marketplace UI shows informative message"
+        },
+        {
+          "riskOrUnknown": "End-to-end marketplace install",
+          "retireIn": "S02",
+          "whatWillBeProven": "Full flow: browse catalog → click install → download + verify + extract + install → model types in explorer"
+        }
+      ],
+      "verification_contract": "Unit tests for RegistryService (fetch, cache, download, hash verification), tarfile validator (path traversal, bombs, symlinks), multi-path model resolution. Admin router tests for auto-discover and marketplace-install endpoints.",
+      "verification_integration": "Full install-from-registry flow exercised through admin UI: browse → install → verify model types appear in explorer sidebar.",
+      "verification_operational": "Registry fetch timeout and offline fallback verified. Downloaded models persist across container restart.",
+      "verification_uat": "Fresh SemPKM instance → Admin → Models → see available bundled models → install one via card click → see marketplace section → install from marketplace → verify model works → see version badges.",
+      "definition_of_done": [
+        "All 3 slices complete with summaries",
+        "Security: SSRF guard on all outbound HTTP, SHA-256 hash verification, tarfile path traversal protection",
+        "All 8 modules that reference /app/models/ updated to search /app/data/models/ too",
+        "Registry fetch gracefully handles timeout/unreachable",
+        "No new hardcoded hex/rgba values — all colors use theme tokens",
+        "Admin UI works in both light and dark mode"
+      ],
+      "requirement_coverage": "R002 (tarfile path validation) → S02. R003 (persistence across restart) → S02. R004 (SSRF guard) → S02. R005 (SHA-256 verification) → S02. R006 (offline fallback) → S02, supported by S03. R007 (install progress visible) → S02. R008 (duplicate prevention) → S02. No active requirements unmapped.",
+      "boundary_map_markdown": "```\nAdmin Models Page (HTML+htmx)\n  ├── Available Bundled Models section [S01]\n  │     └── GET /admin/models/available → scan /app/models/\n  ├── Browse Marketplace section [S02]\n  │     └── GET /admin/models/marketplace → RegistryService.fetch_catalog()\n  ├── Marketplace Install [S02]\n  │     └── POST /admin/models/marketplace-install → download + verify + install\n  ├── Version Badges [S03]\n  │     └── GET /admin/models/updates → compare installed vs registry\n  └── Existing Install (text input, unchanged)\n\nRegistryService [S02]\n  ├── fetch_catalog() → cached GET registry.json\n  ├── download_model(modelId) → tempdir extraction\n  │     ├── validate_outbound_url() [SSRF]\n  │     ├── SHA-256 hash verification\n  │     └── validate_tar_contents() [bomb/traversal]\n  └── Multi-path model resolution [S02]\n        └── /app/models/ (read-only bundled) + /app/data/models/ (writable downloaded)\n```"
     },
     {
       "id": "M054",
@@ -8386,6 +8439,70 @@
       "proof_level": "Visual CSS polish — no runtime boundary crossed. Proof is structural (CSS rules exist with correct values).",
       "integration_closure": "Consumes S01 color primitives (--_color-gray-400) and S03 patterns (Lucide icon sizing). Final slice in M052 — completing this means the milestone is done.",
       "observability_impact": "None — pure CSS and template changes.",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M053",
+      "id": "S01",
+      "title": "Auto-Discover Bundled Models",
+      "status": "pending",
+      "risk": "low",
+      "depends": [],
+      "demo": "Admin → Mental Models shows available bundled models as clickable cards. Click Install on one → model installs without typing a path.",
+      "created_at": "2026-04-06T02:58:01.960Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Admin → Mental Models page auto-discovers bundled models from /app/models/ and displays them as installable cards with one-click install.",
+      "success_criteria": "- Available (not-yet-installed) bundled models appear as cards on the Admin → Mental Models page\n- Each card shows name, description, version, and type count from the manifest\n- Clicking Install on a card installs the model without typing a path\n- Already-installed models do not appear in the available section\n- After installing, the card disappears from available and appears in the installed table",
+      "proof_level": "integration — the full flow from page load → discovery → card display → one-click install → UI refresh is exercised",
+      "integration_closure": "- Upstream: ModelService.install() and parse_manifest() already exist and are unchanged\n- New wiring: admin_models() route passes discovered available models to template context\n- After this slice: S02 builds on this pattern by adding remote registry models alongside bundled ones",
+      "observability_impact": "- Structured log on model scan (count of available models found)\n- Existing install logging in admin router unchanged",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M053",
+      "id": "S02",
+      "title": "Marketplace Registry + Install-from-Cloud",
+      "status": "pending",
+      "risk": "high",
+      "depends": [
+        "S01"
+      ],
+      "demo": "Admin → Mental Models shows a Browse Marketplace section with models from a remote registry. Click Install on a marketplace model → download + verify + extract + install → model types appear in explorer.",
+      "created_at": "2026-04-06T02:58:01.960Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Full marketplace install flow: registry client, archive download with security, writable model directory, browse UI, offline fallback",
+      "success_criteria": "RegistryService fetches and caches registry.json. Downloads verified by SHA-256. Tarfile extraction rejects path traversal. Models install to /app/data/models/. refresh_artifacts() searches both model directories. Marketplace UI shows catalog with install buttons. Offline fallback shows graceful error.",
+      "proof_level": "contract + integration + operational",
+      "integration_closure": "All /app/models/ hardcoded paths updated to search /app/data/models/ too. Marketplace install uses same ModelService.install() pipeline as S01.",
+      "observability_impact": "Download progress logging, registry fetch timing, hash verification results in ops log",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M053",
+      "id": "S03",
+      "title": "Version Checking + Update Notifications",
+      "status": "pending",
+      "risk": "low",
+      "depends": [
+        "S02"
+      ],
+      "demo": "Admin → Mental Models shows 'Up to date' or 'Update available' badges on installed model cards. Click Update to re-download and reinstall the latest version.",
+      "created_at": "2026-04-06T02:58:01.960Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Compare installed model versions against registry and provide update flow",
+      "success_criteria": "GET /admin/models/updates returns version comparison for all installed models. Installed model cards show version badge (current/update available). Update button triggers download + reinstall of latest version.",
+      "proof_level": "contract + integration",
+      "integration_closure": "Version checking reuses RegistryService.fetch_catalog() from S02. Update flow reuses download + install pipeline.",
+      "observability_impact": "Update events logged to ops log",
       "sequence": 0,
       "replan_triggered_at": null
     }
@@ -33724,6 +33841,82 @@
       "observability_impact": "",
       "full_plan_md": "",
       "sequence": 0
+    },
+    {
+      "milestone_id": "M053",
+      "slice_id": "S01",
+      "id": "T01",
+      "title": "Added scan_available_models() function that discovers bundled Mental Models from /app/models/ and wired it into all admin model routes",
+      "status": "complete",
+      "one_liner": "Added scan_available_models() function that discovers bundled Mental Models from /app/models/ and wired it into all admin model routes",
+      "narrative": "Added `scan_available_models(models_dir, installed_ids)` to `backend/app/admin/router.py`. The function iterates subdirectories of the given path, calls `parse_manifest()` on each (wrapped in try/except to skip invalid dirs), filters out already-installed models, and returns a list of dicts with model_id, name, description, version, path, type_count, and icon_count. Wired the function into admin_models(), admin_models_install(), admin_models_remove(), and admin_models_refresh_artifacts() routes so the template always has current available_models context.",
+      "verification_result": "Import verification passed: `from app.admin.router import scan_available_models` succeeds. Functional test confirmed all 8 bundled models discovered, installed exclusion filtering works, nonexistent directory returns empty list, malformed dirs are skipped. LSP diagnostics show no new errors.",
+      "duration": "",
+      "completed_at": "2026-04-06T03:05:50.264Z",
+      "blocker_discovered": false,
+      "deviations": "Also wired available_models into the admin_models_refresh_artifacts() route's model_table partial branches for consistency.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/admin/router.py"
+      ],
+      "key_decisions": [
+        "type_count derived from distinct icon types in manifest, not from parsing ontology files"
+      ],
+      "full_summary_md": "---\nid: T01\nparent: S01\nmilestone: M053\nkey_files:\n  - backend/app/admin/router.py\nkey_decisions:\n  - type_count derived from distinct icon types in manifest, not from parsing ontology files\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T03:05:50.264Z\nblocker_discovered: false\n---\n\n# T01: Added scan_available_models() function that discovers bundled Mental Models from /app/models/ and wired it into all admin model routes\n\n**Added scan_available_models() function that discovers bundled Mental Models from /app/models/ and wired it into all admin model routes**\n\n## What Happened\n\nAdded `scan_available_models(models_dir, installed_ids)` to `backend/app/admin/router.py`. The function iterates subdirectories of the given path, calls `parse_manifest()` on each (wrapped in try/except to skip invalid dirs), filters out already-installed models, and returns a list of dicts with model_id, name, description, version, path, type_count, and icon_count. Wired the function into admin_models(), admin_models_install(), admin_models_remove(), and admin_models_refresh_artifacts() routes so the template always has current available_models context.\n\n## Verification\n\nImport verification passed: `from app.admin.router import scan_available_models` succeeds. Functional test confirmed all 8 bundled models discovered, installed exclusion filtering works, nonexistent directory returns empty list, malformed dirs are skipped. LSP diagnostics show no new errors.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python -c \"from app.admin.router import scan_available_models; print('import OK')\"` | 0 | ✅ pass | 2000ms |\n| 2 | `Functional test: scan 8 models, filter exclusion, empty dir handling` | 0 | ✅ pass | 2000ms |\n| 3 | `LSP diagnostics check` | 0 | ✅ pass | 1000ms |\n\n## Deviations\n\nAlso wired available_models into the admin_models_refresh_artifacts() route's model_table partial branches for consistency.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/admin/router.py`\n",
+      "description": "Add a helper function that scans /app/models/ for directories containing valid manifest.yaml files, parses each manifest, cross-references against already-installed models, and returns the available (not-yet-installed) models as a list of dicts. Wire this into the admin_models() route so the template receives both `models` (installed) and `available_models` (discoverable, not installed). Also pass available_models context in admin_models_install() and admin_models_remove() so the available section stays current after install/remove operations.\n\nSteps:\n1. Read `backend/app/admin/router.py` — the admin_models() route and admin_models_install() route\n2. Read `backend/app/models/manifest.py` — parse_manifest() function\n3. Add a `scan_available_models(models_dir: str, installed_ids: set[str]) -> list[dict]` function in `backend/app/admin/router.py` that:\n   - Iterates subdirectories of models_dir\n   - For each, tries parse_manifest(dir) wrapped in try/except (skip invalid manifests)\n   - Filters out any model whose modelId is in installed_ids\n   - Returns list of dicts: {model_id, name, description, version, path, type_count, icon_count}\n   - type_count = count of icons with distinct types in manifest (proxy for number of types)\n4. In admin_models(), after listing installed models, call scan_available_models('/app/models', {m.model_id for m in models}) and add the result to the template context as `available_models`\n5. In admin_models_install() — after a successful install, rescan available models so the htmx partial swap shows the updated state. Same for admin_models_remove() — a removed model should reappear in the available list.\n6. Add structured logging: `logger.info('Scanned %s: found %d available models', models_dir, len(available))` at the end of the scan function\n\nConstraints:\n- The scan function must be tolerant of malformed manifests (try/except around parse_manifest, log warning, continue)\n- Must not import anything new — parse_manifest is already importable from app.models.manifest\n- The /app/models path must not be hardcoded deep in the function — pass it as a parameter for testability",
+      "estimate": "30m",
+      "files": [
+        "backend/app/admin/router.py",
+        "backend/app/models/manifest.py"
+      ],
+      "verify": "cd backend && python -c \"from app.admin.router import scan_available_models; print('import OK')\" && echo 'PASS'",
+      "inputs": [
+        "`backend/app/admin/router.py` — existing admin_models route to modify",
+        "`backend/app/models/manifest.py` — parse_manifest function to reuse"
+      ],
+      "expected_output": [
+        "`backend/app/admin/router.py` — updated with scan_available_models() function and modified admin_models/install/remove routes"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M053",
+      "slice_id": "S01",
+      "id": "T02",
+      "title": "Add available-models card grid UI and one-click install",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Add an 'Available Models' section to the admin models template showing discoverable bundled models as styled cards. Each card displays model name, description, version, and type count from the manifest. An Install button on each card triggers installation via htmx POST to the existing /admin/models/install endpoint with the model path.\n\nSteps:\n1. Read `backend/app/templates/admin/models.html` — current template structure\n2. Read `frontend/static/css/style.css` — existing admin and upper-ontology card styles (lines 415-470)\n3. Add an 'Available Models' section between the install form and the installed models table:\n   - Section header: `<h3 class=\"section-label\">Available Models</h3>`\n   - Grid container: `<div class=\"available-models-grid\">`\n   - For each model in available_models: a card div with:\n     - Model name (h4), version badge, description (p), type count stat\n     - Install button that does `hx-post=\"/admin/models/install\"` with hidden input `name=\"path\" value=\"/app/models/{{model.model_id}}\"`\n     - The button should use `hx-target=\"#model-table\"` and `hx-swap=\"outerHTML\"` to match existing install behavior\n     - Add hx-indicator for loading state on the button\n   - Empty state when available_models is empty: 'All bundled models are installed.'\n4. Move the available models section to render INSIDE the `#model-table` div (or create a wrapper that includes both available + installed sections) so that after install/remove htmx swaps, both sections update correctly.\n   - Actually, the simplest approach: keep the available section OUTSIDE #model-table but use `hx-target=\"body\"` with full page swap — NO. Instead, wrap the available-models section + install form + model-table into a single `#models-content` div that gets swapped on install/remove.\n   - The existing model_table block returns `#model-table` div. Expand this block to include both available-models and installed-models so htmx partial swaps update both.\n5. Add CSS to `frontend/static/css/style.css` in the admin section:\n   - `.available-models-grid` — CSS grid, 1-3 columns responsive, gap\n   - `.available-model-card` — border, border-radius, padding, hover shadow\n   - `.available-model-card h4` — model name styling\n   - `.available-model-card .model-version` — version badge\n   - `.available-model-card .model-desc` — description, muted text, line-clamp\n   - `.available-model-card .model-stats` — type count row\n   - `.available-model-card .btn` — install button styling\n   - All colors use theme tokens (var(--color-*)), not hardcoded values\n6. Remove or hide the text input install form — the available-models cards replace it. Keep the form as a fallback wrapped in a `<details>` element with summary 'Install from path...' for advanced users who might need to specify a custom path.\n7. Verify the install button works by checking that the htmx attributes match the existing form's POST behavior.\n\nCSS note per CLAUDE.md: all colors must use theme tokens. Use `color-mix()` with theme primitives for decorative tints. Follow the existing `.upper-ontology-card` pattern for card styling consistency.\n\nLucide icons note per CLAUDE.md: if adding any Lucide icons to cards, size via CSS not inline styles, add `flex-shrink: 0` in flex containers.",
+      "estimate": "45m",
+      "files": [
+        "backend/app/templates/admin/models.html",
+        "frontend/static/css/style.css"
+      ],
+      "verify": "rg 'available-models-grid' backend/app/templates/admin/models.html && rg 'available-model-card' frontend/static/css/style.css && echo 'PASS'",
+      "inputs": [
+        "`backend/app/admin/router.py` — T01 output with available_models in template context",
+        "`backend/app/templates/admin/models.html` — existing template to modify",
+        "`frontend/static/css/style.css` — existing admin styles to extend"
+      ],
+      "expected_output": [
+        "`backend/app/templates/admin/models.html` — updated with available-models card grid and one-click install buttons",
+        "`frontend/static/css/style.css` — updated with available-model-card grid styles"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
     }
   ],
   "decisions": [
@@ -38454,6 +38647,54 @@
       "revisable": "Yes",
       "made_by": "agent",
       "superseded_by": null
+    },
+    {
+      "seq": 429,
+      "id": "D395",
+      "when_context": "M053",
+      "scope": "architecture",
+      "decision": "Model marketplace registry format and hosting",
+      "choice": "Static JSON registry (registry.json) + .tar.gz archives hosted on GitHub Pages or equivalent static hosting",
+      "rationale": "Model archives are tiny (40-264KB). A static registry.json index + .tar.gz archives in a GitHub repo can be served at zero cost with HTTPS, global CDN, and high availability. No backend server to maintain, no API keys to manage. Users can fork the registry for private/custom models.",
+      "revisable": "Yes — upgrade to a dynamic API when community submissions or paid models are added",
+      "made_by": "agent",
+      "superseded_by": null
+    },
+    {
+      "seq": 430,
+      "id": "D396",
+      "when_context": "M053",
+      "scope": "architecture",
+      "decision": "Downloaded marketplace model storage location",
+      "choice": "/app/data/models/ on the writable sempkm_data volume, with all existing /app/models/ references updated to search both directories",
+      "rationale": "/app/models/ is read-only in the Docker container (mounted :ro). The writable sempkm_data volume at /app/data/ already persists across restarts. Adding /app/data/models/ as a secondary search path keeps bundled models separate from downloaded ones while reusing the existing persistent volume.",
+      "revisable": "No",
+      "made_by": "agent",
+      "superseded_by": null
+    },
+    {
+      "seq": 431,
+      "id": "D397",
+      "when_context": "M053",
+      "scope": "architecture",
+      "decision": "Model archive format for HTTP distribution",
+      "choice": ".tar.gz archives with Python stdlib tarfile module for extraction",
+      "rationale": "Model directories have a flat structure (manifest.yaml + subdirs) that tar.gz preserves exactly. Python tarfile is stdlib — no new dependencies. Security: extract to tempdir first, validate manifest + contents, then atomic move to install location. Tarfile bomb/traversal protection adapted from existing zip_validator.py pattern.",
+      "revisable": "No",
+      "made_by": "agent",
+      "superseded_by": null
+    },
+    {
+      "seq": 432,
+      "id": "D398",
+      "when_context": "M053",
+      "scope": "security",
+      "decision": "Model archive trust model for M053",
+      "choice": "SHA-256 hash verification against registry manifest — no GPG/Sigstore signing",
+      "rationale": "SHA-256 hash comparison provides integrity verification (tampered/corrupted archives rejected). Full cryptographic signing (GPG/Sigstore) adds significant complexity for marginal security gain when the registry is first-party and served over HTTPS. Models contain executable SHACL-AF rules, but the trust boundary is the registry source, not individual archives.",
+      "revisable": "Yes — add model signing when community-submitted models are supported",
+      "made_by": "agent",
+      "superseded_by": null
     }
   ],
   "verification_evidence": [
@@ -42097,6 +42338,39 @@
       "verdict": "✅ pass (no hardcoded hex)",
       "duration_ms": 100,
       "created_at": "2026-04-06T02:41:18.314Z"
+    },
+    {
+      "id": 332,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M053",
+      "command": "cd backend && .venv/bin/python -c \"from app.admin.router import scan_available_models; print('import OK')\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 2000,
+      "created_at": "2026-04-06T03:05:50.265Z"
+    },
+    {
+      "id": 333,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M053",
+      "command": "Functional test: scan 8 models, filter exclusion, empty dir handling",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 2000,
+      "created_at": "2026-04-06T03:05:50.265Z"
+    },
+    {
+      "id": 334,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M053",
+      "command": "LSP diagnostics check",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1000,
+      "created_at": "2026-04-06T03:05:50.265Z"
     }
   ]
 }
