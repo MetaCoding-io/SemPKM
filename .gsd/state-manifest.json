@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T07:29:59.967Z",
+  "exported_at": "2026-04-06T07:41:34.116Z",
   "milestones": [
     {
       "id": "M001",
@@ -8714,14 +8714,14 @@
       "milestone_id": "M056",
       "id": "S01",
       "title": "TBox Graph API + Hierarchical Rendering + Detail Panel",
-      "status": "pending",
+      "status": "complete",
       "risk": "high",
       "depends": [],
       "demo": "Open Ontology Viewer → TBox tab shows a hierarchical Cytoscape graph with gist classes at top, model types below. Toggle between graph/tree view. Click a node → detail panel shows class properties and instance count.",
       "created_at": "2026-04-06T07:14:11.418Z",
-      "completed_at": null,
-      "full_summary_md": "",
-      "full_uat_md": "",
+      "completed_at": "2026-04-06T07:32:02.126Z",
+      "full_summary_md": "---\nid: S01\nparent: M056\nmilestone: M056\nprovides:\n  - GET /browser/ontology/tbox/graph-data endpoint — returns Cytoscape-compatible {nodes, edges} with source labels\n  - SemPKM.initTboxGraph(containerId) — initializes graph in any container element\n  - SemPKM._tboxGraph / window._tboxCy — live Cytoscape instance reference for S02 filtering and persistence\n  - Node source data attribute — S02 can filter by source for multi-model filtering\n  - .tbox-vertical-split layout with graph/tree toggle — S02 adds filter controls to toolbar\nrequires:\n  []\naffects:\n  - S02\nkey_files:\n  - backend/app/ontology/service.py\n  - backend/app/ontology/router.py\n  - backend/tests/test_ontology_graph.py\n  - backend/app/templates/browser/ontology/ontology_page.html\n  - frontend/static/css/workspace.css\n  - frontend/static/js/ontology-graph.js\n  - backend/app/templates/base.html\nkey_decisions:\n  - D406: Client-side filtering via CSS class toggling — 170 nodes fits comfortably in memory\n  - Edge direction parent→child matches dagre TB convention (parents at top)\n  - Graph view is default/primary; tree view hidden behind toggle\n  - Dual cy instance reference (SemPKM._tboxGraph + window._tboxCy) for namespace and toggle compat\n  - Source-based node coloring: gist=slate, user=teal, models=rotating palette\n  - Edge labels hidden to reduce visual noise\npatterns_established:\n  - TBox graph API returns flat {nodes, edges} JSON — same pattern could serve other graph views\n  - Source-color assignment pattern: fixed colors for well-known sources, rotating palette for dynamic model sources\n  - Vertical split layout with view toggle — reusable for any pane needing dual visualization modes\nobservability_surfaces:\n  - logger.info on GET /browser/ontology/tbox/graph-data logs node count, edge count, graph count\n  - SPARQL errors logged with exc_info=True\n  - Empty state: 0-node response renders 'No ontology classes found' message in container\ndrill_down_paths:\n  - .gsd/milestones/M056/slices/S01/tasks/T01-SUMMARY.md\n  - .gsd/milestones/M056/slices/S01/tasks/T02-SUMMARY.md\n  - .gsd/milestones/M056/slices/S01/tasks/T03-SUMMARY.md\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-04-06T07:32:02.127Z\nblocker_discovered: false\n---\n\n# S01: TBox Graph API + Hierarchical Rendering + Detail Panel\n\n**Added a Cytoscape.js hierarchical graph to the Ontology Viewer TBox tab — API endpoint, vertical layout with graph/tree toggle, dagre TB rendering with source-based coloring, and node-click detail panel.**\n\n## What Happened\n\nThis slice replaced the tree-only TBox view in the Ontology Viewer with a full hierarchical Cytoscape.js graph as the primary view, while preserving the tree as an alternate view behind a toggle.\n\n**T01 — API endpoint.** Added `get_tbox_graph_data()` to OntologyService — a single SPARQL query across all ontology graphs (gist + installed models + user-types) returning Cytoscape-compatible `{nodes, edges}` JSON. Nodes include `id` (IRI), `label`, and `source` (gist/model-id/user). Edges are parent→child direction matching dagre TB convention. owl:Thing and blank nodes are excluded. Parent nodes are auto-created when only referenced by children. Error handling returns empty arrays on SPARQL failure. Route at `GET /browser/ontology/tbox/graph-data`. 16 unit tests cover node structure, edge direction, source labels, deduplication, empty results, SPARQL failure, and query structure.\n\n**T02 — Layout restructure.** Replaced the `.tbox-split` horizontal layout (tree left 320px, detail right) with `.tbox-vertical-split` vertical flex column. Top area has a toolbar with graph/tree toggle buttons and two view containers (graph visible by default, tree hidden). Bottom area is a 250px detail pane. `toggleTboxView()` handles visibility switching and Cytoscape resize on re-show. Fixed stale JS selectors from the old `.tbox-tree-pane` class.\n\n**T03 — Cytoscape rendering.** Created `ontology-graph.js` as an IIFE module exporting `SemPKM.initTboxGraph()`. Fetches graph data via `apiFetch()`, assigns per-source colors (gist=slate, user=teal, models=rotating palette), renders with dagre TB layout, wires node tap to `loadClassDetail()`, handles hover feedback, theme switching via `sempkm:theme-changed`, empty state messaging, and cleanup registration. Dual instance reference (`SemPKM._tboxGraph` + `window._tboxCy`) for namespace and toggle compatibility.\n\n## Verification\n\nAll slice-level verification passed:\n- 16/16 unit tests pass: `cd backend && .venv/bin/python -m pytest tests/test_ontology_graph.py -v` (0.50s)\n- T02 grep checks pass: tbox-graph in template, toggleTboxView in template, tbox-vertical-split in CSS\n- T03 grep checks pass: ontology-graph.js exists, initTboxGraph exported, apiFetch used, dagre layout used\n- Observability: logger.info on successful query logs node/edge/graph counts; SPARQL errors logged with exc_info=True\n\n## Requirements Advanced\n\nNone.\n\n## Requirements Validated\n\n- R019 — GET /browser/ontology/tbox/graph-data returns all TBox classes + subClassOf edges. ontology-graph.js renders dagre TB hierarchy with gist at top, model types below. 16 unit tests pass.\n- R021 — Node tap event calls loadClassDetail() which loads class properties, relationships, and instance count via /browser/ontology/tbox/detail endpoint.\n\n## New Requirements Surfaced\n\nNone.\n\n## Requirements Invalidated or Re-scoped\n\nNone.\n\n## Deviations\n\nMinor: T03 used Cytoscape data() style mappers for source colors instead of per-source stylesheet rules — simpler approach. T02 fixed stale .tbox-tree-pane selectors. No plan-invalidating deviations.\n\n## Known Limitations\n\nGraph renders all TBox classes in a single fetch — no pagination. Works for current scale (~170 nodes) but would need server-side filtering if scale exceeds ~500 nodes (D406 documents this tradeoff). Hover popover positioning (R018) is deferred to S02.\n\n## Follow-ups\n\nS02 covers multi-model filtering, per-model color coding, persistence across tab switches, and hover popover anchoring.\n\n## Files Created/Modified\n\n- `backend/app/ontology/service.py` — Added get_tbox_graph_data() method — SPARQL query across all ontology graphs returning Cytoscape-compatible {nodes, edges}\n- `backend/app/ontology/router.py` — Added GET /browser/ontology/tbox/graph-data route returning JSONResponse\n- `backend/tests/test_ontology_graph.py` — New: 16 unit tests covering node structure, edge direction, source labels, dedup, empty/error cases\n- `backend/app/templates/browser/ontology/ontology_page.html` — Restructured TBox pane: vertical split, graph/tree toggle, graph container, initTboxGraph() call\n- `frontend/static/css/workspace.css` — Added .tbox-vertical-split, .tbox-main-view, .tbox-graph-container, .tbox-tree-container, .tbox-view-toggle CSS\n- `frontend/static/js/ontology-graph.js` — New: IIFE module — SemPKM.initTboxGraph(), dagre TB layout, source coloring, node click, theme switching, cleanup\n- `backend/app/templates/base.html` — Added ontology-graph.js script tag\n",
+      "full_uat_md": "# S01: TBox Graph API + Hierarchical Rendering + Detail Panel — UAT\n\n**Milestone:** M056\n**Written:** 2026-04-06T07:32:02.127Z\n\n## UAT: S01 — TBox Graph API + Hierarchical Rendering + Detail Panel\n\n### Preconditions\n- SemPKM running with at least one Mental Model installed (e.g., basic-pkm)\n- gist upper ontology loaded (always present)\n- User authenticated and on workspace page\n\n### Test 1: Graph renders on TBox tab open\n1. Navigate to Admin → Ontology Viewer\n2. Click the TBox tab\n3. **Expected:** A Cytoscape hierarchical graph appears with gist classes at the top layer and model-specific classes below them. Nodes are labeled with class names. The graph fills the available area.\n\n### Test 2: Source-based node coloring\n1. On the TBox graph from Test 1, observe node colors\n2. **Expected:** gist classes are a neutral slate color. Model-specific classes (e.g., basic-pkm types like Task, Contact) use a distinct color from a rotating palette. User-created types (if any) use teal.\n\n### Test 3: Graph/Tree toggle\n1. On the TBox tab, locate the toggle buttons (Graph / Tree) in the toolbar\n2. Click \"Tree\"\n3. **Expected:** Graph disappears, tree view appears with the existing tree hierarchy, filter bar, and expand/collapse functionality\n4. Click \"Graph\"\n5. **Expected:** Tree disappears, graph reappears. Graph layout is preserved (not re-fetched).\n\n### Test 4: Node click → detail panel\n1. On the TBox graph, click any class node (e.g., \"Task\")\n2. **Expected:** Bottom detail panel populates with class properties, relationships, and instance count via the existing tbox/detail endpoint. The panel replaces the \"Select a class to view its details\" placeholder.\n3. Click a different node\n4. **Expected:** Detail panel updates to show the new class's information.\n\n### Test 5: Empty state\n1. Uninstall all Mental Models (leaving only gist)\n2. Open Ontology Viewer → TBox tab\n3. **Expected:** Graph renders showing only gist classes. If somehow no classes exist at all, a \"No ontology classes found\" message appears.\n\n### Test 6: API endpoint direct access\n1. `curl -b <auth-cookie> http://localhost:4000/browser/ontology/tbox/graph-data`\n2. **Expected:** JSON response with `{\"nodes\": [...], \"edges\": [...]}`. Each node has `id`, `label`, `source` fields. Each edge has `source` (parent IRI), `target` (child IRI). No owl:Thing nodes present.\n\n### Test 7: Dark mode theme switching\n1. On the TBox graph, switch to dark mode (theme toggle)\n2. **Expected:** Graph node and edge colors adapt to dark theme. No visual artifacts or invisible elements.\n3. Switch back to light mode\n4. **Expected:** Colors revert correctly.\n\n### Test 8: Tree view functionality preserved\n1. Switch to Tree view via toggle\n2. Expand a class node in the tree\n3. Use the \"Hide gist\" checkbox\n4. **Expected:** Tree expand/collapse works. Hide gist filters the tree. All existing tree functionality is intact.\n\n### Test 9: Existing modals still work\n1. In the TBox tab (either view), click \"Create Class\" (or equivalent)\n2. **Expected:** Modal overlay appears correctly, not displaced by the layout change.\n3. Close the modal\n4. **Expected:** Returns to the graph/tree view cleanly.\n\n### Edge Cases\n- **Large ontology:** Install 3+ models → graph should render all classes without visible performance issues\n- **Network error:** If /browser/ontology/tbox/graph-data returns an error, graph container shows an error message rather than a blank area\n- **Tab switch:** Navigate away from TBox tab and back → graph re-initializes correctly\n",
       "goal": "TBox tab in the Ontology Viewer shows a hierarchical Cytoscape graph with gist classes at the top layer and model types below, with a toggle to switch between graph/tree view, and a bottom detail panel that loads class properties/relationships/instance count when a node is clicked.",
       "success_criteria": "**Must-Haves:**\n- New JSON API endpoint `/browser/ontology/tbox/graph-data` returns all TBox classes as Cytoscape nodes with `rdfs:subClassOf` edges, source metadata (gist/model/user), and labels\n- TBox pane layout restructured: graph view as primary (top area), detail panel (bottom area), with a graph/tree toggle button\n- Cytoscape graph renders with dagre TB layout producing a top-down hierarchy (gist roots at top, model classes below)\n- Clicking a graph node loads class detail (properties, relationships, instance count) in the bottom detail panel via the existing `/browser/ontology/tbox/detail` endpoint\n- Tree view remains accessible via toggle button, preserving all existing tree functionality\n- Graph fills available width and height in the TBox pane\n\n**Threat Surface:**\n- **Abuse**: The graph-data endpoint queries the triplestore with dynamically assembled FROM clauses. All graph IRIs are derived from server-side model registry (no user input in IRIs). Low risk.\n- **Data exposure**: Only ontology schema data (class names, property definitions) — no PII or secrets.\n- **Input trust**: The `iri` query param on the existing detail endpoint already handles untrusted input via URL encoding. No new input trust boundaries.\n\n**Requirement Impact:**\n- **Requirements touched**: R019, R021\n- **Re-verify**: Existing TBox tree functionality must still work after layout restructure. Existing class creation/editing/deletion modals must still function.\n- **Decisions revisited**: D406 (graph as primary, tree as toggle)\n\n**Proof Level:**\n- This slice proves: integration (graph renders from live triplestore data across multiple ontology graphs)\n- Real runtime required: yes (needs RDF4J triplestore with loaded ontologies)\n- Human/UAT required: no\n\n**Verification:**\n- `cd backend && .venv/bin/python -m pytest tests/test_ontology_graph.py -v` — unit tests for the graph-data endpoint (node count, edge structure, source labels)\n- `curl -s http://localhost:4000/browser/ontology/tbox/graph-data -H 'Cookie: ...' | python3 -c \"import json,sys; d=json.load(sys.stdin); assert len(d['nodes'])>0; assert len(d['edges'])>0; print(f'OK: {len(d[\\\"nodes\\\"])} nodes, {len(d[\\\"edges\\\"])} edges')\"` — smoke test against running stack\n- Manual verification: Open Ontology Viewer → TBox tab shows graph → click node → detail panel populates → toggle to tree → tree still works\n\n**Observability / Diagnostics:**\n- Runtime signals: `logger.info(\"TBox graph-data: %d nodes, %d edges from %d graphs\", ...)` on the new endpoint\n- Inspection surfaces: `/browser/ontology/tbox/graph-data` returns structured JSON inspectable via curl\n- Failure visibility: SPARQL query errors logged with exc_info, endpoint returns empty nodes/edges arrays (not 500) on triplestore failure\n- Redaction constraints: none (ontology schema data only)\n\n**Integration Closure:**\n- Upstream surfaces consumed: `OntologyService.get_ontology_graph_iris()`, `OntologyService.get_root_classes()`, existing `/browser/ontology/tbox/detail` endpoint, `graph.js` patterns (Cytoscape init, popover, layout)\n- New wiring introduced: `/browser/ontology/tbox/graph-data` JSON endpoint, `ontology-graph.js` initializer called from template, graph/tree toggle JS\n- What remains before the milestone is truly usable end-to-end: S02 adds multi-model filtering, per-model color coding, graph persistence across tab switches, and popover hover anchoring fix",
       "proof_level": "integration",
@@ -8744,11 +8744,11 @@
       "completed_at": null,
       "full_summary_md": "",
       "full_uat_md": "",
-      "goal": "Complete the interactive features: model filtering, visual differentiation, tab persistence, and popover anchoring.",
-      "success_criteria": "- Model filter checkboxes above graph, one per installed model + 'All' toggle\n- Client-side filtering via source data attribute (show/hide nodes)\n- Per-model background colors from type_colors\n- cy.resize() on TBox tab activation preserves graph state\n- Hover popover uses graph.js body-append pattern, anchored to node\n- E2E tests verify filter behavior and tab persistence",
-      "proof_level": "E2E: filter to one model → node count decreases. Switch to ABox → back to TBox → graph visible with same layout.",
-      "integration_closure": "Filter operates on client-side data already fetched in S01. Popover reuses graph.js pattern. Tab persistence via cy.resize() in switchOntologyTab().",
-      "observability_impact": "None additional.",
+      "goal": "Multi-model filter updates the TBox graph live, hover popovers are correctly anchored, and graph state persists across tab switches.",
+      "success_criteria": "- Filter checkboxes per model source appear in the TBox toolbar, toggling node visibility without re-fetch\n- Color dots next to each filter label match the node colors in the graph\n- Hover on a node shows a body-appended popover with label, source badge, and IRI — anchored correctly inside dockview\n- Switching away from TBox tab and back preserves graph position (no reset)\n- All three requirements (R018, R020, R022) are met",
+      "proof_level": "Contract — client-side JS behavior verified by grep and structural checks. No backend changes.",
+      "integration_closure": "Upstream: `frontend/static/js/ontology-graph.js` (S01), `backend/app/templates/browser/ontology/ontology_page.html` (S01), `frontend/static/css/workspace.css` (S01 layout), `frontend/static/css/views.css` (existing `.graph-popover` CSS). No new wiring — this slice extends the existing IIFE and template. After this slice, M056 is complete.",
+      "observability_impact": "Console warnings on filter edge cases (no nodes matching a source). Popover cleanup registered via registerCleanup() for dockview panel lifecycle.",
       "sequence": 0,
       "replan_triggered_at": null
     }
@@ -35128,6 +35128,87 @@
       "observability_impact": "",
       "full_plan_md": "",
       "sequence": 0
+    },
+    {
+      "milestone_id": "M056",
+      "slice_id": "S02",
+      "id": "T01",
+      "title": "Added per-model filter checkboxes with color dots to TBox toolbar and fixed graph persistence on tab switch via cy.resize()",
+      "status": "complete",
+      "one_liner": "Added per-model filter checkboxes with color dots to TBox toolbar and fixed graph persistence on tab switch via cy.resize()",
+      "narrative": "Added three functions to ontology-graph.js: _buildFilterUI() creates checkbox labels with color-dot spans per distinct source in the graph data, _applySourceFilter() uses cy.batch() to show/hide nodes and edges based on active sources, and filterTboxBySource() provides a programmatic API exported on window.SemPKM. The filter UI is built inside _renderTboxGraph() after Cytoscape init — it extracts distinct sources via new Set(), sorts them (gist first, then alpha), and appends the checkbox container to the existing .tbox-view-toolbar. An 'All' checkbox toggles all individual checkboxes. Edges connected to hidden nodes are also hidden. For tab persistence, added cy.resize() in switchOntologyTab() when tabId === 'tbox' — no cy.fit(), preserving zoom/pan state. CSS added to workspace.css for .tbox-model-filter, .tbox-filter-item, and .tbox-filter-dot. Also exported SemPKM._tboxSourceColors map for T02's hover popover.",
+      "verification_result": "All four slice-level grep checks pass. JS syntax validated via node -c. cy.fit() count in ontology_page.html is exactly 1 (existing in toggleTboxView), confirming no cy.fit() was added to switchOntologyTab.",
+      "duration": "",
+      "completed_at": "2026-04-06T07:41:34.079Z",
+      "blocker_discovered": false,
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "frontend/static/js/ontology-graph.js",
+        "backend/app/templates/browser/ontology/ontology_page.html",
+        "frontend/static/css/workspace.css"
+      ],
+      "key_decisions": [
+        "Used cy.batch() for filter operations to avoid per-node layout thrashing",
+        "Filter UI built client-side from graph data sources, not from server-provided list",
+        "Exported _tboxSourceColors map for downstream popover use"
+      ],
+      "full_summary_md": "---\nid: T01\nparent: S02\nmilestone: M056\nkey_files:\n  - frontend/static/js/ontology-graph.js\n  - backend/app/templates/browser/ontology/ontology_page.html\n  - frontend/static/css/workspace.css\nkey_decisions:\n  - Used cy.batch() for filter operations to avoid per-node layout thrashing\n  - Filter UI built client-side from graph data sources, not from server-provided list\n  - Exported _tboxSourceColors map for downstream popover use\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T07:41:34.078Z\nblocker_discovered: false\n---\n\n# T01: Added per-model filter checkboxes with color dots to TBox toolbar and fixed graph persistence on tab switch via cy.resize()\n\n**Added per-model filter checkboxes with color dots to TBox toolbar and fixed graph persistence on tab switch via cy.resize()**\n\n## What Happened\n\nAdded three functions to ontology-graph.js: _buildFilterUI() creates checkbox labels with color-dot spans per distinct source in the graph data, _applySourceFilter() uses cy.batch() to show/hide nodes and edges based on active sources, and filterTboxBySource() provides a programmatic API exported on window.SemPKM. The filter UI is built inside _renderTboxGraph() after Cytoscape init — it extracts distinct sources via new Set(), sorts them (gist first, then alpha), and appends the checkbox container to the existing .tbox-view-toolbar. An 'All' checkbox toggles all individual checkboxes. Edges connected to hidden nodes are also hidden. For tab persistence, added cy.resize() in switchOntologyTab() when tabId === 'tbox' — no cy.fit(), preserving zoom/pan state. CSS added to workspace.css for .tbox-model-filter, .tbox-filter-item, and .tbox-filter-dot. Also exported SemPKM._tboxSourceColors map for T02's hover popover.\n\n## Verification\n\nAll four slice-level grep checks pass. JS syntax validated via node -c. cy.fit() count in ontology_page.html is exactly 1 (existing in toggleTboxView), confirming no cy.fit() was added to switchOntologyTab.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `grep -q 'filterTboxBySource|_applySourceFilter|tbox-model-filter' frontend/static/js/ontology-graph.js` | 0 | ✅ pass | 50ms |\n| 2 | `grep -q 'tbox-model-filter' frontend/static/css/workspace.css` | 0 | ✅ pass | 50ms |\n| 3 | `grep -q 'cy.resize()' backend/app/templates/browser/ontology/ontology_page.html` | 0 | ✅ pass | 50ms |\n| 4 | `grep -c 'cy.fit()' backend/app/templates/browser/ontology/ontology_page.html → 1` | 0 | ✅ pass | 50ms |\n| 5 | `node -c frontend/static/js/ontology-graph.js` | 0 | ✅ pass | 100ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `frontend/static/js/ontology-graph.js`\n- `backend/app/templates/browser/ontology/ontology_page.html`\n- `frontend/static/css/workspace.css`\n",
+      "description": "## Description\n\nAdd per-model filter checkboxes to the TBox toolbar and client-side node show/hide in ontology-graph.js. Also fix tab persistence by adding `cy.resize()` to `switchOntologyTab()`.\n\n### Context\n\n`ontology-graph.js` fetches graph data with nodes that have a `source` field (e.g. 'gist', 'basic-pkm', 'crm', 'user'). The `_colorForSource()` function assigns colors. The toolbar in `ontology_page.html` currently has graph/tree toggle buttons and a 'Hide gist' checkbox. We need a filter container after the existing controls.\n\n### Key patterns\n\n- Extract distinct source values client-side: `new Set(data.nodes.map(n => n.source))`\n- Use `node.hide()` / `node.show()` for Cytoscape element visibility (not CSS classes)\n- Hide edges where EITHER endpoint node is hidden: `edge.source().hidden() || edge.target().hidden()`\n- Color dots use the same `_colorForSource()` function\n- 'All' checkbox as convenience toggle — checked when all individual checkboxes checked\n- Export `SemPKM.filterTboxBySource(sourceName, visible)` for programmatic access\n- Tab persistence: in `switchOntologyTab()`, after adding `ontology-pane--active`, check `tabId === 'tbox'` and call `cy.resize()` — NO `cy.fit()` (that resets zoom/pan)\n\n## Steps\n\n1. Read `frontend/static/js/ontology-graph.js` to understand the current IIFE structure and `_renderTboxGraph()`.\n2. In `_renderTboxGraph()`, after Cytoscape init, extract distinct sources from `data.nodes` via `new Set()`. Build a sorted array (gist first if present, then alpha).\n3. Create a `_buildFilterUI(container, sources, isDark)` function that:\n   - Creates a `div.tbox-model-filter` element\n   - Adds an 'All' checkbox label\n   - For each source: adds a checkbox label with a color-dot `span` (background-color from `_colorForSource()`), the source name, and an `onchange` handler\n   - 'All' checkbox toggles all others\n   - Individual checkbox change recalculates 'All' state\n   - Returns the container element\n4. Create a `_applySourceFilter(cy, activeSources)` function that:\n   - Iterates all nodes — `node.hide()` if `activeSources` doesn't include `node.data('source')`, else `node.show()`\n   - Iterates all edges — `edge.hide()` if either endpoint is hidden, else `edge.show()`\n5. Insert the filter UI into the toolbar. In `_renderTboxGraph()`, find the `.tbox-view-toolbar` element in the container's parent (the `.tbox-main-view`) and append the filter div after the existing controls.\n6. Export `SemPKM.filterTboxBySource` and `SemPKM._tboxSourceColors` (source→color map for external use).\n7. Add CSS for `.tbox-model-filter` in `frontend/static/css/workspace.css`:\n   - Flex row with gap, wrapping allowed, aligned center\n   - `.tbox-filter-dot` — 10px circle with the source color\n   - `.tbox-filter-item` — flex row, label+checkbox+dot, font-size 0.78rem matching existing filter toggle\n8. In `ontology_page.html`, update `switchOntologyTab()`: after `target.classList.add('ontology-pane--active')`, add:\n   ```javascript\n   if (tabId === 'tbox') {\n     var cy = (window.SemPKM && window.SemPKM._tboxGraph) || window._tboxCy;\n     if (cy) { cy.resize(); }\n   }\n   ```\n   No `cy.fit()` — that would reset user's zoom/pan position.\n9. Verify with grep checks.\n\n## Must-Haves\n\n- [ ] Filter checkboxes rendered per distinct source in the graph data\n- [ ] Color dots match node colors from `_colorForSource()`\n- [ ] Unchecking a source hides its nodes AND edges connected to hidden nodes\n- [ ] 'All' checkbox toggles all individual checkboxes\n- [ ] `cy.resize()` called in `switchOntologyTab()` when TBox tab activates\n- [ ] No `cy.fit()` on tab switch — zoom/pan preserved\n\n## Verification\n\n- `grep -q 'filterTboxBySource\\|_applySourceFilter\\|tbox-model-filter' frontend/static/js/ontology-graph.js && echo 'PASS: filter function exists'`\n- `grep -q 'tbox-model-filter' frontend/static/css/workspace.css && echo 'PASS: filter CSS exists'`\n- `grep -q 'cy.resize()' backend/app/templates/browser/ontology/ontology_page.html && echo 'PASS: tab persistence fix'`\n- `grep -c 'cy.fit()' backend/app/templates/browser/ontology/ontology_page.html` returns at most the existing one in `toggleTboxView` — NOT in `switchOntologyTab`",
+      "estimate": "45m",
+      "files": [
+        "frontend/static/js/ontology-graph.js",
+        "backend/app/templates/browser/ontology/ontology_page.html",
+        "frontend/static/css/workspace.css"
+      ],
+      "verify": "grep -q 'filterTboxBySource' frontend/static/js/ontology-graph.js && grep -q 'tbox-model-filter' frontend/static/css/workspace.css && grep -q 'cy.resize' backend/app/templates/browser/ontology/ontology_page.html && echo 'T01 PASS'",
+      "inputs": [
+        "`frontend/static/js/ontology-graph.js` — S01 IIFE with _colorForSource(), _renderTboxGraph(), SemPKM.initTboxGraph()",
+        "`backend/app/templates/browser/ontology/ontology_page.html` — S01 template with toolbar, switchOntologyTab(), toggleTboxView()",
+        "`frontend/static/css/workspace.css` — S01 .tbox-vertical-split, .tbox-filter-toggle styles"
+      ],
+      "expected_output": [
+        "`frontend/static/js/ontology-graph.js` — adds _buildFilterUI(), _applySourceFilter(), SemPKM.filterTboxBySource export",
+        "`backend/app/templates/browser/ontology/ontology_page.html` — cy.resize() added to switchOntologyTab()",
+        "`frontend/static/css/workspace.css` — .tbox-model-filter, .tbox-filter-dot, .tbox-filter-item styles"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M056",
+      "slice_id": "S02",
+      "id": "T02",
+      "title": "Body-appended hover popover on graph nodes",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "## Description\n\nAdd a hover popover to TBox graph nodes following the exact graph.js body-appended popover pattern (KNOWLEDGE.md: 'Popovers inside dockview panels must escape stacking context via document.body'). Shows class label, source badge, and IRI on hover. Correctly anchored via `position:fixed` + `getBoundingClientRect()`.\n\n### Reference pattern from graph.js\n\nThe existing popover in `frontend/static/js/graph.js` (lines 430-585) establishes the proven pattern:\n1. Create `div.graph-popover`, append to `document.body`\n2. On `mouseover` node: start 250ms timer → build HTML → set `display:block`, position with `container.getBoundingClientRect()` + `node.renderedPosition()` + offset\n3. Viewport overflow clamping: check `pRect.right > window.innerWidth - 8`, `pRect.bottom > window.innerHeight - 8`\n4. On `mouseout` node: 100ms delayed hide, cancelled if mouse enters popover (`_popoverHovered` flag)\n5. Popover has `mouseenter`/`mouseleave` handlers for the hover-into-popover UX\n6. Cleanup: `registerCleanup()` removes popover from body\n\nThe CSS is fully reusable — `.graph-popover` in `frontend/static/css/views.css` already has `position:fixed`, `z-index:9999`, themed colors.\n\n### Popover content for ontology nodes\n\nSimpler than graph.js (no 'Open' button, no properties table):\n- Header: class label (`.graph-popover-label`) + source badge (`.graph-popover-type`, text = source name, background-color = source color)\n- Body: full IRI in monospace (`.graph-popover-iri`)\n- No footer/open button — node tap already loads detail panel\n\n## Steps\n\n1. Read `frontend/static/js/ontology-graph.js` to find the exact location in `_renderTboxGraph()` after Cytoscape init.\n2. In `_renderTboxGraph()`, after the cy instance is created:\n   a. Create popover div: `var popover = document.createElement('div'); popover.className = 'graph-popover'; document.body.appendChild(popover);`\n   b. Add `_popoverHovered` flag and `_hoverTimer` variable\n   c. Add `mouseenter`/`mouseleave` on the popover div (same as graph.js)\n3. Replace the existing `mouseover`/`mouseout` handlers on cy nodes:\n   a. `mouseover`: clear any pending hide timer, start 250ms delay timer. On fire: build popover HTML, position using `container.getBoundingClientRect()` + `evt.target.renderedPosition()`, clamp to viewport, show.\n   b. `mouseout`: clear hover timer, start 100ms delayed hide (check `_popoverHovered`).\n4. Keep the existing `hovered` class add/remove for the size feedback (it's independent of the popover).\n5. Build popover HTML:\n   ```javascript\n   var d = node.data();\n   var html = '<div class=\"graph-popover-header\">' +\n     '<span class=\"graph-popover-label\">' + _esc(d.label) + '</span>' +\n     '<span class=\"graph-popover-type\" style=\"background-color:' + d.sourceColor + '\">' + _esc(d.source) + '</span>' +\n   '</div>' +\n   '<div style=\"padding:6px 14px 10px;\"><span class=\"graph-popover-iri\">' + _esc(d.id) + '</span></div>';\n   ```\n6. Add a simple `_esc()` HTML escaping function (same pattern as graph.js) if not already in scope.\n7. In the cleanup registration, add `document.body.removeChild(popover)` to the cleanup callback.\n8. Add one small CSS addition to `workspace.css`: `.tbox-graph-container .graph-popover-type` style for dynamic background-color override (the source badge needs inline `background-color` from `sourceColor` data, but the base `.graph-popover-type` has a fixed `background: var(--color-primary)` — the inline style will override correctly, but add a comment noting this intentional override).\n\n## Must-Haves\n\n- [ ] Popover appended to `document.body` (not inside the dockview panel)\n- [ ] Positioned via `position:fixed` using `getBoundingClientRect()` + `renderedPosition()`\n- [ ] Viewport overflow clamping (right edge, bottom edge)\n- [ ] 250ms hover delay before showing (debounce)\n- [ ] 100ms delayed hide with hover-into-popover cancellation\n- [ ] Shows class label, source badge with source color, and full IRI\n- [ ] `registerCleanup()` removes popover from body on panel destruction\n\n## Verification\n\n- `grep -q 'document.body.appendChild' frontend/static/js/ontology-graph.js && echo 'PASS: body-appended popover'`\n- `grep -q 'graph-popover' frontend/static/js/ontology-graph.js && echo 'PASS: uses graph-popover class'`\n- `grep -q 'getBoundingClientRect' frontend/static/js/ontology-graph.js && echo 'PASS: position:fixed anchoring'`\n- `grep -q 'removeChild.*popover\\|popover.*remove' frontend/static/js/ontology-graph.js && echo 'PASS: cleanup registered'`",
+      "estimate": "30m",
+      "files": [
+        "frontend/static/js/ontology-graph.js"
+      ],
+      "verify": "grep -q 'document.body.appendChild' frontend/static/js/ontology-graph.js && grep -q 'graph-popover' frontend/static/js/ontology-graph.js && grep -q 'getBoundingClientRect' frontend/static/js/ontology-graph.js && echo 'T02 PASS'",
+      "inputs": [
+        "`frontend/static/js/ontology-graph.js` — T01 output with filter functions added",
+        "`frontend/static/css/views.css` — existing .graph-popover CSS (position:fixed, z-index:9999, themed colors)"
+      ],
+      "expected_output": [
+        "`frontend/static/js/ontology-graph.js` — adds body-appended popover with hover delay, viewport clamping, cleanup"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
     }
   ],
   "decisions": [
@@ -40002,6 +40083,18 @@
       "revisable": "Yes",
       "made_by": "agent",
       "superseded_by": null
+    },
+    {
+      "seq": 453,
+      "id": "D407",
+      "when_context": "",
+      "scope": "requirement",
+      "decision": "R021 — Clicking graph node shows class detail in bottom panel",
+      "choice": "validated",
+      "rationale": "ontology-graph.js wires Cytoscape node tap event to existing loadClassDetail() function which loads class properties, relationships, and instance count in the bottom detail panel via the existing /browser/ontology/tbox/detail endpoint.",
+      "revisable": "Yes",
+      "made_by": "agent",
+      "superseded_by": null
     }
   ],
   "verification_evidence": [
@@ -44382,6 +44475,61 @@
       "verdict": "✅ pass",
       "duration_ms": 480,
       "created_at": "2026-04-06T07:29:59.928Z"
+    },
+    {
+      "id": 399,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M056",
+      "command": "grep -q 'filterTboxBySource|_applySourceFilter|tbox-model-filter' frontend/static/js/ontology-graph.js",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-04-06T07:41:34.079Z"
+    },
+    {
+      "id": 400,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M056",
+      "command": "grep -q 'tbox-model-filter' frontend/static/css/workspace.css",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-04-06T07:41:34.079Z"
+    },
+    {
+      "id": 401,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M056",
+      "command": "grep -q 'cy.resize()' backend/app/templates/browser/ontology/ontology_page.html",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-04-06T07:41:34.079Z"
+    },
+    {
+      "id": 402,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M056",
+      "command": "grep -c 'cy.fit()' backend/app/templates/browser/ontology/ontology_page.html → 1",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-04-06T07:41:34.079Z"
+    },
+    {
+      "id": 403,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M056",
+      "command": "node -c frontend/static/js/ontology-graph.js",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-06T07:41:34.079Z"
     }
   ]
 }

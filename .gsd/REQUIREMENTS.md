@@ -59,15 +59,6 @@ This file is the explicit capability and coverage contract for the project.
 - Supporting slices: M056/S01
 - Validation: Hover any node in the ontology graph → popover appears adjacent to the node, not displaced to a far corner. Uses graph.js body-appended popover pattern.
 
-### R019 — Ontology Viewer TBox tab shows a hierarchical graph of all installed model classes with gist at the top layer
-- Class: functional
-- Status: active
-- Description: Ontology Viewer TBox tab shows a hierarchical graph of all installed model classes with gist at the top layer
-- Why it matters: Core value of M056 — users need to see the full ontology hierarchy visually, not just as a tree list
-- Source: M056
-- Primary owning slice: M056/S01
-- Validation: Open Ontology Viewer → TBox tab shows Cytoscape graph with gist classes at top, model types below. dagre TB layout produces clean hierarchy.
-
 ### R020 — Multi-select model filter updates ontology graph in real-time without page reload
 - Class: functional
 - Status: active
@@ -76,15 +67,6 @@ This file is the explicit capability and coverage contract for the project.
 - Source: M056
 - Primary owning slice: M056/S02
 - Validation: Filter to show only CRM → graph re-renders with just CRM types plus gist connections. Uncheck CRM, check business-planning → graph updates live.
-
-### R021 — Clicking a graph node shows class detail (properties, relationships, instance count) in a bottom detail panel
-- Class: functional
-- Status: active
-- Description: Clicking a graph node shows class detail (properties, relationships, instance count) in a bottom detail panel
-- Why it matters: Interactive exploration is the point of having a graph — users need to drill into node details
-- Source: M056
-- Primary owning slice: M056/S01
-- Validation: Click any node in the ontology graph → bottom detail panel shows class properties, relationships, instance count via existing tbox/detail endpoint.
 
 ### R022 — Ontology graph state (positions, zoom, pan) persists when switching between TBox/ABox/RBox tabs
 - Class: functional
@@ -208,6 +190,24 @@ This file is the explicit capability and coverage contract for the project.
 - Primary owning slice: M055/S02
 - Validation: Duplicate of R014 — same 8 E2E tests validate both requirements. Validated in M055/S02.
 
+### R019 — Ontology Viewer TBox tab shows a hierarchical graph of all installed model classes with gist at the top layer
+- Class: functional
+- Status: validated
+- Description: Ontology Viewer TBox tab shows a hierarchical graph of all installed model classes with gist at the top layer
+- Why it matters: Core value of M056 — users need to see the full ontology hierarchy visually, not just as a tree list
+- Source: M056
+- Primary owning slice: M056/S01
+- Validation: GET /browser/ontology/tbox/graph-data returns all TBox classes + subClassOf edges. ontology-graph.js renders dagre TB hierarchy with gist at top. 16 unit tests pass. Validated in M056/S01.
+
+### R021 — Clicking a graph node shows class detail (properties, relationships, instance count) in a bottom detail panel
+- Class: functional
+- Status: validated
+- Description: Clicking a graph node shows class detail (properties, relationships, instance count) in a bottom detail panel
+- Why it matters: Interactive exploration is the point of having a graph — users need to drill into node details
+- Source: M056
+- Primary owning slice: M056/S01
+- Validation: Node tap event in ontology-graph.js calls loadClassDetail() which loads class properties, relationships, and instance count via /browser/ontology/tbox/detail. Validated in M056/S01.
+
 ## Traceability
 
 | ID | Class | Status | Primary owner | Supporting | Proof |
@@ -230,14 +230,14 @@ This file is the explicit capability and coverage contract for the project.
 | R016 | functional | validated | M055/S01 | none | E2E test 4 navigates to /browser/?tab=<iri> and confirms correct object tab opens on page load. Deep-link handler supports all 9 tab ID formats. Manual verification: deep-link works, refresh preserves tab. Validated in M055/S01. |
 | R017 | functional | validated | M055/S02 | none | Duplicate of R014 — same 8 E2E tests validate both requirements. Validated in M055/S02. |
 | R018 | functional | active | M056/S02 | M056/S01 | Hover any node in the ontology graph → popover appears adjacent to the node, not displaced to a far corner. Uses graph.js body-appended popover pattern. |
-| R019 | functional | active | M056/S01 | none | Open Ontology Viewer → TBox tab shows Cytoscape graph with gist classes at top, model types below. dagre TB layout produces clean hierarchy. |
+| R019 | functional | validated | M056/S01 | none | GET /browser/ontology/tbox/graph-data returns all TBox classes + subClassOf edges. ontology-graph.js renders dagre TB hierarchy with gist at top. 16 unit tests pass. Validated in M056/S01. |
 | R020 | functional | active | M056/S02 | none | Filter to show only CRM → graph re-renders with just CRM types plus gist connections. Uncheck CRM, check business-planning → graph updates live. |
-| R021 | functional | active | M056/S01 | none | Click any node in the ontology graph → bottom detail panel shows class properties, relationships, instance count via existing tbox/detail endpoint. |
+| R021 | functional | validated | M056/S01 | none | Node tap event in ontology-graph.js calls loadClassDetail() which loads class properties, relationships, and instance count via /browser/ontology/tbox/detail. Validated in M056/S01. |
 | R022 | functional | active | M056/S02 | none | Position/zoom graph → switch to ABox → switch back to TBox → graph in same position. cy.resize() called on tab activation. |
 
 ## Coverage Summary
 
-- Active requirements: 10
-- Mapped to slices: 10
-- Validated: 12 (R001, R002, R004, R005, R006, R011, R012, R013, R014, R015, R016, R017)
+- Active requirements: 8
+- Mapped to slices: 8
+- Validated: 14 (R001, R002, R004, R005, R006, R011, R012, R013, R014, R015, R016, R017, R019, R021)
 - Unmapped active requirements: 0

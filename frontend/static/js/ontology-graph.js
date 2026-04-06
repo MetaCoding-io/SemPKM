@@ -211,6 +211,145 @@
   }
 
   /**
+   * Apply source filter — show/hide nodes and their edges.
+   * @param {Object} cy - Cytoscape instance
+   * @param {Set|Array} activeSources - source names to show
+   */
+  function _applySourceFilter(cy, activeSources) {
+    var activeSet = activeSources instanceof Set ? activeSources : new Set(activeSources);
+
+    cy.batch(function () {
+      cy.nodes().forEach(function (node) {
+        if (activeSet.has(node.data('source'))) {
+          node.show();
+        } else {
+          node.hide();
+        }
+      });
+      cy.edges().forEach(function (edge) {
+        if (edge.source().hidden() || edge.target().hidden()) {
+          edge.hide();
+        } else {
+          edge.show();
+        }
+      });
+    });
+  }
+
+  /**
+   * Build the per-model filter checkbox UI.
+   * @param {HTMLElement} toolbar - toolbar element to append into
+   * @param {Array<string>} sources - distinct source names
+   * @param {boolean} isDark - current theme
+   * @param {Object} cy - Cytoscape instance
+   */
+  function _buildFilterUI(toolbar, sources, isDark, cy) {
+    var wrap = document.createElement('div');
+    wrap.className = 'tbox-model-filter';
+
+    // 'All' checkbox
+    var allLabel = document.createElement('label');
+    allLabel.className = 'tbox-filter-item';
+    var allCb = document.createElement('input');
+    allCb.type = 'checkbox';
+    allCb.checked = true;
+    allCb.className = 'tbox-filter-cb-all';
+    allLabel.appendChild(allCb);
+    var allText = document.createElement('span');
+    allText.className = 'tbox-filter-label';
+    allText.textContent = 'All';
+    allLabel.appendChild(allText);
+    wrap.appendChild(allLabel);
+
+    var checkboxes = [];
+
+    for (var i = 0; i < sources.length; i++) {
+      (function (src) {
+        var label = document.createElement('label');
+        label.className = 'tbox-filter-item';
+
+        var cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = true;
+        cb.setAttribute('data-source', src);
+        label.appendChild(cb);
+
+        var dot = document.createElement('span');
+        dot.className = 'tbox-filter-dot';
+        dot.style.backgroundColor = _colorForSource(src, isDark);
+        label.appendChild(dot);
+
+        var txt = document.createElement('span');
+        txt.className = 'tbox-filter-label';
+        txt.textContent = src;
+        label.appendChild(txt);
+
+        checkboxes.push(cb);
+
+        cb.addEventListener('change', function () {
+          _syncAllCheckbox(allCb, checkboxes);
+          _applyFromCheckboxes(cy, checkboxes);
+        });
+
+        wrap.appendChild(label);
+      })(sources[i]);
+    }
+
+    // 'All' toggles all individual checkboxes
+    allCb.addEventListener('change', function () {
+      var checked = allCb.checked;
+      for (var k = 0; k < checkboxes.length; k++) {
+        checkboxes[k].checked = checked;
+      }
+      _applyFromCheckboxes(cy, checkboxes);
+    });
+
+    toolbar.appendChild(wrap);
+    // Store reference for theme updates
+    wrap._checkboxes = checkboxes;
+  }
+
+  /** Recalculate 'All' checkbox state from individual checkboxes */
+  function _syncAllCheckbox(allCb, checkboxes) {
+    var allChecked = true;
+    for (var i = 0; i < checkboxes.length; i++) {
+      if (!checkboxes[i].checked) { allChecked = false; break; }
+    }
+    allCb.checked = allChecked;
+  }
+
+  /** Collect active sources from checkboxes and apply filter */
+  function _applyFromCheckboxes(cy, checkboxes) {
+    var active = [];
+    for (var i = 0; i < checkboxes.length; i++) {
+      if (checkboxes[i].checked) {
+        active.push(checkboxes[i].getAttribute('data-source'));
+      }
+    }
+    _applySourceFilter(cy, active);
+  }
+
+  /**
+   * Programmatic filter: show/hide a specific source.
+   * @param {string} sourceName - source to toggle
+   * @param {boolean} visible - true to show, false to hide
+   */
+  function filterTboxBySource(sourceName, visible) {
+    var cy = window.SemPKM._tboxGraph;
+    if (!cy) return;
+    // Find the checkbox and toggle it
+    var wrap = document.querySelector('.tbox-model-filter');
+    if (!wrap) return;
+    var cb = wrap.querySelector('input[data-source="' + sourceName + '"]');
+    if (cb) {
+      cb.checked = visible;
+      var allCb = wrap.querySelector('.tbox-filter-cb-all');
+      if (allCb) _syncAllCheckbox(allCb, wrap._checkboxes || []);
+      _applyFromCheckboxes(cy, wrap._checkboxes || []);
+    }
+  }
+
+  /**
    * Render the Cytoscape graph from API data.
    */
   function _renderTboxGraph(container, data) {
@@ -288,6 +427,37 @@
       container.style.cursor = 'default';
     });
 
+    // --- Filter UI ---
+    // Extract distinct sources and build filter checkboxes
+    var sourceSet = new Set();
+    for (var s = 0; s < data.nodes.length; s++) {
+      sourceSet.add(data.nodes[s].source || 'other');
+    }
+    var sortedSources = Array.from(sourceSet).sort(function (a, b) {
+      // gist first, then alpha
+      if (a === 'gist') return -1;
+      if (b === 'gist') return 1;
+      return a.localeCompare(b);
+    });
+
+    // Build source→color map for external use
+    var sourceColors = {};
+    for (var sc = 0; sc < sortedSources.length; sc++) {
+      sourceColors[sortedSources[sc]] = _colorForSource(sortedSources[sc], isDark);
+    }
+    window.SemPKM._tboxSourceColors = sourceColors;
+
+    // Find toolbar and append filter UI
+    var mainView = container.closest('.tbox-main-view');
+    var toolbar = mainView ? mainView.querySelector('.tbox-view-toolbar') : null;
+    if (toolbar) {
+      // Remove any existing filter UI (re-init case)
+      var existing = toolbar.querySelector('.tbox-model-filter');
+      if (existing) existing.remove();
+
+      _buildFilterUI(toolbar, sortedSources, isDark, cy);
+    }
+
     // --- Cleanup ---
     if (typeof window.SemPKM.registerCleanup === 'function' && container.id) {
       window.SemPKM.registerCleanup(container.id, function () {
@@ -295,6 +465,9 @@
           window.SemPKM._tboxGraph = null;
           window._tboxCy = null;
         }
+        // Remove filter UI from toolbar
+        var filterEl = document.querySelector('.tbox-model-filter');
+        if (filterEl) filterEl.remove();
         cy.destroy();
       });
     }
@@ -332,5 +505,6 @@
 
   // --- Export ---
   window.SemPKM.initTboxGraph = initTboxGraph;
+  window.SemPKM.filterTboxBySource = filterTboxBySource;
 
 })();

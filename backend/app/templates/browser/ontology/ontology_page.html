@@ -172,6 +172,12 @@ function switchOntologyTab(btn, tabId) {
   }
   var target = document.getElementById('ontology-' + tabId);
   if (target) target.classList.add('ontology-pane--active');
+
+  // Resize Cytoscape when switching back to TBox — recalculates container bounds
+  if (tabId === 'tbox') {
+    var cy = (window.SemPKM && window.SemPKM._tboxGraph) || window._tboxCy;
+    if (cy) { cy.resize(); }
+  }
 }
 
 function toggleClassCreationForm() {

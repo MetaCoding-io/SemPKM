@@ -743,6 +743,40 @@ tr:hover .rbox-edit-btn {
     white-space: nowrap;
 }
 
+/* Per-model source filter checkboxes */
+.tbox-model-filter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin-left: auto;
+    padding-left: 8px;
+}
+
+.tbox-filter-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    user-select: none;
+    white-space: nowrap;
+}
+
+.tbox-filter-item input[type="checkbox"] {
+    margin: 0;
+    cursor: pointer;
+}
+
+.tbox-filter-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
 .tbox-tree-scroll {
     flex: 1;
     overflow-y: auto;
