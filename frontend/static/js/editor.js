@@ -8,35 +8,28 @@
 
 // Read from the vendored IIFE bundle (codemirror-markdown.min.js sets window.CM_Markdown)
 var { EditorView, keymap } = window.CM_Markdown;
-var { EditorState, Compartment } = window.CM_Markdown;
+var { EditorState } = window.CM_Markdown;
 var { basicSetup } = window.CM_Markdown;
 var { markdown } = window.CM_Markdown;
 
-// --- Theme Compartment (shared across all editor instances) ---
-var themeCompartment = new Compartment();
-
-var darkEditorTheme = EditorView.theme({
-  '&': { backgroundColor: '#282c34', color: '#abb2bf' },
-  '.cm-cursor, .cm-dropCursor': { borderLeftColor: '#56b6c2' },
-  '.cm-gutters': { backgroundColor: '#21252b', color: '#5c6370', borderRight: '1px solid #3e4452' },
-  '.cm-activeLineGutter': { backgroundColor: '#2c313a' },
-  '.cm-activeLine': { backgroundColor: '#2c313a' },
-  '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': { backgroundColor: '#3E4451' }
-}, { dark: true });
-
-var lightEditorTheme = EditorView.theme({
-  '&': { backgroundColor: '#ffffff', color: '#1a1a2e' },
-  '.cm-gutters': { backgroundColor: '#f8f9fb', color: '#666', borderRight: '1px solid #e0e0e0' }
-}, { dark: false });
+// --- Unified CM6 theme using CSS custom properties (auto-adapts to light/dark) ---
+var editorTheme = EditorView.theme({
+  '&': { backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' },
+  '.cm-cursor, .cm-dropCursor': { borderLeftColor: 'var(--color-accent)' },
+  '.cm-gutters': {
+    backgroundColor: 'var(--color-surface-raised)',
+    color: 'var(--color-text-faint)',
+    borderRight: '1px solid var(--color-border)'
+  },
+  '.cm-activeLineGutter': { backgroundColor: 'var(--color-surface-recessed)' },
+  '.cm-activeLine': { backgroundColor: 'var(--color-surface-recessed)' },
+  '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': {
+    backgroundColor: 'var(--color-surface-hover)'
+  }
+});
 
 // Track active editor instances by object IRI
 var editors = {};
-
-function getCurrentTheme() {
-  return document.documentElement.getAttribute('data-theme') === 'dark'
-    ? darkEditorTheme
-    : lightEditorTheme;
-}
 
 /**
  * Initialize a CodeMirror 6 editor in the specified container.
@@ -71,7 +64,7 @@ export function initEditor(containerId, initialContent, objectIri) {
       extensions: [
         basicSetup,
         markdown(),
-        themeCompartment.of(getCurrentTheme()),
+        editorTheme,
         keymap.of([
           {
             key: 'Mod-s',
@@ -229,24 +222,8 @@ export function destroyEditor(objectIri) {
   }
 }
 
-/**
- * Switch all active CodeMirror editors between dark and light themes.
- * Uses Compartment.reconfigure() to preserve cursor position, undo history, etc.
- *
- * @param {boolean} isDark - true for dark theme, false for light
- */
-window.SemPKM.switchEditorThemes = function(isDark) {
-  var theme = isDark ? darkEditorTheme : lightEditorTheme;
-  var iris = Object.keys(editors);
-  for (var i = 0; i < iris.length; i++) {
-    var view = editors[iris[i]];
-    if (view) {
-      view.dispatch({
-        effects: themeCompartment.reconfigure(theme)
-      });
-    }
-  }
-};
+// No-op: CSS custom properties auto-adapt to theme changes, no reconfigure needed
+window.SemPKM.switchEditorThemes = function() {};
 
 // Expose functions globally for use from non-module scripts and onclick handlers
 window.SemPKM.initEditor = initEditor;

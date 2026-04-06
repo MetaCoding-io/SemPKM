@@ -57,7 +57,7 @@ Enhance the visual difference between active and inactive dockview tabs in `dock
   - Estimate: 45m
   - Files: backend/app/templates/browser/object_tab.html, backend/app/templates/browser/object_tab_app.html, backend/app/templates/browser/views_explorer.html, frontend/static/css/workspace.css, frontend/static/css/dockview-sempkm-bridge.css
   - Verify: grep -q 'data-lucide' backend/app/templates/browser/object_tab.html && grep -q 'data-lucide' backend/app/templates/browser/views_explorer.html && grep -q 'font-weight.*600' frontend/static/css/dockview-sempkm-bridge.css && grep -c '&#[0-9]*;' backend/app/templates/browser/views_explorer.html | grep -q '^0$' && echo 'PASS'
-- [ ] **T02: Body editor writing surface with CSS-token-driven CM6 theme** — Replace hardcoded hex colors in the CM6 editor themes with CSS `var()` tokens, collapse dual light/dark theme into a single definition, and add writing-surface polish.
+- [x] **T02: Collapsed dual CM6 themes into single CSS-var-driven definition and added writing surface polish** — Replace hardcoded hex colors in the CM6 editor themes with CSS `var()` tokens, collapse dual light/dark theme into a single definition, and add writing-surface polish.
 
 ## 1. Collapse CM6 Themes to Single Definition
 

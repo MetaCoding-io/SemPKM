@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T01",
+  "unitId": "M052/S03/T01",
+  "timestamp": 1775442035297,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "grep -q 'data-lucide' backend/app/templates/browser/object_tab.html",
+      "exitCode": 0,
+      "durationMs": 27,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -q 'data-lucide' backend/app/templates/browser/views_explorer.html",
+      "exitCode": 0,
+      "durationMs": 26,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -q 'font-weight.*600' frontend/static/css/dockview-sempkm-bridge.css",
+      "exitCode": 0,
+      "durationMs": 26,
+      "verdict": "pass"
+    },
+    {
+      "command": "echo 'PASS'",
+      "exitCode": 0,
+      "durationMs": 25,
+      "verdict": "pass"
+    }
+  ]
+}
