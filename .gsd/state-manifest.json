@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T02:22:34.254Z",
+  "exported_at": "2026-04-06T02:36:49.533Z",
   "milestones": [
     {
       "id": "M001",
@@ -8349,14 +8349,14 @@
       "milestone_id": "M052",
       "id": "S03",
       "title": "Type Badge, Tabs & Navigation Chrome",
-      "status": "pending",
+      "status": "complete",
       "risk": "low",
       "depends": [],
       "demo": "Type badge shows Lucide icon with type color accent. Active tab is clearly distinguishable from inactive. View explorer uses Lucide icons with per-renderer colors. Body editor feels like a writing surface.",
       "created_at": "2026-04-06T01:45:38.441Z",
-      "completed_at": null,
-      "full_summary_md": "",
-      "full_uat_md": "",
+      "completed_at": "2026-04-06T02:24:05.011Z",
+      "full_summary_md": "---\nid: S03\nparent: M052\nmilestone: M052\nprovides:\n  - Type badge with Lucide icon and --type-color CSS variable\n  - View explorer with Lucide icons and per-renderer color-mix colors\n  - Enhanced active tab styling (bold, 3px accent, shadow)\n  - Single CSS-var-driven CM6 editor theme with writing-surface polish\nrequires:\n  []\naffects:\n  - S04\nkey_files:\n  - backend/app/templates/browser/object_tab.html\n  - backend/app/templates/browser/object_tab_app.html\n  - backend/app/templates/browser/views_explorer.html\n  - frontend/static/css/workspace.css\n  - frontend/static/css/dockview-sempkm-bridge.css\n  - frontend/static/js/editor.js\nkey_decisions:\n  - Used color-mix(in srgb, var(--_color-*) 80%, transparent) for all view explorer icon colors per K014\n  - Collapsed dual CM6 light/dark themes into single CSS-var-driven definition, eliminating Compartment machinery\n  - Kept switchEditorThemes as no-op stub since theme.js still calls it on theme toggle\npatterns_established:\n  - Lucide icon + color-mix() per-renderer coloring pattern for view explorer sidebar items\n  - CSS var() tokens in CM6 EditorView.theme() — eliminates need for JS-driven theme reconfiguration\nobservability_surfaces:\n  - none\ndrill_down_paths:\n  - .gsd/milestones/M052/slices/S03/tasks/T01-SUMMARY.md\n  - .gsd/milestones/M052/slices/S03/tasks/T02-SUMMARY.md\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-04-06T02:24:05.011Z\nblocker_discovered: false\n---\n\n# S03: Type Badge, Tabs & Navigation Chrome\n\n**Added Lucide icons to type badge and view explorer with color-mix theme colors, enhanced active tab contrast, and collapsed CM6 dual themes into a single CSS-var-driven definition with writing-surface polish.**\n\n## What Happened\n\nTwo tasks delivered four independent visual improvements to navigation chrome and the body editor.\n\nT01 addressed three surfaces: (1) The object toolbar type badge in both `object_tab.html` and `object_tab_app.html` now renders a Lucide icon from the existing `type_icon` context variable, with a `--type-color` CSS custom property driving a left border accent. (2) All 9 Unicode glyphs in the view explorer sidebar were replaced with Lucide icons — each renderer gets a distinct icon with a per-renderer color applied via `color-mix(in srgb, var(--_color-*) 80%, transparent)`, fully compliant with K014. (3) The active dockview tab gained `font-weight: 600`, a 3px accent bar (up from 2px), and a subtle upward `box-shadow` to clearly distinguish it from inactive tabs.\n\nT02 collapsed the dual CM6 editor themes (separate light/dark definitions with hardcoded hex values) into a single `editorTheme` using CSS `var()` tokens. This eliminated the `Compartment` import, `themeCompartment` variable, `getCurrentTheme()` function, and `switchEditorThemes()` function — the latter replaced with a no-op stub since `theme.js` still calls it. CSS variables auto-adapt when the data-theme attribute changes, making JS-driven theme reconfiguration unnecessary. Writing-surface polish added softer border (`--color-border-subtle`), left padding on `.cm-content`, and proportional system font on `.cm-editor`.\n\n## Verification\n\nAll slice-level verification checks passed:\n\nT01: `grep -q 'data-lucide'` confirmed in both object_tab templates and views_explorer. `grep -q 'font-weight.*600'` confirmed in dockview bridge CSS. Zero Unicode HTML entities remaining in views_explorer (`grep -c '&#[0-9]*;'` returned 0).\n\nT02: Zero hardcoded hex values in editor.js (`grep -rn '#[0-9a-fA-F]{3,8}' | grep -v '//' | wc -l` returned 0). CSS var tokens confirmed present (`color-surface` in editor.js, `border-subtle` in workspace.css).\n\n## Requirements Advanced\n\nNone.\n\n## Requirements Validated\n\nNone.\n\n## New Requirements Surfaced\n\nNone.\n\n## Requirements Invalidated or Re-scoped\n\nNone.\n\n## Deviations\n\nNone.\n\n## Known Limitations\n\nswitchEditorThemes() is a no-op stub — theme.js calls it on toggle but it does nothing since CSS vars handle theme adaptation automatically. The stub can be removed if theme.js is refactored to stop calling it.\n\n## Follow-ups\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/templates/browser/object_tab.html` — Added Lucide icon and --type-color CSS variable to type badge\n- `backend/app/templates/browser/object_tab_app.html` — Added Lucide icon and --type-color CSS variable to type badge (app variant)\n- `backend/app/templates/browser/views_explorer.html` — Replaced 9 Unicode glyphs with Lucide icons using per-renderer color-mix colors\n- `frontend/static/css/workspace.css` — Added type badge flex/icon sizing, .tree-leaf-icon svg sizing, writing-surface editor polish (border-subtle, padding, font)\n- `frontend/static/css/dockview-sempkm-bridge.css` — Enhanced active tab: font-weight 600, 3px accent bar, box-shadow\n- `frontend/static/js/editor.js` — Collapsed dual themes into single CSS-var theme, removed Compartment/themeCompartment/getCurrentTheme, switchEditorThemes now no-op\n",
+      "full_uat_md": "# S03: Type Badge, Tabs & Navigation Chrome — UAT\n\n**Milestone:** M052\n**Written:** 2026-04-06T02:24:05.012Z\n\n## UAT: S03 — Type Badge, Tabs & Navigation Chrome\n\n### Preconditions\n- SemPKM running with at least one Mental Model installed (e.g., basic-pkm)\n- At least one object of a type that has a type_icon defined (e.g., Task, Project)\n- Browser with DevTools available\n\n---\n\n### Test 1: Type Badge Displays Lucide Icon with Color Accent\n\n**Steps:**\n1. Navigate to workspace (`/browser/`)\n2. Open an object that has a type icon defined (e.g., a Task or Project)\n3. Observe the type badge in the object toolbar (top-left area of the object tab)\n\n**Expected:**\n- Type badge shows a Lucide SVG icon before the type label text\n- Badge has a colored left border matching the type's defined color\n- Icon is properly sized (~12px) and aligned with the text\n- No Unicode characters or broken icon placeholders\n\n**Edge case:** Open an object of a type without a defined icon — the badge should show the label text only, with a default border color.\n\n---\n\n### Test 2: View Explorer Shows Lucide Icons with Per-Renderer Colors\n\n**Steps:**\n1. In the workspace sidebar, expand the VIEWS section\n2. Observe the list of available view renderers\n\n**Expected:**\n- Each renderer row shows a distinct Lucide icon:\n  - Spatial Canvas → layout-grid icon (blue)\n  - Ontology Viewer → gem icon (violet)\n  - Table View → table-2 icon (green/emerald)\n  - Cards View → grid-2x2 icon (amber)\n  - Graph View → network icon (blue)\n  - Kanban View → columns-3 icon (orange)\n  - Calendar View → calendar icon (red)\n  - Timeline View → gantt-chart icon (green)\n  - Map View → map-pin icon (amber)\n- No Unicode characters (🔲, 📊, etc.) visible — all replaced by SVG icons\n- Icons have distinct colors per renderer\n\n**Edge case:** Switch to dark mode — icon colors should remain visible and distinct (color-mix with theme primitives adapts automatically).\n\n---\n\n### Test 3: Active Tab Is Clearly Distinguishable\n\n**Steps:**\n1. Open two or more tabs in the workspace (e.g., two different objects, or an object + a view)\n2. Click between tabs to switch active state\n\n**Expected:**\n- Active tab has bold text (font-weight 600)\n- Active tab has a thicker bottom accent bar (3px, visibly thicker than inactive)\n- Active tab has a subtle upward shadow distinguishing it from inactive tabs\n- Inactive tabs have normal weight text and no shadow\n- Switching tabs immediately updates the visual distinction\n\n---\n\n### Test 4: Body Editor Writing Surface Polish\n\n**Steps:**\n1. Open an object that has a body/notes field (e.g., a Task with notes)\n2. Click to edit the body content (enter edit mode if needed)\n3. Observe the CodeMirror editor area\n\n**Expected:**\n- Editor has a soft border (subtle, not harsh)\n- Text content has visible left padding (breathing room from the border)\n- Text renders in a proportional system font (not monospace), making prose feel natural\n- Cursor and selection highlights use theme colors, not hardcoded values\n\n**Edge case:** Toggle dark mode while the editor is open — the editor should adapt colors immediately without page refresh or flickering (CSS vars handle the transition, no JS reconfigure).\n\n---\n\n### Test 5: Dark Mode Adaptation\n\n**Steps:**\n1. With the workspace open showing an object tab and the view explorer expanded\n2. Toggle dark mode via the theme switcher\n\n**Expected:**\n- Type badge icon and border color adapt to dark mode\n- View explorer icon colors remain distinct and visible\n- Active tab styling (bold, accent bar, shadow) adapts cleanly\n- Body editor background, text, cursor, gutter all adapt via CSS vars\n- No flicker or momentary unstyled state during transition\n",
       "goal": "Type badge shows Lucide icon with type color accent. Active tab is clearly distinguishable from inactive. View explorer uses Lucide icons with per-renderer colors. Body editor feels like a writing surface with CSS-token-driven theming.",
       "success_criteria": "- Type badge in object toolbar shows Lucide icon matching `type_icon.icon` and a colored left border from `type_icon.color`\n- View explorer sidebar shows 9 Lucide icons replacing Unicode glyphs, each with a distinct per-renderer color\n- Active dockview tab has bold text, thicker accent bar, and visible contrast versus inactive tabs\n- Body editor CM6 theme uses CSS `var()` tokens instead of hardcoded hex values — a single theme definition adapts to both light and dark modes\n- Editor container has softer border and content has left padding for breathing room\n- Dark mode toggle produces correct results across all four surfaces\n- `grep -rn '#[0-9a-fA-F]\\{3,8\\}' frontend/static/js/editor.js` returns 0 hardcoded hex values",
       "proof_level": "Visual — all changes are CSS/template/JS theming. Verified by grep checks for hex elimination and visual inspection of the running app.",
@@ -8381,11 +8381,11 @@
       "completed_at": null,
       "full_summary_md": "",
       "full_uat_md": "",
-      "goal": "Polish remaining surfaces — forms, timeline, right panel empty states, and miscellaneous fixes",
-      "success_criteria": "- Form section headers are larger with a left accent bar\n- Help text has tighter vertical margin\n- Timeline bars use status-based colors via Frappe Gantt custom_class\n- Right panel shows 'Select an object' prompt when no object is open\n- No inconsistent underlines on view names\n- Both light and dark mode correct",
-      "proof_level": "Visual inspection of form edit mode, timeline view, right panel empty state",
-      "integration_closure": "Forms: CSS-only in forms.css. Timeline: template passes status field, CSS adds color classes. Right panel: JS behavior change in workspace.js. Miscellaneous: targeted CSS fixes.",
-      "observability_impact": "None",
+      "goal": "Form sections have prominent headers with accent bars and tighter help text. Timeline bars have status colors for all four states (including cancelled). Right panel shows helpful empty state. View name underline inconsistency resolved.",
+      "success_criteria": "- Form section headers (`.form-group-summary`) have a colored left border accent and subtle background\n- `.field-help` has tighter spacing (margin-bottom ≤ 4px, line-height ≤ 1.4)\n- `.bar-cancelled .bar-progress` CSS rule exists in views.css with a gray fill\n- `.tree-leaf` has `text-decoration: none` in workspace.css\n- Right panel default content has a styled empty state with instructive text (not just \"No object selected\")\n- All new colors use theme tokens or color-mix() — zero hardcoded hex/rgba values outside theme.css",
+      "proof_level": "Visual CSS polish — no runtime boundary crossed. Proof is structural (CSS rules exist with correct values).",
+      "integration_closure": "Consumes S01 color primitives (--_color-gray-400) and S03 patterns (Lucide icon sizing). Final slice in M052 — completing this means the milestone is done.",
+      "observability_impact": "None — pure CSS and template changes.",
       "sequence": 0,
       "replan_triggered_at": null
     }
@@ -33643,6 +33643,81 @@
       "observability_impact": "",
       "full_plan_md": "",
       "sequence": 0
+    },
+    {
+      "milestone_id": "M052",
+      "slice_id": "S04",
+      "id": "T01",
+      "title": "Added 3px primary accent bar, raised background, and border-radius to .form-group-summary; reduced .field-help margin and line-height for tighter spacing",
+      "status": "complete",
+      "one_liner": "Added 3px primary accent bar, raised background, and border-radius to .form-group-summary; reduced .field-help margin and line-height for tighter spacing",
+      "narrative": "Two CSS-only edits in workspace.css: (1) .form-group-summary gained border-left: 3px solid var(--color-primary), background: var(--color-surface-raised), font-size bump to 0.88rem, and border-radius: 4px. (2) .field-help margin-bottom reduced from 6px to 3px and line-height from 1.45 to 1.35. All values use CSS custom properties with zero hardcoded hex values.",
+      "verification_result": "All five must-haves confirmed via awk context-aware checks: accent bar with --color-primary present in .form-group-summary, surface-raised background present, margin-bottom 3px in .field-help, line-height 1.35 in .field-help, and zero hardcoded hex values in edited rules.",
+      "duration": "",
+      "completed_at": "2026-04-06T02:36:49.481Z",
+      "blocker_discovered": false,
+      "deviations": "None.",
+      "known_issues": "Slice-plan verification grep commands (rg ... | grep -q form-group-summary) are structurally flawed — rg single-file output doesn't include selector names in the output.",
+      "key_files": [
+        "frontend/static/css/workspace.css"
+      ],
+      "key_decisions": [],
+      "full_summary_md": "---\nid: T01\nparent: S04\nmilestone: M052\nkey_files:\n  - frontend/static/css/workspace.css\nkey_decisions:\n  - (none)\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T02:36:49.481Z\nblocker_discovered: false\n---\n\n# T01: Added 3px primary accent bar, raised background, and border-radius to .form-group-summary; reduced .field-help margin and line-height for tighter spacing\n\n**Added 3px primary accent bar, raised background, and border-radius to .form-group-summary; reduced .field-help margin and line-height for tighter spacing**\n\n## What Happened\n\nTwo CSS-only edits in workspace.css: (1) .form-group-summary gained border-left: 3px solid var(--color-primary), background: var(--color-surface-raised), font-size bump to 0.88rem, and border-radius: 4px. (2) .field-help margin-bottom reduced from 6px to 3px and line-height from 1.45 to 1.35. All values use CSS custom properties with zero hardcoded hex values.\n\n## Verification\n\nAll five must-haves confirmed via awk context-aware checks: accent bar with --color-primary present in .form-group-summary, surface-raised background present, margin-bottom 3px in .field-help, line-height 1.35 in .field-help, and zero hardcoded hex values in edited rules.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `awk form-group-summary border-left check` | 0 | ✅ pass | 100ms |\n| 2 | `awk form-group-summary surface-raised check` | 0 | ✅ pass | 100ms |\n| 3 | `awk field-help margin-bottom 3px check` | 0 | ✅ pass | 100ms |\n| 4 | `awk field-help line-height 1.35 check` | 0 | ✅ pass | 100ms |\n| 5 | `awk no-hardcoded-hex check` | 0 | ✅ pass | 100ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nSlice-plan verification grep commands (rg ... | grep -q form-group-summary) are structurally flawed — rg single-file output doesn't include selector names in the output.\n\n## Files Created/Modified\n\n- `frontend/static/css/workspace.css`\n",
+      "description": "## Description\n\nAdd visual prominence to form section headers (`.form-group-summary`) and tighten the spacing on help text (`.field-help`). Both are CSS-only edits in `workspace.css`.\n\n## Steps\n\n1. Read `frontend/static/css/workspace.css` around line 2788 to see the current `.form-group-summary` rules.\n2. Add `border-left: 3px solid var(--color-primary)` to `.form-group-summary`.\n3. Add `background: var(--color-surface-raised)` and increase font size to `0.88rem`.\n4. Add subtle `border-radius: 4px` for polish.\n5. Read `.field-help` around line 2656. Reduce `margin-bottom` from `6px` to `3px`. Reduce `line-height` from `1.45` to `1.35`.\n6. Verify with grep that the accent bar and spacing changes are present.\n\n## Must-Haves\n\n- [ ] `.form-group-summary` has `border-left` with `--color-primary`\n- [ ] `.form-group-summary` has `background: var(--color-surface-raised)`\n- [ ] `.field-help` `margin-bottom` is 3px or less\n- [ ] `.field-help` `line-height` is 1.35 or less\n- [ ] Zero hardcoded hex values in the edited rules\n\n## Verification\n\n- `rg 'border-left.*primary' frontend/static/css/workspace.css | grep -q form-group-summary` exits 0\n- `rg 'surface-raised' frontend/static/css/workspace.css | grep -q form-group-summary` exits 0\n- `rg 'margin-bottom.*3px' frontend/static/css/workspace.css | grep -q field-help` exits 0",
+      "estimate": "15m",
+      "files": [
+        "frontend/static/css/workspace.css"
+      ],
+      "verify": "rg 'border-left.*primary' frontend/static/css/workspace.css | grep -q form-group-summary && rg 'surface-raised' frontend/static/css/workspace.css | grep -q form-group-summary && rg 'margin-bottom.*3px' frontend/static/css/workspace.css | grep -q field-help",
+      "inputs": [
+        "`frontend/static/css/workspace.css` — current form-group-summary (line ~2788) and field-help (line ~2656) rules"
+      ],
+      "expected_output": [
+        "`frontend/static/css/workspace.css` — updated .form-group-summary with accent bar + background, updated .field-help with tighter spacing"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M052",
+      "slice_id": "S04",
+      "id": "T02",
+      "title": "Add cancelled timeline bar color, right panel empty state, and tree-leaf underline fix",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "## Description\n\nThree independent CSS/template fixes bundled together because each is a one-line or small edit.\n\n### Timeline cancelled bar color\nThe backend maps cancelled status to CSS class `bar-cancelled` (see `_TIMELINE_STATUS_CLASSES` in `service.py:3224`). S01 added CSS rules for `.bar-done`, `.bar-active`, and `.bar-blocked` in `views.css` — but `.bar-cancelled` is missing. Add it with a gray fill using the `--_color-gray-400` primitive from theme.css.\n\n### Right panel empty state\nThe right pane in `workspace.html` shows three `<div class=\"right-empty\">No object selected</div>` elements as default content. Replace these with a more helpful prompt: 'Select an object to see its details' and add a Lucide info icon. Add CSS styling for the empty state.\n\n### Tree-leaf underline fix\n`.tree-leaf` in workspace.css is an `<a>` tag but has no `text-decoration: none`. Browser default underline shows on all tree leaf links (objects, views, saved views). Add `text-decoration: none` to the `.tree-leaf` rule.\n\n## Steps\n\n1. Read `frontend/static/css/views.css` around line 1547 to see existing bar status rules. Add `.bar-cancelled .bar-progress` rule after `.bar-blocked .bar-progress` with `fill: var(--_color-gray-400);` (the primitive already exists in theme.css).\n2. Read `frontend/static/css/workspace.css` around line 281 (`.tree-leaf`). Add `text-decoration: none;` to the existing rule block.\n3. Edit `backend/app/templates/browser/workspace.html` to replace the three `<div class=\"right-empty\">No object selected</div>` elements in the right pane sections with `<div class=\"right-empty\"><i data-lucide=\"info\" class=\"right-empty-icon\"></i> Select an object to see its details</div>`.\n4. Add CSS for `.right-empty-icon` in workspace.css near the existing `.right-empty` rule (line ~2062): `width: 14px; height: 14px; flex-shrink: 0; stroke: currentColor; vertical-align: -2px;` (inline SVG from Lucide). Also add `display: inline-flex; align-items: center; gap: 4px;` to `.right-empty` so the icon sits properly.\n5. Verify all three changes with grep.\n\n## Must-Haves\n\n- [ ] `.bar-cancelled .bar-progress` CSS rule exists in views.css\n- [ ] `.tree-leaf` has `text-decoration: none` in workspace.css\n- [ ] Right panel shows 'Select an object to see its details' instead of 'No object selected'\n- [ ] Right empty icon has `flex-shrink: 0` (per CLAUDE.md Lucide icon rule)\n- [ ] Zero hardcoded hex values in new CSS rules\n\n## Verification\n\n- `rg 'bar-cancelled' frontend/static/css/views.css | grep -q bar-progress` exits 0\n- `rg 'text-decoration.*none' frontend/static/css/workspace.css | grep -q tree-leaf` exits 0\n- `rg 'Select an object' backend/app/templates/browser/workspace.html | wc -l` returns 3\n- `rg 'right-empty-icon' frontend/static/css/workspace.css | grep -q flex-shrink` exits 0",
+      "estimate": "20m",
+      "files": [
+        "frontend/static/css/views.css",
+        "frontend/static/css/workspace.css",
+        "backend/app/templates/browser/workspace.html"
+      ],
+      "verify": "rg 'bar-cancelled' frontend/static/css/views.css | grep -q bar-progress && rg 'text-decoration.*none' frontend/static/css/workspace.css | grep -q tree-leaf && test $(rg -c 'Select an object' backend/app/templates/browser/workspace.html) -ge 3 && rg 'right-empty-icon' frontend/static/css/workspace.css | grep -q flex-shrink",
+      "inputs": [
+        "`frontend/static/css/views.css` — existing bar-done/bar-active/bar-blocked rules (line ~1547)",
+        "`frontend/static/css/workspace.css` — .tree-leaf (line ~281) and .right-empty (line ~2062) rules",
+        "`backend/app/templates/browser/workspace.html` — right pane sections (line ~226-256)",
+        "`frontend/static/css/theme.css` — --_color-gray-400 primitive already defined"
+      ],
+      "expected_output": [
+        "`frontend/static/css/views.css` — added .bar-cancelled .bar-progress CSS rule",
+        "`frontend/static/css/workspace.css` — added text-decoration:none to .tree-leaf, added .right-empty-icon sizing",
+        "`backend/app/templates/browser/workspace.html` — updated right pane empty state text and icon"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
     }
   ],
   "decisions": [
@@ -41906,6 +41981,61 @@
       "verdict": "✅ pass",
       "duration_ms": 50,
       "created_at": "2026-04-06T02:22:34.220Z"
+    },
+    {
+      "id": 322,
+      "task_id": "T01",
+      "slice_id": "S04",
+      "milestone_id": "M052",
+      "command": "awk form-group-summary border-left check",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-06T02:36:49.482Z"
+    },
+    {
+      "id": 323,
+      "task_id": "T01",
+      "slice_id": "S04",
+      "milestone_id": "M052",
+      "command": "awk form-group-summary surface-raised check",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-06T02:36:49.482Z"
+    },
+    {
+      "id": 324,
+      "task_id": "T01",
+      "slice_id": "S04",
+      "milestone_id": "M052",
+      "command": "awk field-help margin-bottom 3px check",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-06T02:36:49.482Z"
+    },
+    {
+      "id": 325,
+      "task_id": "T01",
+      "slice_id": "S04",
+      "milestone_id": "M052",
+      "command": "awk field-help line-height 1.35 check",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-06T02:36:49.482Z"
+    },
+    {
+      "id": 326,
+      "task_id": "T01",
+      "slice_id": "S04",
+      "milestone_id": "M052",
+      "command": "awk no-hardcoded-hex check",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-06T02:36:49.482Z"
     }
   ]
 }

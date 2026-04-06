@@ -2657,8 +2657,8 @@ tr:hover .rbox-edit-btn {
     display: block;
     font-size: 0.76rem;
     color: var(--color-text-muted);
-    margin-bottom: 6px;
-    line-height: 1.45;
+    margin-bottom: 3px;
+    line-height: 1.35;
 }
 
 /* Form-level helptext (collapsible guide below form title) */
@@ -2787,12 +2787,15 @@ tr:hover .rbox-edit-btn {
 
 .form-group-summary {
     padding: 8px 12px;
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     font-weight: 600;
     color: var(--color-text);
     cursor: pointer;
     user-select: none;
     list-style: none;
+    border-left: 3px solid var(--color-primary);
+    background: var(--color-surface-raised);
+    border-radius: 4px;
 }
 
 .form-group-summary::-webkit-details-marker {
