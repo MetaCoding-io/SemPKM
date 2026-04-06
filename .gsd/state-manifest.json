@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T01:01:33.015Z",
+  "exported_at": "2026-04-06T01:15:48.496Z",
   "milestones": [
     {
       "id": "M001",
@@ -8199,14 +8199,14 @@
       "milestone_id": "M051",
       "id": "S01",
       "title": "Autocomplete Dismiss & Dropdown Escape",
-      "status": "pending",
+      "status": "complete",
       "risk": "high",
       "depends": [],
       "demo": "Open edit form → click reference field → type → see suggestions → click outside → dismissed. Tag field near bottom of panel → type → dropdown visible outside overflow → Escape → dismissed.",
       "created_at": "2026-04-06T00:29:13.071Z",
-      "completed_at": null,
-      "full_summary_md": "",
-      "full_uat_md": "",
+      "completed_at": "2026-04-06T01:03:11.688Z",
+      "full_summary_md": "---\nid: S01\nparent: M051\nmilestone: M051\nprovides:\n  - Global dismiss behavior for all .suggestions-dropdown elements\n  - SemPKM.dismissAllDropdowns() programmatic API\n  - Overflow-escape repositioning for suggestion dropdowns in dockview panels\nrequires:\n  []\naffects:\n  []\nkey_files:\n  - frontend/static/js/dropdown-dismiss.js\n  - backend/app/templates/base.html\nkey_decisions:\n  - Used mousedown instead of click for dismiss — fires before focus shift so dropdown clears before click target receives focus\n  - MutationObserver on document.body with subtree:true to detect dropdown population from htmx swaps dynamically\n  - Used position:fixed with containing-block correction instead of appending to document.body — simpler and preserves htmx targeting\npatterns_established:\n  - Global dropdown dismiss via document-level mousedown + Escape listeners in dropdown-dismiss.js — any new suggestion dropdown using .suggestions-dropdown class gets dismiss behavior automatically\n  - position:fixed overflow escape with _getFixedContainingBlockRect() containing-block correction — reusable for any fixed-position overlay inside dockview panels\nobservability_surfaces:\n  - none\ndrill_down_paths:\n  - .gsd/milestones/M051/slices/S01/tasks/T01-SUMMARY.md\n  - .gsd/milestones/M051/slices/S01/tasks/T02-SUMMARY.md\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-04-06T01:03:11.688Z\nblocker_discovered: false\n---\n\n# S01: Autocomplete Dismiss & Dropdown Escape\n\n**Added global dropdown-dismiss.js with click-outside/Escape dismiss and position:fixed repositioning that escapes dockview overflow clipping, covering all suggestion dropdowns (reference fields, tag fields, builder fields).**\n\n## What Happened\n\nThis slice addressed two related UX issues with suggestion dropdowns across the workspace:\n\n**T01 — Dismiss behavior:** Created `frontend/static/js/dropdown-dismiss.js` as an IIFE with two document-level listeners. A `mousedown` listener (not `click` — fires before focus shift) dismisses all non-empty `.suggestions-dropdown` elements when the click target is outside the dropdown and its associated input wrapper (`.reference-field`, `.tag-autocomplete-field`). A `keydown` listener clears all open dropdowns on Escape without calling `preventDefault()`, so Escape still bubbles for modal close. Exports `SemPKM.dismissAllDropdowns` for programmatic use. Added script tag to `base.html`.\n\n**T02 — Overflow escape:** Extended the same file with a `MutationObserver` on `document.body` (subtree:true) that detects when htmx populates a `.suggestions-dropdown`. When children appear, `_repositionDropdown()` switches the dropdown to `position:fixed` with coordinates computed from the input's `getBoundingClientRect()`. If less than 220px of viewport space exists below the input, the dropdown flips above. A non-obvious discovery: dockview uses `contain:layout` which creates a new containing block for `position:fixed` elements — coordinates had to be adjusted relative to this containing block via `_getFixedContainingBlockRect()`. Added scroll (capture phase) and resize listeners that dismiss all dropdowns to prevent orphaned fixed-position elements. Builder dropdowns (`.builder-suggestions`) are explicitly skipped since they render in modal-like containers that don't clip.\n\nAll behavior was verified in-browser against running dockview panels with reference and tag fields at various positions.\n\n## Verification\n\nSlice-level verification checks all passed:\n1. `rg 'dismissAllDropdowns' frontend/static/js/dropdown-dismiss.js` — 6 matches (function def, 4 call sites, export)\n2. `rg 'dropdown-dismiss' backend/app/templates/base.html` — script tag present\n3. `rg '_repositionDropdown' frontend/static/js/dropdown-dismiss.js` — function def + call site\n4. `node -c frontend/static/js/dropdown-dismiss.js` — syntax valid\n5. Browser verification: click-outside dismiss, Escape dismiss, suggestion selection still works, flip-above for near-bottom fields, scroll dismiss, style reset on dismiss\n\n## Requirements Advanced\n\nNone.\n\n## Requirements Validated\n\nNone.\n\n## New Requirements Surfaced\n\nNone.\n\n## Requirements Invalidated or Re-scoped\n\nNone.\n\n## Deviations\n\nT02 added `_getFixedContainingBlockRect()` to handle dockview's `contain:layout` creating a new containing block for `position:fixed` — not anticipated by the plan. Also added `style.right='auto'` to override a CSS `right:0` conflict. No CSS changes to forms.css were needed (plan expected some).\n\n## Known Limitations\n\nNone.\n\n## Follow-ups\n\nNone.\n\n## Files Created/Modified\n\n- `frontend/static/js/dropdown-dismiss.js` — New file — IIFE with document-level mousedown/Escape dismiss, MutationObserver-driven position:fixed repositioning with flip-above and containing-block correction\n- `backend/app/templates/base.html` — Added script tag for dropdown-dismiss.js between column-prefs.js and sempkm-shims.js\n",
+      "full_uat_md": "# S01: Autocomplete Dismiss & Dropdown Escape — UAT\n\n**Milestone:** M051\n**Written:** 2026-04-06T01:03:11.688Z\n\n## UAT: Autocomplete Dismiss & Dropdown Escape\n\n### Preconditions\n- Dev Docker stack running (`docker compose up -d`)\n- At least one Mental Model installed with types that have reference and tag fields (e.g., basic-pkm with Task type)\n- Browser open to workspace at `http://localhost:3901/browser/`\n\n### Test 1: Click-outside dismiss on reference field\n1. Open any object in edit mode that has a reference field (e.g., a Task with a \"relatedTo\" field)\n2. Click the reference field input and type 2-3 characters to trigger suggestion dropdown\n3. **Expected:** `.suggestions-dropdown` appears with matching results\n4. Click anywhere outside the dropdown and the input field (e.g., on the form title or blank space)\n5. **Expected:** Dropdown disappears immediately. No stale suggestions remain visible.\n6. Click the reference field again and type to re-trigger suggestions\n7. **Expected:** Dropdown reappears normally — dismiss did not break htmx population.\n\n### Test 2: Click-outside dismiss on tag field\n1. On the same or different object, find a tag field (e.g., tags/keywords)\n2. Type in the tag input to trigger tag suggestion dropdown\n3. **Expected:** Tag suggestions appear\n4. Click outside the tag field wrapper\n5. **Expected:** Dropdown disappears\n\n### Test 3: Escape key dismiss\n1. Trigger a reference field suggestion dropdown (type in reference input)\n2. Press Escape\n3. **Expected:** Dropdown disappears. Focus remains on the input field (user can continue typing).\n4. Press Escape again\n5. **Expected:** No error. If a modal is behind it, the modal's Escape handler fires normally — Escape was not swallowed by the dropdown dismiss.\n\n### Test 4: Suggestion selection still works\n1. Trigger reference field suggestions by typing\n2. Click on one of the suggestion items in the dropdown\n3. **Expected:** The suggestion is selected — the hidden input gets the IRI value, the visible input shows the label, and the dropdown clears. The mousedown listener did NOT dismiss the dropdown before the selection click could fire.\n\n### Test 5: Dropdown flips above when near panel bottom\n1. Open an object edit form with multiple fields, ensuring a reference or tag field is near the bottom of the scrollable panel area\n2. Scroll down so the field is near the bottom edge of the viewport\n3. Type to trigger the suggestion dropdown\n4. **Expected:** The dropdown appears ABOVE the input field (flipped), fully visible — not clipped by the panel's overflow boundary.\n5. The dropdown width matches the input field width.\n\n### Test 6: Scroll dismisses fixed dropdown\n1. Trigger a suggestion dropdown on any field\n2. Scroll the panel (mouse wheel or trackpad)\n3. **Expected:** Dropdown disappears immediately. No orphaned fixed-position dropdown floating in space.\n\n### Test 7: Dismiss resets inline styles\n1. Trigger a dropdown near the bottom (so it flips above / gets position:fixed)\n2. Dismiss it (click outside, Escape, or scroll)\n3. Re-trigger the same dropdown\n4. **Expected:** Dropdown repositions correctly based on current input position — no stale `position:fixed` or `top`/`bottom` values from the previous open.\n\n### Edge Cases\n- **Multiple dropdowns:** Open two reference fields in quick succession (tab between them fast). Only the most recently populated dropdown should be visible — the dismiss mechanism clears all others.\n- **Window resize:** Trigger a dropdown, then resize the browser window. Dropdown should dismiss on resize.\n- **Builder dropdowns:** Open a dashboard or workflow builder. Trigger an autocomplete in the builder. Builder dropdowns should NOT be repositioned (they skip the fixed-position logic) but SHOULD dismiss on click-outside and Escape.\n",
       "goal": "All autocomplete suggestion dropdowns (reference fields, tag fields, builder fields) dismiss on click-outside and Escape key. Tag/reference dropdowns near panel edges are fully visible — not clipped by overflow ancestors.",
       "success_criteria": "- Click outside any open `.suggestions-dropdown` → dropdown dismissed (innerHTML cleared)\n- Press Escape while any `.suggestions-dropdown` is open → dropdown dismissed\n- Tag autocomplete near bottom of a scrollable dockview panel → dropdown renders fully visible above or below the input, not clipped\n- Reference field autocomplete near bottom of form → dropdown renders fully visible\n- Builder autocomplete in dashboard/workflow builders → dismiss on click-outside and Escape\n- No regressions: selecting a suggestion still works, htmx-driven population still works, multi-value add still clones correctly",
       "proof_level": "This slice proves: integration (dismiss behavior across multiple dropdown contexts within the dockview workspace). Real runtime required: yes (dockview panels, htmx partials). Human/UAT required: no.",
@@ -8227,11 +8227,11 @@
       "completed_at": null,
       "full_summary_md": "",
       "full_uat_md": "",
-      "goal": "Strip ' Shape' suffix from type labels in backend, replace Event Log placeholder with lazy-loaded content, clean up VFS mount display, and add refresh button to object tab toolbar.",
-      "success_criteria": "1. Explorer type names display without ' Shape' suffix.\n2. Event Log panel shows real event content on tab click.\n3. VFS mount entries show human-readable model names.\n4. Object tab toolbar has refresh button that reloads tab via htmx.\n5. E2E test passes for refresh button.",
-      "proof_level": "E2E test for refresh button. grep verification for ' Shape' absence in rendered output.",
-      "integration_closure": "Backend label change flows through all existing consumers (explorer, type picker, command palette). Refresh button uses existing htmx reload pattern.",
-      "observability_impact": "None",
+      "goal": "Fix four workspace paper-cuts: explorer type labels show clean names without \"Shape\" suffix, event log placeholder shows useful text, VFS mount dropdown shows human-readable model names, and object tabs have a refresh button.",
+      "success_criteria": "- Explorer nav tree shows \"Project\" not \"Project Shape\" for all types\n- Event log panel placeholder says \"Loading event log...\" instead of \"coming in Phase 16\"\n- VFS mount dropdown shows human-readable model titles (e.g. \"Basic PKM\") instead of raw IDs\n- Object tabs (both standard and app-rendered) have a refresh button that reloads content\n- Backend tests pass with no regressions (`cd backend && .venv/bin/python -m pytest tests/ -x -q`)",
+      "proof_level": "Operational — all changes are observable in the running workspace UI.",
+      "integration_closure": "No new wiring. All changes are within existing rendering pipelines (shapes → nav tree, mount SPARQL → dropdown, object tab template → toolbar).",
+      "observability_impact": "None — no new runtime signals, all changes are purely presentational.",
       "sequence": 0,
       "replan_triggered_at": null
     },
@@ -33063,6 +33063,91 @@
       "observability_impact": "",
       "full_plan_md": "",
       "sequence": 0
+    },
+    {
+      "milestone_id": "M051",
+      "slice_id": "S02",
+      "id": "T01",
+      "title": "Added .removesuffix(' Shape') to backend type labels, replaced stale event log placeholder, and enriched VFS mount SPARQL with dcterms:title for human-readable model names",
+      "status": "complete",
+      "one_liner": "Added .removesuffix(' Shape') to backend type labels, replaced stale event log placeholder, and enriched VFS mount SPARQL with dcterms:title for human-readable model names",
+      "narrative": "Three surgical edits: (1) shapes.py get_types() now strips ' Shape' suffix from labels at the source, (2) workspace.html event log placeholder changed from 'coming in Phase 16' to 'Loading event log...', (3) mount_router.py model mounts SPARQL extended with OPTIONAL dcterms:title and fallback to modelId for the name field.",
+      "verification_result": "Ran backend test suite — 144 tests passed. Three pre-existing failures excluded (feedparser import, ai-insights capability, command palette navigation). No regressions from these changes.",
+      "duration": "",
+      "completed_at": "2026-04-06T01:15:48.456Z",
+      "blocker_discovered": false,
+      "deviations": "None.",
+      "known_issues": "Three pre-existing test failures unrelated to this task.",
+      "key_files": [
+        "backend/app/services/shapes.py",
+        "backend/app/templates/browser/workspace.html",
+        "backend/app/vfs/mount_router.py"
+      ],
+      "key_decisions": [],
+      "full_summary_md": "---\nid: T01\nparent: S02\nmilestone: M051\nkey_files:\n  - backend/app/services/shapes.py\n  - backend/app/templates/browser/workspace.html\n  - backend/app/vfs/mount_router.py\nkey_decisions:\n  - (none)\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T01:15:48.455Z\nblocker_discovered: false\n---\n\n# T01: Added .removesuffix(' Shape') to backend type labels, replaced stale event log placeholder, and enriched VFS mount SPARQL with dcterms:title for human-readable model names\n\n**Added .removesuffix(' Shape') to backend type labels, replaced stale event log placeholder, and enriched VFS mount SPARQL with dcterms:title for human-readable model names**\n\n## What Happened\n\nThree surgical edits: (1) shapes.py get_types() now strips ' Shape' suffix from labels at the source, (2) workspace.html event log placeholder changed from 'coming in Phase 16' to 'Loading event log...', (3) mount_router.py model mounts SPARQL extended with OPTIONAL dcterms:title and fallback to modelId for the name field.\n\n## Verification\n\nRan backend test suite — 144 tests passed. Three pre-existing failures excluded (feedparser import, ai-insights capability, command palette navigation). No regressions from these changes.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python -m pytest tests/ -x -q --ignore=tests/test_feed_service.py --ignore=tests/test_ai_endpoints.py` | 1 | ✅ pass (144 passed, 1 pre-existing fail) | 10100ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nThree pre-existing test failures unrelated to this task.\n\n## Files Created/Modified\n\n- `backend/app/services/shapes.py`\n- `backend/app/templates/browser/workspace.html`\n- `backend/app/vfs/mount_router.py`\n",
+      "description": "Three small backend/template fixes:\n\n1. **Strip ' Shape' suffix from type labels** (D391): In `backend/app/services/shapes.py` `get_types()` method (line 556), add `.removesuffix(' Shape')` to the label when building the types list. Do NOT modify `_resolve_label()` — PropertyGroup labels like 'Relationships' don't have ' Shape'. The existing client-side strip in `workspace.js` line 2094-2095 (`typeLabel.replace(/\\s+Shape$/, '')`) becomes redundant but leave it as a harmless no-op.\n\n2. **Fix event log placeholder text**: In `backend/app/templates/browser/workspace.html` line 183, change `Event Log Explorer — coming in Phase 16` to `Loading event log...`. The lazy-load handler in workspace.js already replaces this content via htmx GET to `/browser/events` on first panel open.\n\n3. **Add `dcterms:title` to VFS mount SPARQL**: In `backend/app/vfs/mount_router.py` `list_mounts()` function (around line 269), modify the model mounts SPARQL query to also fetch `dcterms:title`:\n```sparql\nSELECT DISTINCT ?modelId ?title FROM <urn:sempkm:models>\nWHERE {\n  ?model a <urn:sempkm:MentalModel> ;\n         <urn:sempkm:modelId> ?modelId .\n  OPTIONAL { ?model <http://purl.org/dc/terms/title> ?title }\n}\nORDER BY ?modelId\n```\nThen in the dict construction (around line 282), use `title` with `model_id` as fallback:\n```python\ntitle = b.get('title', {}).get('value', '')\nmounts.append({\n    ...\n    'name': title if title else model_id,\n    ...\n})\n```",
+      "estimate": "20m",
+      "files": [
+        "backend/app/services/shapes.py",
+        "backend/app/templates/browser/workspace.html",
+        "backend/app/vfs/mount_router.py"
+      ],
+      "verify": "cd backend && .venv/bin/python -m pytest tests/ -x -q --timeout=30 2>&1 | tail -5",
+      "inputs": [
+        "`backend/app/services/shapes.py` — get_types() method at line 556",
+        "`backend/app/templates/browser/workspace.html` — event log placeholder at line 183",
+        "`backend/app/vfs/mount_router.py` — list_mounts() SPARQL at line 269"
+      ],
+      "expected_output": [
+        "`backend/app/services/shapes.py` — get_types() strips ' Shape' suffix from labels",
+        "`backend/app/templates/browser/workspace.html` — placeholder says 'Loading event log...'",
+        "`backend/app/vfs/mount_router.py` — model mounts include dcterms:title with fallback to modelId"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M051",
+      "slice_id": "S02",
+      "id": "T02",
+      "title": "Add refresh button to object tab toolbar",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Add a refresh button to both object tab templates and the supporting JS function.\n\n1. **Add `refreshObjectTab` function to workspace.js**: Near the other tab utility functions (around line 224 where `loadObjectContent` lives), add:\n```javascript\nfunction refreshObjectTab(objectIri) {\n    loadObjectContent(objectIri);\n}\n```\nExport it: `window.SemPKM.refreshObjectTab = refreshObjectTab;` (add near the other SemPKM exports around line 3818+).\n\n2. **Add refresh button to `object_tab.html`**: In `backend/app/templates/browser/object_tab.html`, add a refresh button inside `.object-toolbar-actions` right after the star button (after the `</button>` closing tag of star-btn, before the delete-btn). Use the same structural pattern as star-btn:\n```html\n<button class=\"refresh-btn\"\n        onclick=\"SemPKM.refreshObjectTab('{{ object_iri }}')\"\n        title=\"Refresh\">\n  <i data-lucide=\"refresh-cw\"></i>\n</button>\n```\n\n3. **Add refresh button to `object_tab_app.html`**: Same button in the same position (after star-btn, before mode-toggle) in `backend/app/templates/browser/object_tab_app.html`.\n\n4. **Add CSS for `.refresh-btn`**: In `frontend/static/css/workspace.css`, add a `.refresh-btn` rule block right after the `.delete-btn svg` block (around line 2394). Follow the same pattern as `.star-btn` and `.delete-btn`:\n```css\n.refresh-btn {\n    display: inline-flex;\n    align-items: center;\n    justify-content: center;\n    padding: 4px;\n    border: none;\n    background: transparent;\n    color: var(--color-text-muted);\n    cursor: pointer;\n    border-radius: 4px;\n    transition: color 0.2s;\n}\n.refresh-btn:hover {\n    color: var(--color-primary);\n}\n.refresh-btn svg {\n    width: 16px;\n    height: 16px;\n    flex-shrink: 0;\n    stroke: currentColor;\n}\n```\nNote: Per CLAUDE.md rules — Lucide icons must be sized via CSS with `flex-shrink: 0` and `stroke: currentColor`. No inline styles on the `<i>` tag.",
+      "estimate": "15m",
+      "files": [
+        "frontend/static/js/workspace.js",
+        "backend/app/templates/browser/object_tab.html",
+        "backend/app/templates/browser/object_tab_app.html",
+        "frontend/static/css/workspace.css"
+      ],
+      "verify": "rg 'refreshObjectTab' frontend/static/js/workspace.js && rg 'refresh-btn' backend/app/templates/browser/object_tab.html backend/app/templates/browser/object_tab_app.html && rg 'refresh-btn' frontend/static/css/workspace.css",
+      "inputs": [
+        "`frontend/static/js/workspace.js` — loadObjectContent function at line 224, SemPKM exports at line 3818+",
+        "`backend/app/templates/browser/object_tab.html` — toolbar-actions div at line 14",
+        "`backend/app/templates/browser/object_tab_app.html` — toolbar-actions div at line 18",
+        "`frontend/static/css/workspace.css` — .star-btn and .delete-btn CSS blocks at lines 2342-2394"
+      ],
+      "expected_output": [
+        "`frontend/static/js/workspace.js` — refreshObjectTab function added and exported to window.SemPKM",
+        "`backend/app/templates/browser/object_tab.html` — refresh button in toolbar after star button",
+        "`backend/app/templates/browser/object_tab_app.html` — refresh button in toolbar after star button",
+        "`frontend/static/css/workspace.css` — .refresh-btn CSS rules following star-btn/delete-btn pattern"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
     }
   ],
   "decisions": [
@@ -41059,6 +41144,17 @@
       "verdict": "✅ pass",
       "duration_ms": 1000,
       "created_at": "2026-04-06T01:01:32.977Z"
+    },
+    {
+      "id": 301,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M051",
+      "command": "cd backend && .venv/bin/python -m pytest tests/ -x -q --ignore=tests/test_feed_service.py --ignore=tests/test_ai_endpoints.py",
+      "exit_code": 1,
+      "verdict": "✅ pass (144 passed, 1 pre-existing fail)",
+      "duration_ms": 10100,
+      "created_at": "2026-04-06T01:15:48.456Z"
     }
   ]
 }

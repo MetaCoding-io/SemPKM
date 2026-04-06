@@ -267,10 +267,11 @@ async def list_mounts(
     """
     # ── Model mounts (read-only) ─────────────────────────────────────
     models_result = await client.query("""
-        SELECT DISTINCT ?modelId FROM <urn:sempkm:models>
+        SELECT DISTINCT ?modelId ?title FROM <urn:sempkm:models>
         WHERE {
           ?model a <urn:sempkm:MentalModel> ;
                  <urn:sempkm:modelId> ?modelId .
+          OPTIONAL { ?model <http://purl.org/dc/terms/title> ?title }
         }
         ORDER BY ?modelId
     """)
@@ -278,9 +279,10 @@ async def list_mounts(
     mounts: list[dict] = []
     for b in models_result["results"]["bindings"]:
         model_id = b["modelId"]["value"]
+        title = b.get("title", {}).get("value", "")
         mounts.append({
             "id": f"model:{model_id}",
-            "name": model_id,
+            "name": title if title else model_id,
             "path": model_id,
             "strategy": "by-type",
             "source": "model",

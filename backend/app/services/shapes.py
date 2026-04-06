@@ -567,7 +567,7 @@ WHERE {{ ?s ?p ?o }}"""
         """
         forms = await self.get_node_shapes()
         types = [
-            {"iri": form.target_class, "label": form.label}
+            {"iri": form.target_class, "label": form.label.removesuffix(" Shape")}
             for form in forms
         ]
         if exclude_iris:
