@@ -1,0 +1,44 @@
+{# Explorer config builder panel — filter/group/sort controls.
+   Included inside the OBJECTS section, between header and tree body.
+   Populated by explorer-config.js via the /browser/explorer/config-options API.
+#}
+<div class="explorer-config-summary" id="explorer-config-summary"
+     onclick="if(window.SemPKM.initExplorerConfig) window.SemPKM.initExplorerConfig(); document.getElementById('explorer-config-panel').classList.add('open'); this.classList.remove('visible');">
+    <span class="explorer-config-summary-text" id="explorer-config-summary-text"></span>
+    <button class="explorer-config-summary-clear" title="Clear config"
+            onclick="event.stopPropagation(); if(window.SemPKM.resetExplorerConfig) window.SemPKM.resetExplorerConfig();">&times;</button>
+</div>
+
+<div class="explorer-config-panel" id="explorer-config-panel">
+    <div class="explorer-config-row">
+        <span class="explorer-config-label">Filter</span>
+        <select class="explorer-config-select" id="explorer-config-type">
+            <option value="">All Types</option>
+        </select>
+    </div>
+    <div class="explorer-config-row">
+        <span class="explorer-config-label">Group</span>
+        <select class="explorer-config-select" id="explorer-config-group">
+            <option value="">None</option>
+            <option value="type">By Type</option>
+            <option value="tag">By Tag</option>
+        </select>
+    </div>
+    <div class="explorer-config-row">
+        <span class="explorer-config-label">Sort</span>
+        <select class="explorer-config-select" id="explorer-config-sort">
+            <option value="label">Label</option>
+            <option value="created">Date Created</option>
+        </select>
+        <button class="explorer-sort-toggle" id="explorer-config-sort-order"
+                title="Toggle sort order"
+                onclick="this.dataset.order = this.dataset.order === 'asc' ? 'desc' : 'asc'; this.innerHTML = this.dataset.order === 'asc' ? '&#9650;' : '&#9660;';"
+                data-order="asc">&#9650;</button>
+    </div>
+    <div class="explorer-config-actions">
+        <button class="explorer-config-btn primary"
+                onclick="if(window.SemPKM.applyExplorerConfig) window.SemPKM.applyExplorerConfig();">Apply</button>
+        <button class="explorer-config-btn"
+                onclick="if(window.SemPKM.resetExplorerConfig) window.SemPKM.resetExplorerConfig();">Reset</button>
+    </div>
+</div>

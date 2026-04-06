@@ -84,7 +84,7 @@
   - Estimate: 2h
   - Files: backend/app/browser/workspace.py, backend/app/browser/explorer_config.py, backend/app/templates/browser/explorer_config_tree.html, backend/app/templates/browser/explorer_config_children.html, backend/tests/test_explorer_config.py
   - Verify: cd backend && .venv/bin/python -m pytest tests/test_explorer_config.py -v
-- [ ] **T03: Frontend config builder UI and explorer JS module** — Build the config builder panel UI and a new JS module that manages explorer configuration state, populates the builder dropdowns from the config-options API, and triggers tree re-renders.
+- [x] **T03: Created explorer-config.js module, CSS, and template partial for the composable explorer config builder panel** — Build the config builder panel UI and a new JS module that manages explorer configuration state, populates the builder dropdowns from the config-options API, and triggers tree re-renders.
 
 **Slice context:** T01+T02 built the backend. This task builds the frontend config panel. T04 wires it into the workspace and replaces the old dropdown.
 
