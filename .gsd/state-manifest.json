@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T00:46:48.256Z",
+  "exported_at": "2026-04-06T01:01:33.015Z",
   "milestones": [
     {
       "id": "M001",
@@ -33024,19 +33024,26 @@
       "milestone_id": "M051",
       "slice_id": "S01",
       "id": "T02",
-      "title": "Fix dropdown overflow clipping near panel edges with position:fixed repositioning",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Added position:fixed repositioning with containing-block correction and flip-above logic to suggestion dropdowns, escaping overflow clipping in dockview panels",
+      "status": "complete",
+      "one_liner": "Added position:fixed repositioning with containing-block correction and flip-above logic to suggestion dropdowns, escaping overflow clipping in dockview panels",
+      "narrative": "Extended dropdown-dismiss.js with repositioning logic that switches suggestion dropdowns to position:fixed when populated (via MutationObserver), flips above the input when insufficient viewport space below (MIN_SPACE_BELOW=220px), and corrects for dockview's CSS contain:layout which creates a new containing block for fixed-position elements. Added scroll (capture phase) and resize dismiss listeners to prevent orphaned fixed dropdowns. Builder dropdowns are explicitly skipped via the .builder-suggestions class check.",
+      "verification_result": "All 7 must-haves verified in-browser inside dockview panels: tag field near bottom flips above correctly, reference field with space below renders below normally, dropdown width/left matches input, dismiss (click-outside/Escape/scroll) resets inline styles, works for both reference and tag fields, builder dropdowns skipped. JS syntax check passes. File serves 200 from nginx.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-06T01:01:32.977Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "Added _getFixedContainingBlockRect() to handle dockview's contain:layout creating a new containing block for position:fixed — not anticipated by the plan. Added style.right='auto' override for CSS right:0 conflict. No CSS changes to forms.css were needed.",
+      "known_issues": "None.",
+      "key_files": [
+        "frontend/static/js/dropdown-dismiss.js",
+        ".gsd/KNOWLEDGE.md"
+      ],
+      "key_decisions": [
+        "Used _getFixedContainingBlockRect() to detect CSS contain:layout ancestors that create new containing blocks for position:fixed — coordinates computed relative to containing block, not viewport",
+        "MutationObserver on document.body with subtree:true to detect dropdown population from htmx swaps and multi-value field cloning",
+        "Scroll listener uses capture phase to catch scroll events on any ancestor element"
+      ],
+      "full_summary_md": "---\nid: T02\nparent: S01\nmilestone: M051\nkey_files:\n  - frontend/static/js/dropdown-dismiss.js\n  - .gsd/KNOWLEDGE.md\nkey_decisions:\n  - Used _getFixedContainingBlockRect() to detect CSS contain:layout ancestors that create new containing blocks for position:fixed — coordinates computed relative to containing block, not viewport\n  - MutationObserver on document.body with subtree:true to detect dropdown population from htmx swaps and multi-value field cloning\n  - Scroll listener uses capture phase to catch scroll events on any ancestor element\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T01:01:32.977Z\nblocker_discovered: false\n---\n\n# T02: Added position:fixed repositioning with containing-block correction and flip-above logic to suggestion dropdowns, escaping overflow clipping in dockview panels\n\n**Added position:fixed repositioning with containing-block correction and flip-above logic to suggestion dropdowns, escaping overflow clipping in dockview panels**\n\n## What Happened\n\nExtended dropdown-dismiss.js with repositioning logic that switches suggestion dropdowns to position:fixed when populated (via MutationObserver), flips above the input when insufficient viewport space below (MIN_SPACE_BELOW=220px), and corrects for dockview's CSS contain:layout which creates a new containing block for fixed-position elements. Added scroll (capture phase) and resize dismiss listeners to prevent orphaned fixed dropdowns. Builder dropdowns are explicitly skipped via the .builder-suggestions class check.\n\n## Verification\n\nAll 7 must-haves verified in-browser inside dockview panels: tag field near bottom flips above correctly, reference field with space below renders below normally, dropdown width/left matches input, dismiss (click-outside/Escape/scroll) resets inline styles, works for both reference and tag fields, builder dropdowns skipped. JS syntax check passes. File serves 200 from nginx.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `node -c frontend/static/js/dropdown-dismiss.js` | 0 | ✅ pass | 100ms |\n| 2 | `curl -s -o /dev/null -w '%{http_code}' http://localhost:3901/js/dropdown-dismiss.js` | 0 | ✅ pass | 100ms |\n| 3 | `rg '_repositionDropdown' frontend/static/js/dropdown-dismiss.js` | 0 | ✅ pass | 50ms |\n| 4 | `Browser: tag field near bottom → dropdown flips above, fully visible` | 0 | ✅ pass | 5000ms |\n| 5 | `Browser: reference field with space below → dropdown renders below` | 0 | ✅ pass | 3000ms |\n| 6 | `Browser: scroll panel → dropdown dismissed, styles reset` | 0 | ✅ pass | 2000ms |\n| 7 | `Browser: Escape + click-outside → dismissed, styles reset` | 0 | ✅ pass | 1000ms |\n\n## Deviations\n\nAdded _getFixedContainingBlockRect() to handle dockview's contain:layout creating a new containing block for position:fixed — not anticipated by the plan. Added style.right='auto' override for CSS right:0 conflict. No CSS changes to forms.css were needed.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `frontend/static/js/dropdown-dismiss.js`\n- `.gsd/KNOWLEDGE.md`\n",
       "description": "## Description\n\nWhen a reference or tag field is near the bottom of a scrollable dockview panel, the `.suggestions-dropdown` renders below the input via `position: absolute; top: 100%` — but gets clipped by the panel's `overflow-y: auto`. The user can't see or interact with the suggestions.\n\n**Current CSS state:**\n- `.suggestions-dropdown` in `forms.css`: `position: absolute; top: 100%; z-index: 9999; max-height: 200px`\n- `.reference-field` and `.tag-autocomplete-field`: `position: relative` (dropdown anchor)\n- Dockview panels: scrollable content area with `overflow-y: auto`\n- Comment in `workspace.js` line 738 says \"position:fixed already escapes overflow:hidden containers\" — but the actual CSS uses `position: absolute`, not `position: fixed`\n\n**Approach:** Add a repositioning function that runs when a dropdown becomes non-empty. Use a `MutationObserver` on `.suggestions-dropdown` elements to detect when content is inserted (htmx swap). When content appears:\n1. Get the input element's `getBoundingClientRect()` for screen position\n2. Measure available space below and above the input within the viewport\n3. If the dropdown would be clipped below, flip it above the input\n4. Apply `position: fixed` + computed `top`/`left`/`width` from the input's rect\n5. On dismiss (innerHTML cleared), reset to `position: absolute` defaults\n\nThis follows the same pattern as dockview popover escape (KNOWLEDGE: \"Popovers inside dockview panels must escape stacking context via document.body\"), but instead of appending to `document.body`, we switch to `position: fixed` which also escapes overflow containers without moving the element in the DOM. This is simpler and avoids breaking htmx targeting (htmx expects the dropdown div at its original location in the DOM).\n\n## Steps\n\n1. In `frontend/static/js/dropdown-dismiss.js`, add a `_repositionDropdown(dropdown)` function:\n   - Find the parent input: `dropdown.closest('.reference-field')?.querySelector('.reference-search')` or `dropdown.closest('.tag-autocomplete-field')?.querySelector('input')`\n   - If no parent input found (builder context), skip repositioning (builders render in modal-like containers that don't clip)\n   - Get `inputRect = input.getBoundingClientRect()`\n   - Compute `spaceBelow = window.innerHeight - inputRect.bottom`\n   - If `spaceBelow < 220` (dropdown max-height 200px + 20px margin), position above: `dropdown.style.bottom = (window.innerHeight - inputRect.top) + 'px'; dropdown.style.top = 'auto'`\n   - Else position below: `dropdown.style.top = inputRect.bottom + 'px'; dropdown.style.bottom = 'auto'`\n   - Set `dropdown.style.position = 'fixed'`; `dropdown.style.left = inputRect.left + 'px'`; `dropdown.style.width = inputRect.width + 'px'`\n\n2. Add a `_resetDropdownPosition(dropdown)` function that removes the inline styles: `dropdown.style.cssText = ''`\n\n3. Set up a `MutationObserver` that watches for `childList` changes on all `.suggestions-dropdown` elements. When children are added (dropdown populated), call `_repositionDropdown()`. When children are removed or innerHTML cleared, call `_resetDropdownPosition()`.\n\n4. Since dropdowns are created dynamically (htmx swaps, multi-value clones), use a delegated approach: observe `document.body` with `{ childList: true, subtree: true }` but filter mutations to only act on `.suggestions-dropdown` elements. Alternatively, use the existing dismiss mousedown listener to also handle repositioning on the htmx `htmx:afterSwap` event.\n\n5. Update `_dismissAllDropdowns()` in the same file to also call `_resetDropdownPosition()` on each cleared dropdown.\n\n6. Update `frontend/static/css/forms.css` — ensure `.suggestions-dropdown` has a `z-index` high enough for fixed positioning (9999 is already set, good). No other CSS changes needed since the JS overrides position inline.\n\n## Must-Haves\n\n- [ ] Dropdown near bottom of scrollable panel flips above the input instead of being clipped\n- [ ] Dropdown in normal position (plenty of space below) renders below as before\n- [ ] Fixed positioning includes correct left/width matching the input field\n- [ ] Dismiss resets position to defaults (no stale inline styles)\n- [ ] Works for both reference fields and tag fields\n- [ ] No regression on builder dropdowns (they should skip repositioning)\n- [ ] Scroll/resize while dropdown is open does not leave dropdown orphaned (dismiss on scroll)",
       "estimate": "45m",
       "files": [
@@ -40975,6 +40982,83 @@
       "verdict": "✅ pass",
       "duration_ms": 15000,
       "created_at": "2026-04-06T00:46:48.218Z"
+    },
+    {
+      "id": 294,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M051",
+      "command": "node -c frontend/static/js/dropdown-dismiss.js",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-06T01:01:32.977Z"
+    },
+    {
+      "id": 295,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M051",
+      "command": "curl -s -o /dev/null -w '%{http_code}' http://localhost:3901/js/dropdown-dismiss.js",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-06T01:01:32.977Z"
+    },
+    {
+      "id": 296,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M051",
+      "command": "rg '_repositionDropdown' frontend/static/js/dropdown-dismiss.js",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-04-06T01:01:32.977Z"
+    },
+    {
+      "id": 297,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M051",
+      "command": "Browser: tag field near bottom → dropdown flips above, fully visible",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 5000,
+      "created_at": "2026-04-06T01:01:32.977Z"
+    },
+    {
+      "id": 298,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M051",
+      "command": "Browser: reference field with space below → dropdown renders below",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 3000,
+      "created_at": "2026-04-06T01:01:32.977Z"
+    },
+    {
+      "id": 299,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M051",
+      "command": "Browser: scroll panel → dropdown dismissed, styles reset",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 2000,
+      "created_at": "2026-04-06T01:01:32.977Z"
+    },
+    {
+      "id": 300,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M051",
+      "command": "Browser: Escape + click-outside → dismissed, styles reset",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1000,
+      "created_at": "2026-04-06T01:01:32.977Z"
     }
   ]
 }

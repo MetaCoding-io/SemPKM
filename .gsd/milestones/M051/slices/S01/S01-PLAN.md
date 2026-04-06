@@ -45,7 +45,7 @@ Using `mousedown` instead of `click` ensures the dropdown dismisses before the c
   - Estimate: 30m
   - Files: frontend/static/js/dropdown-dismiss.js, backend/app/templates/base.html
   - Verify: Start the dev Docker stack. Open an object edit form with a reference field. Type to trigger suggestions. Click outside the dropdown — it should disappear. Type again to re-trigger. Press Escape — it should disappear. Select a suggestion by clicking — it should populate the hidden input. Repeat for a tag field. Verify: `rg 'dismissAllDropdowns' frontend/static/js/dropdown-dismiss.js` returns matches; `rg 'dropdown-dismiss' backend/app/templates/base.html` returns the script tag.
-- [ ] **T02: Fix dropdown overflow clipping near panel edges with position:fixed repositioning** — ## Description
+- [x] **T02: Added position:fixed repositioning with containing-block correction and flip-above logic to suggestion dropdowns, escaping overflow clipping in dockview panels** — ## Description
 
 When a reference or tag field is near the bottom of a scrollable dockview panel, the `.suggestions-dropdown` renders below the input via `position: absolute; top: 100%` — but gets clipped by the panel's `overflow-y: auto`. The user can't see or interact with the suggestions.
 

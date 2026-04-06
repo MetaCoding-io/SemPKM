@@ -778,3 +778,17 @@ After creating an RDF4J repository via `PUT /repositories/{id}` (returns 204), t
 **Fix:** Added `_wait_for_repo_ready()` in `backend/app/triplestore/setup.py` that polls `/size` with retry backoff after fresh creation. Also added retry on the sentinel INSERT.
 
 **Affected file:** `backend/app/triplestore/setup.py`
+
+### CSS contain:layout creates a containing block for position:fixed
+
+**Discovered:** M051/S01/T02
+
+Dockview uses `contain: layout` on `.dv-grid-view.dv-dockview`. This CSS property creates a new containing block for `position: fixed` descendants — fixed positioning becomes relative to the dockview container instead of the viewport. This means `getBoundingClientRect()` returns viewport coordinates, but `position: fixed; left: Npx` is interpreted as N pixels from the dockview container's edge.
+
+**Impact:** Any code that uses `position: fixed` inside dockview panels (dropdowns, popovers, tooltips) must subtract the containing block's viewport offset from the target element's `getBoundingClientRect()` values. This affects `dropdown-dismiss.js` repositioning and potentially other fixed-position overlays inside panels.
+
+**Fix:** `_getFixedContainingBlockRect()` in `dropdown-dismiss.js` walks up the DOM to find the nearest ancestor with `contain`, `transform`, `filter`, or `perspective` and returns its rect. Coordinates are then computed relative to this containing block.
+
+**CSS properties that create containing blocks for fixed elements:** `contain` (any value except `none`), `transform` (any value except `none`), `will-change: transform`, `filter` (any value except `none`), `perspective` (any value except `none`).
+
+**Affected file:** `frontend/static/js/dropdown-dismiss.js`
