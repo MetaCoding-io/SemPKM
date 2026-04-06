@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T02",
+  "unitId": "M055/S02/T02",
+  "timestamp": 1775458553743,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "cd e2e",
+      "exitCode": 0,
+      "durationMs": 25,
+      "verdict": "pass"
+    },
+    {
+      "command": "npx playwright test tests/55-browser-history/closed-tab.spec.ts --headed",
+      "exitCode": 0,
+      "durationMs": 32970,
+      "verdict": "pass"
+    }
+  ]
+}

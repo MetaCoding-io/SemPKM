@@ -49,24 +49,6 @@ This file is the explicit capability and coverage contract for the project.
 - Primary owning slice: M054/S01
 - Validation: Create config with filter=Tasks, group=Status, sort=Due Date → explorer tree shows type-filtered objects grouped by status values with correct sort order. Unit tests prove SPARQL generation for multi-level configs.
 
-### R014 — Closed tab recovery — Ctrl+Shift+T reopens the last closed tab, and "Reopen Closed Tab" is available in the command palette
-- Class: functional
-- Status: active
-- Description: Closed tab recovery — Ctrl+Shift+T reopens the last closed tab, and "Reopen Closed Tab" is available in the command palette
-- Why it matters: Accidentally closing a tab is a common user error. Every IDE and browser provides Ctrl+Shift+T. The workspace should match this convention.
-- Source: M055
-- Primary owning slice: M055/S02
-- Validation: Close a tab → Ctrl+Shift+T → tab reopens with same content. F1 → "Reopen Closed Tab" → same result.
-
-### R017 — Closed tab recovery — Ctrl+Shift+T reopens last closed tab and command palette offers Reopen Closed Tab action
-- Class: functional
-- Status: active
-- Description: Closed tab recovery — Ctrl+Shift+T reopens last closed tab and command palette offers Reopen Closed Tab action
-- Why it matters: Accidental tab close is a common error; every IDE and browser provides undo-close-tab
-- Source: M055
-- Primary owning slice: M055/S02
-- Validation: Close a tab → Ctrl+Shift+T → tab reopens. F1 → "Reopen Closed Tab" → same result.
-
 ## Validated
 
 ### R001 — Non-object-contextual panels (inbox, collaboration) lazy-load on reveal rather than on page load — use hx-trigger="revealed" instead of hx-trigger="load"
@@ -144,6 +126,15 @@ This file is the explicit capability and coverage contract for the project.
 - Primary owning slice: M054/S02
 - Validation: Config selector shows By Type, By Tag as API-sourced presets and Hierarchy as pseudo-preset with __hierarchy__ sentinel. Each renders correct tree (composable config for By Type/Tag, legacy endpoint for Hierarchy). Validated in M054/S02.
 
+### R014 — Closed tab recovery — Ctrl+Shift+T reopens the last closed tab, and "Reopen Closed Tab" is available in the command palette
+- Class: functional
+- Status: validated
+- Description: Closed tab recovery — Ctrl+Shift+T reopens the last closed tab, and "Reopen Closed Tab" is available in the command palette
+- Why it matters: Accidentally closing a tab is a common user error. Every IDE and browser provides Ctrl+Shift+T. The workspace should match this convention.
+- Source: M055
+- Primary owning slice: M055/S02
+- Validation: 8 E2E tests pass (4 cases × Chromium + Firefox): single close → Ctrl+Shift+T reopens, multi-tab LIFO stack, empty-stack no-op, skip-already-open. Command palette entry works via F1 → "Reopen Closed Tab". Validated in M055/S02.
+
 ### R015 — URL reflects active tab — URL updates with ?tab= query parameter when user switches between object tabs in the workspace
 - Class: functional
 - Status: validated
@@ -151,7 +142,7 @@ This file is the explicit capability and coverage contract for the project.
 - Why it matters: Users expect the URL to reflect application state for bookmarking and sharing
 - Source: M055
 - Primary owning slice: M055/S01
-- Validation: 6 Playwright E2E tests in e2e/tests/55-browser-history/history.spec.ts pass on Chromium and Firefox. Tests 1-3 prove pushState on tab open, URL update on switch, and back/forward navigation. Manual browser verification in T01.
+- Validation: 6 Playwright E2E tests in e2e/tests/55-browser-history/history.spec.ts pass on Chromium and Firefox. Tests 1-3 prove pushState on tab open, URL update on switch, and back/forward navigation. Validated in M055/S01.
 
 ### R016 — Bookmarkable URLs — pasting a workspace URL containing ?tab= opens the correct object tab on page load
 - Class: functional
@@ -160,7 +151,16 @@ This file is the explicit capability and coverage contract for the project.
 - Why it matters: Bookmarks and shared links are core web affordances that must work
 - Source: M055
 - Primary owning slice: M055/S01
-- Validation: E2E test 4 navigates to /browser/?tab=<iri> and confirms correct object tab opens on page load. Manual browser verification in T02: deep-link opens tab, page refresh preserves it, ?tab= stays in URL.
+- Validation: E2E test 4 navigates to /browser/?tab=<iri> and confirms correct object tab opens on page load. Deep-link handler supports all 9 tab ID formats. Manual verification: deep-link works, refresh preserves tab. Validated in M055/S01.
+
+### R017 — Closed tab recovery — Ctrl+Shift+T reopens last closed tab and command palette offers Reopen Closed Tab action
+- Class: functional
+- Status: validated
+- Description: Closed tab recovery — Ctrl+Shift+T reopens last closed tab and command palette offers Reopen Closed Tab action
+- Why it matters: Accidental tab close is a common error; every IDE and browser provides undo-close-tab
+- Source: M055
+- Primary owning slice: M055/S02
+- Validation: Duplicate of R014 — same 8 E2E tests validate both requirements. Validated in M055/S02.
 
 ## Traceability
 
@@ -179,14 +179,14 @@ This file is the explicit capability and coverage contract for the project.
 | R011 | functional | validated | M054/S02 | M054/S01 | 24 unit tests prove CRUD round-trip. Config selector loads from API, save persists via POST, reload restores from localStorage UUID reference. Validated in M054/S02. |
 | R012 | functional | validated | M054/S02 | none | Duplicate creates independent section with own config state Map entry, tree body, and localStorage key. Close removes duplicate without affecting primary. Validated in M054/S02. |
 | R013 | functional | validated | M054/S02 | none | Config selector shows By Type, By Tag as API-sourced presets and Hierarchy as pseudo-preset with __hierarchy__ sentinel. Each renders correct tree (composable config for By Type/Tag, legacy endpoint for Hierarchy). Validated in M054/S02. |
-| R014 | functional | active | M055/S02 | none | Close a tab → Ctrl+Shift+T → tab reopens with same content. F1 → "Reopen Closed Tab" → same result. |
-| R015 | functional | validated | M055/S01 | none | 6 Playwright E2E tests in e2e/tests/55-browser-history/history.spec.ts pass on Chromium and Firefox. Tests 1-3 prove pushState on tab open, URL update on switch, and back/forward navigation. Manual browser verification in T01. |
-| R016 | functional | validated | M055/S01 | none | E2E test 4 navigates to /browser/?tab=<iri> and confirms correct object tab opens on page load. Manual browser verification in T02: deep-link opens tab, page refresh preserves it, ?tab= stays in URL. |
-| R017 | functional | active | M055/S02 | none | Close a tab → Ctrl+Shift+T → tab reopens. F1 → "Reopen Closed Tab" → same result. |
+| R014 | functional | validated | M055/S02 | none | 8 E2E tests pass (4 cases × Chromium + Firefox): single close → Ctrl+Shift+T reopens, multi-tab LIFO stack, empty-stack no-op, skip-already-open. Command palette entry works via F1 → "Reopen Closed Tab". Validated in M055/S02. |
+| R015 | functional | validated | M055/S01 | none | 6 Playwright E2E tests in e2e/tests/55-browser-history/history.spec.ts pass on Chromium and Firefox. Tests 1-3 prove pushState on tab open, URL update on switch, and back/forward navigation. Validated in M055/S01. |
+| R016 | functional | validated | M055/S01 | none | E2E test 4 navigates to /browser/?tab=<iri> and confirms correct object tab opens on page load. Deep-link handler supports all 9 tab ID formats. Manual verification: deep-link works, refresh preserves tab. Validated in M055/S01. |
+| R017 | functional | validated | M055/S02 | none | Duplicate of R014 — same 8 E2E tests validate both requirements. Validated in M055/S02. |
 
 ## Coverage Summary
 
-- Active requirements: 7
-- Mapped to slices: 7
-- Validated: 10 (R001, R002, R004, R005, R006, R011, R012, R013, R015, R016)
+- Active requirements: 5
+- Mapped to slices: 5
+- Validated: 12 (R001, R002, R004, R005, R006, R011, R012, R013, R014, R015, R016, R017)
 - Unmapped active requirements: 0

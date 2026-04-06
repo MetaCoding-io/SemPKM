@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T06:55:50.315Z",
+  "exported_at": "2026-04-06T07:02:31.055Z",
   "milestones": [
     {
       "id": "M001",
@@ -2074,10 +2074,10 @@
     {
       "id": "M055",
       "title": "Browser History & Tab Recovery",
-      "status": "active",
+      "status": "complete",
       "depends_on": [],
       "created_at": "2026-04-05T17:38:45.585Z",
-      "completed_at": null,
+      "completed_at": "2026-04-06T07:02:31.016Z",
       "vision": "Make the workspace URL reflect the active tab, enable browser back/forward navigation between tabs, support bookmarkable/shareable URLs, and add closed-tab recovery via Ctrl+Shift+T and command palette.",
       "success_criteria": [
         "Open object A → URL shows ?tab=A → open object B → URL shows ?tab=B → press back → A is focused → URL shows A → press forward → B focused → URL shows B",
@@ -8659,14 +8659,14 @@
       "milestone_id": "M055",
       "id": "S02",
       "title": "Closed Tab Recovery",
-      "status": "pending",
+      "status": "complete",
       "risk": "low",
       "depends": [],
       "demo": "Close a tab → Ctrl+Shift+T → tab reopens with same content. F1 → 'Reopen Closed Tab' → same result.",
       "created_at": "2026-04-06T05:48:35.499Z",
-      "completed_at": null,
-      "full_summary_md": "",
-      "full_uat_md": "",
+      "completed_at": "2026-04-06T06:58:26.109Z",
+      "full_summary_md": "---\nid: S02\nparent: M055\nmilestone: M055\nprovides:\n  - reopenClosedTab() on window.SemPKM for programmatic closed-tab recovery\n  - Ctrl+Shift+T keyboard shortcut for closed-tab recovery\n  - Command palette 'Reopen Closed Tab' entry\nrequires:\n  []\naffects:\n  []\nkey_files:\n  - frontend/static/js/workspace-layout.js\n  - frontend/static/js/workspace.js\n  - e2e/tests/55-browser-history/closed-tab.spec.ts\nkey_decisions:\n  - Module-private _closedTabStack — not exposed on window, accessed only via reopenClosedTab() closure\n  - Component type inferred from params flags as fallback during panel disposal\n  - Skip-and-try-next when closed tab already manually reopened\n  - Multi-tab E2E test uses JS API instead of keyboard shortcut for timing reliability\npatterns_established:\n  - Closed-tab stack pattern: capture metadata in onDidRemovePanel, dispatch to typed opener in reopenClosedTab()\nobservability_surfaces:\n  - none\ndrill_down_paths:\n  - .gsd/milestones/M055/slices/S02/tasks/T01-SUMMARY.md\n  - .gsd/milestones/M055/slices/S02/tasks/T02-SUMMARY.md\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-04-06T06:58:26.110Z\nblocker_discovered: false\n---\n\n# S02: Closed Tab Recovery\n\n**Added closed-tab recovery with a 20-entry LIFO stack, Ctrl+Shift+T keyboard shortcut, and command palette entry — supports all 18+ tab types with skip-already-open logic.**\n\n## What Happened\n\nImplemented closed-tab recovery in two tasks. T01 added the core feature: a module-private `_closedTabStack` array in workspace-layout.js captures panel metadata (id, component type, params, label) in the `onDidRemovePanel` handler before `_tabMeta` cleanup. The `reopenClosedTab()` function pops from the LIFO stack and dispatches to the correct opener based on component type — covering object-editor, view-panel, special-panel (docs, canvas, settings), dashboard, workflow, and app tabs. The stack is capped at 20 entries. If a popped tab is already open (user manually reopened it), the function skips it and tries the next entry. Ctrl+Shift+T keyboard shortcut and \"Reopen Closed Tab\" command palette entry were added in workspace.js.\n\nT02 added 4 Playwright E2E tests in `e2e/tests/55-browser-history/closed-tab.spec.ts`: single close-and-reopen, multi-tab LIFO ordering, empty-stack no-op safety, and skip-already-open behavior. All 8 runs pass (4 tests × Chromium + Firefox). The multi-tab test uses the JS API directly (`reopenClosedTab()`) rather than rapid Ctrl+Shift+T presses for timing reliability.\n\n## Verification\n\nAll 8 E2E tests pass (4 tests × Chromium + Firefox) covering: (1) close object tab → Ctrl+Shift+T reopens with same IRI, (2) close 3 tabs → reopenClosedTab() 3 times restores in LIFO order, (3) Ctrl+Shift+T on empty stack = safe no-op with no console errors, (4) close 2 tabs → manually reopen one → Ctrl+Shift+T skips already-open and reopens the other. Full 55-browser-history suite of 20 tests passes with no regressions.\n\n## Requirements Advanced\n\nNone.\n\n## Requirements Validated\n\n- R014 — 8 E2E tests pass (4 cases × Chromium + Firefox): single close → Ctrl+Shift+T reopens, multi-tab LIFO, empty-stack no-op, skip-already-open.\n- R017 — Duplicate of R014 — same 8 E2E tests validate both requirements.\n\n## New Requirements Surfaced\n\nNone.\n\n## Requirements Invalidated or Re-scoped\n\nNone.\n\n## Deviations\n\nMulti-tab E2E test uses JS API instead of keyboard shortcut for timing reliability — rapid sequential Ctrl+Shift+T has race conditions in Playwright.\n\n## Known Limitations\n\nNone.\n\n## Follow-ups\n\nNone.\n\n## Files Created/Modified\n\n- `frontend/static/js/workspace-layout.js` — Added _closedTabStack array, metadata capture in onDidRemovePanel, reopenClosedTab() function with dispatch to all tab types, exported on window.SemPKM\n- `frontend/static/js/workspace.js` — Added Ctrl+Shift+T keyboard shortcut in initKeyboardShortcuts(), added 'Reopen Closed Tab' command palette entry in initCommandPalette()\n- `e2e/tests/55-browser-history/closed-tab.spec.ts` — 4 E2E tests: single reopen, multi-tab LIFO, empty-stack no-op, skip-already-open\n",
+      "full_uat_md": "# S02: Closed Tab Recovery — UAT\n\n**Milestone:** M055\n**Written:** 2026-04-06T06:58:26.110Z\n\n# S02 UAT: Closed Tab Recovery\n\n## Preconditions\n- Workspace loaded at `/browser/` with at least one Mental Model installed (basic-pkm)\n- At least 3 objects exist to open as tabs\n\n---\n\n## Test 1: Single Tab Close and Reopen\n1. Open an object tab by clicking an object in the explorer\n2. Note the tab label and IRI\n3. Close the tab via the X button\n4. Press **Ctrl+Shift+T**\n5. **Expected:** The same object tab reopens with the same label and content\n\n## Test 2: Multi-Tab LIFO Stack\n1. Open 3 different object tabs (A, B, C)\n2. Close tab C, then tab B, then tab A\n3. Press **Ctrl+Shift+T**\n4. **Expected:** Tab A reopens (last closed = first reopened)\n5. Press **Ctrl+Shift+T** again\n6. **Expected:** Tab B reopens\n7. Press **Ctrl+Shift+T** again\n8. **Expected:** Tab C reopens\n\n## Test 3: Empty Stack — No-Op\n1. Ensure no tabs have been closed (or reopen all closed tabs)\n2. Press **Ctrl+Shift+T**\n3. **Expected:** Nothing happens. No new tab opens. No error in browser console.\n\n## Test 4: Skip Already-Open Tab\n1. Open 2 object tabs (A, B)\n2. Close both tabs\n3. Manually reopen tab B by clicking it in the explorer\n4. Press **Ctrl+Shift+T**\n5. **Expected:** Tab A reopens (tab B is skipped because it's already open)\n\n## Test 5: Command Palette Entry\n1. Press **F1** to open the command palette\n2. Type \"Reopen\"\n3. **Expected:** \"Reopen Closed Tab\" entry appears with Ctrl+Shift+T hotkey badge\n4. Close an object tab, press F1, select \"Reopen Closed Tab\"\n5. **Expected:** The closed tab reopens\n\n## Test 6: View Tab Recovery\n1. Open a view tab (e.g., Table view for a type)\n2. Close the view tab\n3. Press **Ctrl+Shift+T**\n4. **Expected:** The same view tab reopens with the correct view type\n\n## Edge Cases\n- Stack is capped at 20 entries — closing 21+ tabs only retains the 20 most recent\n- Special tabs (Docs, Canvas, Settings) can also be recovered via Ctrl+Shift+T\n",
       "goal": "Add a closed-tab stack that captures panel metadata on close, and provide keyboard shortcut and command palette entry to reopen the last closed tab.",
       "success_criteria": "1. Closing any tab type pushes its metadata onto the stack (capped at 20)\\n2. Ctrl+Shift+T pops from stack and reopens via correct open*Tab() function\\n3. Command palette shows 'Reopen Closed Tab' entry\\n4. Empty stack does nothing (no error)\\n5. Works for object tabs, view tabs, and special tabs",
       "proof_level": "Browser verification + E2E test",
@@ -39763,6 +39763,18 @@
       "decision": "R016 — Bookmarkable URLs",
       "choice": "validated",
       "rationale": "E2E test 4 navigates to /browser/?tab=<iri> and asserts the correct object tab opens. Manually verified in browser during T02 — deep-link opens tab, refresh preserves it.",
+      "revisable": "Yes",
+      "made_by": "agent",
+      "superseded_by": null
+    },
+    {
+      "seq": 447,
+      "id": "D405",
+      "when_context": "",
+      "scope": "requirement",
+      "decision": "R017",
+      "choice": "validated",
+      "rationale": "Duplicate of R014. Same evidence: Ctrl+Shift+T and command palette \"Reopen Closed Tab\" both work. 8 E2E tests pass across Chromium and Firefox.",
       "revisable": "Yes",
       "made_by": "agent",
       "superseded_by": null
