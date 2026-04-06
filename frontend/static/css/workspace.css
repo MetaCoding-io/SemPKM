@@ -3163,6 +3163,33 @@ details.form-group[open] > .form-group-summary::before {
 .confirm-dialog .btn-cancel:hover {
     background: var(--color-surface-raised, var(--color-surface));
 }
+.confirm-dialog .btn-primary {
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+    border: none;
+    border-radius: 4px;
+    padding: 6px 16px;
+    cursor: pointer;
+    font-size: 13px;
+}
+.confirm-dialog .btn-primary:hover {
+    background: var(--color-accent-hover, var(--color-accent));
+}
+.confirm-dialog .input-dialog-field {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-bg-primary, #1e1e1e);
+    color: var(--color-text);
+    font-size: 13px;
+    padding: 8px;
+    font-family: inherit;
+}
+.confirm-dialog .input-dialog-field:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
 
 /* ============================================
    Inferred Badge — subtle pill label for OWL 2 RL inferred triples

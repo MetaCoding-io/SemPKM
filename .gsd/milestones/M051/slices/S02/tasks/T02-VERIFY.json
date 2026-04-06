@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T02",
+  "unitId": "M051/S02/T02",
+  "timestamp": 1775438251613,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "rg 'refreshObjectTab' frontend/static/js/workspace.js",
+      "exitCode": 0,
+      "durationMs": 27,
+      "verdict": "pass"
+    },
+    {
+      "command": "rg 'refresh-btn' backend/app/templates/browser/object_tab.html backend/app/templates/browser/object_tab_app.html",
+      "exitCode": 0,
+      "durationMs": 31,
+      "verdict": "pass"
+    },
+    {
+      "command": "rg 'refresh-btn' frontend/static/css/workspace.css",
+      "exitCode": 0,
+      "durationMs": 28,
+      "verdict": "pass"
+    }
+  ]
+}

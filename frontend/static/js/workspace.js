@@ -1510,10 +1510,22 @@
 
       // Patch open/close to reflect state as an HTML attribute so tests
       // and external code can detect open state via getAttribute('opened').
+      // Also freeze body scroll to prevent ninja-keys scrollIntoView() from
+      // jumping the page (#24).
       var _origOpen = ninja.open.bind(ninja);
       var _origClose = ninja.close.bind(ninja);
-      ninja.open = function (options) { _origOpen(options); ninja.setAttribute('opened', ''); };
-      ninja.close = function () { _origClose(); ninja.removeAttribute('opened'); };
+      var _savedOverflow = '';
+      ninja.open = function (options) {
+        _savedOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        _origOpen(options);
+        ninja.setAttribute('opened', '');
+      };
+      ninja.close = function () {
+        document.body.style.overflow = _savedOverflow;
+        _origClose();
+        ninja.removeAttribute('opened');
+      };
 
       ninja.data = [
         {
@@ -1677,32 +1689,13 @@
           id: 'layout-save-as',
           title: 'Layout: Save As...',
           section: 'Layout',
-          children: ['layout-save-confirm']
-        },
-        {
-          id: 'layout-save-confirm',
-          title: 'Type a layout name above, then select this item to save',
-          parent: 'layout-save-as',
           handler: function () {
-            var ninjaEl = document.querySelector('ninja-keys');
-            var name = '';
-            if (ninjaEl) {
-              // Try shadowRoot input (the search field ninja-keys uses)
-              try {
-                var input = ninjaEl.shadowRoot.querySelector('input[type="text"]');
-                if (input) name = input.value;
-              } catch (e) {}
-              // Fallback: ninja-keys may expose _search or .search property
-              if (!name && ninjaEl._search) name = ninjaEl._search;
-            }
-            name = name ? name.trim() : '';
-            if (!name) {
-              showToast('Please type a layout name in the search field first', 3000);
-              return;
-            }
-            window.SemPKMLayouts.save(name);
-            showToast('Layout "' + name + '" saved');
-            _refreshLayoutPaletteItems(ninjaEl);
+            ninja.close();
+            showInputDialog('Save Layout', 'Layout name', function (name) {
+              window.SemPKMLayouts.save(name);
+              showToast('Layout "' + name + '" saved');
+              _refreshLayoutPaletteItems(document.querySelector('ninja-keys'));
+            }, 'Save');
           }
         },
         {
@@ -1734,28 +1727,11 @@
           id: 'persona-create',
           title: 'Persona: Create New...',
           section: 'Persona',
-          children: ['persona-create-confirm']
-        },
-        {
-          id: 'persona-create-confirm',
-          title: 'Type a persona name above, then select this item to save',
-          parent: 'persona-create',
           handler: function () {
-            var ninjaEl = document.querySelector('ninja-keys');
-            var pname = '';
-            if (ninjaEl) {
-              try {
-                var input = ninjaEl.shadowRoot.querySelector('input[type="text"]');
-                if (input) pname = input.value;
-              } catch (e) {}
-              if (!pname && ninjaEl._search) pname = ninjaEl._search;
-            }
-            pname = pname ? pname.trim() : '';
-            if (!pname) {
-              showToast('Please type a persona name in the search field first', 3000);
-              return;
-            }
-            createNewPersona(pname);
+            ninja.close();
+            showInputDialog('Create Persona', 'Persona name', function (name) {
+              createNewPersona(name);
+            }, 'Create');
           }
         },
         // --- Task Templates ---
@@ -3427,6 +3403,63 @@
   }
 
   /**
+   * Show a modal input dialog (text field) and invoke a callback with the value.
+   * Modeled on showConfirmDialog. Uses the <dialog> element with .confirm-dialog styling.
+   * @param {string} title - Dialog heading
+   * @param {string} placeholder - Input placeholder text
+   * @param {Function} onConfirm - Called with the trimmed input value
+   * @param {string} [confirmText="OK"] - Text for the confirm button
+   */
+  function showInputDialog(title, placeholder, onConfirm, confirmText) {
+    confirmText = confirmText || 'OK';
+    var dialog = document.createElement('dialog');
+    dialog.className = 'confirm-dialog';
+
+    var html = '<h3 class="confirm-dialog-title">' + _escHtml(title) + '</h3>';
+    html += '<div class="confirm-dialog-body">';
+    html += '<input type="text" class="input-dialog-field" placeholder="' + _escHtml(placeholder) + '" autofocus />';
+    html += '</div>';
+    html += '<div class="confirm-dialog-actions">';
+    html += '<button class="btn-cancel" type="button">Cancel</button>';
+    html += '<button class="btn-primary" type="button">' + _escHtml(confirmText) + '</button>';
+    html += '</div>';
+
+    dialog.innerHTML = html;
+    document.body.appendChild(dialog);
+
+    var input = dialog.querySelector('.input-dialog-field');
+    var cancelBtn = dialog.querySelector('.btn-cancel');
+    var confirmBtn = dialog.querySelector('.btn-primary');
+
+    function cleanup() {
+      dialog.close();
+      dialog.remove();
+    }
+
+    function submit() {
+      var val = input.value.trim();
+      if (!val) {
+        showToast('Please enter a name');
+        input.focus();
+        return;
+      }
+      onConfirm(val);
+      cleanup();
+    }
+
+    cancelBtn.addEventListener('click', cleanup);
+    confirmBtn.addEventListener('click', submit);
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); submit(); }
+    });
+    dialog.addEventListener('cancel', cleanup); // Escape key
+
+    dialog.showModal();
+    // Ensure input is focused after showModal (some browsers need this)
+    input.focus();
+  }
+
+  /**
    * Delete a user-asserted edge with confirmation.
    */
   function deleteEdge(subjectIri, predicateIri, targetIri) {
@@ -3858,6 +3891,7 @@
   window.SemPKM.toggleEdgeDetail = toggleEdgeDetail;
   window.SemPKM.showEventInLog = showEventInLog;
   window.SemPKM.showConfirmDialog = showConfirmDialog;
+  window.SemPKM.showInputDialog = showInputDialog;
   window.SemPKM.deleteEdge = deleteEdge;
 
   // --- Persona functions (exposed for sidebar template onclick handlers) ---

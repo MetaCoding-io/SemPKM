@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T01:17:28.126Z",
+  "exported_at": "2026-04-06T01:28:36.715Z",
   "milestones": [
     {
       "id": "M001",
@@ -8219,14 +8219,14 @@
       "milestone_id": "M051",
       "id": "S02",
       "title": "Explorer & Nav Cleanup + Object Tab Refresh",
-      "status": "pending",
+      "status": "complete",
       "risk": "moderate",
       "depends": [],
       "demo": "Explorer shows 'Project' not 'Project Shape'. Event Log tab shows actual event content. VFS mount dropdown has clean labels. Object tab has a refresh button that reloads content.",
       "created_at": "2026-04-06T00:29:13.071Z",
-      "completed_at": null,
-      "full_summary_md": "",
-      "full_uat_md": "",
+      "completed_at": "2026-04-06T01:18:52.164Z",
+      "full_summary_md": "---\nid: S02\nparent: M051\nmilestone: M051\nprovides:\n  - Clean type labels without ' Shape' suffix from backend (shapes.py get_types())\n  - refreshObjectTab() JS function exported on window.SemPKM\n  - VFS mount dropdown with human-readable model titles via dcterms:title\nrequires:\n  []\naffects:\n  []\nkey_files:\n  - backend/app/services/shapes.py\n  - backend/app/templates/browser/workspace.html\n  - backend/app/vfs/mount_router.py\n  - frontend/static/js/workspace.js\n  - backend/app/templates/browser/object_tab.html\n  - backend/app/templates/browser/object_tab_app.html\n  - frontend/static/css/workspace.css\nkey_decisions:\n  - (none)\npatterns_established:\n  - Object tab toolbar button pattern: .refresh-btn follows the same CSS structure as .star-btn and .delete-btn — inline-flex, transparent background, Lucide icon with flex-shrink:0 and stroke:currentColor\nobservability_surfaces:\n  - none\ndrill_down_paths:\n  - .gsd/milestones/M051/slices/S02/tasks/T01-SUMMARY.md\n  - .gsd/milestones/M051/slices/S02/tasks/T02-SUMMARY.md\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-04-06T01:18:52.165Z\nblocker_discovered: false\n---\n\n# S02: Explorer & Nav Cleanup + Object Tab Refresh\n\n**Fixed four workspace paper-cuts: stripped ' Shape' suffix from explorer type labels at the backend, replaced stale event log placeholder, enriched VFS mount dropdown with human-readable model titles, and added a refresh button to object tabs.**\n\n## What Happened\n\nThis slice addressed four small but visible UX annoyances across the workspace.\n\n**T01 — Backend label cleanup (3 edits):**\n1. `shapes.py get_types()` now calls `.removesuffix(' Shape')` on type labels at the source, so the explorer shows 'Project' instead of 'Project Shape'. The existing client-side regex strip in workspace.js is now redundant but harmless.\n2. The event log panel placeholder changed from the outdated 'Event Log Explorer — coming in Phase 16' to 'Loading event log...' — the htmx lazy-load already replaces this on panel open.\n3. The VFS mount SPARQL query now fetches `dcterms:title` via OPTIONAL and uses it as the mount display name, falling back to `modelId` when no title exists. This gives human-readable names in the mount dropdown.\n\n**T02 — Object tab refresh button (4 files):**\nAdded `refreshObjectTab(objectIri)` to workspace.js (delegates to existing `loadObjectContent()`), exported as `window.SemPKM.refreshObjectTab`. Added `.refresh-btn` with `refresh-cw` Lucide icon to both `object_tab.html` and `object_tab_app.html`, positioned after the star button. CSS follows the established button pattern: flex-shrink:0, stroke:currentColor, transparent background with hover color transition.\n\nAll changes are backward-compatible. 144 backend tests pass with zero regressions.\n\n## Verification\n\nBackend test suite: 144 passed, 1 pre-existing failure (command palette navigation test — unrelated). Grep verification confirmed: refreshObjectTab function + export in workspace.js, refresh-btn in both object tab templates, refresh-btn CSS rules in workspace.css, removesuffix(' Shape') in shapes.py, 'Loading event log...' in workspace.html, dcterms:title OPTIONAL clause in mount_router.py.\n\n## Requirements Advanced\n\nNone.\n\n## Requirements Validated\n\nNone.\n\n## New Requirements Surfaced\n\nNone.\n\n## Requirements Invalidated or Re-scoped\n\nNone.\n\n## Deviations\n\nNone.\n\n## Known Limitations\n\nThe client-side regex strip in workspace.js (line ~2094) is now redundant with the backend removesuffix, but was left in place as a harmless no-op per the plan.\n\n## Follow-ups\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/services/shapes.py` — Added .removesuffix(' Shape') to type labels in get_types()\n- `backend/app/templates/browser/workspace.html` — Replaced stale event log placeholder text\n- `backend/app/vfs/mount_router.py` — Added dcterms:title to model mounts SPARQL with fallback to modelId\n- `frontend/static/js/workspace.js` — Added refreshObjectTab() function and SemPKM export\n- `backend/app/templates/browser/object_tab.html` — Added refresh button with refresh-cw Lucide icon\n- `backend/app/templates/browser/object_tab_app.html` — Added refresh button with refresh-cw Lucide icon\n- `frontend/static/css/workspace.css` — Added .refresh-btn CSS rules following toolbar button pattern\n",
+      "full_uat_md": "# S02: Explorer & Nav Cleanup + Object Tab Refresh — UAT\n\n**Milestone:** M051\n**Written:** 2026-04-06T01:18:52.165Z\n\n## UAT: S02 — Explorer & Nav Cleanup + Object Tab Refresh\n\n### Preconditions\n- SemPKM workspace running (Docker dev stack or local)\n- At least one Mental Model installed (e.g., basic-pkm)\n- At least one object created\n\n### Test Cases\n\n#### TC1: Explorer type labels show clean names\n1. Open workspace at `/browser/`\n2. Expand the OBJECTS section in the explorer sidebar\n3. Observe the type labels listed (e.g., for basic-pkm types)\n4. **Expected:** Labels show 'Project', 'Task', 'Note' — NOT 'Project Shape', 'Task Shape', 'Note Shape'\n\n#### TC2: Event log placeholder shows loading text\n1. Open workspace at `/browser/`\n2. Click the Event Log panel tab (if not already visible)\n3. Observe the placeholder text before content loads\n4. **Expected:** Shows 'Loading event log...' — NOT 'Event Log Explorer — coming in Phase 16'\n5. After htmx load completes, actual event content replaces the placeholder\n\n#### TC3: VFS mount dropdown shows human-readable model names\n1. Navigate to VFS browser or any UI that shows the mount dropdown\n2. Observe the model mount entries\n3. **Expected:** Mounts show the model's dcterms:title (e.g., 'Basic PKM') instead of raw modelId (e.g., 'basic-pkm'). If a model has no dcterms:title, the modelId is shown as fallback.\n\n#### TC4: Object tab has refresh button\n1. Open any object in a workspace tab\n2. Observe the object toolbar (top-right area with star, delete buttons)\n3. **Expected:** A refresh button with a refresh-cw icon appears between the star and delete buttons\n4. Click the refresh button\n5. **Expected:** Object content reloads (the tab content refreshes via loadObjectContent)\n\n#### TC5: Object tab (app variant) has refresh button\n1. Open an object that uses the app-variant tab template (object_tab_app.html)\n2. Observe the object toolbar\n3. **Expected:** Same refresh button appears with refresh-cw icon\n4. Click it\n5. **Expected:** Content reloads\n\n#### TC6: Refresh button hover state\n1. Open any object tab\n2. Hover over the refresh button\n3. **Expected:** Icon color transitions from muted to primary color (smooth 0.2s transition)\n4. Move mouse away\n5. **Expected:** Color transitions back to muted\n\n### Edge Cases\n\n#### EC1: Type with no ' Shape' suffix is unaffected\n1. If a model defines a type with label 'Contact' (no ' Shape' suffix)\n2. **Expected:** Label shows 'Contact' unchanged — removesuffix is a no-op\n\n#### EC2: Model with no dcterms:title\n1. If a model's RDF metadata in urn:sempkm:models has no dcterms:title triple\n2. **Expected:** VFS mount shows modelId as fallback name\n",
       "goal": "Fix four workspace paper-cuts: explorer type labels show clean names without \"Shape\" suffix, event log placeholder shows useful text, VFS mount dropdown shows human-readable model names, and object tabs have a refresh button.",
       "success_criteria": "- Explorer nav tree shows \"Project\" not \"Project Shape\" for all types\n- Event log panel placeholder says \"Loading event log...\" instead of \"coming in Phase 16\"\n- VFS mount dropdown shows human-readable model titles (e.g. \"Basic PKM\") instead of raw IDs\n- Object tabs (both standard and app-rendered) have a refresh button that reloads content\n- Backend tests pass with no regressions (`cd backend && .venv/bin/python -m pytest tests/ -x -q`)",
       "proof_level": "Operational — all changes are observable in the running workspace UI.",
@@ -8247,11 +8247,11 @@
       "completed_at": null,
       "full_summary_md": "",
       "full_uat_md": "",
-      "goal": "Replace 'type above then select' antipattern with proper input dialogs for persona create and layout save. Fix ninja-keys scroll jump. Fix admin graph popover positioning. Improve persona/layout labels.",
-      "success_criteria": "1. Persona: Create New opens a dialog with text input and Create/Cancel buttons.\n2. Layout: Save As opens a dialog with text input and Save/Cancel buttons.\n3. Command palette opens on a scrolled page without jumping.\n4. Admin graph hover popover appears adjacent to the hovered node.\n5. Persona and Layout sections have clearer labels/help text in command palette.",
-      "proof_level": "Manual verification for dialog UX, scroll fix, and popover positioning.",
-      "integration_closure": "Dialog pattern extends existing showConfirmDialog. Persona/layout API calls unchanged. Scroll fix is CSS-only or minimal JS on ninja-keys wrapper.",
-      "observability_impact": "None",
+      "goal": "Fix command palette scroll jump, replace persona-create and layout-save-as antipattern with proper input dialogs, and fix admin graph popover positioning.",
+      "success_criteria": "- F1 command palette opens without scrolling the page body\n- 'Persona: Create New...' opens a `<dialog>` with text input, not a ninja-keys child drill-down\n- 'Layout: Save As...' opens a `<dialog>` with text input, not a ninja-keys child drill-down\n- The `persona-create-confirm` and `layout-save-confirm` ninja-keys entries are removed\n- Admin model ontology diagram popover positions near the hovered node using viewport coordinates\n- `showInputDialog()` function exists and is exported on `window.SemPKM`",
+      "proof_level": "Manual browser verification — no new backend contracts, all changes are visual/interactive JS+CSS.",
+      "integration_closure": "No upstream surfaces consumed. No new wiring — reuses existing `showConfirmDialog` CSS, existing `createNewPersona()` and `window.SemPKMLayouts.save()` APIs, existing ninja-keys open/close patch. Nothing remains for the milestone after this slice.",
+      "observability_impact": "None — pure frontend UX fixes with no runtime boundaries or async flows.",
       "sequence": 0,
       "replan_triggered_at": null
     }
@@ -33153,6 +33153,81 @@
       "observability_impact": "",
       "full_plan_md": "",
       "sequence": 0
+    },
+    {
+      "milestone_id": "M051",
+      "slice_id": "S03",
+      "id": "T01",
+      "title": "Fixed command palette scroll jump by freezing body overflow on open, replaced shadow-DOM input hacks for persona-create and layout-save-as with proper showInputDialog() modal dialogs",
+      "status": "complete",
+      "one_liner": "Fixed command palette scroll jump by freezing body overflow on open, replaced shadow-DOM input hacks for persona-create and layout-save-as with proper showInputDialog() modal dialogs",
+      "narrative": "Three coordinated changes: (1) Added _savedOverflow to ninja-keys open/close patch to prevent scrollIntoView() page jump by setting body overflow to hidden while palette is open. (2) Created reusable showInputDialog(title, placeholder, onConfirm, confirmText) function using <dialog> element with .confirm-dialog styling, text input, Enter/Escape handling, exported on window.SemPKM. (3) Removed persona-create-confirm and layout-save-confirm child entries that extracted text from ninja-keys shadow DOM, replaced with handlers that close palette and open the new input dialog.",
+      "verification_result": "All grep-based verification checks pass: persona-create-confirm count 0, layout-save-confirm count 0, showInputDialog present (4 occurrences), _savedOverflow present (3 occurrences), btn-primary present in CSS (6 lines).",
+      "duration": "",
+      "completed_at": "2026-04-06T01:28:36.677Z",
+      "blocker_discovered": false,
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "frontend/static/js/workspace.js",
+        "frontend/static/css/workspace.css"
+      ],
+      "key_decisions": [
+        "Used <dialog> element with existing .confirm-dialog base styling for input dialogs, keeping visual consistency"
+      ],
+      "full_summary_md": "---\nid: T01\nparent: S03\nmilestone: M051\nkey_files:\n  - frontend/static/js/workspace.js\n  - frontend/static/css/workspace.css\nkey_decisions:\n  - Used <dialog> element with existing .confirm-dialog base styling for input dialogs, keeping visual consistency\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T01:28:36.676Z\nblocker_discovered: false\n---\n\n# T01: Fixed command palette scroll jump by freezing body overflow on open, replaced shadow-DOM input hacks for persona-create and layout-save-as with proper showInputDialog() modal dialogs\n\n**Fixed command palette scroll jump by freezing body overflow on open, replaced shadow-DOM input hacks for persona-create and layout-save-as with proper showInputDialog() modal dialogs**\n\n## What Happened\n\nThree coordinated changes: (1) Added _savedOverflow to ninja-keys open/close patch to prevent scrollIntoView() page jump by setting body overflow to hidden while palette is open. (2) Created reusable showInputDialog(title, placeholder, onConfirm, confirmText) function using <dialog> element with .confirm-dialog styling, text input, Enter/Escape handling, exported on window.SemPKM. (3) Removed persona-create-confirm and layout-save-confirm child entries that extracted text from ninja-keys shadow DOM, replaced with handlers that close palette and open the new input dialog.\n\n## Verification\n\nAll grep-based verification checks pass: persona-create-confirm count 0, layout-save-confirm count 0, showInputDialog present (4 occurrences), _savedOverflow present (3 occurrences), btn-primary present in CSS (6 lines).\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `grep -c 'persona-create-confirm' ... && grep -c 'layout-save-confirm' ... && grep -q 'showInputDialog' ... && grep -q '_savedOverflow' ... && grep -q 'btn-primary' ... && echo 'PASS'` | 0 | ✅ pass | 80ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `frontend/static/js/workspace.js`\n- `frontend/static/css/workspace.css`\n",
+      "description": "## Description\n\nThree related changes in workspace.js and workspace.css:\n\n1. **Scroll jump fix (#24):** The ninja-keys component calls `scrollIntoView()` on highlighted actions, which propagates to `document.body` when the modal overlay has `overflow: auto`. Fix by toggling `document.body.style.overflow = 'hidden'` in the existing open/close patch.\n\n2. **Input dialog function:** Create `showInputDialog(title, placeholder, onConfirm, confirmText)` modeled on the existing `showConfirmDialog()` at line 3385. Uses `<dialog>` element with `.confirm-dialog` base styling plus an `<input>` field.\n\n3. **Persona create + Layout save rewiring (#33, #34, #35):** Replace the antipattern where users type a name in the ninja-keys search field and select a confirm child item. Instead, each command closes the palette and opens the new input dialog.\n\n## Steps\n\n1. Read `frontend/static/js/workspace.js` lines 1513-1520 (open/close patch). Add `_savedOverflow` variable. In `ninja.open`, save `document.body.style.overflow` and set to `'hidden'`. In `ninja.close`, restore the saved value.\n\n2. Add `showInputDialog(title, placeholder, onConfirm, confirmText)` function near `showConfirmDialog()` (around line 3385). Implementation:\n   - Create `<dialog>` with class `confirm-dialog`\n   - Build HTML: title `<h3>`, `<input type=\"text\">` with placeholder and autofocus, actions div with Cancel + confirm button\n   - The confirm button uses class `btn-primary` (new CSS class, styled like `btn-danger` but with accent color)\n   - Wire cancel → cleanup, confirm → call `onConfirm(input.value.trim())` if non-empty else show toast, Escape → cleanup\n   - Also handle Enter key on the input to submit\n   - Call `dialog.showModal()`\n   - Export as `window.SemPKM.showInputDialog = showInputDialog`\n\n3. Add CSS for `.confirm-dialog .btn-primary` in `workspace.css` near the existing `.confirm-dialog .btn-danger` rules (around line 3142). Style: `background: var(--color-accent)`, `color: var(--color-on-accent)`, same border-radius/padding/font as btn-danger. Add hover state.\n\n4. Add CSS for `.confirm-dialog input[type=\"text\"]` — full width, themed border/background/color, 13px font, 8px padding, border-radius 4px.\n\n5. Rewire `persona-create` command entry (around line 1735): Remove `children: ['persona-create-confirm']`. Add `handler` that closes the palette (`ninja.close()`) and calls `showInputDialog('Create Persona', 'Persona name', function(name) { createNewPersona(name); }, 'Create')`.\n\n6. Delete the entire `persona-create-confirm` entry object (the one with `parent: 'persona-create'` and the shadow DOM input extraction hack).\n\n7. Rewire `layout-save-as` command entry (around line 1680): Remove `children: ['layout-save-confirm']`. Add `handler` that closes the palette and calls `showInputDialog('Save Layout', 'Layout name', function(name) { window.SemPKMLayouts.save(name); showToast('Layout \"' + name + '\" saved'); _refreshLayoutPaletteItems(document.querySelector('ninja-keys')); }, 'Save')`.\n\n8. Delete the entire `layout-save-confirm` entry object (the one with `parent: 'layout-save-as'` and the shadow DOM input extraction hack).\n\n9. Verify: `grep -c 'persona-create-confirm' frontend/static/js/workspace.js` returns 0. `grep -c 'layout-save-confirm' frontend/static/js/workspace.js` returns 0. `grep -c 'showInputDialog' frontend/static/js/workspace.js` returns at least 3 (definition + 2 calls + export). `grep -c '_savedOverflow' frontend/static/js/workspace.js` returns at least 2.",
+      "estimate": "45m",
+      "files": [
+        "frontend/static/js/workspace.js",
+        "frontend/static/css/workspace.css"
+      ],
+      "verify": "grep -c 'persona-create-confirm' frontend/static/js/workspace.js | grep -q '^0$' && grep -c 'layout-save-confirm' frontend/static/js/workspace.js | grep -q '^0$' && grep -q 'showInputDialog' frontend/static/js/workspace.js && grep -q '_savedOverflow' frontend/static/js/workspace.js && grep -q 'btn-primary' frontend/static/css/workspace.css && echo 'PASS'",
+      "inputs": [
+        "`frontend/static/js/workspace.js` — existing command palette init, showConfirmDialog reference",
+        "`frontend/static/css/workspace.css` — existing .confirm-dialog CSS rules"
+      ],
+      "expected_output": [
+        "`frontend/static/js/workspace.js` — scroll jump fix, showInputDialog function, rewired persona/layout commands, removed confirm child entries",
+        "`frontend/static/css/workspace.css` — .btn-primary and input styling for confirm-dialog"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M051",
+      "slice_id": "S03",
+      "id": "T02",
+      "title": "Fix admin graph popover viewport-relative positioning",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "## Description\n\nThe admin model ontology diagram popover (`.graph-popover`) has `position: fixed` in CSS but the positioning JS in `model_ontology_diagram.html` computes panel-relative coordinates by subtracting `panelRect`. This causes the popover to appear offset from the hovered node.\n\n## Steps\n\n1. Read `backend/app/templates/admin/model_ontology_diagram.html` lines 215-235 (the `showPopover` function's positioning block).\n\n2. Fix the initial position calculation. Change:\n   ```javascript\n   var left = (containerRect.left - panelRect.left) + pos.x + 16;\n   var top = (containerRect.top - panelRect.top) + pos.y - 12;\n   ```\n   To:\n   ```javascript\n   var left = containerRect.left + pos.x + 16;\n   var top = containerRect.top + pos.y - 12;\n   ```\n\n3. Fix the right-edge overflow check. Change:\n   ```javascript\n   popover.style.left = ((containerRect.left - panelRect.left) + pos.x - pRect.width - 12) + 'px';\n   ```\n   To:\n   ```javascript\n   popover.style.left = (containerRect.left + pos.x - pRect.width - 12) + 'px';\n   ```\n\n4. Fix the bottom-edge overflow check. Change:\n   ```javascript\n   popover.style.top = ((containerRect.top - panelRect.top) + pos.y - pRect.height + 12) + 'px';\n   ```\n   To:\n   ```javascript\n   popover.style.top = (containerRect.top + pos.y - pRect.height + 12) + 'px';\n   ```\n\n5. Update the overflow boundary checks from panel bounds to viewport bounds. Change:\n   ```javascript\n   if (pRect.right > panelRect.right - 8) {\n   ```\n   To:\n   ```javascript\n   if (pRect.right > window.innerWidth - 8) {\n   ```\n   And change:\n   ```javascript\n   if (pRect.bottom > panelRect.bottom - 8) {\n   ```\n   To:\n   ```javascript\n   if (pRect.bottom > window.innerHeight - 8) {\n   ```\n\n6. The `panelRect` variable is no longer needed in the positioning block. It can be removed or left — the `panel` variable is still used for `panel.appendChild(popover)` earlier in the function.\n\n7. Verify: `grep -c 'panelRect.left\\|panelRect.right\\|panelRect.top\\|panelRect.bottom' backend/app/templates/admin/model_ontology_diagram.html` returns 0. `grep -c 'containerRect.left + pos' backend/app/templates/admin/model_ontology_diagram.html` returns at least 1.",
+      "estimate": "15m",
+      "files": [
+        "backend/app/templates/admin/model_ontology_diagram.html"
+      ],
+      "verify": "grep -c 'panelRect\\.left\\|panelRect\\.right\\|panelRect\\.top\\|panelRect\\.bottom' backend/app/templates/admin/model_ontology_diagram.html | grep -q '^0$' && grep -q 'containerRect.left + pos' backend/app/templates/admin/model_ontology_diagram.html && grep -q 'window.innerWidth' backend/app/templates/admin/model_ontology_diagram.html && echo 'PASS'",
+      "inputs": [
+        "`backend/app/templates/admin/model_ontology_diagram.html` — existing popover positioning JS",
+        "`frontend/static/css/views.css` — .graph-popover has position:fixed (read-only reference, no changes needed)"
+      ],
+      "expected_output": [
+        "`backend/app/templates/admin/model_ontology_diagram.html` — popover uses viewport-relative coordinates matching position:fixed CSS"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
     }
   ],
   "decisions": [
@@ -41193,6 +41268,17 @@
       "verdict": "✅ pass",
       "duration_ms": 100,
       "created_at": "2026-04-06T01:17:28.088Z"
+    },
+    {
+      "id": 305,
+      "task_id": "T01",
+      "slice_id": "S03",
+      "milestone_id": "M051",
+      "command": "grep -c 'persona-create-confirm' ... && grep -c 'layout-save-confirm' ... && grep -q 'showInputDialog' ... && grep -q '_savedOverflow' ... && grep -q 'btn-primary' ... && echo 'PASS'",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 80,
+      "created_at": "2026-04-06T01:28:36.677Z"
     }
   ]
 }
