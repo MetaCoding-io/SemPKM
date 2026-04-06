@@ -38,6 +38,11 @@ from app.vfs.mount_service import (
     VISIBILITY,
     MountDefinition,
 )
+from app.browser.explorer_config import (
+    ExplorerConfig,
+    build_explorer_query,
+    build_group_folders_query,
+)
 from app.browser.tag_tree import build_tag_tree
 from app.vfs.strategies import (
     _LABEL_COALESCE,
@@ -797,6 +802,119 @@ async def explorer_config_options(
         "groupable_properties": groupable,
         "sortable_properties": sortable,
     })
+
+
+@workspace_router.get("/explorer/config-tree")
+async def explorer_config_tree(
+    request: Request,
+    type_filter: str | None = None,
+    group_by: str | None = None,
+    sort_by: str = "label",
+    sort_order: str = "asc",
+    user: User = Depends(get_current_user),
+    label_service: LabelService = Depends(get_label_service),
+    icon_svc: IconService = Depends(get_icon_service),
+):
+    """Return a config-driven explorer tree as an htmx partial.
+
+    Accepts filter/group/sort params and returns either grouped folder
+    nodes (when group_by is set) or a flat sorted object list.
+    """
+    templates = request.app.state.templates
+    client = request.app.state.triplestore_client
+
+    config = ExplorerConfig(
+        type_filter=type_filter,
+        group_by=group_by,
+        sort_by=sort_by,
+        sort_order=sort_order,
+    )
+
+    # Build config_params for forwarding to children endpoint
+    params_parts: list[str] = []
+    if type_filter:
+        params_parts.append(f"type_filter={type_filter}")
+    if group_by:
+        params_parts.append(f"group_by={group_by}")
+    if sort_by:
+        params_parts.append(f"sort_by={sort_by}")
+    if sort_order:
+        params_parts.append(f"sort_order={sort_order}")
+    config_params = "&".join(params_parts)
+
+    # ── Grouped mode ──
+    folders_sparql = build_group_folders_query(config)
+    if folders_sparql is not None:
+        bindings = await _execute_sparql_select(client, folders_sparql)
+        folders = [
+            {
+                "value": b["groupValue"]["value"],
+                "label": b.get("groupLabel", {}).get("value")
+                    or b["groupValue"]["value"],
+                "count": int(b.get("count", {}).get("value", 0)),
+            }
+            for b in bindings
+        ]
+        return templates.TemplateResponse(
+            request,
+            "browser/explorer_config_tree.html",
+            {"request": request, "folders": folders, "config_params": config_params},
+        )
+
+    # ── Flat mode ──
+    sparql = build_explorer_query(config)
+    bindings = await _execute_sparql_select(client, sparql)
+    objects = _bindings_to_objects(bindings, {}, icon_svc)
+    return templates.TemplateResponse(
+        request,
+        "browser/explorer_config_tree.html",
+        {"request": request, "objects": objects, "config_params": config_params},
+    )
+
+
+@workspace_router.get("/explorer/config-children")
+async def explorer_config_children(
+    request: Request,
+    group_value: str,
+    type_filter: str | None = None,
+    group_by: str | None = None,
+    sort_by: str = "label",
+    sort_order: str = "asc",
+    user: User = Depends(get_current_user),
+    label_service: LabelService = Depends(get_label_service),
+    icon_svc: IconService = Depends(get_icon_service),
+):
+    """Return sorted object leaf nodes within a specific group folder.
+
+    Runs the full explorer query filtered to the given group_value, then
+    returns matching objects as htmx partial content.
+    """
+    templates = request.app.state.templates
+    client = request.app.state.triplestore_client
+
+    config = ExplorerConfig(
+        type_filter=type_filter,
+        group_by=group_by,
+        sort_by=sort_by,
+        sort_order=sort_order,
+    )
+
+    sparql = build_explorer_query(config)
+    bindings = await _execute_sparql_select(client, sparql)
+
+    # Filter bindings to those matching the requested group_value
+    filtered = []
+    for b in bindings:
+        gv = b.get("groupValue", {}).get("value")
+        if gv == group_value:
+            filtered.append(b)
+
+    objects = _bindings_to_objects(filtered, {}, icon_svc)
+    return templates.TemplateResponse(
+        request,
+        "browser/explorer_config_children.html",
+        {"request": request, "objects": objects},
+    )
 
 
 @workspace_router.get("/explorer/children")

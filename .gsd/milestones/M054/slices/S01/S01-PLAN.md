@@ -44,7 +44,7 @@
   - Estimate: 2h
   - Files: backend/app/browser/explorer_config.py, backend/app/browser/workspace.py, backend/tests/test_explorer_config.py
   - Verify: cd backend && .venv/bin/python -m pytest tests/test_explorer_config.py -v
-- [ ] **T02: Backend config-driven tree rendering endpoint** — Add the `/browser/explorer/config-tree` endpoint that accepts explorer config params and returns a grouped, sorted HTML tree using the query composition engine from T01.
+- [x] **T02: Added config-tree and config-children endpoints that render grouped/sorted explorer HTML from ExplorerConfig query composition** — Add the `/browser/explorer/config-tree` endpoint that accepts explorer config params and returns a grouped, sorted HTML tree using the query composition engine from T01.
 
 **Slice context:** T01 built the query engine and config-options API. This task builds the endpoint that renders the actual explorer tree HTML. T03 builds the frontend config builder. T04 wires them together.
 

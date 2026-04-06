@@ -1,0 +1,21 @@
+{# Config-driven explorer children: sorted object leaf nodes within a group.
+
+   Context:
+     objects: list of dicts with 'iri', 'label', 'icon' keys
+#}
+{% if objects %}
+{% for obj in objects %}
+<div class="tree-leaf" data-testid="config-child"
+     data-iri="{{ obj.iri }}"
+     draggable="true"
+     ondragstart="event.dataTransfer.setData('text/iri', '{{ obj.iri }}'); event.dataTransfer.setData('text/label', '{{ obj.label }}'); event.dataTransfer.effectAllowed = 'copy'; window.SemPKM.__canvasDragPayload = { iri: '{{ obj.iri }}', label: '{{ obj.label }}' };"
+     onclick="handleTreeLeafClick(event, '{{ obj.iri }}', '{{ obj.label }}')">
+    <i data-lucide="{{ obj.icon.icon }}"
+       class="tree-leaf-icon"
+       style="color: {{ obj.icon.color }}; width: {{ obj.icon.size or 14 }}px; height: {{ obj.icon.size or 14 }}px; flex-shrink: 0;"></i>
+    <span class="tree-leaf-label">{{ obj.label }}</span>
+</div>
+{% endfor %}
+{% else %}
+<div class="tree-empty">No objects in this group</div>
+{% endif %}
