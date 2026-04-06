@@ -40,7 +40,12 @@ export const SEL = {
 
   // Explorer mode switching
   explorer: {
-    modeSelect: '#explorer-mode-select',
+    modeSelect: '#explorer-mode-select', // deprecated — dropdown removed, use configBtn
+    configBtn: '#explorer-config-btn',
+    configPanel: '#explorer-config-panel',
+    configType: '#explorer-config-type',
+    configGroup: '#explorer-config-group',
+    configSort: '#explorer-config-sort',
     treeBody: '#explorer-tree-body',
     placeholder: '[data-testid="explorer-placeholder"]',
     mountOption: 'option[value^="mount:"]',

@@ -1488,14 +1488,17 @@
   // --- Nav Tree Refresh ---
 
   function refreshNavTree() {
+    // If the composable config system has an active config, delegate to it
+    if (typeof window.SemPKM.refreshExplorerTree === 'function') {
+      window.SemPKM.refreshExplorerTree();
+      return;
+    }
+    // Fallback: load default by-type tree
     var body = document.getElementById('explorer-tree-body');
     if (!body) return;
-    var modeSelect = document.getElementById('explorer-mode-select');
-    var mode = modeSelect ? modeSelect.value : 'by-type';
-    var url = '/browser/explorer/tree?mode=' + encodeURIComponent(mode);
+    var url = '/browser/explorer/tree?mode=by-type';
     htmx.ajax('GET', url, { target: body, swap: 'innerHTML' }).then(function () {
       if (typeof lucide !== 'undefined') lucide.createIcons();
-      // Re-populate per-type Create entries in command palette
       var ninja = document.querySelector('ninja-keys');
       if (ninja) _addTypeCreateEntries(ninja);
     });
@@ -2540,7 +2543,6 @@
           // Auto-create "Default" persona with current workspace state
           var layoutJson = window.SemPKM._dockview ? JSON.stringify(window.SemPKM._dockview.toJSON()) : '{}';
           var sidebarJson = localStorage.getItem(PANEL_POSITIONS_KEY) || '{}';
-          var explorerMode = localStorage.getItem(EXPLORER_MODE_KEY) || 'by-type';
 
           return apiFetch('/api/personas', {
             method: 'POST',
@@ -2551,7 +2553,7 @@
               name: 'Default',
               layout_json: layoutJson,
               sidebar_positions_json: sidebarJson,
-              explorer_mode: explorerMode
+              explorer_mode: 'by-type'
             })
           })
           .then(function (resp) {
@@ -2578,7 +2580,7 @@
   }
 
   /**
-   * Save the current workspace state (dockview layout, sidebar positions, explorer mode)
+   * Save the current workspace state (dockview layout, sidebar positions)
    * to the active persona on the server.
    * Returns a Promise so callers can await it.
    */
@@ -2589,7 +2591,6 @@
 
     var layoutJson = window.SemPKM._dockview ? JSON.stringify(window.SemPKM._dockview.toJSON()) : null;
     var sidebarJson = localStorage.getItem(PANEL_POSITIONS_KEY);
-    var explorerMode = localStorage.getItem(EXPLORER_MODE_KEY);
 
     return apiFetch('/api/personas/' + _activePersonaId + '/save-state', {
       method: 'POST',
@@ -2597,8 +2598,7 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         layout_json: layoutJson,
-        sidebar_positions_json: sidebarJson,
-        explorer_mode: explorerMode
+        sidebar_positions_json: sidebarJson
       }),
       silent: true
     })
@@ -2657,15 +2657,19 @@
           restorePanelPositions();
         }
 
-        // Apply explorer mode
-        if (persona.explorer_mode) {
-          localStorage.setItem(EXPLORER_MODE_KEY, persona.explorer_mode);
-          var modeSelect = document.getElementById('explorer-mode-select');
-          if (modeSelect) {
-            modeSelect.value = persona.explorer_mode;
-            if (typeof htmx !== 'undefined') {
-              htmx.trigger(modeSelect, 'change');
-            }
+        // Apply explorer mode (backward compat: map old modes to config system)
+        if (persona.explorer_mode && persona.explorer_mode !== 'by-type') {
+          // Old persona had a non-default mode — apply via config system
+          if (persona.explorer_mode === 'by-tag' && typeof window.SemPKM.applyExplorerConfig === 'function') {
+            // Set group-by to tag, then apply
+            var groupSel = document.getElementById('explorer-config-group');
+            if (groupSel) groupSel.value = 'tag';
+            window.SemPKM.applyExplorerConfig();
+          }
+        } else {
+          // Default mode — ensure config is reset
+          if (typeof window.SemPKM.resetExplorerConfig === 'function') {
+            window.SemPKM.resetExplorerConfig();
           }
         }
 
@@ -2719,7 +2723,6 @@
       .then(function () {
         var layoutJson = window.SemPKM._dockview ? JSON.stringify(window.SemPKM._dockview.toJSON()) : '{}';
         var sidebarJson = localStorage.getItem(PANEL_POSITIONS_KEY) || '{}';
-        var explorerMode = localStorage.getItem(EXPLORER_MODE_KEY) || 'by-type';
 
         return apiFetch('/api/personas', {
           method: 'POST',
@@ -2729,8 +2732,7 @@
           body: JSON.stringify({
             name: name,
             layout_json: layoutJson,
-            sidebar_positions_json: sidebarJson,
-            explorer_mode: explorerMode
+            sidebar_positions_json: sidebarJson
           })
         });
       })
@@ -2907,11 +2909,9 @@
     if (_activePersonaId && !_switchingPersona) {
       var layoutJson = window.SemPKM._dockview ? JSON.stringify(window.SemPKM._dockview.toJSON()) : null;
       var sidebarJson = localStorage.getItem(PANEL_POSITIONS_KEY);
-      var explorerMode = localStorage.getItem(EXPLORER_MODE_KEY);
       var payload = JSON.stringify({
         layout_json: layoutJson,
-        sidebar_positions_json: sidebarJson,
-        explorer_mode: explorerMode
+        sidebar_positions_json: sidebarJson
       });
       navigator.sendBeacon(
         '/api/personas/' + _activePersonaId + '/save-state',
@@ -2920,101 +2920,19 @@
     }
   });
 
-  // --- Explorer Mode State (continued) ---
-
-  var EXPLORER_MODE_KEY = 'sempkm_explorer_mode';
-
-  function initExplorerMode() {
-    var dropdown = document.getElementById('explorer-mode-select');
-    if (!dropdown) return;
-
-    // Clear selection and persist mode on every mode change
-    dropdown.addEventListener('change', function () {
-      clearSelection();
-      lastClickedLeaf = null;
-      try { localStorage.setItem(EXPLORER_MODE_KEY, this.value); } catch (e) { /* localStorage unavailable */ }
-    });
-
-    // Restore persisted mode on page load
-    try {
-      var storedMode = localStorage.getItem(EXPLORER_MODE_KEY);
-      if (storedMode) {
-        // Validate that the stored mode is actually an option in the dropdown
-        var options = dropdown.querySelectorAll('option');
-        var valid = false;
-        for (var i = 0; i < options.length; i++) {
-          if (options[i].value === storedMode) { valid = true; break; }
-        }
-        if (valid && storedMode !== dropdown.value) {
-          dropdown.value = storedMode;
-          // Trigger htmx change to load the stored mode's tree
-          htmx.trigger(dropdown, 'change');
-        }
-      }
-    } catch (e) { /* localStorage unavailable */ }
-  }
+  // --- Explorer Config Initialization (replaces old explorer-mode-select dropdown) ---
 
   /**
-   * Fetch VFS mounts and inject them as <option> entries in the explorer
-   * mode dropdown. Wraps mount options in an <optgroup> for visual
-   * separation from built-in modes.
-   *
-   * After injection, re-checks localStorage for a stored mount: mode
-   * that initExplorerMode() could not restore (mount options weren't in
-   * the DOM yet at that point).
+   * Initialize the composable explorer config system.
+   * The config panel (explorer-config.js) handles filter/group/sort;
+   * this just kicks off the lazy option fetch on workspace load.
    */
-  function initExplorerMountOptions() {
-    var dropdown = document.getElementById('explorer-mode-select');
-    if (!dropdown) return;
-
-    apiFetch('/api/vfs/mounts', { credentials: 'include', silent: true })
-      .then(function (r) {
-        return r.json();
-      })
-      .then(function (mounts) {
-        if (!Array.isArray(mounts) || mounts.length === 0) return;
-
-        // Remove any previously injected mount optgroup (idempotent)
-        var existing = dropdown.querySelector('optgroup[label="VFS Mounts"]');
-        if (existing) existing.remove();
-
-        var optgroup = document.createElement('optgroup');
-        optgroup.label = 'VFS Mounts';
-
-        mounts.forEach(function (m) {
-          var opt = document.createElement('option');
-          opt.value = 'mount:' + m.id;
-          opt.textContent = m.name + ' (' + m.strategy + ')';
-          optgroup.appendChild(opt);
-        });
-
-        dropdown.appendChild(optgroup);
-
-        // Re-check stored mode now that mount options exist in the DOM.
-        // initExplorerMode() already ran but skipped mount: values since
-        // those options weren't available yet.
-        try {
-          var storedMode = localStorage.getItem(EXPLORER_MODE_KEY);
-          if (storedMode && storedMode.indexOf('mount:') === 0) {
-            // Validate the option exists (mount may have been deleted)
-            var options = dropdown.querySelectorAll('option');
-            var valid = false;
-            for (var i = 0; i < options.length; i++) {
-              if (options[i].value === storedMode) { valid = true; break; }
-            }
-            if (valid && dropdown.value !== storedMode) {
-              dropdown.value = storedMode;
-              htmx.trigger(dropdown, 'change');
-            }
-            // If not valid, the stored mode is stale — leave fallback
-            // mode (by-type) set by initExplorerMode().
-          }
-        } catch (e) { /* localStorage unavailable */ }
-      })
-      .catch(function (err) {
-        // Fetch failure is non-fatal — dropdown works with built-in modes
-        console.warn('SemPKM: could not load VFS mounts for explorer dropdown:', err.message || err);
-      });
+  function initExplorerConfigOnLoad() {
+    // Lazy-init: explorer-config.js loads options on first panel open,
+    // but we pre-fetch here so the first open is snappy.
+    if (typeof window.SemPKM.initExplorerConfig === 'function') {
+      window.SemPKM.initExplorerConfig();
+    }
   }
 
   // --- Initialization ---
@@ -3056,11 +2974,8 @@
       if (history.replaceState) history.replaceState(null, '', window.location.pathname);
     }
 
-    // --- Explorer mode: clear selection on switch, persist in localStorage ---
-    initExplorerMode();
-
-    // --- Inject VFS mount options into explorer dropdown (async, non-blocking) ---
-    initExplorerMountOptions();
+    // --- Explorer config: composable filter/group/sort system ---
+    initExplorerConfigOnLoad();
 
     // --- Initialize persona system (auto-creates Default persona if none exist) ---
     initPersonas();

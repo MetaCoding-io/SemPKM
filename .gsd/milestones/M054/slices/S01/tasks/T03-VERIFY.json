@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T03",
+  "unitId": "M054/S01/T03",
+  "timestamp": 1775449812596,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "test -f frontend/static/js/explorer-config.js",
+      "exitCode": 0,
+      "durationMs": 25,
+      "verdict": "pass"
+    },
+    {
+      "command": "test -f frontend/static/css/explorer-config.css",
+      "exitCode": 0,
+      "durationMs": 25,
+      "verdict": "pass"
+    },
+    {
+      "command": "test -f backend/app/templates/browser/explorer_config_panel.html",
+      "exitCode": 0,
+      "durationMs": 26,
+      "verdict": "pass"
+    },
+    {
+      "command": "rg 'SemPKM.initExplorerConfig' frontend/static/js/explorer-config.js",
+      "exitCode": 0,
+      "durationMs": 27,
+      "verdict": "pass"
+    },
+    {
+      "command": "rg 'SemPKM.applyExplorerConfig' frontend/static/js/explorer-config.js",
+      "exitCode": 0,
+      "durationMs": 29,
+      "verdict": "pass"
+    },
+    {
+      "command": "rg 'SemPKM.refreshExplorerTree' frontend/static/js/explorer-config.js",
+      "exitCode": 0,
+      "durationMs": 27,
+      "verdict": "pass"
+    },
+    {
+      "command": "rg 'apiFetch' frontend/static/js/explorer-config.js",
+      "exitCode": 0,
+      "durationMs": 25,
+      "verdict": "pass"
+    }
+  ]
+}

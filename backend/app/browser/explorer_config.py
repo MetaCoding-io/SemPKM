@@ -52,6 +52,13 @@ class ExplorerConfig:
     def __post_init__(self) -> None:
         if self.sort_order not in ("asc", "desc"):
             self.sort_order = "asc"
+        # Strip prop: prefix from property IRIs sent by the config builder.
+        # The frontend prefixes property IRIs with 'prop:' to distinguish
+        # them from built-in options ('type', 'tag', 'label', 'created').
+        if self.group_by and self.group_by.startswith("prop:"):
+            self.group_by = self.group_by[5:]
+        if self.sort_by and self.sort_by.startswith("prop:"):
+            self.sort_by = self.sort_by[5:]
 
 
 # ── Query composition ────────────────────────────────────────────────

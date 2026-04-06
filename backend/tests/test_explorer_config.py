@@ -39,6 +39,26 @@ class TestExplorerConfigDefaults:
         cfg = ExplorerConfig(sort_order="backwards")
         assert cfg.sort_order == "asc"
 
+    def test_prop_prefix_stripped_from_group_by(self):
+        """Frontend sends 'prop:' prefix for property IRIs — should be stripped."""
+        cfg = ExplorerConfig(group_by="prop:urn:sempkm:model:basic-pkm:taskStatus")
+        assert cfg.group_by == "urn:sempkm:model:basic-pkm:taskStatus"
+
+    def test_prop_prefix_stripped_from_sort_by(self):
+        """Frontend sends 'prop:' prefix for property IRIs — should be stripped."""
+        cfg = ExplorerConfig(sort_by="prop:urn:sempkm:model:basic-pkm:dueDate")
+        assert cfg.sort_by == "urn:sempkm:model:basic-pkm:dueDate"
+
+    def test_builtin_group_by_not_stripped(self):
+        """Built-in values like 'type' and 'tag' should not be affected."""
+        cfg = ExplorerConfig(group_by="type")
+        assert cfg.group_by == "type"
+
+    def test_builtin_sort_by_not_stripped(self):
+        """Built-in values like 'label' and 'created' should not be affected."""
+        cfg = ExplorerConfig(sort_by="label")
+        assert cfg.sort_by == "label"
+
 
 # ── build_explorer_query ─────────────────────────────────────────────
 

@@ -1,13 +1,13 @@
-"""Tests for the explorer mode registry and handler dispatch.
+"""Tests for the explorer mode registry, handler dispatch, and config endpoints.
 
 Validates:
 - EXPLORER_MODES contains exactly the expected mode keys
 - All handlers are async callables
 - Registry lookup returns the correct handler per mode
 - Unknown modes are not in the registry (validates 400 path logic)
+- Config-tree and config-children endpoints are registered
 """
 
-import asyncio
 import inspect
 
 import pytest
@@ -17,6 +17,7 @@ from app.browser.workspace import (
     _handle_by_tag,
     _handle_by_type,
     _handle_hierarchy,
+    workspace_router,
 )
 
 
@@ -61,3 +62,31 @@ class TestExplorerModeRegistry:
         assert "unknown" not in EXPLORER_MODES
         assert "" not in EXPLORER_MODES
         assert EXPLORER_MODES.get("nonexistent") is None
+
+
+class TestConfigEndpointsRegistered:
+    """Verify the composable config explorer endpoints exist on the router."""
+
+    def _route_paths(self):
+        """Extract all registered route paths from the workspace router."""
+        return [route.path for route in workspace_router.routes]
+
+    def test_config_tree_endpoint_registered(self):
+        """config-tree endpoint is on the workspace router."""
+        paths = self._route_paths()
+        assert "/explorer/config-tree" in paths
+
+    def test_config_children_endpoint_registered(self):
+        """config-children endpoint is on the workspace router."""
+        paths = self._route_paths()
+        assert "/explorer/config-children" in paths
+
+    def test_config_options_endpoint_registered(self):
+        """config-options endpoint is on the workspace router."""
+        paths = self._route_paths()
+        assert "/explorer/config-options" in paths
+
+    def test_legacy_tree_endpoint_still_registered(self):
+        """Legacy explorer/tree endpoint still exists for backward compat."""
+        paths = self._route_paths()
+        assert "/explorer/tree" in paths

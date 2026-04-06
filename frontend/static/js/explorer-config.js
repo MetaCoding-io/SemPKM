@@ -206,10 +206,6 @@
 
     _updateSummary(typeFilter, groupBy, sortBy, sortOrder);
 
-    // Hide the old mode-select dropdown when config is active
-    var modeSelect = _el('explorer-mode-select');
-    if (modeSelect) modeSelect.style.display = _configActive ? 'none' : '';
-
     htmx.ajax('GET', url, { target: body, swap: 'innerHTML' }).then(function () {
       if (typeof lucide !== 'undefined') lucide.createIcons();
     });
@@ -289,10 +285,6 @@
     // Close panel
     var panel = _panel();
     if (panel) panel.classList.remove('open');
-
-    // Restore mode-select visibility
-    var modeSelect = _el('explorer-mode-select');
-    if (modeSelect) modeSelect.style.display = '';
 
     // Reload default tree via standard refreshNavTree
     if (typeof window.SemPKM.refreshNavTree === 'function') {

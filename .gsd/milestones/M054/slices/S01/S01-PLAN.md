@@ -130,7 +130,7 @@
   - Estimate: 2h
   - Files: frontend/static/js/explorer-config.js, frontend/static/css/explorer-config.css, backend/app/templates/browser/explorer_config_panel.html
   - Verify: test -f frontend/static/js/explorer-config.js && test -f frontend/static/css/explorer-config.css && test -f backend/app/templates/browser/explorer_config_panel.html && rg 'SemPKM.initExplorerConfig' frontend/static/js/explorer-config.js && rg 'SemPKM.applyExplorerConfig' frontend/static/js/explorer-config.js && rg 'SemPKM.refreshExplorerTree' frontend/static/js/explorer-config.js && rg 'apiFetch' frontend/static/js/explorer-config.js
-- [ ] **T04: Integration: wire config builder into workspace, replace old dropdown, verify end-to-end** — Wire the config builder into the workspace, replace the old explorer mode dropdown, update refreshNavTree to use the new config system, and verify the full flow works end-to-end.
+- [x] **T04: Wire config builder into workspace, replace old explorer dropdown, verify end-to-end with grouped/sorted tree** — Wire the config builder into the workspace, replace the old explorer mode dropdown, update refreshNavTree to use the new config system, and verify the full flow works end-to-end.
 
 **Slice context:** T01-T03 built all components. This task integrates them and proves the slice demo works.
 

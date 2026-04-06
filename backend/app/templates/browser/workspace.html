@@ -19,6 +19,7 @@
 <link rel="stylesheet" href="{{ 'federation.css' | asset_url }}">
 <link rel="stylesheet" href="/css/copilot.css">
 <link rel="stylesheet" href="/css/context-indicator.css">
+<link rel="stylesheet" href="/css/explorer-config.css">
 <script src="{{ 'federation.js' | asset_url }}" defer></script>
 {% endblock %}
 
@@ -44,27 +45,19 @@
                     <i data-lucide="grip-vertical" class="panel-grip"></i>
                     <i data-lucide="chevron-right" class="explorer-section-chevron"></i>
                     <span class="explorer-section-title">OBJECTS</span>
-                    <select id="explorer-mode-select" name="mode" class="explorer-mode-select"
-                            hx-get="/browser/explorer/tree"
-                            hx-include="this"
-                            hx-target="#explorer-tree-body"
-                            hx-trigger="change"
-                            hx-swap="innerHTML"
-                            hx-on::after-swap="if(typeof lucide!=='undefined')lucide.createIcons()"
-                            onclick="event.stopPropagation()">
-                        <option value="by-type" selected>By Type</option>
-                        <option value="hierarchy">Hierarchy</option>
-                        <option value="by-tag">By Tag</option>
-                    </select>
                     <span class="explorer-header-actions">
                         <span class="selection-badge" id="selection-badge" style="display:none"><span id="selection-count"></span></span>
                         <button class="panel-btn explorer-action-btn" id="bulk-delete-btn" style="display:none" onclick="event.stopPropagation(); bulkDeleteSelected()" title="Delete selected"><i data-lucide="trash-2"></i></button>
+                        <button class="panel-btn explorer-action-btn" onclick="event.stopPropagation(); if(window.SemPKM.toggleExplorerConfig) window.SemPKM.toggleExplorerConfig();" title="Configure explorer" id="explorer-config-btn"><i data-lucide="settings-2"></i></button>
                         <button class="panel-btn explorer-action-btn" onclick="event.stopPropagation(); refreshNavTree()" title="Refresh"><i data-lucide="refresh-cw"></i></button>
                         <button class="panel-btn explorer-action-btn" onclick="event.stopPropagation(); document.querySelector('ninja-keys').open()" title="New Object"><i data-lucide="plus"></i></button>
                     </span>
                 </div>
-                <div class="explorer-section-body" id="explorer-tree-body">
-                    {% include "browser/nav_tree.html" %}
+                <div class="explorer-section-body">
+                    {% include "browser/explorer_config_panel.html" %}
+                    <div id="explorer-tree-body">
+                        {% include "browser/nav_tree.html" %}
+                    </div>
                 </div>
             </div>
             <div class="explorer-section" id="section-views" data-panel-name="views">
@@ -343,4 +336,5 @@ document.addEventListener('sempkm:demo-tour-done', function() {
         id="sparql-loader-config"></script>
 <script id="chartjs-loader-config" data-chartjs-src="{{ 'chartjs.js' | asset_url }}"></script>
 <script src="/js/context-indicator.js"></script>
+<script src="/js/explorer-config.js"></script>
 {% endblock %}
