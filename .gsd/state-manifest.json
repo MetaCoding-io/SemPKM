@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T01:15:48.496Z",
+  "exported_at": "2026-04-06T01:17:28.126Z",
   "milestones": [
     {
       "id": "M001",
@@ -33111,19 +33111,24 @@
       "milestone_id": "M051",
       "slice_id": "S02",
       "id": "T02",
-      "title": "Add refresh button to object tab toolbar",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Added refresh button with refresh-cw icon to both object tab templates, backed by refreshObjectTab() JS function",
+      "status": "complete",
+      "one_liner": "Added refresh button with refresh-cw icon to both object tab templates, backed by refreshObjectTab() JS function",
+      "narrative": "Added refreshObjectTab(objectIri) function to workspace.js that delegates to loadObjectContent(). Exported as window.SemPKM.refreshObjectTab. Added .refresh-btn button to both object_tab.html and object_tab_app.html with refresh-cw Lucide icon. Added CSS rules following the star-btn/delete-btn pattern with flex-shrink:0 and stroke:currentColor per project Lucide icon conventions.",
+      "verification_result": "Ran rg verification for refreshObjectTab in workspace.js (function + export found), refresh-btn in both templates (present), and refresh-btn CSS rules in workspace.css (3 rule blocks present). All checks passed.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-06T01:17:28.087Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "frontend/static/js/workspace.js",
+        "backend/app/templates/browser/object_tab.html",
+        "backend/app/templates/browser/object_tab_app.html",
+        "frontend/static/css/workspace.css"
+      ],
       "key_decisions": [],
-      "full_summary_md": "",
+      "full_summary_md": "---\nid: T02\nparent: S02\nmilestone: M051\nkey_files:\n  - frontend/static/js/workspace.js\n  - backend/app/templates/browser/object_tab.html\n  - backend/app/templates/browser/object_tab_app.html\n  - frontend/static/css/workspace.css\nkey_decisions:\n  - (none)\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T01:17:28.087Z\nblocker_discovered: false\n---\n\n# T02: Added refresh button with refresh-cw icon to both object tab templates, backed by refreshObjectTab() JS function\n\n**Added refresh button with refresh-cw icon to both object tab templates, backed by refreshObjectTab() JS function**\n\n## What Happened\n\nAdded refreshObjectTab(objectIri) function to workspace.js that delegates to loadObjectContent(). Exported as window.SemPKM.refreshObjectTab. Added .refresh-btn button to both object_tab.html and object_tab_app.html with refresh-cw Lucide icon. Added CSS rules following the star-btn/delete-btn pattern with flex-shrink:0 and stroke:currentColor per project Lucide icon conventions.\n\n## Verification\n\nRan rg verification for refreshObjectTab in workspace.js (function + export found), refresh-btn in both templates (present), and refresh-btn CSS rules in workspace.css (3 rule blocks present). All checks passed.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `rg 'refreshObjectTab' frontend/static/js/workspace.js` | 0 | ✅ pass | 100ms |\n| 2 | `rg 'refresh-btn' backend/app/templates/browser/object_tab.html backend/app/templates/browser/object_tab_app.html` | 0 | ✅ pass | 100ms |\n| 3 | `rg 'refresh-btn' frontend/static/css/workspace.css` | 0 | ✅ pass | 100ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `frontend/static/js/workspace.js`\n- `backend/app/templates/browser/object_tab.html`\n- `backend/app/templates/browser/object_tab_app.html`\n- `frontend/static/css/workspace.css`\n",
       "description": "Add a refresh button to both object tab templates and the supporting JS function.\n\n1. **Add `refreshObjectTab` function to workspace.js**: Near the other tab utility functions (around line 224 where `loadObjectContent` lives), add:\n```javascript\nfunction refreshObjectTab(objectIri) {\n    loadObjectContent(objectIri);\n}\n```\nExport it: `window.SemPKM.refreshObjectTab = refreshObjectTab;` (add near the other SemPKM exports around line 3818+).\n\n2. **Add refresh button to `object_tab.html`**: In `backend/app/templates/browser/object_tab.html`, add a refresh button inside `.object-toolbar-actions` right after the star button (after the `</button>` closing tag of star-btn, before the delete-btn). Use the same structural pattern as star-btn:\n```html\n<button class=\"refresh-btn\"\n        onclick=\"SemPKM.refreshObjectTab('{{ object_iri }}')\"\n        title=\"Refresh\">\n  <i data-lucide=\"refresh-cw\"></i>\n</button>\n```\n\n3. **Add refresh button to `object_tab_app.html`**: Same button in the same position (after star-btn, before mode-toggle) in `backend/app/templates/browser/object_tab_app.html`.\n\n4. **Add CSS for `.refresh-btn`**: In `frontend/static/css/workspace.css`, add a `.refresh-btn` rule block right after the `.delete-btn svg` block (around line 2394). Follow the same pattern as `.star-btn` and `.delete-btn`:\n```css\n.refresh-btn {\n    display: inline-flex;\n    align-items: center;\n    justify-content: center;\n    padding: 4px;\n    border: none;\n    background: transparent;\n    color: var(--color-text-muted);\n    cursor: pointer;\n    border-radius: 4px;\n    transition: color 0.2s;\n}\n.refresh-btn:hover {\n    color: var(--color-primary);\n}\n.refresh-btn svg {\n    width: 16px;\n    height: 16px;\n    flex-shrink: 0;\n    stroke: currentColor;\n}\n```\nNote: Per CLAUDE.md rules — Lucide icons must be sized via CSS with `flex-shrink: 0` and `stroke: currentColor`. No inline styles on the `<i>` tag.",
       "estimate": "15m",
       "files": [
@@ -41155,6 +41160,39 @@
       "verdict": "✅ pass (144 passed, 1 pre-existing fail)",
       "duration_ms": 10100,
       "created_at": "2026-04-06T01:15:48.456Z"
+    },
+    {
+      "id": 302,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M051",
+      "command": "rg 'refreshObjectTab' frontend/static/js/workspace.js",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-06T01:17:28.088Z"
+    },
+    {
+      "id": 303,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M051",
+      "command": "rg 'refresh-btn' backend/app/templates/browser/object_tab.html backend/app/templates/browser/object_tab_app.html",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-06T01:17:28.088Z"
+    },
+    {
+      "id": 304,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M051",
+      "command": "rg 'refresh-btn' frontend/static/css/workspace.css",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-06T01:17:28.088Z"
     }
   ]
 }

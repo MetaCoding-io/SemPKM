@@ -2393,6 +2393,29 @@ tr:hover .rbox-edit-btn {
     stroke: currentColor;
 }
 
+/* Refresh button (object toolbar) */
+.refresh-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border: none;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: color 0.2s;
+}
+.refresh-btn:hover {
+    color: var(--color-primary);
+}
+.refresh-btn svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
 .btn {
     display: inline-flex;
     align-items: center;

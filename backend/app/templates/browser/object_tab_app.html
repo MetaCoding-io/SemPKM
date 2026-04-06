@@ -25,6 +25,12 @@
         <i data-lucide="star"></i>
       </button>
 
+      <button class="refresh-btn"
+              onclick="SemPKM.refreshObjectTab('{{ object_iri }}')"
+              title="Refresh">
+        <i data-lucide="refresh-cw"></i>
+      </button>
+
       <button class="btn btn-sm mode-toggle" id="mode-toggle-{{ safe_id }}"
               onclick="SemPKM.toggleObjectMode('{{ safe_id }}', '{{ object_iri }}')"
               title="Toggle Edit (Alt+E)">

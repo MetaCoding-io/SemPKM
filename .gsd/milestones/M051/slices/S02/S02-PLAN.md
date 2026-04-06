@@ -32,7 +32,7 @@ mounts.append({
   - Estimate: 20m
   - Files: backend/app/services/shapes.py, backend/app/templates/browser/workspace.html, backend/app/vfs/mount_router.py
   - Verify: cd backend && .venv/bin/python -m pytest tests/ -x -q --timeout=30 2>&1 | tail -5
-- [ ] **T02: Add refresh button to object tab toolbar** — Add a refresh button to both object tab templates and the supporting JS function.
+- [x] **T02: Added refresh button with refresh-cw icon to both object tab templates, backed by refreshObjectTab() JS function** — Add a refresh button to both object tab templates and the supporting JS function.
 
 1. **Add `refreshObjectTab` function to workspace.js**: Near the other tab utility functions (around line 224 where `loadObjectContent` lives), add:
 ```javascript

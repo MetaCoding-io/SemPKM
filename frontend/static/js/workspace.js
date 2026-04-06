@@ -221,6 +221,10 @@
     return dv.activePanel.id;
   }
 
+  function refreshObjectTab(objectIri) {
+    loadObjectContent(objectIri);
+  }
+
   function loadObjectContent(objectIri, mode) {
     var editorArea = window.SemPKM.getActiveEditorArea ? window.SemPKM.getActiveEditorArea() : document.getElementById('editor-area-group-1');
     if (!editorArea) return;
@@ -3834,6 +3838,7 @@
   window.SemPKM.openViewMenu = openViewMenu;
   window.SemPKM.toggleObjectMode = toggleObjectMode;
   window.SemPKM.saveCurrentObject = saveCurrentObject;
+  window.SemPKM.refreshObjectTab = refreshObjectTab;
   window.SemPKM.toggleBottomPanel = toggleBottomPanel;
   window.SemPKM.maximizeBottomPanel = maximizeBottomPanel;
   window.SemPKM.movePanel = movePanel;

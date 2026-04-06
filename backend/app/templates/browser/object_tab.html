@@ -21,6 +21,12 @@
         <i data-lucide="star"></i>
       </button>
 
+      <button class="refresh-btn"
+              onclick="SemPKM.refreshObjectTab('{{ object_iri }}')"
+              title="Refresh">
+        <i data-lucide="refresh-cw"></i>
+      </button>
+
       <button class="delete-btn"
               onclick="event.stopPropagation(); SemPKM.deleteObject('{{ object_iri }}', '{{ object_label | e }}')"
               title="Delete object">
