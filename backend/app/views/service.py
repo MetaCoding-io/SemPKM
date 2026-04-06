@@ -1937,11 +1937,72 @@ WHERE {{
 
         return None, []
 
+    async def _detect_enrichment_fields(
+        self, type_iri: str, status_field: PropertyShape | None = None,
+    ) -> dict:
+        """Detect priority-like and date-like fields for kanban card enrichment.
+
+        Priority: first ``sh:in`` property whose path contains 'priority'
+        (case-insensitive), falling back to any ``sh:in`` property that
+        isn't the status field.
+
+        Date: reuses ``_detect_date_fields()`` logic — takes the start field.
+
+        Returns:
+            ``{"priority_field": PropertyShape|None, "date_field": PropertyShape|None}``
+        """
+        result: dict = {"priority_field": None, "date_field": None}
+
+        if not self._shapes_service:
+            return result
+
+        try:
+            form: NodeShapeForm | None = (
+                await self._shapes_service.get_form_for_type(type_iri)
+            )
+        except Exception:
+            logger.warning(
+                "_detect_enrichment_fields: shapes lookup failed for %s",
+                type_iri,
+                exc_info=True,
+            )
+            return result
+
+        if form is None:
+            return result
+
+        # ── Priority field: sh:in property, prefer 'priority' in path ──
+        status_path = status_field.path if status_field else None
+        first_non_status_in: PropertyShape | None = None
+
+        for prop in form.properties:
+            if not prop.in_values:
+                continue
+            # Skip the status field itself
+            if status_path and prop.path == status_path:
+                continue
+            if "priority" in prop.path.lower():
+                result["priority_field"] = prop
+                break
+            if first_non_status_in is None:
+                first_non_status_in = prop
+
+        if result["priority_field"] is None and first_non_status_in is not None:
+            result["priority_field"] = first_non_status_in
+
+        # ── Date field: reuse _detect_date_fields start field ──
+        start_field, _ = await self._detect_date_fields(type_iri)
+        result["date_field"] = start_field
+
+        return result
+
     @staticmethod
     def _build_kanban_select(
         type_iri: str,
         status_path: str,
         scope_filter: str | None = None,
+        priority_path: str | None = None,
+        date_path: str | None = None,
     ) -> str:
         """Build a SELECT query that fetches subjects with their status value.
 
@@ -1949,6 +2010,8 @@ WHERE {{
             type_iri: The RDF type IRI to filter by.
             status_path: The property IRI for the status field.
             scope_filter: Optional SPARQL WHERE body injected as sub-select.
+            priority_path: Optional property IRI for priority enrichment.
+            date_path: Optional property IRI for due-date enrichment.
 
         Returns:
             SPARQL SELECT query string.
@@ -1957,17 +2020,28 @@ WHERE {{
         if scope_filter:
             scope_clause = f"  {{ SELECT ?s WHERE {{ {scope_filter} }} }}\n"
 
+        # Build enrichment OPTIONAL clauses and SELECT vars
+        enrichment_vars = ""
+        enrichment_clauses = ""
+        if priority_path:
+            enrichment_vars += " ?priorityValue"
+            enrichment_clauses += f"  OPTIONAL {{ ?s {safe_iri(priority_path)} ?priorityValue }}\n"
+        if date_path:
+            enrichment_vars += " ?dateValue"
+            enrichment_clauses += f"  OPTIONAL {{ ?s {safe_iri(date_path)} ?dateValue }}\n"
+
         return (
             "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
             "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
             "PREFIX dcterms: <http://purl.org/dc/terms/>\n"
             "\n"
-            "SELECT ?s ?label ?statusValue\n"
+            f"SELECT ?s ?label ?statusValue{enrichment_vars}\n"
             "WHERE {\n"
             f"  ?s rdf:type {safe_iri(type_iri)} .\n"
             f"  ?s {safe_iri(status_path)} ?statusValue .\n"
             f"{scope_clause}"
             "  OPTIONAL { ?s rdfs:label|dcterms:title ?label }\n"
+            f"{enrichment_clauses}"
             "}"
         )
 
@@ -1984,11 +2058,26 @@ WHERE {{
         from ``sh:in``.  Objects whose status value does not appear in the
         list are placed in an "Unset" column appended at the end.
 
+        Detects enrichment fields (priority, due date) from SHACL shapes
+        and includes them in each item dict when available.
+
         Returns:
-            ``{"columns": [...], "status_field": {...}, "total": N}``
+            ``{"columns": [...], "status_field": {...}, "total": N,
+              "enrichment": {...}}``
         """
+        # Detect enrichment fields
+        enrichment_meta = await self._detect_enrichment_fields(
+            type_iri, status_field=status_field,
+        )
+        priority_field = enrichment_meta["priority_field"]
+        date_field = enrichment_meta["date_field"]
+
         query = self._build_kanban_select(
-            type_iri, status_field.path, scope_filter=scope_filter,
+            type_iri,
+            status_field.path,
+            scope_filter=scope_filter,
+            priority_path=priority_field.path if priority_field else None,
+            date_path=date_field.path if date_field else None,
         )
         scoped = scope_to_current_graph(query)
 
@@ -2007,6 +2096,7 @@ WHERE {{
                     for v in status_values
                 ],
                 "status_field": {"path": status_field.path, "name": status_field.name},
+                "enrichment": self._build_enrichment_metadata(priority_field, date_field),
                 "total": 0,
             }
 
@@ -2026,7 +2116,13 @@ WHERE {{
             label = b.get("label", {}).get("value", "") or _local_name(iri)
             status_val = b.get("statusValue", {}).get("value", "")
 
-            item = {"iri": iri, "label": label}
+            item: dict = {"iri": iri, "label": label}
+
+            # Enrichment values (always present as keys, None when unset)
+            priority_raw = b.get("priorityValue", {}).get("value") if priority_field else None
+            date_raw = b.get("dateValue", {}).get("value") if date_field else None
+            item["priority"] = priority_raw
+            item["due_date"] = date_raw
 
             if status_val in buckets:
                 buckets[status_val].append(item)
@@ -2053,8 +2149,29 @@ WHERE {{
         return {
             "columns": columns,
             "status_field": {"path": status_field.path, "name": status_field.name},
+            "enrichment": self._build_enrichment_metadata(priority_field, date_field),
             "total": total,
         }
+
+    @staticmethod
+    def _build_enrichment_metadata(
+        priority_field: PropertyShape | None,
+        date_field: PropertyShape | None,
+    ) -> dict:
+        """Build the enrichment metadata dict for kanban results."""
+        enrichment: dict = {"priority_field": None, "date_field": None}
+        if priority_field:
+            enrichment["priority_field"] = {
+                "path": priority_field.path,
+                "name": priority_field.name,
+                "values": list(priority_field.in_values),
+            }
+        if date_field:
+            enrichment["date_field"] = {
+                "path": date_field.path,
+                "name": date_field.name,
+            }
+        return enrichment
 
     # ── Quadrant renderer ──────────────────────────────────────
 

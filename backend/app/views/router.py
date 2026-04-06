@@ -1254,6 +1254,7 @@ async def generic_view(
             "request": request,
             "columns": kanban_result["columns"],
             "status_field": kanban_result["status_field"],
+            "enrichment": kanban_result.get("enrichment"),
             "type_label": type_label,
             "type_iri": spec.target_class,
             "selected_type": type_iri or "",

@@ -20,12 +20,14 @@ def _make_property(
     name: str,
     order: float = 0.0,
     in_values: list[str] | None = None,
+    datatype: str | None = None,
 ) -> PropertyShape:
     return PropertyShape(
         path=path,
         name=name,
         order=order,
         in_values=in_values or [],
+        datatype=datatype,
     )
 
 
@@ -436,3 +438,320 @@ class TestExecuteKanbanQuery:
         )
 
         assert result["columns"][0]["items"][0]["label"] == "my-task"
+
+
+# ── _detect_enrichment_fields ─────────────────────────────────
+
+
+class TestDetectEnrichmentFields:
+    """Tests for _detect_enrichment_fields() which detects priority and
+    date fields for kanban card enrichment."""
+
+    @pytest.mark.asyncio
+    async def test_priority_field_by_path(self):
+        """Finds priority field when path contains 'priority'."""
+        form = _make_form("urn:test:Task", [
+            _make_property(
+                "urn:test:status", "Status",
+                in_values=["todo", "done"],
+            ),
+            _make_property(
+                "urn:test:priority", "Priority",
+                in_values=["low", "medium", "high"],
+            ),
+        ])
+        svc = _build_service(form_return=form)
+        status = _make_property("urn:test:status", "Status", in_values=["todo", "done"])
+        result = await svc._detect_enrichment_fields("urn:test:Task", status_field=status)
+        assert result["priority_field"] is not None
+        assert result["priority_field"].path == "urn:test:priority"
+
+    @pytest.mark.asyncio
+    async def test_priority_fallback_non_status_in(self):
+        """Falls back to first non-status sh:in property when no 'priority' in path."""
+        form = _make_form("urn:test:Task", [
+            _make_property(
+                "urn:test:status", "Status",
+                in_values=["todo", "done"],
+            ),
+            _make_property(
+                "urn:test:severity", "Severity",
+                in_values=["low", "high"],
+            ),
+        ])
+        svc = _build_service(form_return=form)
+        status = _make_property("urn:test:status", "Status", in_values=["todo", "done"])
+        result = await svc._detect_enrichment_fields("urn:test:Task", status_field=status)
+        assert result["priority_field"] is not None
+        assert result["priority_field"].path == "urn:test:severity"
+
+    @pytest.mark.asyncio
+    async def test_priority_skips_status_field(self):
+        """Status field is excluded from priority candidates even if it has sh:in."""
+        form = _make_form("urn:test:Task", [
+            _make_property(
+                "urn:test:status", "Status",
+                in_values=["todo", "done"],
+            ),
+        ])
+        svc = _build_service(form_return=form)
+        status = _make_property("urn:test:status", "Status", in_values=["todo", "done"])
+        result = await svc._detect_enrichment_fields("urn:test:Task", status_field=status)
+        assert result["priority_field"] is None
+
+    @pytest.mark.asyncio
+    async def test_date_field_by_datatype(self):
+        """Detects date field via xsd:date datatype."""
+        form = _make_form("urn:test:Task", [
+            _make_property(
+                "urn:test:status", "Status",
+                in_values=["todo", "done"],
+            ),
+            _make_property(
+                "urn:test:dueDate", "Due Date",
+                datatype="http://www.w3.org/2001/XMLSchema#date",
+            ),
+        ])
+        svc = _build_service(form_return=form)
+        result = await svc._detect_enrichment_fields("urn:test:Task")
+        assert result["date_field"] is not None
+        assert result["date_field"].path == "urn:test:dueDate"
+
+    @pytest.mark.asyncio
+    async def test_no_enrichment_fields(self):
+        """Type with only status and plain text fields returns nulls."""
+        form = _make_form("urn:test:Task", [
+            _make_property(
+                "urn:test:status", "Status",
+                in_values=["todo", "done"],
+            ),
+            _make_property("urn:test:title", "Title"),
+            _make_property("urn:test:body", "Body"),
+        ])
+        svc = _build_service(form_return=form)
+        status = _make_property("urn:test:status", "Status", in_values=["todo", "done"])
+        result = await svc._detect_enrichment_fields("urn:test:Task", status_field=status)
+        assert result["priority_field"] is None
+        assert result["date_field"] is None
+
+    @pytest.mark.asyncio
+    async def test_no_shapes_service(self):
+        """Returns nulls when shapes_service is None."""
+        svc = _build_service(shapes_service_none=True)
+        result = await svc._detect_enrichment_fields("urn:test:Task")
+        assert result["priority_field"] is None
+        assert result["date_field"] is None
+
+
+# ── _build_kanban_select with enrichment ──────────────────────
+
+
+class TestBuildKanbanSelectEnrichment:
+    """Tests for enrichment OPTIONAL clauses in _build_kanban_select()."""
+
+    def test_with_priority_path(self):
+        """OPTIONAL clause for priority added when priority_path is set."""
+        query = ViewSpecService._build_kanban_select(
+            "urn:test:Task", "urn:test:status",
+            priority_path="urn:test:priority",
+        )
+        assert "?priorityValue" in query
+        assert "OPTIONAL { ?s <urn:test:priority> ?priorityValue }" in query
+
+    def test_with_date_path(self):
+        """OPTIONAL clause for date added when date_path is set."""
+        query = ViewSpecService._build_kanban_select(
+            "urn:test:Task", "urn:test:status",
+            date_path="urn:test:dueDate",
+        )
+        assert "?dateValue" in query
+        assert "OPTIONAL { ?s <urn:test:dueDate> ?dateValue }" in query
+
+    def test_with_both_enrichment_paths(self):
+        """Both OPTIONAL clauses present when both paths provided."""
+        query = ViewSpecService._build_kanban_select(
+            "urn:test:Task", "urn:test:status",
+            priority_path="urn:test:priority",
+            date_path="urn:test:dueDate",
+        )
+        assert "?priorityValue" in query
+        assert "?dateValue" in query
+        assert "OPTIONAL { ?s <urn:test:priority> ?priorityValue }" in query
+        assert "OPTIONAL { ?s <urn:test:dueDate> ?dateValue }" in query
+        # Both in SELECT clause
+        assert "SELECT ?s ?label ?statusValue ?priorityValue ?dateValue" in query
+
+    def test_no_enrichment_paths(self):
+        """No enrichment OPTIONAL clauses when both paths are None."""
+        query = ViewSpecService._build_kanban_select(
+            "urn:test:Task", "urn:test:status",
+        )
+        assert "?priorityValue" not in query
+        assert "?dateValue" not in query
+        assert "SELECT ?s ?label ?statusValue\n" in query
+
+
+# ── execute_kanban_query enrichment ───────────────────────────
+
+
+class TestExecuteKanbanQueryEnrichment:
+    """Tests for enrichment data in execute_kanban_query() output."""
+
+    @pytest.mark.asyncio
+    async def test_items_include_enrichment_keys(self):
+        """Items always include priority and due_date keys."""
+        bindings = [
+            {
+                "s": {"value": "urn:task:1"},
+                "label": {"value": "Task One"},
+                "statusValue": {"value": "todo"},
+                "priorityValue": {"value": "high"},
+                "dateValue": {"value": "2026-04-15"},
+            },
+        ]
+        form = _make_form("urn:test:Task", [
+            _make_property(
+                "urn:test:status", "Status",
+                in_values=["todo", "done"],
+            ),
+            _make_property(
+                "urn:test:priority", "Priority",
+                in_values=["low", "medium", "high"],
+            ),
+            _make_property(
+                "urn:test:dueDate", "Due Date",
+                datatype="http://www.w3.org/2001/XMLSchema#date",
+            ),
+        ])
+        svc = _build_service(form_return=form, query_bindings=bindings)
+        status_field = _make_property(
+            "urn:test:status", "Status",
+            in_values=["todo", "done"],
+        )
+
+        result = await svc.execute_kanban_query(
+            "urn:test:Task", status_field, ["todo", "done"],
+        )
+
+        item = result["columns"][0]["items"][0]
+        assert item["priority"] == "high"
+        assert item["due_date"] == "2026-04-15"
+
+    @pytest.mark.asyncio
+    async def test_items_null_enrichment_when_no_fields(self):
+        """Items have None for priority/due_date when type has no enrichment."""
+        bindings = [
+            {
+                "s": {"value": "urn:task:1"},
+                "label": {"value": "Task One"},
+                "statusValue": {"value": "todo"},
+            },
+        ]
+        form = _make_form("urn:test:Task", [
+            _make_property(
+                "urn:test:status", "Status",
+                in_values=["todo", "done"],
+            ),
+            _make_property("urn:test:title", "Title"),
+        ])
+        svc = _build_service(form_return=form, query_bindings=bindings)
+        status_field = _make_property(
+            "urn:test:status", "Status",
+            in_values=["todo", "done"],
+        )
+
+        result = await svc.execute_kanban_query(
+            "urn:test:Task", status_field, ["todo", "done"],
+        )
+
+        item = result["columns"][0]["items"][0]
+        assert item["priority"] is None
+        assert item["due_date"] is None
+
+    @pytest.mark.asyncio
+    async def test_enrichment_metadata_in_result(self):
+        """Result includes enrichment metadata with field paths and names."""
+        form = _make_form("urn:test:Task", [
+            _make_property(
+                "urn:test:status", "Status",
+                in_values=["todo", "done"],
+            ),
+            _make_property(
+                "urn:test:priority", "Priority",
+                in_values=["low", "medium", "high"],
+            ),
+            _make_property(
+                "urn:test:dueDate", "Due Date",
+                datatype="http://www.w3.org/2001/XMLSchema#date",
+            ),
+        ])
+        svc = _build_service(form_return=form, query_bindings=[])
+        status_field = _make_property(
+            "urn:test:status", "Status",
+            in_values=["todo", "done"],
+        )
+
+        result = await svc.execute_kanban_query(
+            "urn:test:Task", status_field, ["todo", "done"],
+        )
+
+        enrichment = result["enrichment"]
+        assert enrichment["priority_field"] is not None
+        assert enrichment["priority_field"]["path"] == "urn:test:priority"
+        assert enrichment["priority_field"]["name"] == "Priority"
+        assert enrichment["priority_field"]["values"] == ["low", "medium", "high"]
+        assert enrichment["date_field"] is not None
+        assert enrichment["date_field"]["path"] == "urn:test:dueDate"
+        assert enrichment["date_field"]["name"] == "Due Date"
+
+    @pytest.mark.asyncio
+    async def test_enrichment_metadata_null_fields(self):
+        """Enrichment metadata has null fields when type has no enrichment."""
+        form = _make_form("urn:test:Task", [
+            _make_property(
+                "urn:test:status", "Status",
+                in_values=["todo", "done"],
+            ),
+        ])
+        svc = _build_service(form_return=form, query_bindings=[])
+        status_field = _make_property(
+            "urn:test:status", "Status",
+            in_values=["todo", "done"],
+        )
+
+        result = await svc.execute_kanban_query(
+            "urn:test:Task", status_field, ["todo", "done"],
+        )
+
+        enrichment = result["enrichment"]
+        assert enrichment["priority_field"] is None
+        assert enrichment["date_field"] is None
+
+    @pytest.mark.asyncio
+    async def test_query_failure_includes_enrichment(self):
+        """Even when SPARQL query fails, enrichment metadata is present."""
+        form = _make_form("urn:test:Task", [
+            _make_property(
+                "urn:test:status", "Status",
+                in_values=["todo", "done"],
+            ),
+            _make_property(
+                "urn:test:priority", "Priority",
+                in_values=["low", "high"],
+            ),
+        ])
+        svc = _build_service(form_return=form)
+        svc._client.query = AsyncMock(side_effect=RuntimeError("triplestore down"))
+
+        status_field = _make_property(
+            "urn:test:status", "Status",
+            in_values=["todo", "done"],
+        )
+
+        result = await svc.execute_kanban_query(
+            "urn:test:Task", status_field, ["todo", "done"],
+        )
+
+        assert result["total"] == 0
+        assert result["enrichment"] is not None
+        assert result["enrichment"]["priority_field"]["path"] == "urn:test:priority"

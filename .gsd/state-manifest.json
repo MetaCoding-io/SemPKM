@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T01:34:18.883Z",
+  "exported_at": "2026-04-06T01:55:34.864Z",
   "milestones": [
     {
       "id": "M001",
@@ -1866,22 +1866,72 @@
     },
     {
       "id": "M052",
-      "title": "",
+      "title": "UI Design System & Polish Pass",
       "status": "active",
       "depends_on": [],
       "created_at": "2026-04-05T17:38:45.584Z",
       "completed_at": null,
-      "vision": "",
-      "success_criteria": [],
-      "key_risks": [],
-      "proof_strategy": [],
-      "verification_contract": "",
-      "verification_integration": "",
-      "verification_operational": "",
-      "verification_uat": "",
-      "definition_of_done": [],
-      "requirement_coverage": "",
-      "boundary_map_markdown": ""
+      "vision": "Establish consistent visual identity across the entire Object Browser — type-colored accents, property table polish, enriched kanban cards, improved tab distinction, and writing-surface body editor. Transform the functional-but-bland workspace into a distinctively styled product.",
+      "success_criteria": [
+        "Object read view: property rows have alternating backgrounds, labels visually distinct from values, hover highlight on rows",
+        "Type badge in object toolbar shows Lucide icon + type color accent",
+        "Kanban cards show priority badge, due date, and type icon when available; columns have color-coded left borders",
+        "Tab bar: active tab clearly distinguishable from inactive (font weight, accent bar thickness, background contrast)",
+        "Body editor: softer gutters, proportional font for markdown, breathing room — feels like a writing surface not a code editor",
+        "Graph popover: property rows separated by borders with alternating backgrounds",
+        "View explorer icons: Lucide icons with per-renderer colors replace Unicode glyphs",
+        "Form sections: stronger headers with accent bars, tighter help text spacing",
+        "All new styling works correctly in both light and dark mode",
+        "Timeline bars have status-based colors via Frappe Gantt custom_class"
+      ],
+      "key_risks": [
+        {
+          "risk": "Kanban SPARQL enrichment breaks existing kanban rendering",
+          "whyItMatters": "Only backend change in the milestone — OPTIONAL clauses must not alter existing query behavior for types that lack enrichment fields"
+        },
+        {
+          "risk": "Dark mode regressions from new color primitives",
+          "whyItMatters": "Every new --_color-* primitive needs a dark-mode entry in theme.css; missing entries produce unreadable colors"
+        },
+        {
+          "risk": "CM6 theme swap breaks editor save/load or keybindings",
+          "whyItMatters": "Theme is cosmetic but CM6 bundles are opaque; changing theme objects could have side effects"
+        },
+        {
+          "risk": "Scope creep — polish is subjective",
+          "whyItMatters": "Each slice has specific before/after CSS targets; no unscoped 'make it nicer' work"
+        }
+      ],
+      "proof_strategy": [
+        {
+          "riskOrUnknown": "Kanban SPARQL enrichment",
+          "retireIn": "S01",
+          "whatWillBeProven": "Kanban view renders with enriched cards for basic-pkm Task type AND still renders correctly for types without enrichment fields"
+        },
+        {
+          "riskOrUnknown": "Dark mode correctness",
+          "retireIn": "Every slice",
+          "whatWillBeProven": "Each slice verifies both light and dark mode rendering for all new CSS rules"
+        },
+        {
+          "riskOrUnknown": "CM6 theme compatibility",
+          "retireIn": "S03",
+          "whatWillBeProven": "Editor loads, saves, and renders markdown correctly with new theme in both modes"
+        }
+      ],
+      "verification_contract": "Visual inspection of each surface in browser (http://localhost:4000/browser/) confirming before/after CSS targets met. No automated visual regression tests — manual screenshot comparison.",
+      "verification_integration": "All views render correctly with installed basic-pkm model. Kanban enrichment works with Task type. No console errors from CSS or template changes.",
+      "verification_operational": "N/A — purely visual milestone. No new services, endpoints, or infrastructure.",
+      "verification_uat": "Open workspace, create/browse objects, switch between views, toggle dark mode — visual quality is noticeably improved across all surfaces.",
+      "definition_of_done": [
+        "All 4 slices complete with summaries",
+        "Zero standalone hex/rgba values added outside theme.css (verified by grep)",
+        "All new color primitives have dark-mode entries in theme.css",
+        "No console errors introduced by CSS or template changes",
+        "Kanban view still renders for types without enrichment fields (graceful degradation)"
+      ],
+      "requirement_coverage": "No active requirements to map. R001 is already validated. This milestone is visual polish — no functional requirement changes.",
+      "boundary_map_markdown": "```\nBrowser (localhost:4000)\n  ├─ workspace.css (property table, object toolbar, tab bar, right pane)\n  ├─ views.css (kanban, graph popover, timeline)\n  ├─ forms.css (form sections, help text)\n  ├─ dockview-sempkm-bridge.css (tab active/inactive)\n  ├─ theme.css (new color primitives + dark mode entries)\n  ├─ editor.js (CM6 theme objects)\n  ├─ views_explorer.html (view icons)\n  ├─ kanban_view.html (enriched cards, column colors)\n  ├─ object_tab.html (type badge with icon)\n  └─ graph.js (popover prop borders)\nBackend (FastAPI)\n  └─ views/service.py (_build_kanban_select SPARQL enrichment)\n```"
     },
     {
       "id": "M053",
@@ -8252,6 +8302,90 @@
       "proof_level": "Manual browser verification — no new backend contracts, all changes are visual/interactive JS+CSS.",
       "integration_closure": "No upstream surfaces consumed. No new wiring — reuses existing `showConfirmDialog` CSS, existing `createNewPersona()` and `window.SemPKMLayouts.save()` APIs, existing ninja-keys open/close patch. Nothing remains for the milestone after this slice.",
       "observability_impact": "None — pure frontend UX fixes with no runtime boundaries or async flows.",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M052",
+      "id": "S01",
+      "title": "Kanban Enrichment & Column Colors",
+      "status": "pending",
+      "risk": "medium",
+      "depends": [],
+      "demo": "Kanban view shows cards with priority badge, due date, and type icon. Columns have color-coded left border accents. Types without enrichment fields still render correctly.",
+      "created_at": "2026-04-06T01:45:38.441Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Kanban view shows enriched cards with priority badge, due date, and type icon. Columns have color-coded left border accents based on status keywords. Types without enrichment fields render correctly with cards showing only the title.",
+      "success_criteria": "- Kanban cards display priority badge (color-coded pill) when the type has a priority-like sh:in field\n- Kanban cards display due date when the type has a date-like field\n- Kanban cards display a type icon (from the manifest icon registry) via Lucide\n- Column headers have a colored left border accent derived from status keyword matching (D393)\n- Types without priority/date fields still render correctly — cards show only the title\n- Dark mode renders column borders and card badges correctly via color-mix() theme tokens\n- Existing kanban unit tests pass, new tests cover enrichment field detection and enriched query output",
+      "proof_level": "Contract — unit tests prove SPARQL query enrichment and field detection; visual verification proves CSS styling",
+      "integration_closure": "Upstream: ViewSpecService._detect_status_field(), ShapesService.get_form_for_type(), window.SemPKM._sempkmIcons icon cache. New wiring: _detect_enrichment_fields() method on ViewSpecService, enrichment data passed through router to template. Nothing remains — the slice is self-contained.",
+      "observability_impact": "Debug logging added to _detect_enrichment_fields() for field detection results. No new endpoints or runtime signals.",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M052",
+      "id": "S02",
+      "title": "Property Table & Popover Polish",
+      "status": "pending",
+      "risk": "low",
+      "depends": [],
+      "demo": "Object read view has zebra-striped property rows with hover highlight, stronger label/value distinction, and tooltips. Graph popover properties have borders and alternating backgrounds.",
+      "created_at": "2026-04-06T01:45:38.441Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Establish the property display pattern used across read view and popovers — zebra striping, label/value contrast, row hover, borders",
+      "success_criteria": "- Property rows alternate background color (nth-child(even))\n- Row hover highlight present\n- Labels are slightly larger/bolder than values, values use muted color\n- Graph popover props have bottom borders and alternating backgrounds\n- Both light and dark mode correct",
+      "proof_level": "Visual inspection of object read view and graph popover",
+      "integration_closure": "CSS-only changes to workspace.css and views.css. No template changes for property table (CSS grid targets existing classes). Graph popover needs class additions in graph.js.",
+      "observability_impact": "None",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M052",
+      "id": "S03",
+      "title": "Type Badge, Tabs & Navigation Chrome",
+      "status": "pending",
+      "risk": "low",
+      "depends": [],
+      "demo": "Type badge shows Lucide icon with type color accent. Active tab is clearly distinguishable from inactive. View explorer uses Lucide icons with per-renderer colors. Body editor feels like a writing surface.",
+      "created_at": "2026-04-06T01:45:38.441Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Polish all navigation chrome — type badge, tab bar, view explorer icons, and body editor theme",
+      "success_criteria": "- Type badge in object toolbar includes Lucide icon and type-color left border or background tint\n- Active tab has bolder font weight, thicker accent bar, contrasting background vs inactive tabs\n- View explorer icons are Lucide SVGs with per-renderer colors (table=blue, graph=green, kanban=amber, etc.)\n- Body editor uses softer gutter colors (token-referenced), proportional font for markdown content, increased padding\n- CM6 editor still loads, saves, and renders correctly\n- Both light and dark mode correct",
+      "proof_level": "Visual inspection of tab bar, type badge, view explorer, and body editor in both modes",
+      "integration_closure": "Type badge: template change in object_tab.html (icon already available as type_icon context var). Tabs: CSS-only in dockview bridge. View explorer: template change in views_explorer.html. Editor: theme object changes in editor.js.",
+      "observability_impact": "None",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M052",
+      "id": "S04",
+      "title": "Forms, Timeline & Final Polish",
+      "status": "pending",
+      "risk": "low",
+      "depends": [
+        "S01",
+        "S02",
+        "S03"
+      ],
+      "demo": "Form sections have prominent headers with accent bars and tighter help text. Timeline bars have status colors. Right panel shows helpful empty state. View name underline inconsistency resolved.",
+      "created_at": "2026-04-06T01:45:38.441Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Polish remaining surfaces — forms, timeline, right panel empty states, and miscellaneous fixes",
+      "success_criteria": "- Form section headers are larger with a left accent bar\n- Help text has tighter vertical margin\n- Timeline bars use status-based colors via Frappe Gantt custom_class\n- Right panel shows 'Select an object' prompt when no object is open\n- No inconsistent underlines on view names\n- Both light and dark mode correct",
+      "proof_level": "Visual inspection of form edit mode, timeline view, right panel empty state",
+      "integration_closure": "Forms: CSS-only in forms.css. Timeline: template passes status field, CSS adds color classes. Right panel: JS behavior change in workspace.js. Miscellaneous: targeted CSS fixes.",
+      "observability_impact": "None",
       "sequence": 0,
       "replan_triggered_at": null
     }
@@ -33232,6 +33366,98 @@
       "observability_impact": "",
       "full_plan_md": "",
       "sequence": 0
+    },
+    {
+      "milestone_id": "M052",
+      "slice_id": "S01",
+      "id": "T01",
+      "title": "Added _detect_enrichment_fields() to kanban backend, extended SPARQL with OPTIONAL priority/date clauses, and enriched item dicts with priority and due_date keys",
+      "status": "complete",
+      "one_liner": "Added _detect_enrichment_fields() to kanban backend, extended SPARQL with OPTIONAL priority/date clauses, and enriched item dicts with priority and due_date keys",
+      "narrative": "Added _detect_enrichment_fields() method to ViewSpecService that scans SHACL shapes for priority (sh:in with 'priority' in path or fallback non-status sh:in) and date (reuses _detect_date_fields start field) properties. Extended _build_kanban_select() with optional priority_path and date_path parameters that add OPTIONAL SPARQL clauses. Updated execute_kanban_query() to auto-detect enrichment, include priority/due_date in item dicts, and return enrichment metadata. Router now passes enrichment to kanban template context. Added 15 new tests covering all enrichment functionality.",
+      "verification_result": "Ran full kanban test suite: cd backend && .venv/bin/python -m pytest tests/test_kanban.py -v — all 33 tests pass (18 existing + 15 new). LSP diagnostics confirmed no new type errors in modified files.",
+      "duration": "",
+      "completed_at": "2026-04-06T01:55:34.824Z",
+      "blocker_discovered": false,
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/views/service.py",
+        "backend/app/views/router.py",
+        "backend/tests/test_kanban.py"
+      ],
+      "key_decisions": [
+        "Enrichment detection reuses _detect_date_fields() for date and scans form properties for priority — no new SHACL queries needed",
+        "Priority detection excludes the status field by path comparison to avoid treating status as priority",
+        "_build_enrichment_metadata() factored as static helper for reuse in both success and error paths"
+      ],
+      "full_summary_md": "---\nid: T01\nparent: S01\nmilestone: M052\nkey_files:\n  - backend/app/views/service.py\n  - backend/app/views/router.py\n  - backend/tests/test_kanban.py\nkey_decisions:\n  - Enrichment detection reuses _detect_date_fields() for date and scans form properties for priority — no new SHACL queries needed\n  - Priority detection excludes the status field by path comparison to avoid treating status as priority\n  - _build_enrichment_metadata() factored as static helper for reuse in both success and error paths\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T01:55:34.823Z\nblocker_discovered: false\n---\n\n# T01: Added _detect_enrichment_fields() to kanban backend, extended SPARQL with OPTIONAL priority/date clauses, and enriched item dicts with priority and due_date keys\n\n**Added _detect_enrichment_fields() to kanban backend, extended SPARQL with OPTIONAL priority/date clauses, and enriched item dicts with priority and due_date keys**\n\n## What Happened\n\nAdded _detect_enrichment_fields() method to ViewSpecService that scans SHACL shapes for priority (sh:in with 'priority' in path or fallback non-status sh:in) and date (reuses _detect_date_fields start field) properties. Extended _build_kanban_select() with optional priority_path and date_path parameters that add OPTIONAL SPARQL clauses. Updated execute_kanban_query() to auto-detect enrichment, include priority/due_date in item dicts, and return enrichment metadata. Router now passes enrichment to kanban template context. Added 15 new tests covering all enrichment functionality.\n\n## Verification\n\nRan full kanban test suite: cd backend && .venv/bin/python -m pytest tests/test_kanban.py -v — all 33 tests pass (18 existing + 15 new). LSP diagnostics confirmed no new type errors in modified files.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python -m pytest tests/test_kanban.py -v` | 0 | ✅ pass | 640ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/views/service.py`\n- `backend/app/views/router.py`\n- `backend/tests/test_kanban.py`\n",
+      "description": "## Description\n\nExtend the kanban backend to detect priority-like and date-like fields from SHACL shapes, include them in the SPARQL query, and pass enrichment data through to the template context.\n\n**Current state:** `execute_kanban_query()` fetches only `?s`, `?label`, `?statusValue`. Items are `{iri, label}` dicts.\n\n**Target state:** A new `_detect_enrichment_fields()` method scans SHACL PropertyShapes for:\n- **Priority field**: first property with `sh:in` values whose path contains 'priority' (case-insensitive). Falls back to any `sh:in` property that isn't the status field.\n- **Due date field**: first property with `sh:datatype` in `{xsd:date, xsd:dateTime}` or whose path local-name matches well-known date paths (`duedate`, `deadline`, `targetdate`, `enddate`). Uses existing `_detect_date_fields()` logic but only needs the start field.\n\n`_build_kanban_select()` adds OPTIONAL clauses for detected fields. `execute_kanban_query()` populates item dicts with `priority` and `due_date` keys (both nullable). The router passes the enrichment metadata (field names) alongside column data.\n\n## Steps\n\n1. Add `_detect_enrichment_fields(type_iri)` method to `ViewSpecService` that returns `{priority_field: PropertyShape|None, date_field: PropertyShape|None}`. Scan the form properties from `get_form_for_type()`. For priority: find first `sh:in` property with 'priority' in path (case-insensitive), or first non-status `sh:in` property. For date: reuse the start-field detection from `_detect_date_fields()` (call it and take the first result).\n\n2. Update `_build_kanban_select()` signature to accept optional `priority_path` and `date_path` strings. When non-None, add `OPTIONAL { ?s <priority_path> ?priorityValue }` and `OPTIONAL { ?s <date_path> ?dateValue }` to the WHERE clause.\n\n3. Update `execute_kanban_query()` to:\n   - Call `_detect_enrichment_fields()` for the type\n   - Pass priority_path/date_path to `_build_kanban_select()`\n   - Extract `priorityValue` and `dateValue` from bindings into each item dict\n   - Include enrichment metadata in the return dict: `enrichment: {priority_field: {path, name, values}|null, date_field: {path, name}|null}`\n\n4. Update the kanban branch in `generic_view()` in `router.py` to pass `enrichment` to the template context.\n\n5. Add unit tests in `test_kanban.py`:\n   - `test_detect_enrichment_priority_field` — type with priority sh:in property\n   - `test_detect_enrichment_date_field` — type with xsd:date property\n   - `test_detect_enrichment_no_fields` — type with no enrichment fields returns nulls\n   - `test_build_kanban_select_with_enrichment` — SPARQL contains OPTIONAL clauses\n   - `test_execute_kanban_query_enriched_items` — items include priority/due_date keys\n\n6. Run existing tests to confirm no regressions.\n\n## Must-Haves\n\n- [ ] `_detect_enrichment_fields()` returns priority and date fields correctly\n- [ ] `_build_kanban_select()` adds OPTIONAL SPARQL clauses when enrichment paths provided\n- [ ] Items in `execute_kanban_query()` output include `priority` and `due_date` keys (nullable)\n- [ ] Router passes `enrichment` metadata to template context\n- [ ] All existing kanban tests pass\n- [ ] New enrichment tests pass",
+      "estimate": "45m",
+      "files": [
+        "backend/app/views/service.py",
+        "backend/app/views/router.py",
+        "backend/tests/test_kanban.py"
+      ],
+      "verify": "cd backend && .venv/bin/python -m pytest tests/test_kanban.py -v",
+      "inputs": [
+        "`backend/app/views/service.py` — existing _detect_status_field, _build_kanban_select, execute_kanban_query",
+        "`backend/app/views/router.py` — kanban branch in generic_view() at line ~1189",
+        "`backend/tests/test_kanban.py` — existing test structure and helpers",
+        "`backend/app/services/shapes.py` — PropertyShape dataclass definition"
+      ],
+      "expected_output": [
+        "`backend/app/views/service.py` — new _detect_enrichment_fields() method, updated _build_kanban_select() and execute_kanban_query()",
+        "`backend/app/views/router.py` — enrichment passed in kanban template context",
+        "`backend/tests/test_kanban.py` — 5+ new enrichment test cases"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M052",
+      "slice_id": "S01",
+      "id": "T02",
+      "title": "Add kanban card enrichment UI and column color accents",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "## Description\n\nUpdate the kanban template, CSS, and minimal JS to render enriched cards and colored column borders.\n\n**Card enrichment rendering:**\n- Priority badge: a small colored pill below the title. Color mapping: critical→red, high→amber, medium→blue, low→green (using theme primitives via color-mix). Only rendered when `item.priority` is truthy.\n- Due date: a small muted-text line with a calendar icon. Format the date for display. Only rendered when `item.due_date` is truthy.\n- Type icon: a small Lucide icon in the card header area. The type_iri is available on the board element's `data-type-iri` attribute, and icon data is in `window.SemPKM._sempkmIcons`. Render via JS after htmx swap by looking up the icon name and using `lucide.createElement()`.\n\n**Column color accents (D393):**\nApply a 3px colored left border to `.kanban-column` based on the column's `data-status` value. Use keyword matching:\n- todo/new/open/backlog → blue (`--_color-blue-500`)\n- progress/doing/active/in-progress → amber (`--_color-amber-500`)\n- done/complete/closed → green (`--_color-green-500`)\n- block/stuck → red (`--_color-red-500`)\n- cancel/archive → gray (`--color-text-muted`)\n- default → transparent (no accent)\n\nThis is implemented in JS because the status values are dynamic and come from the data attribute. A small function in `kanban.js` runs after `initKanban()` to set `border-left` style on each column based on keyword scan of `data-status`.\n\n**Dark mode:** All colors use existing theme tokens via `color-mix(in srgb, var(--_color-X) N%, transparent)`. No new standalone hex/rgba values outside theme.css. Add `--_color-gray-400` primitive to theme.css for the cancel/archive column accent.\n\n## Steps\n\n1. Add kanban-specific CSS primitives to `theme.css`: `--_color-gray-400` in both light and dark blocks. Add `--_color-kanban-priority-critical`, `--_color-kanban-priority-high`, `--_color-kanban-priority-medium`, `--_color-kanban-priority-low` as aliases of existing primitives for semantic clarity.\n\n2. Add CSS classes to `views.css`:\n   - `.kanban-card-meta` — flex row for priority + date badges below title\n   - `.kanban-card-priority` — small pill with background via color-mix, font-size 0.7rem\n   - `.kanban-card-priority[data-priority='critical']` etc. — per-priority colors\n   - `.kanban-card-date` — muted text with calendar icon, font-size 0.75rem\n   - `.kanban-card-type-icon` — small icon area at top-right or inline with title\n   - `.kanban-column` updated: `border-left: 3px solid transparent` as default\n\n3. Update `kanban_view.html` template:\n   - Add a `.kanban-card-meta` div inside each card, below the title\n   - Conditionally render priority badge: `{% if item.priority %}<span class=\"kanban-card-priority\" data-priority=\"{{ item.priority }}\">{{ item.priority | capitalize }}</span>{% endif %}`\n   - Conditionally render due date: `{% if item.due_date %}<span class=\"kanban-card-date\"><i data-lucide=\"calendar\" class=\"kanban-date-icon\"></i>{{ item.due_date }}</span>{% endif %}`\n   - Add a type icon placeholder `<span class=\"kanban-card-type-icon\"></span>` that JS populates\n\n4. Update `kanban.js`:\n   - Add `_applyColumnColors(boardEl)` function that iterates `.kanban-column` elements, reads `data-status`, runs keyword matching, sets `style.borderLeftColor` using CSS variable references\n   - Add `_applyTypeIcons(boardEl)` function that reads `data-type-iri` from the board, looks up icon from `window.SemPKM._sempkmIcons.tree[typeIri]`, and uses `lucide.createElement()` to render an SVG into each `.kanban-card-type-icon` element\n   - Call both functions at end of `initKanban()`\n   - Re-init Lucide icons on the board for the date icons: `if (typeof lucide !== 'undefined') lucide.createIcons({attrs: {class: 'kanban-date-icon'}});`\n\n5. Verify: open kanban view with basic-pkm Task type (has status, priority, dates), confirm cards show badges. Open with a type that lacks priority (e.g., Event has status but no priority field) — confirm cards render with only the title. Toggle dark mode — confirm all colors adapt.\n\n## Must-Haves\n\n- [ ] Priority badge renders with correct color for each priority level\n- [ ] Due date renders with calendar icon when present\n- [ ] Type icon renders in cards from the manifest icon registry\n- [ ] Column left borders are color-coded by status keyword matching\n- [ ] Cards without enrichment data show only the title (no empty badges)\n- [ ] Dark mode renders correctly — no standalone hex/rgba values added outside theme.css\n- [ ] Lucide icons sized via CSS with flex-shrink: 0 (per CLAUDE.md rules)\n- [ ] All color values use color-mix() with theme primitives (per Knowledge R14)",
+      "estimate": "45m",
+      "files": [
+        "frontend/static/css/theme.css",
+        "frontend/static/css/views.css",
+        "backend/app/templates/browser/kanban_view.html",
+        "frontend/static/js/kanban.js"
+      ],
+      "verify": "grep -c 'kanban-card-priority' frontend/static/css/views.css && grep -c 'kanban-card-meta' backend/app/templates/browser/kanban_view.html && grep -c '_applyColumnColors' frontend/static/js/kanban.js && rg '#[0-9a-fA-F]{3,8}' frontend/static/css/views.css --glob '!theme.css' | grep -v var | grep -v comment | wc -l",
+      "inputs": [
+        "`backend/app/views/service.py` — enrichment field detection and query output from T01",
+        "`backend/app/views/router.py` — enrichment context variable from T01",
+        "`backend/app/templates/browser/kanban_view.html` — current kanban template",
+        "`frontend/static/css/views.css` — existing kanban CSS block at line ~1102",
+        "`frontend/static/css/theme.css` — existing color primitives and dark mode overrides",
+        "`frontend/static/js/kanban.js` — existing drag-drop module"
+      ],
+      "expected_output": [
+        "`frontend/static/css/theme.css` — new --_color-gray-400 primitive in light and dark blocks",
+        "`frontend/static/css/views.css` — kanban enrichment CSS classes (priority pill, date, type icon, column border)",
+        "`backend/app/templates/browser/kanban_view.html` — enriched card template with conditional priority/date/icon rendering",
+        "`frontend/static/js/kanban.js` — _applyColumnColors() and _applyTypeIcons() functions"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
     }
   ],
   "decisions": [
@@ -37926,6 +38152,42 @@
       "revisable": "Yes",
       "made_by": "agent",
       "superseded_by": null
+    },
+    {
+      "seq": 426,
+      "id": "D392",
+      "when_context": "M052 planning",
+      "scope": "architecture",
+      "decision": "M052 slice grouping strategy — how to partition 15+ polish items into demoable slices",
+      "choice": "4 slices grouped by rendering surface: (1) Kanban enrichment (only backend change, highest risk), (2) Property table + popover polish (data display pattern), (3) Type badge + tabs + editor + view icons (navigation chrome), (4) Forms + timeline + miscellaneous (remaining surfaces). S01-S03 are independent; S04 depends on all three to catch any cross-slice integration issues.",
+      "rationale": "Grouping by rendering surface minimizes cross-file conflicts between slices. The kanban slice is isolated first because it's the only backend SPARQL change. Property and navigation chrome slices are independent — they touch different CSS files and templates. The final slice collects low-risk remaining items and serves as integration verification.",
+      "revisable": "Yes",
+      "made_by": "agent",
+      "superseded_by": null
+    },
+    {
+      "seq": 427,
+      "id": "D393",
+      "when_context": "M052/S01 planning",
+      "scope": "architecture",
+      "decision": "M052 kanban column color mapping strategy",
+      "choice": "Generic keyword-based status-to-color mapping: scan status values for keywords (todo/new/open→blue, progress/doing/active→amber, done/complete/closed→green, block/stuck→red, cancel/archive→gray) with a neutral fallback. No manifest extension needed.",
+      "rationale": "A keyword heuristic works across any Mental Model's status enum without requiring model authors to declare colors. It covers the most common status naming patterns. If a status value doesn't match any keyword, it gets a neutral border. This avoids adding a new manifest field for a purely cosmetic feature.",
+      "revisable": "Yes",
+      "made_by": "agent",
+      "superseded_by": null
+    },
+    {
+      "seq": 428,
+      "id": "D394",
+      "when_context": "M052/S01",
+      "scope": "architecture",
+      "decision": "M052/S01 kanban enrichment field detection strategy — how to identify priority and due-date fields for card enrichment",
+      "choice": "SHACL heuristic scanning: priority detected via sh:in property with 'priority' in path (case-insensitive), falling back to any non-status sh:in property. Due date detected by reusing _detect_date_fields() start-field logic. Both are OPTIONAL in the SPARQL query so types without these fields render correctly.",
+      "rationale": "Follows the established pattern from _detect_status_field() and _detect_date_fields() — scan SHACL PropertyShapes by path keyword and datatype. No manifest extension needed. OPTIONAL SPARQL clauses ensure zero breakage for types that lack enrichment fields. The priority keyword heuristic covers standard naming patterns (priority, taskPriority, issuePriority) across Mental Models.",
+      "revisable": "Yes",
+      "made_by": "agent",
+      "superseded_by": null
     }
   ],
   "verification_evidence": [
@@ -41294,6 +41556,17 @@
       "verdict": "✅ pass",
       "duration_ms": 100,
       "created_at": "2026-04-06T01:30:08.521Z"
+    },
+    {
+      "id": 307,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M052",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_kanban.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 640,
+      "created_at": "2026-04-06T01:55:34.824Z"
     }
   ]
 }
