@@ -21,8 +21,13 @@ import shutil
 import tempfile
 import time
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import httpx
+from packaging.version import InvalidVersion, Version
+
+if TYPE_CHECKING:
+    from app.models.registry import InstalledModel
 
 from app.security.ssrf import validate_outbound_url
 from app.security.tar_validator import safe_extract
@@ -229,3 +234,61 @@ class MarketplaceRegistryService:
             # Always clean up tmpdir
             if tmpdir and tmpdir.exists():
                 shutil.rmtree(tmpdir, ignore_errors=True)
+
+    async def check_updates(
+        self,
+        installed_models: list["InstalledModel"],
+    ) -> dict[str, dict]:
+        """Compare installed model versions against the marketplace catalog.
+
+        Args:
+            installed_models: List of currently installed models.
+
+        Returns:
+            Dict mapping model_id → {"installed_version": str,
+            "latest_version": str, "has_update": bool}.
+            Models not found in catalog or with malformed versions are omitted.
+        """
+        if not self.enabled:
+            return {}
+
+        catalog = await self.fetch_catalog()
+        if not catalog:
+            return {}
+
+        # Build lookup: catalog model_id → entry
+        catalog_map: dict[str, dict] = {}
+        for entry in catalog:
+            mid = entry.get("id")
+            if mid:
+                catalog_map[mid] = entry
+
+        result: dict[str, dict] = {}
+        for model in installed_models:
+            cat_entry = catalog_map.get(model.model_id)
+            if cat_entry is None:
+                continue
+
+            installed_ver_str = model.version
+            latest_ver_str = cat_entry.get("version", "")
+
+            try:
+                installed_ver = Version(installed_ver_str)
+                latest_ver = Version(latest_ver_str)
+            except InvalidVersion:
+                logger.warning(
+                    "registry.check_updates skipped model=%s: "
+                    "malformed version installed=%r catalog=%r",
+                    model.model_id,
+                    installed_ver_str,
+                    latest_ver_str,
+                )
+                continue
+
+            result[model.model_id] = {
+                "installed_version": str(installed_ver),
+                "latest_version": str(latest_ver),
+                "has_update": latest_ver > installed_ver,
+            }
+
+        return result

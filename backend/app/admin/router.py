@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
+import httpx
 import yaml
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse
@@ -297,6 +298,16 @@ async def admin_models(
     all_properties = list(custom_types.get("object_properties", [])) + list(custom_types.get("datatype_properties", []))
     installed_ids = {m.model_id for m in models}
     available_models = scan_available_models("/app/models", installed_ids)
+
+    # Check for marketplace updates
+    registry_service = getattr(request.app.state, "registry_service", None)
+    update_status: dict = {}
+    if registry_service is not None and registry_service.enabled:
+        try:
+            update_status = await registry_service.check_updates(models)
+        except Exception:
+            logger.warning("Failed to check marketplace updates", exc_info=True)
+
     context = {
         "request": request,
         "models": models,
@@ -305,6 +316,7 @@ async def admin_models(
         "gist": gist_summary,
         "custom_types": custom_types,
         "all_properties": all_properties,
+        "update_status": update_status,
     }
     if _is_htmx_request(request):
         return templates_response(request, "admin/models.html", context, block_name="content")
@@ -609,10 +621,18 @@ async def admin_models_marketplace(
     installed_models = await model_service.list_models()
     installed_ids = {m.model_id for m in installed_models}
 
+    # Check for marketplace updates on installed models
+    update_status: dict = {}
+    try:
+        update_status = await registry_service.check_updates(installed_models)
+    except Exception:
+        logger.warning("Failed to check marketplace updates", exc_info=True)
+
     context = {
         "request": request,
         "catalog": catalog,
         "installed_ids": installed_ids,
+        "update_status": update_status,
     }
     return templates_response(request, "admin/_marketplace.html", context)
 
@@ -701,6 +721,182 @@ async def admin_models_marketplace_install(
     )
 
     return templates_response(request, "admin/models.html", context, block_name="model_table")
+
+
+@router.post("/models/{model_id}/update")
+async def admin_models_update(
+    request: Request,
+    model_id: str,
+    user: User = Depends(require_role("owner")),
+    model_service: ModelService = Depends(get_model_service),
+    client: TriplestoreClient = Depends(get_triplestore_client),
+    ops_log: OperationsLogService = Depends(get_ops_log_service),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Update an installed model to the latest marketplace version.
+
+    Safe ordering: download and verify the new archive BEFORE uninstalling
+    the old version. This prevents data loss if the download fails.
+    Returns the updated model table partial for htmx swap.
+    """
+    registry_service = getattr(request.app.state, "registry_service", None)
+    models = await model_service.list_models()
+    installed_ids = {m.model_id for m in models}
+    available_models = scan_available_models("/app/models", installed_ids)
+    context: dict = {"request": request, "models": models, "available_models": available_models}
+
+    if registry_service is None or not registry_service.enabled:
+        context["error"] = "Marketplace is not configured."
+        return templates_response(request, "admin/models.html", context, block_name="model_table")
+
+    # Verify model is actually installed
+    current = next((m for m in models if m.model_id == model_id), None)
+    if current is None:
+        context["error"] = f"Model '{model_id}' is not installed."
+        return templates_response(request, "admin/models.html", context, block_name="model_table")
+
+    t0 = time.monotonic()
+    tmpdir = None
+    try:
+        import hashlib as _hashlib
+        import tempfile as _tempfile
+        import shutil as _shutil
+
+        # Fetch catalog entry
+        catalog = await registry_service.fetch_catalog()
+        entry = next((m for m in catalog if m.get("id") == model_id), None)
+        if entry is None:
+            raise ValueError(f"Model '{model_id}' not found in marketplace catalog")
+
+        archive_url = entry.get("archive_url", "")
+        expected_sha = entry.get("sha256", "")
+        if not archive_url:
+            raise ValueError(f"Model '{model_id}' has no archive_url in catalog")
+
+        # SSRF check
+        from app.security.ssrf import validate_outbound_url
+        validate_outbound_url(archive_url)
+
+        # Download to tmpdir
+        tmpdir = Path(_tempfile.mkdtemp(prefix="sempkm-update-"))
+        archive_path = tmpdir / f"{model_id}.tar.gz"
+
+        async with httpx.AsyncClient() as http_client:
+            resp = await http_client.get(
+                archive_url, timeout=30.0, follow_redirects=True,
+            )
+            resp.raise_for_status()
+            archive_bytes = resp.content
+
+        # SHA-256 verification
+        actual_sha = _hashlib.sha256(archive_bytes).hexdigest()
+        if expected_sha and actual_sha != expected_sha:
+            raise ValueError(
+                f"SHA-256 mismatch for '{model_id}': "
+                f"expected {expected_sha}, got {actual_sha}"
+            )
+
+        # Extract and validate
+        archive_path.write_bytes(archive_bytes)
+        extract_dir = tmpdir / "extracted"
+        from app.security.tar_validator import safe_extract
+        safe_extract(archive_path, extract_dir)
+
+        manifest_candidates = list(extract_dir.rglob("manifest.yaml"))
+        if not manifest_candidates:
+            raise ValueError(
+                f"Extracted archive for '{model_id}' contains no manifest.yaml"
+            )
+        model_dir = manifest_candidates[0].parent
+
+        # Archive downloaded and verified — NOW safe to remove old version
+        result = await model_service.remove(model_id)
+        if not result.success:
+            raise ValueError(f"Failed to remove old version: {'; '.join(result.errors)}")
+
+        # Clean up inference artifacts from old version
+        await _cleanup_inference_on_uninstall(client, db, user.id, model_id)
+
+        # Install new version
+        install_result = await model_service.install(model_dir, user.id)
+
+        # Persist to models_data_dir
+        dest = registry_service._models_data_dir / model_id
+        if dest.exists():
+            _shutil.rmtree(dest)
+        registry_service._models_data_dir.mkdir(parents=True, exist_ok=True)
+        _shutil.copytree(model_dir, dest)
+
+        # Invalidate ViewSpec cache
+        request.app.state.view_spec_service.invalidate_cache()
+
+        duration_ms = (time.monotonic() - t0) * 1000
+
+        # Refresh model list
+        models = await model_service.list_models()
+        installed_ids = {m.model_id for m in models}
+        available_models = scan_available_models("/app/models", installed_ids)
+        context = {"request": request, "models": models, "available_models": available_models}
+
+        old_ver = current.version
+        new_ver = entry.get("version", "unknown")
+        context["success"] = f"Model '{model_id}' updated from v{old_ver} to v{new_ver}."
+
+        # Ops log
+        try:
+            model_iri = f"urn:sempkm:model:{model_id}"
+            await ops_log.log_activity(
+                activity_type="model.marketplace_update",
+                label=f"Updated '{model_id}' from v{old_ver} to v{new_ver}",
+                actor=f"urn:sempkm:user:{user.id}",
+                used_iris=[model_iri],
+                status="success",
+            )
+        except Exception:
+            logger.warning("Failed to write ops log for model update", exc_info=True)
+
+        # Security audit
+        await _security_audit(
+            request, "model_marketplace_updated",
+            user_id=user.id,
+            detail={
+                "model_id": model_id,
+                "old_version": old_ver,
+                "new_version": new_ver,
+                "duration_ms": round(duration_ms),
+            },
+        )
+
+        logger.info(
+            "marketplace.update ok: model=%s old=%s new=%s duration_ms=%.0f",
+            model_id, old_ver, new_ver, duration_ms,
+        )
+
+        return templates_response(request, "admin/models.html", context, block_name="model_table")
+
+    except ValueError as exc:
+        error_msg = str(exc)
+        context["error"] = f"Model update failed: {error_msg}"
+        logger.warning("Model update failed for '%s': %s", model_id, error_msg)
+        try:
+            await ops_log.log_activity(
+                activity_type="model.marketplace_update",
+                label=f"Update '{model_id}'",
+                actor=f"urn:sempkm:user:{user.id}",
+                status="failed",
+                error_message=error_msg,
+            )
+        except Exception:
+            logger.warning("Failed to write ops log for model update failure", exc_info=True)
+        return templates_response(request, "admin/models.html", context, block_name="model_table")
+    except Exception:
+        context["error"] = "Model update failed: unexpected error"
+        logger.error("Model update unexpected error for '%s'", model_id, exc_info=True)
+        return templates_response(request, "admin/models.html", context, block_name="model_table")
+    finally:
+        if tmpdir and tmpdir.exists():
+            import shutil as _shutil
+            _shutil.rmtree(tmpdir, ignore_errors=True)
 
 
 @router.delete("/models/{model_id}")

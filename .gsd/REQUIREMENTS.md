@@ -4,15 +4,6 @@ This file is the explicit capability and coverage contract for the project.
 
 ## Active
 
-### R002 — Tarfile extraction must validate all member paths are relative and within expected structure — no path traversal
-- Class: security
-- Status: active
-- Description: Tarfile extraction must validate all member paths are relative and within expected structure — no path traversal
-- Why it matters: Prevents path traversal attacks (../../etc/passwd) via malicious model archives
-- Source: M053
-- Primary owning slice: M053/S02
-- Validation: Tarfile extraction validates every member name: rejects absolute paths, rejects '..', rejects symlinks. Unit test proves path traversal is blocked.
-
 ### R003 — Duplicate model install prevented for marketplace installs (same as filesystem installs)
 - Class: functional
 - Status: active
@@ -80,12 +71,21 @@ This file is the explicit capability and coverage contract for the project.
 - Supporting slices: M049/S01
 - Validation: Both inbox_panel.html and collaboration_panel.html changed from hx-trigger="load" to hx-trigger="revealed". Grep confirms no load triggers remain in either file. HTTP requests fire only when panels enter viewport via IntersectionObserver. Validated in M049/S03/T03.
 
+### R002 — Tarfile extraction must validate all member paths are relative and within expected structure — no path traversal
+- Class: security
+- Status: validated
+- Description: Tarfile extraction must validate all member paths are relative and within expected structure — no path traversal
+- Why it matters: Prevents path traversal attacks (../../etc/passwd) via malicious model archives
+- Source: M053
+- Primary owning slice: M053/S02
+- Validation: 33 unit tests in test_tar_validator.py prove path traversal, absolute paths, symlinks, hardlinks all rejected. safe_extract() uses Python 3.12 data_filter for defense-in-depth.
+
 ## Traceability
 
 | ID | Class | Status | Primary owner | Supporting | Proof |
 |---|---|---|---|---|---|
 | R001 | non-functional | validated | M049/S03 | M049/S01 | Both inbox_panel.html and collaboration_panel.html changed from hx-trigger="load" to hx-trigger="revealed". Grep confirms no load triggers remain in either file. HTTP requests fire only when panels enter viewport via IntersectionObserver. Validated in M049/S03/T03. |
-| R002 | security | active | M053/S02 | none | Tarfile extraction validates every member name: rejects absolute paths, rejects '..', rejects symlinks. Unit test proves path traversal is blocked. |
+| R002 | security | validated | M053/S02 | none | 33 unit tests in test_tar_validator.py prove path traversal, absolute paths, symlinks, hardlinks all rejected. safe_extract() uses Python 3.12 data_filter for defense-in-depth. |
 | R003 | functional | active | M053/S02 | none | Clicking Install on an already-installed model shows appropriate error message. No duplicate data written. |
 | R004 | security | active | M053/S02 | none | All httpx calls to registry/archive URLs preceded by validate_outbound_url(). Verified by grep. |
 | R005 | security | active | M053/S02 | none | Download flow computes SHA-256 of downloaded archive and compares to registry.json value. Hash mismatch raises error before extraction. |
@@ -95,7 +95,7 @@ This file is the explicit capability and coverage contract for the project.
 
 ## Coverage Summary
 
-- Active requirements: 7
-- Mapped to slices: 7
-- Validated: 1 (R001)
+- Active requirements: 6
+- Mapped to slices: 6
+- Validated: 2 (R001, R002)
 - Unmapped active requirements: 0

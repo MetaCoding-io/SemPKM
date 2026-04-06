@@ -405,6 +405,144 @@ class TestDownloadAndInstall:
         assert result["status"] == "installed"
 
 
+# ── Check Updates ───────────────────────────────────────────────────────────
+
+
+class TestCheckUpdates:
+    """Tests for check_updates()."""
+
+    @staticmethod
+    def _make_installed(model_id: str, version: str):
+        """Build a minimal InstalledModel-like object."""
+        from app.models.registry import InstalledModel
+        return InstalledModel(
+            model_id=model_id,
+            version=version,
+            name=f"Model {model_id}",
+            description="",
+            namespace="",
+            installed_at="",
+        )
+
+    @pytest.mark.asyncio
+    async def test_detects_update_available(self, service):
+        """Installed v1.0.0, registry v2.0.0 → has_update: True."""
+        catalog = [_sample_model_entry()]  # version 1.0.0 by default
+        catalog[0]["version"] = "2.0.0"
+        service._cached_catalog = catalog
+        service._cache_timestamp = time.monotonic()
+
+        installed = [self._make_installed("test-model", "1.0.0")]
+        result = await service.check_updates(installed)
+
+        assert "test-model" in result
+        assert result["test-model"]["has_update"] is True
+        assert result["test-model"]["installed_version"] == "1.0.0"
+        assert result["test-model"]["latest_version"] == "2.0.0"
+
+    @pytest.mark.asyncio
+    async def test_detects_up_to_date(self, service):
+        """Installed v2.0.0, registry v2.0.0 → has_update: False."""
+        catalog = [_sample_model_entry()]
+        catalog[0]["version"] = "2.0.0"
+        service._cached_catalog = catalog
+        service._cache_timestamp = time.monotonic()
+
+        installed = [self._make_installed("test-model", "2.0.0")]
+        result = await service.check_updates(installed)
+
+        assert "test-model" in result
+        assert result["test-model"]["has_update"] is False
+
+    @pytest.mark.asyncio
+    async def test_installed_newer_than_registry(self, service):
+        """Installed v3.0.0, registry v2.0.0 → has_update: False."""
+        catalog = [_sample_model_entry()]
+        catalog[0]["version"] = "2.0.0"
+        service._cached_catalog = catalog
+        service._cache_timestamp = time.monotonic()
+
+        installed = [self._make_installed("test-model", "3.0.0")]
+        result = await service.check_updates(installed)
+
+        assert "test-model" in result
+        assert result["test-model"]["has_update"] is False
+
+    @pytest.mark.asyncio
+    async def test_model_not_in_registry(self, service):
+        """Installed model not in catalog → not in result dict."""
+        service._cached_catalog = []
+        service._cache_timestamp = time.monotonic()
+
+        installed = [self._make_installed("unknown-model", "1.0.0")]
+        result = await service.check_updates(installed)
+
+        assert "unknown-model" not in result
+        assert result == {}
+
+    @pytest.mark.asyncio
+    async def test_disabled_returns_empty(self, disabled_service):
+        """Disabled service → empty dict."""
+        installed = [TestCheckUpdates._make_installed("test-model", "1.0.0")]
+        result = await disabled_service.check_updates(installed)
+        assert result == {}
+
+    @pytest.mark.asyncio
+    async def test_malformed_version_skipped(self, service):
+        """Registry entry with 'invalid' version → skipped, no crash."""
+        catalog = [_sample_model_entry()]
+        catalog[0]["version"] = "not-a-version"
+        service._cached_catalog = catalog
+        service._cache_timestamp = time.monotonic()
+
+        installed = [self._make_installed("test-model", "1.0.0")]
+        result = await service.check_updates(installed)
+
+        assert "test-model" not in result
+
+    @pytest.mark.asyncio
+    async def test_empty_catalog_returns_empty(self, service):
+        """Catalog fetch returns [] → empty dict."""
+        service._cached_catalog = []
+        service._cache_timestamp = time.monotonic()
+
+        installed = [self._make_installed("test-model", "1.0.0")]
+        result = await service.check_updates(installed)
+        assert result == {}
+
+    @pytest.mark.asyncio
+    async def test_malformed_installed_version_skipped(self, service):
+        """Installed model with malformed version → skipped, no crash."""
+        catalog = [_sample_model_entry()]
+        catalog[0]["version"] = "2.0.0"
+        service._cached_catalog = catalog
+        service._cache_timestamp = time.monotonic()
+
+        installed = [self._make_installed("test-model", "garbage")]
+        result = await service.check_updates(installed)
+
+        assert "test-model" not in result
+
+    @pytest.mark.asyncio
+    async def test_multiple_models(self, service):
+        """Multiple installed models — each checked independently."""
+        catalog = [
+            {**_sample_model_entry(), "id": "model-a", "version": "2.0.0"},
+            {**_sample_model_entry(), "id": "model-b", "version": "1.0.0"},
+        ]
+        service._cached_catalog = catalog
+        service._cache_timestamp = time.monotonic()
+
+        installed = [
+            self._make_installed("model-a", "1.0.0"),
+            self._make_installed("model-b", "1.0.0"),
+        ]
+        result = await service.check_updates(installed)
+
+        assert result["model-a"]["has_update"] is True
+        assert result["model-b"]["has_update"] is False
+
+
 # ── resolve_model_dir ───────────────────────────────────────────────────────
 
 class TestResolveModelDir:
