@@ -26,7 +26,7 @@
   - Estimate: 30min
   - Files: frontend/static/js/workspace-layout.js, frontend/static/js/workspace.js
   - Verify: Start dev stack. Open /browser/. Open 3 object tabs. Close the last one. Press Ctrl+Shift+T → it reopens. Close a view tab, press Ctrl+Shift+T → view tab reopens. F1 → 'Reopen' → entry appears. Press Ctrl+Shift+T with no closed tabs → nothing happens, no error in console.
-- [ ] **T02: E2E tests for closed tab recovery** — Write Playwright E2E tests proving closed tab recovery works.
+- [x] **T02: Added 4 Playwright E2E tests for closed-tab recovery covering single reopen, multi-tab stack, empty-stack no-op, and skip-already-open behavior** — Write Playwright E2E tests proving closed tab recovery works.
 
 1. Create e2e/tests/55-browser-history/closed-tab.spec.ts
 2. Test cases:
