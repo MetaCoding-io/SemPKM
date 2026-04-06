@@ -70,7 +70,7 @@ Add per-model filter checkboxes to the TBox toolbar and client-side node show/hi
   - Estimate: 45m
   - Files: frontend/static/js/ontology-graph.js, backend/app/templates/browser/ontology/ontology_page.html, frontend/static/css/workspace.css
   - Verify: grep -q 'filterTboxBySource' frontend/static/js/ontology-graph.js && grep -q 'tbox-model-filter' frontend/static/css/workspace.css && grep -q 'cy.resize' backend/app/templates/browser/ontology/ontology_page.html && echo 'T01 PASS'
-- [ ] **T02: Body-appended hover popover on graph nodes** — ## Description
+- [x] **T02: Added body-appended hover popover to TBox graph nodes showing class label, source badge with per-model color, and full IRI** — ## Description
 
 Add a hover popover to TBox graph nodes following the exact graph.js body-appended popover pattern (KNOWLEDGE.md: 'Popovers inside dockview panels must escape stacking context via document.body'). Shows class label, source badge, and IRI on hover. Correctly anchored via `position:fixed` + `getBoundingClientRect()`.
 

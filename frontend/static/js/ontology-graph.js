@@ -407,6 +407,61 @@
     // Also set legacy reference for toggleTboxView()
     window._tboxCy = cy;
 
+    // --- Body-appended popover (escapes dockview stacking context) ---
+    var popover = document.createElement('div');
+    popover.className = 'graph-popover';
+    document.body.appendChild(popover);
+
+    var _hoverTimer = null;
+    var _hideTimer = null;
+    var _popoverHovered = false;
+
+    popover.addEventListener('mouseenter', function () {
+      _popoverHovered = true;
+      if (_hideTimer) { clearTimeout(_hideTimer); _hideTimer = null; }
+    });
+    popover.addEventListener('mouseleave', function () {
+      _popoverHovered = false;
+      popover.style.display = 'none';
+    });
+
+    function _esc(s) {
+      var d = document.createElement('span');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    function _showTboxPopover(nodeEl, evt) {
+      var d = nodeEl.data();
+      var html = '<div class="graph-popover-header">' +
+        '<span class="graph-popover-label">' + _esc(d.label) + '</span>' +
+        '<span class="graph-popover-type" style="background-color:' + d.sourceColor + '">' + _esc(d.source) + '</span>' +
+      '</div>' +
+      '<div style="padding:6px 14px 10px;"><span class="graph-popover-iri">' + _esc(d.id) + '</span></div>';
+
+      popover.innerHTML = html;
+      popover.style.display = 'block';
+      _popoverHovered = false;
+
+      // Position via fixed coords: container rect + rendered position
+      var pos = evt.renderedPosition || nodeEl.renderedPosition();
+      var cRect = container.getBoundingClientRect();
+      var left = cRect.left + pos.x + 16;
+      var top = cRect.top + pos.y - 12;
+
+      popover.style.left = left + 'px';
+      popover.style.top = top + 'px';
+
+      // Viewport overflow clamping
+      var pRect = popover.getBoundingClientRect();
+      if (pRect.right > window.innerWidth - 8) {
+        popover.style.left = (cRect.left + pos.x - pRect.width - 12) + 'px';
+      }
+      if (pRect.bottom > window.innerHeight - 8) {
+        popover.style.top = (cRect.top + pos.y - pRect.height + 12) + 'px';
+      }
+    }
+
     // --- Event handlers ---
 
     // Click → load class detail in bottom panel
@@ -417,14 +472,27 @@
       }
     });
 
-    // Hover feedback
+    // Hover: size feedback + delayed popover
     cy.on('mouseover', 'node', function (evt) {
       evt.target.addClass('hovered');
       container.style.cursor = 'pointer';
+      if (_hideTimer) { clearTimeout(_hideTimer); _hideTimer = null; }
+      if (_hoverTimer) { clearTimeout(_hoverTimer); }
+      var target = evt.target;
+      _hoverTimer = setTimeout(function () {
+        _showTboxPopover(target, evt);
+        _hoverTimer = null;
+      }, 250);
     });
     cy.on('mouseout', 'node', function (evt) {
       evt.target.removeClass('hovered');
       container.style.cursor = 'default';
+      if (_hoverTimer) { clearTimeout(_hoverTimer); _hoverTimer = null; }
+      _hideTimer = setTimeout(function () {
+        if (!_popoverHovered) {
+          popover.style.display = 'none';
+        }
+      }, 100);
     });
 
     // --- Filter UI ---
@@ -465,9 +533,14 @@
           window.SemPKM._tboxGraph = null;
           window._tboxCy = null;
         }
+        // Remove body-appended popover
+        if (popover.parentNode) popover.parentNode.removeChild(popover);
         // Remove filter UI from toolbar
         var filterEl = document.querySelector('.tbox-model-filter');
         if (filterEl) filterEl.remove();
+        // Clear pending timers
+        if (_hoverTimer) clearTimeout(_hoverTimer);
+        if (_hideTimer) clearTimeout(_hideTimer);
         cy.destroy();
       });
     }
