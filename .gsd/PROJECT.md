@@ -10,7 +10,11 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Last completed milestone:** M051 — Workspace UX Improvements (2026-04-06)
+**Last completed milestone:** M052 — UI Design System & Polish Pass (2026-04-06)
+
+Established consistent visual identity across the Object Browser workspace. Kanban cards enriched with priority badges, due dates, and type icons via SHACL-driven `_detect_enrichment_fields()`; columns have keyword-based status color accents. Property tables have zebra striping with hover highlights and sh:description tooltips. Type badges show Lucide icons with per-type color accents. Active tabs visually distinct with bold weight, 3px accent bar, and box-shadow. View explorer uses 9 colored Lucide icons per renderer replacing Unicode glyphs. Body editor collapsed from dual light/dark CM6 themes to single CSS-var-driven definition. Form section headers have primary-color accent bars with raised backgrounds. Timeline bars show four status colors (done/active/blocked/cancelled). Right panel shows helpful empty state with info icon. 15 files changed, 708 insertions, 33/33 kanban tests pass.
+
+**Previous milestone:** M051 — Workspace UX Improvements (2026-04-06)
 
 Fixed six workspace interaction paper-cuts: global dropdown dismiss/escape via new `dropdown-dismiss.js` (click-outside, Escape, position:fixed repositioning escaping dockview overflow), stripped ' Shape' suffix from explorer type labels at the backend, replaced stale event log placeholder, enriched VFS mount dropdown with human-readable model titles, added object tab refresh button, fixed command palette scroll jump, replaced fragile shadow-DOM persona/layout input hacks with reusable `showInputDialog()` using native `<dialog>`, and fixed admin graph popover positioning. 10 files changed, 388 insertions.
 
@@ -28,8 +32,3 @@ Eliminated the sequential SPARQL query waterfall in object tab loads (3→1 quer
 - **Frontend:** htmx, vanilla JS (IIFE modules under `window.SemPKM` namespace), Dockview workspace, CSS custom properties theming
 - **Views:** 11 renderers (table, cards, kanban, graph, graph3D, calendar, timeline, map, OKR, BMC, quadrant, decision-matrix) with SHACL-driven type filtering
 - **Mental Models:** `.sempkm-model` archives bundling ontology, shapes, rules, views, seed data, dashboards, workflows
-- **Apps:** SDK-based platform apps (RSS, Linear, GitHub, Monday, Todoist, YouTube, Spotify, Podcast, Media Scheduler)
-- **Mobile:** Expo SDK 55 React Native app with geofencing, pedometer, calendar integration
-- **AI:** Copilot with streaming SSE, SPARQL generation, conversation persistence
-- **Security:** SSRF guards, ZIP validation, rate limiting, audit logging, SPARQL injection prevention, CSP headers
-- **Observability:** OpenTelemetry tracing (Jaeger), Server-Timing headers, admin performance dashboard
