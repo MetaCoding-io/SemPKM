@@ -106,7 +106,7 @@ Also create comprehensive unit tests at `backend/tests/test_tar_validator.py` fo
   - Estimate: 1h
   - Files: backend/app/services/marketplace.py, backend/app/config.py, backend/app/models/paths.py, backend/tests/test_marketplace_service.py
   - Verify: cd backend && python -m pytest tests/test_marketplace_service.py -v
-- [ ] **T03: Wire admin endpoints, marketplace UI, model path resolution, and startup integration** — Add admin endpoints for marketplace catalog and install, wire `MarketplaceRegistryService` into app startup, update model path resolution call sites, and extend the admin models template with a Browse Marketplace section.
+- [x] **T03: Wired MarketplaceRegistryService into app startup, added admin marketplace endpoints, updated model path resolution across 4 call sites, and created marketplace UI template with theme-compliant CSS** — Add admin endpoints for marketplace catalog and install, wire `MarketplaceRegistryService` into app startup, update model path resolution call sites, and extend the admin models template with a Browse Marketplace section.
 
 ## Steps
 

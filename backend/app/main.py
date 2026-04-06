@@ -188,6 +188,16 @@ async def lifespan(app: FastAPI):
     model_service = ModelService(client, event_store, prefix_registry)
     app.state.model_service = model_service
 
+    # Create MarketplaceRegistryService for remote model catalog/install
+    from app.services.marketplace import MarketplaceRegistryService
+    _marketplace_models_dir = Path(settings.marketplace_models_dir)
+    _marketplace_models_dir.mkdir(parents=True, exist_ok=True)
+    registry_service = MarketplaceRegistryService(
+        registry_url=settings.marketplace_registry_url,
+        models_data_dir=_marketplace_models_dir,
+    )
+    app.state.registry_service = registry_service
+
     # Auto-install starter model if no models are installed
     # models/ directory is mounted at /app/models in the container
     starter_model_path = Path("/app/models/basic-pkm")

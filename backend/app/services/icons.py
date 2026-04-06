@@ -44,8 +44,9 @@ FALLBACK_CONTEXT = IconContextDef(icon=FALLBACK_ICON, color=FALLBACK_COLOR)
 
 
 class IconService:
-    def __init__(self, models_dir: str | None = None):
+    def __init__(self, models_dir: str | None = None, extra_dirs: list[str] | None = None):
         self._models_dir = models_dir
+        self._extra_dirs = extra_dirs or []
         self._cache: dict[str, TypeIconMap] | None = None
 
     def _expand_prefix(self, type_ref: str, prefixes: dict[str, str]) -> str:
@@ -58,17 +59,25 @@ class IconService:
 
     def _build_cache(self) -> dict[str, TypeIconMap]:
         result: dict[str, TypeIconMap] = {}
-        if not self._models_dir:
-            return result
-        try:
-            model_ids = os.listdir(self._models_dir)
-        except OSError:
+        # Collect all directories to scan: primary + extras
+        dirs_to_scan: list[str] = []
+        if self._models_dir:
+            dirs_to_scan.append(self._models_dir)
+        dirs_to_scan.extend(self._extra_dirs)
+
+        if not dirs_to_scan:
             return result
 
-        for model_id in model_ids:
-            manifest_path = os.path.join(self._models_dir, model_id, "manifest.yaml")
-            if not os.path.exists(manifest_path):
+        for scan_dir in dirs_to_scan:
+            try:
+                model_ids = os.listdir(scan_dir)
+            except OSError:
                 continue
+
+            for model_id in model_ids:
+                manifest_path = os.path.join(scan_dir, model_id, "manifest.yaml")
+                if not os.path.exists(manifest_path):
+                    continue
             try:
                 with open(manifest_path) as f:
                     raw = yaml.safe_load(f)

@@ -35,6 +35,7 @@ from app.models.manifest import parse_manifest
 from app.services.labels import LabelService
 from app.services.models import ModelService
 from app.services.ops_log import OperationsLogService
+from app.config import settings
 from app.services.settings import SettingsService
 from app.services.webhooks import WebhookService
 from app.triplestore.client import TriplestoreClient
@@ -326,7 +327,7 @@ async def admin_model_detail(
 
     # Get icon data from IconService
     from app.services.icons import IconService
-    icon_svc = IconService(models_dir="/app/models")
+    icon_svc = IconService(models_dir="/app/models", extra_dirs=[settings.marketplace_models_dir])
     icon_map = icon_svc.get_icon_map("tree")
 
     # Attach icon/color to each type
@@ -413,7 +414,7 @@ async def admin_model_ontology_diagram(
 
     # Get icon data from IconService for type colors
     from app.services.icons import IconService
-    icon_svc = IconService(models_dir="/app/models")
+    icon_svc = IconService(models_dir="/app/models", extra_dirs=[settings.marketplace_models_dir])
     icon_map = icon_svc.get_icon_map("tree")
 
     # Build nodes list: one dict per type
@@ -576,6 +577,128 @@ async def admin_models_install(
             user_id=user.id,
             detail={"model_id": result.model_id, "path": path},
         )
+
+    return templates_response(request, "admin/models.html", context, block_name="model_table")
+
+
+# --- Marketplace endpoints ---
+
+
+@router.get("/models/marketplace")
+async def admin_models_marketplace(
+    request: Request,
+    user: User = Depends(require_role("owner")),
+    model_service: ModelService = Depends(get_model_service),
+):
+    """Fetch marketplace catalog and render marketplace partial.
+
+    Returns an HTML fragment with model cards for htmx lazy-load.
+    """
+    registry_service = getattr(request.app.state, "registry_service", None)
+    if registry_service is None or not registry_service.enabled:
+        return HTMLResponse(
+            '<p class="marketplace-disabled">Marketplace not configured.</p>'
+        )
+
+    try:
+        catalog = await registry_service.fetch_catalog()
+    except Exception:
+        logger.warning("Marketplace catalog fetch failed", exc_info=True)
+        catalog = []
+
+    installed_models = await model_service.list_models()
+    installed_ids = {m.model_id for m in installed_models}
+
+    context = {
+        "request": request,
+        "catalog": catalog,
+        "installed_ids": installed_ids,
+    }
+    return templates_response(request, "admin/_marketplace.html", context)
+
+
+@router.post("/models/marketplace-install")
+async def admin_models_marketplace_install(
+    request: Request,
+    user: User = Depends(require_role("owner")),
+    model_service: ModelService = Depends(get_model_service),
+    ops_log: OperationsLogService = Depends(get_ops_log_service),
+    model_id: str = Form(...),
+):
+    """Download, verify, extract, and install a marketplace model.
+
+    Returns the updated model table partial for htmx swap.
+    """
+    registry_service = getattr(request.app.state, "registry_service", None)
+    models = await model_service.list_models()
+    installed_ids = {m.model_id for m in models}
+    available_models = scan_available_models("/app/models", installed_ids)
+    context = {"request": request, "models": models, "available_models": available_models}
+
+    if registry_service is None or not registry_service.enabled:
+        context["error"] = "Marketplace is not configured."
+        return templates_response(request, "admin/models.html", context, block_name="model_table")
+
+    t0 = time.monotonic()
+    try:
+        result = await registry_service.download_and_install(
+            model_id, model_service, user.id
+        )
+    except ValueError as exc:
+        error_msg = str(exc)
+        context["error"] = f"Marketplace install failed: {error_msg}"
+        logger.warning("Marketplace install failed for '%s': %s", model_id, error_msg)
+        try:
+            await ops_log.log_activity(
+                activity_type="model.marketplace_install",
+                label=f"Marketplace install '{model_id}'",
+                actor=f"urn:sempkm:user:{user.id}",
+                status="failed",
+                error_message=error_msg,
+            )
+        except Exception:
+            logger.warning("Failed to write ops log for marketplace install failure", exc_info=True)
+        return templates_response(request, "admin/models.html", context, block_name="model_table")
+    except Exception as exc:
+        context["error"] = f"Marketplace install failed: unexpected error"
+        logger.error("Marketplace install unexpected error for '%s'", model_id, exc_info=True)
+        return templates_response(request, "admin/models.html", context, block_name="model_table")
+
+    duration_ms = (time.monotonic() - t0) * 1000
+
+    # Refresh model list after install
+    models = await model_service.list_models()
+    installed_ids = {m.model_id for m in models}
+    available_models = scan_available_models("/app/models", installed_ids)
+    context = {"request": request, "models": models, "available_models": available_models}
+
+    # Invalidate ViewSpec cache
+    request.app.state.view_spec_service.invalidate_cache()
+
+    context["success"] = f"Model '{model_id}' installed from marketplace."
+
+    try:
+        await ops_log.log_activity(
+            activity_type="model.marketplace_install",
+            label=f"Installed '{model_id}' from marketplace",
+            actor=f"urn:sempkm:user:{user.id}",
+            used_iris=[f"urn:sempkm:model:{model_id}"],
+            status="success",
+        )
+    except Exception:
+        logger.warning("Failed to write ops log for marketplace install", exc_info=True)
+
+    await _security_audit(
+        request, "model_marketplace_installed",
+        user_id=user.id,
+        detail={"model_id": model_id, "duration_ms": round(duration_ms)},
+    )
+
+    logger.info(
+        "marketplace.install ok: model=%s duration_ms=%.0f",
+        model_id,
+        duration_ms,
+    )
 
     return templates_response(request, "admin/models.html", context, block_name="model_table")
 
@@ -745,7 +868,7 @@ async def _refresh_detail_response(
 
     # Get icon data from IconService
     from app.services.icons import IconService
-    icon_svc = IconService(models_dir="/app/models")
+    icon_svc = IconService(models_dir="/app/models", extra_dirs=[settings.marketplace_models_dir])
     icon_map = icon_svc.get_icon_map("tree")
 
     # Attach icon/color to each type
@@ -1070,10 +1193,15 @@ def _load_entailment_defaults(model_id: str) -> dict[str, bool]:
     Returns a dict mapping manifest keys (e.g., 'owl_inverseOf') to booleans.
     Falls back to all-disabled if manifest cannot be read.
     """
-    import os
-    manifest_path = os.path.join("/app/models", model_id, "manifest.yaml")
+    from app.models.paths import resolve_model_dir
+
     defaults = {key: False for key in MANIFEST_KEY_TO_TYPE}
 
+    model_dir = resolve_model_dir(model_id)
+    if model_dir is None:
+        return defaults
+
+    manifest_path = model_dir / "manifest.yaml"
     try:
         with open(manifest_path) as f:
             raw = yaml.safe_load(f)

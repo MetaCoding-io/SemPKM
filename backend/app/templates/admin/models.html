@@ -76,6 +76,15 @@
         <p class="available-models-empty">All bundled models are installed.</p>
         {% endif %}
 
+        {# Marketplace — remote model registry #}
+        <h3 class="section-label" style="margin-top: 24px;">Browse Marketplace</h3>
+        <div id="marketplace-container"
+             hx-get="/admin/models/marketplace"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            <p class="marketplace-loading">Loading marketplace…</p>
+        </div>
+
         <h3 class="section-label" style="margin-top: 24px;">Installed Models</h3>
 
         {# Advanced: install from custom path #}

@@ -599,6 +599,55 @@ pre.json-output {
   font-style: italic;
 }
 
+/* Marketplace styles */
+.marketplace-card .marketplace-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.marketplace-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 1px 7px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.marketplace-badge--size {
+  background: color-mix(in srgb, var(--color-text-muted) 12%, transparent);
+  color: var(--color-text-muted);
+}
+
+.marketplace-badge--tag {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color: var(--color-primary);
+}
+
+.marketplace-installed-badge {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-success, var(--color-primary));
+  padding: 4px 0;
+}
+
+.marketplace-loading,
+.marketplace-empty,
+.marketplace-error,
+.marketplace-disabled {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  padding: 1rem 0;
+  font-style: italic;
+}
+
+.marketplace-error {
+  color: var(--color-danger, var(--color-text-muted));
+}
+
 /* Install from path — advanced fallback */
 .install-path-details {
   margin-bottom: 1rem;
@@ -2242,13 +2291,13 @@ kbd {
   display: inline-block;
   width: 24px;
   height: 0;
-  border-top: 2px solid #bbb;
+  border-top: 2px solid var(--color-border);
   vertical-align: middle;
 }
 
 .legend-line-dashed {
   border-top-style: dashed;
-  border-top-color: #94a3b8;
+  border-top-color: var(--color-text-muted);
 }
 
 .legend-swatch {
@@ -2260,9 +2309,9 @@ kbd {
 }
 
 .legend-swatch-external {
-  background: #94a3b8;
+  background: var(--color-text-muted);
   opacity: 0.5;
-  border: 1.5px dashed #64748b;
+  border: 1.5px dashed var(--color-text-faint);
 }
 
 .diagram-loading {

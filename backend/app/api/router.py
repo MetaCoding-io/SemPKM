@@ -209,8 +209,9 @@ async def get_types(
     model_service = request.app.state.model_service
 
     # Create IconService ad-hoc (matches codebase pattern — not on app.state)
+    from app.config import settings as _settings
     _models_dir = str(Path("/app/models"))
-    icon_service = IconService(models_dir=_models_dir)
+    icon_service = IconService(models_dir=_models_dir, extra_dirs=[_settings.marketplace_models_dir])
     user_icons = getattr(request.app.state, "user_type_icons", None)
     if user_icons:
         icon_service.set_user_type_icons(user_icons)

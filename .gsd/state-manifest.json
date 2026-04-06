@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T03:24:47.020Z",
+  "exported_at": "2026-04-06T03:33:03.616Z",
   "milestones": [
     {
       "id": "M001",
@@ -34020,19 +34020,30 @@
       "milestone_id": "M053",
       "slice_id": "S02",
       "id": "T03",
-      "title": "Wire admin endpoints, marketplace UI, model path resolution, and startup integration",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Wired MarketplaceRegistryService into app startup, added admin marketplace endpoints, updated model path resolution across 4 call sites, and created marketplace UI template with theme-compliant CSS",
+      "status": "complete",
+      "one_liner": "Wired MarketplaceRegistryService into app startup, added admin marketplace endpoints, updated model path resolution across 4 call sites, and created marketplace UI template with theme-compliant CSS",
+      "narrative": "Wired the complete marketplace integration: MarketplaceRegistryService created at startup and stored on app.state, model path resolution updated in refresh_artifacts(), _load_entailment_defaults(), and IconService (6 call sites with new extra_dirs parameter). Added GET /admin/models/marketplace and POST /admin/models/marketplace-install endpoints with ops log, security audit, and error handling. Created _marketplace.html partial with model cards, install buttons with htmx indicators, and installed badges. Added theme-compliant CSS and fixed 4 pre-existing hardcoded hex values.",
+      "verification_result": "All 4 task verification checks pass: imports OK, templates OK, resolve_model_dir confirmed in call sites, zero hardcoded hex values. 33 tar_validator + 21 marketplace_service tests pass. LSP diagnostics clean on all modified files.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-06T03:33:03.573Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "Extended IconService with extra_dirs parameter across 6 call sites (not just 3 in admin router). Fixed 4 pre-existing hardcoded hex values in legend CSS to pass the hex verification check.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/main.py",
+        "backend/app/admin/router.py",
+        "backend/app/services/models.py",
+        "backend/app/services/icons.py",
+        "backend/app/templates/admin/models.html",
+        "backend/app/templates/admin/_marketplace.html",
+        "frontend/static/css/style.css"
+      ],
+      "key_decisions": [
+        "IconService extended with extra_dirs parameter for multi-directory scanning",
+        "Marketplace section uses htmx lazy-load to avoid blocking admin page"
+      ],
+      "full_summary_md": "---\nid: T03\nparent: S02\nmilestone: M053\nkey_files:\n  - backend/app/main.py\n  - backend/app/admin/router.py\n  - backend/app/services/models.py\n  - backend/app/services/icons.py\n  - backend/app/templates/admin/models.html\n  - backend/app/templates/admin/_marketplace.html\n  - frontend/static/css/style.css\nkey_decisions:\n  - IconService extended with extra_dirs parameter for multi-directory scanning\n  - Marketplace section uses htmx lazy-load to avoid blocking admin page\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T03:33:03.572Z\nblocker_discovered: false\n---\n\n# T03: Wired MarketplaceRegistryService into app startup, added admin marketplace endpoints, updated model path resolution across 4 call sites, and created marketplace UI template with theme-compliant CSS\n\n**Wired MarketplaceRegistryService into app startup, added admin marketplace endpoints, updated model path resolution across 4 call sites, and created marketplace UI template with theme-compliant CSS**\n\n## What Happened\n\nWired the complete marketplace integration: MarketplaceRegistryService created at startup and stored on app.state, model path resolution updated in refresh_artifacts(), _load_entailment_defaults(), and IconService (6 call sites with new extra_dirs parameter). Added GET /admin/models/marketplace and POST /admin/models/marketplace-install endpoints with ops log, security audit, and error handling. Created _marketplace.html partial with model cards, install buttons with htmx indicators, and installed badges. Added theme-compliant CSS and fixed 4 pre-existing hardcoded hex values.\n\n## Verification\n\nAll 4 task verification checks pass: imports OK, templates OK, resolve_model_dir confirmed in call sites, zero hardcoded hex values. 33 tar_validator + 21 marketplace_service tests pass. LSP diagnostics clean on all modified files.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python -c \"from app.admin.router import router; from app.services.marketplace import MarketplaceRegistryService; from app.models.paths import resolve_model_dir; print('imports OK')\"` | 0 | ✅ pass | 2000ms |\n| 2 | `cd backend && .venv/bin/python -c \"from jinja2 import Environment, FileSystemLoader; env = Environment(loader=FileSystemLoader('app/templates')); env.get_template('admin/models.html'); env.get_template('admin/_marketplace.html'); print('templates OK')\"` | 0 | ✅ pass | 1000ms |\n| 3 | `rg 'resolve_model_dir' backend/app/services/models.py backend/app/admin/router.py` | 0 | ✅ pass | 100ms |\n| 4 | `rg '#[0-9a-fA-F]{3,8}\\b' frontend/static/css/style.css | grep -v 'var(' | wc -l` | 0 | ✅ pass | 100ms |\n| 5 | `cd backend && .venv/bin/python -m pytest tests/test_tar_validator.py -v` | 0 | ✅ pass | 300ms |\n| 6 | `cd backend && .venv/bin/python -m pytest tests/test_marketplace_service.py -v` | 0 | ✅ pass | 260ms |\n\n## Deviations\n\nExtended IconService with extra_dirs parameter across 6 call sites (not just 3 in admin router). Fixed 4 pre-existing hardcoded hex values in legend CSS to pass the hex verification check.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/main.py`\n- `backend/app/admin/router.py`\n- `backend/app/services/models.py`\n- `backend/app/services/icons.py`\n- `backend/app/templates/admin/models.html`\n- `backend/app/templates/admin/_marketplace.html`\n- `frontend/static/css/style.css`\n",
       "description": "Add admin endpoints for marketplace catalog and install, wire `MarketplaceRegistryService` into app startup, update model path resolution call sites, and extend the admin models template with a Browse Marketplace section.\n\n## Steps\n\n1. **Startup wiring** in `backend/app/main.py`:\n   - Import `MarketplaceRegistryService` from `app.services.marketplace`\n   - After model_service creation, create `MarketplaceRegistryService(settings.marketplace_registry_url, Path(settings.marketplace_models_dir))`\n   - Store on `app.state.registry_service`\n   - Ensure `Path(settings.marketplace_models_dir)` directory exists (`os.makedirs(..., exist_ok=True)`)\n\n2. **Model path resolution** — update 3 critical call sites to search both directories:\n   - `backend/app/services/models.py` line ~616 in `refresh_artifacts()`: replace `Path(f\"/app/models/{model_id}\")` with `resolve_model_dir(model_id)` from `app.models.paths`. If None, return error.\n   - `backend/app/admin/router.py` `_load_entailment_defaults()` line ~1074: replace `os.path.join(\"/app/models\", model_id, ...)` with `resolve_model_dir(model_id)` lookup. If None, return defaults.\n   - `backend/app/services/icons.py` `IconService._build_cache()`: update to scan BOTH `/app/models/` and settings `marketplace_models_dir`. Accept a list of model directories or add a second scan loop.\n\n3. **Admin endpoints** in `backend/app/admin/router.py`:\n   - Add `GET /admin/models/marketplace` endpoint that fetches catalog from `request.app.state.registry_service`, cross-references with installed model IDs, renders a marketplace partial template\n   - Add `POST /admin/models/marketplace-install` endpoint with `model_id: str = Form(...)` that calls `registry_service.download_and_install(model_id, model_service, user.id)`, returns updated model table partial. On success, invalidate ViewSpec cache. On failure, return error in context.\n   - Both endpoints require `owner` role\n\n4. **Admin template** `backend/app/templates/admin/models.html`:\n   - Add a \"Browse Marketplace\" section between the Available Models grid and Installed Models table\n   - Use htmx lazy loading: `<div hx-get=\"/admin/models/marketplace\" hx-trigger=\"load\" hx-swap=\"innerHTML\">Loading marketplace…</div>`\n   - Create marketplace partial template at `backend/app/templates/admin/_marketplace.html` that renders marketplace model cards:\n     - Card grid using same `.available-model-card` CSS pattern from S01\n     - Each card shows: name, version badge, description, size badge, tag pills\n     - Install button: htmx POST to `/admin/models/marketplace-install` with hidden model_id input, `hx-target=\"#model-table\"`, `hx-indicator` for loading state (R007)\n     - \"Already installed\" badge if model_id matches an installed model (R003/R008)\n   - Show error message when registry is unreachable: \"Marketplace unavailable. Check your internet connection.\"\n\n5. **CSS additions** in `frontend/static/css/style.css`:\n   - Add marketplace-specific badge styles (size badge, tag pills) using theme tokens and `color-mix()` per project convention\n   - Reuse the `.available-model-card` and `.available-models-grid` classes from S01 for consistency\n\n6. **Verify** the template renders without Jinja2 errors and endpoints exist in the router\n\n## Must-Haves\n\n- [x] `MarketplaceRegistryService` created at startup and stored on `app.state.registry_service`\n- [x] `/app/data/models/` directory ensured to exist at startup\n- [x] `refresh_artifacts()` finds models in both `/app/models/` and `/app/data/models/`\n- [x] `_load_entailment_defaults()` finds models in both directories\n- [x] `IconService` scans both model directories\n- [x] `GET /admin/models/marketplace` returns marketplace cards from registry\n- [x] `POST /admin/models/marketplace-install` downloads, verifies, extracts, installs model\n- [x] Install button shows loading indicator during operation (R007)\n- [x] Already-installed models show badge instead of install button (R003/R008)\n- [x] Registry failure shows graceful error message, does not crash (R006)\n- [x] Template uses theme tokens, no hardcoded hex values\n\n## Verification\n\n- `cd backend && python -c \"from app.admin.router import router; from app.services.marketplace import MarketplaceRegistryService; from app.models.paths import resolve_model_dir; print('imports OK')\"` — imports succeed\n- `cd backend && python -c \"from jinja2 import Environment, FileSystemLoader; env = Environment(loader=FileSystemLoader('app/templates')); env.get_template('admin/models.html'); env.get_template('admin/_marketplace.html'); print('templates OK')\"` — templates parse\n- `rg 'resolve_model_dir' backend/app/services/models.py backend/app/admin/router.py` — confirms call sites updated\n- `rg '#[0-9a-fA-F]{3,8}\\b' frontend/static/css/style.css | grep -v 'var(' | wc -l` — zero hardcoded hex values outside theme references",
       "estimate": "1h15m",
       "files": [
@@ -42612,6 +42623,72 @@
       "verdict": "✅ pass",
       "duration_ms": 290,
       "created_at": "2026-04-06T03:24:46.977Z"
+    },
+    {
+      "id": 342,
+      "task_id": "T03",
+      "slice_id": "S02",
+      "milestone_id": "M053",
+      "command": "cd backend && .venv/bin/python -c \"from app.admin.router import router; from app.services.marketplace import MarketplaceRegistryService; from app.models.paths import resolve_model_dir; print('imports OK')\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 2000,
+      "created_at": "2026-04-06T03:33:03.573Z"
+    },
+    {
+      "id": 343,
+      "task_id": "T03",
+      "slice_id": "S02",
+      "milestone_id": "M053",
+      "command": "cd backend && .venv/bin/python -c \"from jinja2 import Environment, FileSystemLoader; env = Environment(loader=FileSystemLoader('app/templates')); env.get_template('admin/models.html'); env.get_template('admin/_marketplace.html'); print('templates OK')\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1000,
+      "created_at": "2026-04-06T03:33:03.573Z"
+    },
+    {
+      "id": 344,
+      "task_id": "T03",
+      "slice_id": "S02",
+      "milestone_id": "M053",
+      "command": "rg 'resolve_model_dir' backend/app/services/models.py backend/app/admin/router.py",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-06T03:33:03.573Z"
+    },
+    {
+      "id": 345,
+      "task_id": "T03",
+      "slice_id": "S02",
+      "milestone_id": "M053",
+      "command": "rg '#[0-9a-fA-F]{3,8}\\b' frontend/static/css/style.css | grep -v 'var(' | wc -l",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-06T03:33:03.573Z"
+    },
+    {
+      "id": 346,
+      "task_id": "T03",
+      "slice_id": "S02",
+      "milestone_id": "M053",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_tar_validator.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 300,
+      "created_at": "2026-04-06T03:33:03.573Z"
+    },
+    {
+      "id": 347,
+      "task_id": "T03",
+      "slice_id": "S02",
+      "milestone_id": "M053",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_marketplace_service.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 260,
+      "created_at": "2026-04-06T03:33:03.573Z"
     }
   ]
 }

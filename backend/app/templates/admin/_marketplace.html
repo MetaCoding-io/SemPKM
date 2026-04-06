@@ -1,0 +1,44 @@
+{# Marketplace model catalog partial — lazy-loaded via htmx #}
+{% if catalog is defined and catalog | length > 0 %}
+<div class="available-models-grid">
+    {% for model in catalog %}
+    <div class="available-model-card marketplace-card">
+        <div class="available-model-header">
+            <h4 class="available-model-name">{{ model.name or model.id }}</h4>
+            <span class="available-model-version">v{{ model.version or '—' }}</span>
+        </div>
+        {% if model.description %}
+        <p class="available-model-desc">{{ model.description }}</p>
+        {% endif %}
+        <div class="marketplace-meta">
+            {% if model.size %}
+            <span class="marketplace-badge marketplace-badge--size">{{ model.size }}</span>
+            {% endif %}
+            {% if model.tags %}
+            {% for tag in model.tags %}
+            <span class="marketplace-badge marketplace-badge--tag">{{ tag }}</span>
+            {% endfor %}
+            {% endif %}
+        </div>
+        {% if model.id in installed_ids %}
+        <span class="marketplace-installed-badge">✓ Installed</span>
+        {% else %}
+        <form hx-post="/admin/models/marketplace-install"
+              hx-target="#model-table"
+              hx-swap="outerHTML"
+              hx-indicator="find .install-indicator">
+            <input type="hidden" name="model_id" value="{{ model.id }}">
+            <button type="submit" class="btn btn-primary btn-sm available-model-install">
+                Install
+            </button>
+            <span class="install-indicator htmx-indicator loading">Installing…</span>
+        </form>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% elif catalog is defined and catalog | length == 0 %}
+<p class="marketplace-empty">No models available in the marketplace.</p>
+{% else %}
+<p class="marketplace-error">Marketplace unavailable. Check your internet connection.</p>
+{% endif %}

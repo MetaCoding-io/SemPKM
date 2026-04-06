@@ -612,13 +612,14 @@ class ModelService:
                 errors=[f"Failed to check model status: {e}"],
             )
 
-        # 2. Locate model directory on disk
-        model_dir = Path(f"/app/models/{model_id}")
-        if not model_dir.exists():
+        # 2. Locate model directory on disk (bundled or marketplace)
+        from app.models.paths import resolve_model_dir
+        model_dir = resolve_model_dir(model_id)
+        if model_dir is None:
             return RefreshResult(
                 success=False,
                 model_id=model_id,
-                errors=[f"Model directory not found on disk: {model_dir}"],
+                errors=[f"Model directory not found on disk in any search path"],
             )
 
         # 3. Parse manifest and load archive

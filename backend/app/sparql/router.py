@@ -119,7 +119,8 @@ _VOCAB_PREFIXES = (
 
 def _get_icon_service() -> IconService:
     """FastAPI dependency that returns an IconService with the models directory."""
-    return IconService(models_dir=_MODELS_DIR)
+    from app.config import settings as _settings
+    return IconService(models_dir=_MODELS_DIR, extra_dirs=[_settings.marketplace_models_dir])
 
 
 def _enforce_sparql_role(user: User, query: str, all_graphs: bool) -> None:

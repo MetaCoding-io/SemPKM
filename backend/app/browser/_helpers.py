@@ -67,7 +67,8 @@ def get_icon_service(request: Request) -> IconService:
     (populated by the create-class endpoint) so that user-created types
     show correct icons in the TBox tree, workspace, and type pickers.
     """
-    svc = IconService(models_dir=_MODELS_DIR)
+    from app.config import settings as _settings
+    svc = IconService(models_dir=_MODELS_DIR, extra_dirs=[_settings.marketplace_models_dir])
     user_icons = getattr(request.app.state, "user_type_icons", None)
     if user_icons:
         svc.set_user_type_icons(user_icons)
