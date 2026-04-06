@@ -355,9 +355,10 @@ function toggleTboxView(btn, viewName) {
     graphContainer.style.display = '';
     treeContainer.style.display = 'none';
     // Resize Cytoscape if it exists — it needs recalculation after display change
-    if (window._tboxCy) {
-      window._tboxCy.resize();
-      window._tboxCy.fit();
+    var cy = (window.SemPKM && window.SemPKM._tboxGraph) || window._tboxCy;
+    if (cy) {
+      cy.resize();
+      cy.fit();
     }
   } else {
     graphContainer.style.display = 'none';
@@ -397,5 +398,19 @@ function toggleGistFilter(hideGist) {
       loadClassDetail(iri);
     }
   });
+})();
+
+// Initialize TBox graph on page load (graph view is default)
+(function() {
+  if (typeof SemPKM !== 'undefined' && typeof SemPKM.initTboxGraph === 'function') {
+    SemPKM.initTboxGraph('tbox-graph');
+  } else {
+    // Deferred: wait for scripts to load
+    setTimeout(function() {
+      if (typeof SemPKM !== 'undefined' && typeof SemPKM.initTboxGraph === 'function') {
+        SemPKM.initTboxGraph('tbox-graph');
+      }
+    }, 200);
+  }
 })();
 </script>

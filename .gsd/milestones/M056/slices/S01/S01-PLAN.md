@@ -101,7 +101,7 @@
   - Estimate: 30m
   - Files: backend/app/templates/browser/ontology/ontology_page.html, frontend/static/css/workspace.css
   - Verify: grep -q 'tbox-graph' backend/app/templates/browser/ontology/ontology_page.html && grep -q 'toggleTboxView' backend/app/templates/browser/ontology/ontology_page.html && grep -q 'tbox-vertical-split' frontend/static/css/workspace.css && echo 'PASS'
-- [ ] **T03: Wire Cytoscape graph initialization, node click → detail, and graph/tree toggle** — Create `ontology-graph.js` that fetches TBox graph data from the API endpoint (T01), initializes a Cytoscape instance with dagre TB layout in the graph container (T02), handles node clicks to load class detail in the bottom panel, and integrates with the graph/tree toggle.
+- [x] **T03: Created ontology-graph.js with Cytoscape dagre TB layout, source-based node coloring, node click → detail panel wiring, and theme switching** — Create `ontology-graph.js` that fetches TBox graph data from the API endpoint (T01), initializes a Cytoscape instance with dagre TB layout in the graph container (T02), handles node clicks to load class detail in the bottom panel, and integrates with the graph/tree toggle.
 
 ## Steps
 

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T07:25:14.909Z",
+  "exported_at": "2026-04-06T07:29:59.967Z",
   "milestones": [
     {
       "id": "M001",
@@ -35087,19 +35087,27 @@
       "milestone_id": "M056",
       "slice_id": "S01",
       "id": "T03",
-      "title": "Wire Cytoscape graph initialization, node click → detail, and graph/tree toggle",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Created ontology-graph.js with Cytoscape dagre TB layout, source-based node coloring, node click → detail panel wiring, and theme switching",
+      "status": "complete",
+      "one_liner": "Created ontology-graph.js with Cytoscape dagre TB layout, source-based node coloring, node click → detail panel wiring, and theme switching",
+      "narrative": "Created frontend/static/js/ontology-graph.js as a new IIFE module exporting SemPKM.initTboxGraph(). It fetches /browser/ontology/tbox/graph-data via apiFetch(), builds Cytoscape elements with source-based colors (gist=slate, user=teal, models=rotating palette), renders with dagre TB layout, wires node tap to loadClassDetail(), handles hover feedback, registers cleanup, and listens for theme-changed events to rebuild colors and stylesheet. Updated the ontology page template with the init call and base.html with the script tag.",
+      "verification_result": "All 4 file/grep checks pass (file exists, initTboxGraph exported, apiFetch used, dagre used). All 16 backend tests in test_ontology_graph.py pass. Empty state and error handling code paths verified by inspection.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-06T07:29:59.928Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "Used Cytoscape data() style mappers for source colors instead of per-source stylesheet rules — simpler approach. Set window._tboxCy alongside SemPKM._tboxGraph for backward compat with T02's toggleTboxView().",
+      "known_issues": "None.",
+      "key_files": [
+        "frontend/static/js/ontology-graph.js",
+        "backend/app/templates/browser/ontology/ontology_page.html",
+        "backend/app/templates/base.html"
+      ],
+      "key_decisions": [
+        "Source-based node coloring with fixed colors for gist/user/sempkm and rotating palette for model sources",
+        "Edge labels hidden to reduce visual noise",
+        "Dual cy instance reference (SemPKM._tboxGraph + window._tboxCy) for namespace and backward compat"
+      ],
+      "full_summary_md": "---\nid: T03\nparent: S01\nmilestone: M056\nkey_files:\n  - frontend/static/js/ontology-graph.js\n  - backend/app/templates/browser/ontology/ontology_page.html\n  - backend/app/templates/base.html\nkey_decisions:\n  - Source-based node coloring with fixed colors for gist/user/sempkm and rotating palette for model sources\n  - Edge labels hidden to reduce visual noise\n  - Dual cy instance reference (SemPKM._tboxGraph + window._tboxCy) for namespace and backward compat\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T07:29:59.927Z\nblocker_discovered: false\n---\n\n# T03: Created ontology-graph.js with Cytoscape dagre TB layout, source-based node coloring, node click → detail panel wiring, and theme switching\n\n**Created ontology-graph.js with Cytoscape dagre TB layout, source-based node coloring, node click → detail panel wiring, and theme switching**\n\n## What Happened\n\nCreated frontend/static/js/ontology-graph.js as a new IIFE module exporting SemPKM.initTboxGraph(). It fetches /browser/ontology/tbox/graph-data via apiFetch(), builds Cytoscape elements with source-based colors (gist=slate, user=teal, models=rotating palette), renders with dagre TB layout, wires node tap to loadClassDetail(), handles hover feedback, registers cleanup, and listens for theme-changed events to rebuild colors and stylesheet. Updated the ontology page template with the init call and base.html with the script tag.\n\n## Verification\n\nAll 4 file/grep checks pass (file exists, initTboxGraph exported, apiFetch used, dagre used). All 16 backend tests in test_ontology_graph.py pass. Empty state and error handling code paths verified by inspection.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `test -f frontend/static/js/ontology-graph.js && grep -q 'initTboxGraph' ... && echo 'PASS'` | 0 | ✅ pass | 50ms |\n| 2 | `cd backend && .venv/bin/python -m pytest tests/test_ontology_graph.py -v` | 0 | ✅ pass | 480ms |\n\n## Deviations\n\nUsed Cytoscape data() style mappers for source colors instead of per-source stylesheet rules — simpler approach. Set window._tboxCy alongside SemPKM._tboxGraph for backward compat with T02's toggleTboxView().\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `frontend/static/js/ontology-graph.js`\n- `backend/app/templates/browser/ontology/ontology_page.html`\n- `backend/app/templates/base.html`\n",
       "description": "Create `ontology-graph.js` that fetches TBox graph data from the API endpoint (T01), initializes a Cytoscape instance with dagre TB layout in the graph container (T02), handles node clicks to load class detail in the bottom panel, and integrates with the graph/tree toggle.\n\n## Steps\n\n1. Read `frontend/static/js/graph.js` — understand existing Cytoscape patterns (init, style builder, popover, layout registry, cleanup)\n2. Read `backend/app/templates/browser/ontology/ontology_page.html` (T02 output) — understand the graph container ID and toggle mechanism\n3. Create `frontend/static/js/ontology-graph.js` as a new IIFE module that:\n   - Exports `window.SemPKM.initTboxGraph(containerId)` function\n   - Fetches `/browser/ontology/tbox/graph-data` via `apiFetch()`\n   - Converts response nodes/edges to Cytoscape elements format\n   - Assigns per-source colors: gist nodes get a neutral slate color, each model source gets a distinct color (use a small palette), user-types get a teal accent\n   - Initializes Cytoscape with dagre TB layout (`rankDir: 'TB'`, `rankSep: 60`, `nodeSep: 30`)\n   - Styles nodes with labels, source-based colors, and selection highlight\n   - On `tap` node event: calls `loadClassDetail(nodeIri)` (already defined in ontology_page.html) to load detail in the bottom panel\n   - On `mouseover`/`mouseout` node events: adds/removes `.hovered` class for visual feedback\n   - Stores the cy instance as `window.SemPKM._tboxGraph` for cleanup and toggle resize\n   - Registers cleanup via `window.SemPKM.registerCleanup()` if available\n4. Add a `<script src=\"/js/ontology-graph.js\"></script>` tag in `ontology_page.html` (or lazy-load it)\n5. Wire the graph initialization: when TBox tab is active and graph view is shown, call `SemPKM.initTboxGraph('tbox-graph')` — add this call to the template's `<script>` block, triggered on page load or on TBox tab activation\n6. Wire the toggle: when switching to graph view, call `cy.resize()` + `cy.fit()` to recalculate layout after visibility change. When switching from graph to tree, no special handling needed.\n7. Handle dark mode: listen for `sempkm:theme-changed` event and rebuild the Cytoscape stylesheet (same pattern as graph.js `switchGraphTheme`)\n8. Handle empty state: if the API returns 0 nodes, show a \"No ontology classes found\" message in the container\n\n## Must-Haves\n\n- [ ] Cytoscape graph renders with dagre TB layout (top-down hierarchy)\n- [ ] Gist classes appear at the top of the hierarchy, model classes below them\n- [ ] Clicking a node loads class detail in the bottom panel\n- [ ] Graph fills the available space (100% width and height)\n- [ ] Graph respects dark/light theme\n- [ ] Empty state handled gracefully\n- [ ] Cleanup registered to destroy Cytoscape instance on panel dispose\n- [ ] Uses `apiFetch()` for the data fetch (per KNOWLEDGE.md Pattern 13)\n\n## Negative Tests\n\n- **Malformed inputs**: API returns empty nodes array → show \"No ontology classes found\" message\n- **Error paths**: API fetch fails → show error message in container, log to console\n- **Boundary conditions**: Single node with no edges → graph renders the lone node centered\n\n## Verification\n\n- `test -f frontend/static/js/ontology-graph.js` confirms the file exists\n- `grep -q 'initTboxGraph' frontend/static/js/ontology-graph.js` confirms the export\n- `grep -q 'apiFetch' frontend/static/js/ontology-graph.js` confirms proper fetch usage\n- `grep -q 'dagre' frontend/static/js/ontology-graph.js` confirms dagre layout usage\n- Visual verification: Open Ontology Viewer → TBox shows hierarchical graph → click node → detail panel populates → toggle to tree → tree works → toggle back to graph → graph still there",
       "estimate": "1h",
       "files": [
@@ -44352,6 +44360,28 @@
       "verdict": "✅ pass",
       "duration_ms": 500,
       "created_at": "2026-04-06T07:25:14.870Z"
+    },
+    {
+      "id": 397,
+      "task_id": "T03",
+      "slice_id": "S01",
+      "milestone_id": "M056",
+      "command": "test -f frontend/static/js/ontology-graph.js && grep -q 'initTboxGraph' ... && echo 'PASS'",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-04-06T07:29:59.928Z"
+    },
+    {
+      "id": 398,
+      "task_id": "T03",
+      "slice_id": "S01",
+      "milestone_id": "M056",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_ontology_graph.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 480,
+      "created_at": "2026-04-06T07:29:59.928Z"
     }
   ]
 }
