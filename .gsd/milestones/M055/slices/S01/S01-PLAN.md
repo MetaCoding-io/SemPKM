@@ -27,7 +27,7 @@
   - Estimate: 20min
   - Files: frontend/static/js/workspace.js
   - Verify: Navigate to /browser/?tab=<known-object-iri>. Object tab opens and is focused. URL still shows ?tab=. Refresh the page — same object tab opens. Navigate to /browser/?tab=view:<viewId> — view tab opens.
-- [ ] **T03: E2E tests for URL sync and history navigation** — Write Playwright E2E tests proving the URL sync and history navigation work.
+- [x] **T03: Added 6 Playwright E2E tests covering URL sync, back/forward navigation, deep-linking, stale entry cleanup, and ephemeral tab exclusion — all pass on Chromium and Firefox** — Write Playwright E2E tests proving the URL sync and history navigation work.
 
 1. Create e2e/tests/55-browser-history/history.spec.ts
 2. Test cases:
