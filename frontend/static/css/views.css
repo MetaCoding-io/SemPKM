@@ -1118,6 +1118,7 @@ select.cards-group-select {
     display: flex;
     flex-direction: column;
     max-height: 100%;
+    border-left: 3px solid transparent;
 }
 
 .kanban-column-header {
@@ -1183,6 +1184,76 @@ select.cards-group-select {
 .kanban-column.drag-over {
     background: var(--color-surface-hover, var(--color-surface-raised));
     border: 2px dashed var(--color-primary);
+}
+
+/* ── Kanban Card Enrichment ── */
+
+.kanban-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+}
+
+.kanban-card-priority {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 9px;
+    line-height: 1.4;
+    text-transform: capitalize;
+}
+
+.kanban-card-priority[data-priority="critical"] {
+    background: color-mix(in srgb, var(--_color-red-500) 15%, transparent);
+    color: var(--_color-red-500);
+}
+
+.kanban-card-priority[data-priority="high"] {
+    background: color-mix(in srgb, var(--_color-amber-500) 15%, transparent);
+    color: var(--_color-amber-500);
+}
+
+.kanban-card-priority[data-priority="medium"] {
+    background: color-mix(in srgb, var(--_color-blue-500) 15%, transparent);
+    color: var(--_color-blue-500);
+}
+
+.kanban-card-priority[data-priority="low"] {
+    background: color-mix(in srgb, var(--_color-green-500) 15%, transparent);
+    color: var(--_color-green-500);
+}
+
+.kanban-card-date {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    line-height: 1.4;
+}
+
+.kanban-card-date svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.kanban-card-type-icon {
+    display: inline-flex;
+    align-items: center;
+    margin-left: auto;
+}
+
+.kanban-card-type-icon svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: var(--color-text-muted);
 }
 
 /* ============================================

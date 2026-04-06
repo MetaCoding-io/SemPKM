@@ -20,7 +20,16 @@
         <div class="kanban-column-body">
             {% for item in col['items'] %}
             <div class="kanban-card" draggable="true" data-iri="{{ item.iri }}" data-title="{{ item.label }}">
-                <span class="kanban-card-title" onclick="SemPKM.openTab('{{ item.iri }}', '{{ item.label | replace("'", "\\'") }}'); return false;">{{ item.label }}</span>
+                <div style="display:flex;align-items:center;">
+                    <span class="kanban-card-title" onclick="SemPKM.openTab('{{ item.iri }}', '{{ item.label | replace("'", "\\'") }}'); return false;">{{ item.label }}</span>
+                    <span class="kanban-card-type-icon"></span>
+                </div>
+                {% if item.priority or item.due_date %}
+                <div class="kanban-card-meta">
+                    {% if item.priority %}<span class="kanban-card-priority" data-priority="{{ item.priority | lower }}">{{ item.priority | capitalize }}</span>{% endif %}
+                    {% if item.due_date %}<span class="kanban-card-date"><i data-lucide="calendar"></i>{{ item.due_date }}</span>{% endif %}
+                </div>
+                {% endif %}
             </div>
             {% endfor %}
         </div>

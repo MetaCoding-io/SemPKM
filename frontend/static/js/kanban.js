@@ -22,6 +22,14 @@
       col.addEventListener('dragleave', onDragLeave, false);
       col.addEventListener('drop', onDrop, false);
     });
+
+    _applyColumnColors(boardEl);
+    _applyTypeIcons(boardEl);
+
+    // Initialize all Lucide icons (calendar date badges + type icons)
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons({ root: boardEl });
+    }
   }
 
   /* ── Drag Handlers ── */
@@ -148,6 +156,55 @@
         countEl.textContent = body.querySelectorAll('.kanban-card').length;
       }
     });
+  }
+
+  /* ── Column Color Accents ── */
+
+  var _STATUS_COLOR_MAP = [
+    { keywords: ['todo', 'new', 'open', 'backlog'], cssVar: '--_color-blue-500' },
+    { keywords: ['progress', 'doing', 'active', 'in-progress', 'in progress'], cssVar: '--_color-amber-500' },
+    { keywords: ['done', 'complete', 'closed'], cssVar: '--_color-green-500' },
+    { keywords: ['block', 'stuck'], cssVar: '--_color-red-500' },
+    { keywords: ['cancel', 'archive'], cssVar: '--_color-gray-400' }
+  ];
+
+  function _applyColumnColors(boardEl) {
+    boardEl.querySelectorAll('.kanban-column').forEach(function (col) {
+      var status = (col.dataset.status || '').toLowerCase();
+      if (!status) return;
+      var matched = false;
+      for (var i = 0; i < _STATUS_COLOR_MAP.length; i++) {
+        var entry = _STATUS_COLOR_MAP[i];
+        for (var j = 0; j < entry.keywords.length; j++) {
+          if (status.indexOf(entry.keywords[j]) !== -1) {
+            col.style.borderLeftColor = 'var(' + entry.cssVar + ')';
+            matched = true;
+            break;
+          }
+        }
+        if (matched) break;
+      }
+    });
+  }
+
+  /* ── Type Icons ── */
+
+  function _applyTypeIcons(boardEl) {
+    var typeIri = boardEl.dataset.typeIri;
+    if (!typeIri) return;
+
+    var icons = window.SemPKM._sempkmIcons;
+    if (!icons || !icons.tree) return;
+
+    var iconName = icons.tree[typeIri];
+    if (!iconName || typeof lucide === 'undefined') return;
+
+    boardEl.querySelectorAll('.kanban-card-type-icon').forEach(function (el) {
+      var i = document.createElement('i');
+      i.setAttribute('data-lucide', iconName);
+      el.appendChild(i);
+    });
+    // lucide.createIcons is called by initKanban after this returns
   }
 
   /* ── Export ── */

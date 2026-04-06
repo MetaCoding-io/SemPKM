@@ -50,7 +50,7 @@ Extend the kanban backend to detect priority-like and date-like fields from SHAC
   - Estimate: 45m
   - Files: backend/app/views/service.py, backend/app/views/router.py, backend/tests/test_kanban.py
   - Verify: cd backend && .venv/bin/python -m pytest tests/test_kanban.py -v
-- [ ] **T02: Add kanban card enrichment UI and column color accents** — ## Description
+- [x] **T02: Added kanban card enrichment UI with priority badges, due dates, type icons, and column color accents** — ## Description
 
 Update the kanban template, CSS, and minimal JS to render enriched cards and colored column borders.
 
