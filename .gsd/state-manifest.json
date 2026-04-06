@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T05:18:53.792Z",
+  "exported_at": "2026-04-06T05:29:56.062Z",
   "milestones": [
     {
       "id": "M001",
@@ -34584,19 +34584,30 @@
       "milestone_id": "M054",
       "slice_id": "S02",
       "id": "T03",
-      "title": "Multi-panel OBJECTS sections with independent configurations",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Refactored explorer config to section-scoped DOM access and added multi-panel OBJECTS duplication with independent configs",
+      "status": "complete",
+      "one_liner": "Refactored explorer config to section-scoped DOM access and added multi-panel OBJECTS duplication with independent configs",
+      "narrative": "Converted all config panel element IDs to classes, implemented per-section state via Map keyed by DOM elements, added Duplicate button that creates independent OBJECTS sections with their own config state, tree body, and localStorage keys. Each duplicated section has a close button to remove it. All existing exports remain backward-compatible wrappers for the primary section. Updated workspace.js persona mode compat and E2E selectors.",
+      "verification_result": "24/24 backend unit tests pass. Browser verification: duplicate creates independent section, By Type/By Tag/Hierarchy render independently across sections, close removes duplicate without affecting primary, refreshExplorerTree() backward compat works, no JS console errors.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-06T05:29:56.023Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "Template onclick handlers use internal helpers (_applyFromPanel, _resetFromPanel, etc.) exposed on window.SemPKM rather than the public function names, for cleaner section-root extraction from clicked element position.",
+      "known_issues": "None.",
+      "key_files": [
+        "frontend/static/js/explorer-config.js",
+        "backend/app/templates/browser/explorer_config_panel.html",
+        "backend/app/templates/browser/workspace.html",
+        "frontend/static/css/explorer-config.css",
+        "frontend/static/js/workspace.js",
+        "e2e/helpers/selectors.ts"
+      ],
+      "key_decisions": [
+        "Per-section state uses Map keyed by DOM element with shared options/config list fetched once",
+        "onclick handlers pass this to JS functions which walk up DOM to find .explorer-section ancestor",
+        "Duplicate sections get sequential IDs and scoped localStorage keys"
+      ],
+      "full_summary_md": "---\nid: T03\nparent: S02\nmilestone: M054\nkey_files:\n  - frontend/static/js/explorer-config.js\n  - backend/app/templates/browser/explorer_config_panel.html\n  - backend/app/templates/browser/workspace.html\n  - frontend/static/css/explorer-config.css\n  - frontend/static/js/workspace.js\n  - e2e/helpers/selectors.ts\nkey_decisions:\n  - Per-section state uses Map keyed by DOM element with shared options/config list fetched once\n  - onclick handlers pass this to JS functions which walk up DOM to find .explorer-section ancestor\n  - Duplicate sections get sequential IDs and scoped localStorage keys\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T05:29:56.022Z\nblocker_discovered: false\n---\n\n# T03: Refactored explorer config to section-scoped DOM access and added multi-panel OBJECTS duplication with independent configs\n\n**Refactored explorer config to section-scoped DOM access and added multi-panel OBJECTS duplication with independent configs**\n\n## What Happened\n\nConverted all config panel element IDs to classes, implemented per-section state via Map keyed by DOM elements, added Duplicate button that creates independent OBJECTS sections with their own config state, tree body, and localStorage keys. Each duplicated section has a close button to remove it. All existing exports remain backward-compatible wrappers for the primary section. Updated workspace.js persona mode compat and E2E selectors.\n\n## Verification\n\n24/24 backend unit tests pass. Browser verification: duplicate creates independent section, By Type/By Tag/Hierarchy render independently across sections, close removes duplicate without affecting primary, refreshExplorerTree() backward compat works, no JS console errors.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python -m pytest tests/test_explorer_config_service.py -v` | 0 | ✅ pass | 620ms |\n| 2 | `Browser: Duplicate creates independent section with close button` | 0 | ✅ pass | 0ms |\n| 3 | `Browser: Independent configs render different trees simultaneously` | 0 | ✅ pass | 0ms |\n| 4 | `Browser: Close duplicate removes it, primary unaffected` | 0 | ✅ pass | 0ms |\n\n## Deviations\n\nTemplate onclick handlers use internal helpers (_applyFromPanel, _resetFromPanel, etc.) exposed on window.SemPKM rather than the public function names, for cleaner section-root extraction from clicked element position.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `frontend/static/js/explorer-config.js`\n- `backend/app/templates/browser/explorer_config_panel.html`\n- `backend/app/templates/browser/workspace.html`\n- `frontend/static/css/explorer-config.css`\n- `frontend/static/js/workspace.js`\n- `e2e/helpers/selectors.ts`\n",
       "description": "Enable multiple independent OBJECTS explorer sections with a Duplicate button. Refactor ID-based DOM access to class-based section-scoped access.\n\nSteps:\n1. Refactor `frontend/static/js/explorer-config.js` DOM access:\n   - Replace all `_el('explorer-config-type')` etc. with section-scoped helpers: `_sectionEl(sectionRoot, '.explorer-config-type')` using `sectionRoot.querySelector()`.\n   - Change all element IDs in `explorer_config_panel.html` to classes (e.g., `id=\"explorer-config-type\"` → `class=\"explorer-config-type\"`).\n   - Keep the primary section's `id=\"section-objects\"` for backward compat.\n   - Each function (`applyExplorerConfig`, `resetExplorerConfig`, `loadSelectedConfig`, etc.) takes an optional `sectionRoot` parameter (defaults to `document.getElementById('section-objects')`).\n   - The config state (_configActive, _optionsData) becomes per-section. Use a Map keyed by section element or section index.\n2. Add 'Duplicate' button in OBJECTS section header in `backend/app/templates/browser/workspace.html`:\n   - Button in the header-actions span, next to the existing gear/refresh/plus buttons.\n   - onclick calls `window.SemPKM.duplicateExplorerSection()`.\n3. Implement `duplicateExplorerSection()` in `explorer-config.js`:\n   - Clones the section-objects element structure.\n   - Assigns a unique suffix (e.g., `section-objects-1`) to the clone's ID.\n   - Inserts the clone after the original section in the sidebar.\n   - Initializes config options for the clone (reuses cached _optionsData).\n   - Each clone gets its own config state, tree body, and selector.\n   - Clone's tree starts empty or with default nav_tree.\n   - Add a 'Close' button in the cloned section header (to remove it).\n4. Update `frontend/static/css/explorer-config.css` for multi-panel styling (duplicate sections visually distinct or identical).\n5. Ensure each section's config selector and config builder operate independently — changing type in section A doesn't affect section B.\n\nConstraints:\n- Primary section retains `id=\"section-objects\"` for any code that references it directly.\n- Duplicated sections use the existing drag-reorder (`data-panel-name`) and `explorer-section` patterns.\n- Each section's active config (localStorage UUID) is stored with a section-scoped key (e.g., `sempkm_explorer_active_config_0`, `sempkm_explorer_active_config_1`).\n- The `refreshExplorerTree()` export should continue to work on the primary section for backward compat. Add `refreshExplorerTreeForSection(sectionRoot)` for section-specific refresh.\n- The summary bar, config panel, and tree body are all section-scoped — no cross-section state leaking.",
       "estimate": "2h",
       "files": [
@@ -43497,6 +43508,50 @@
       "verdict": "✅ pass",
       "duration_ms": 630,
       "created_at": "2026-04-06T05:18:53.751Z"
+    },
+    {
+      "id": 369,
+      "task_id": "T03",
+      "slice_id": "S02",
+      "milestone_id": "M054",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_explorer_config_service.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 620,
+      "created_at": "2026-04-06T05:29:56.023Z"
+    },
+    {
+      "id": 370,
+      "task_id": "T03",
+      "slice_id": "S02",
+      "milestone_id": "M054",
+      "command": "Browser: Duplicate creates independent section with close button",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 0,
+      "created_at": "2026-04-06T05:29:56.023Z"
+    },
+    {
+      "id": 371,
+      "task_id": "T03",
+      "slice_id": "S02",
+      "milestone_id": "M054",
+      "command": "Browser: Independent configs render different trees simultaneously",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 0,
+      "created_at": "2026-04-06T05:29:56.023Z"
+    },
+    {
+      "id": 372,
+      "task_id": "T03",
+      "slice_id": "S02",
+      "milestone_id": "M054",
+      "command": "Browser: Close duplicate removes it, primary unaffected",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 0,
+      "created_at": "2026-04-06T05:29:56.023Z"
     }
   ]
 }

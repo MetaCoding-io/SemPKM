@@ -42,10 +42,10 @@ export const SEL = {
   explorer: {
     modeSelect: '#explorer-mode-select', // deprecated — dropdown removed, use configBtn
     configBtn: '#explorer-config-btn',
-    configPanel: '#explorer-config-panel',
-    configType: '#explorer-config-type',
-    configGroup: '#explorer-config-group',
-    configSort: '#explorer-config-sort',
+    configPanel: '#section-objects .explorer-config-panel',
+    configType: '#section-objects .explorer-config-type',
+    configGroup: '#section-objects .explorer-config-group',
+    configSort: '#section-objects .explorer-config-sort',
     treeBody: '#explorer-tree-body',
     placeholder: '[data-testid="explorer-placeholder"]',
     mountOption: 'option[value^="mount:"]',

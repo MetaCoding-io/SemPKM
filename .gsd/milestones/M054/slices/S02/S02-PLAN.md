@@ -56,7 +56,7 @@ Constraints:
   - Estimate: 2h
   - Files: frontend/static/js/explorer-config.js, backend/app/templates/browser/explorer_config_panel.html, frontend/static/css/explorer-config.css
   - Verify: Browser verification: open workspace → config selector shows presets and saved configs. Save a config with name → reload page → config appears in selector → click to apply → tree renders correctly. Select Hierarchy preset → tree renders hierarchy mode. Select By Type preset → tree renders type-grouped mode.
-- [ ] **T03: Multi-panel OBJECTS sections with independent configurations** — Enable multiple independent OBJECTS explorer sections with a Duplicate button. Refactor ID-based DOM access to class-based section-scoped access.
+- [x] **T03: Refactored explorer config to section-scoped DOM access and added multi-panel OBJECTS duplication with independent configs** — Enable multiple independent OBJECTS explorer sections with a Duplicate button. Refactor ID-based DOM access to class-based section-scoped access.
 
 Steps:
 1. Refactor `frontend/static/js/explorer-config.js` DOM access:

@@ -256,3 +256,26 @@
 .explorer-config-btn.primary:hover {
     background: var(--color-accent-hover);
 }
+
+/* --- Multi-panel: duplicate OBJECTS sections --- */
+
+/* Close button for duplicate sections */
+.explorer-section-close-btn {
+    color: var(--color-text-muted);
+}
+
+.explorer-section-close-btn:hover {
+    color: var(--color-error, #e53e3e);
+}
+
+.explorer-section-close-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+/* Subtle visual separator for duplicate sections */
+[id^="section-objects-"] {
+    border-top: 2px solid var(--color-border);
+}

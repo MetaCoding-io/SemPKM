@@ -3,43 +3,44 @@
    Top row: config selector (saved configs + presets).
    Below: composable filter/group/sort builder.
    Populated by explorer-config.js.
+
+   NOTE: All element identifiers use classes (not IDs) so multiple
+   OBJECTS sections can coexist with independent configs.
+   JS uses sectionRoot.querySelector('.class') for scoping.
 #}
-<div class="explorer-config-selector" id="explorer-config-selector">
-    <select class="explorer-config-select explorer-config-selector-dropdown"
-            id="explorer-config-dropdown"
-            onchange="if(window.SemPKM.onConfigSelectorChange) window.SemPKM.onConfigSelectorChange(this.value);">
+<div class="explorer-config-selector">
+    <select class="explorer-config-select explorer-config-selector-dropdown explorer-config-dropdown"
+            onchange="if(window.SemPKM.onConfigSelectorChange) window.SemPKM.onConfigSelectorChange(this);">
         <option value="">— Select Config —</option>
     </select>
-    <input class="explorer-config-name-input" id="explorer-config-name"
+    <input class="explorer-config-name-input explorer-config-name"
            type="text" placeholder="Config name…" maxlength="100">
     <button class="explorer-config-btn primary explorer-config-save-btn"
-            id="explorer-config-save-btn"
             title="Save current config"
-            onclick="if(window.SemPKM.saveCurrentConfig) window.SemPKM.saveCurrentConfig();">Save</button>
+            onclick="if(window.SemPKM.saveCurrentConfig) window.SemPKM.saveCurrentConfig(this);">Save</button>
     <button class="explorer-config-btn explorer-config-delete-btn"
-            id="explorer-config-delete-btn"
             title="Delete selected config"
             disabled
-            onclick="if(window.SemPKM.deleteSelectedConfig) window.SemPKM.deleteSelectedConfig();">Del</button>
+            onclick="if(window.SemPKM.deleteSelectedConfig) window.SemPKM.deleteSelectedConfig(this);">Del</button>
 </div>
 
-<div class="explorer-config-summary" id="explorer-config-summary"
-     onclick="if(window.SemPKM.initExplorerConfig) window.SemPKM.initExplorerConfig(); document.getElementById('explorer-config-panel').classList.add('open'); this.classList.remove('visible');">
-    <span class="explorer-config-summary-text" id="explorer-config-summary-text"></span>
+<div class="explorer-config-summary"
+     onclick="window.SemPKM._openPanelFromSummary && window.SemPKM._openPanelFromSummary(this);">
+    <span class="explorer-config-summary-text"></span>
     <button class="explorer-config-summary-clear" title="Clear config"
-            onclick="event.stopPropagation(); if(window.SemPKM.resetExplorerConfig) window.SemPKM.resetExplorerConfig();">&times;</button>
+            onclick="event.stopPropagation(); window.SemPKM._resetFromSummary && window.SemPKM._resetFromSummary(this);">&times;</button>
 </div>
 
-<div class="explorer-config-panel" id="explorer-config-panel">
+<div class="explorer-config-panel">
     <div class="explorer-config-row">
         <span class="explorer-config-label">Filter</span>
-        <select class="explorer-config-select" id="explorer-config-type">
+        <select class="explorer-config-select explorer-config-type">
             <option value="">All Types</option>
         </select>
     </div>
     <div class="explorer-config-row">
         <span class="explorer-config-label">Group</span>
-        <select class="explorer-config-select" id="explorer-config-group">
+        <select class="explorer-config-select explorer-config-group">
             <option value="">None</option>
             <option value="type">By Type</option>
             <option value="tag">By Tag</option>
@@ -47,19 +48,19 @@
     </div>
     <div class="explorer-config-row">
         <span class="explorer-config-label">Sort</span>
-        <select class="explorer-config-select" id="explorer-config-sort">
+        <select class="explorer-config-select explorer-config-sort">
             <option value="label">Label</option>
             <option value="created">Date Created</option>
         </select>
-        <button class="explorer-sort-toggle" id="explorer-config-sort-order"
+        <button class="explorer-sort-toggle explorer-config-sort-order"
                 title="Toggle sort order"
                 onclick="this.dataset.order = this.dataset.order === 'asc' ? 'desc' : 'asc'; this.innerHTML = this.dataset.order === 'asc' ? '&#9650;' : '&#9660;';"
                 data-order="asc">&#9650;</button>
     </div>
     <div class="explorer-config-actions">
         <button class="explorer-config-btn primary"
-                onclick="if(window.SemPKM.applyExplorerConfig) window.SemPKM.applyExplorerConfig();">Apply</button>
+                onclick="window.SemPKM._applyFromPanel && window.SemPKM._applyFromPanel(this);">Apply</button>
         <button class="explorer-config-btn"
-                onclick="if(window.SemPKM.resetExplorerConfig) window.SemPKM.resetExplorerConfig();">Reset</button>
+                onclick="window.SemPKM._resetFromPanel && window.SemPKM._resetFromPanel(this);">Reset</button>
     </div>
 </div>

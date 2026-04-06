@@ -2662,7 +2662,8 @@
           // Old persona had a non-default mode — apply via config system
           if (persona.explorer_mode === 'by-tag' && typeof window.SemPKM.applyExplorerConfig === 'function') {
             // Set group-by to tag, then apply
-            var groupSel = document.getElementById('explorer-config-group');
+            var primarySection = document.getElementById('section-objects');
+            var groupSel = primarySection ? primarySection.querySelector('.explorer-config-group') : null;
             if (groupSel) groupSel.value = 'tag';
             window.SemPKM.applyExplorerConfig();
           }
