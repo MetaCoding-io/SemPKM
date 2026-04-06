@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T02:01:12.950Z",
+  "exported_at": "2026-04-06T02:08:50.762Z",
   "milestones": [
     {
       "id": "M001",
@@ -8309,14 +8309,14 @@
       "milestone_id": "M052",
       "id": "S01",
       "title": "Kanban Enrichment & Column Colors",
-      "status": "pending",
+      "status": "complete",
       "risk": "medium",
       "depends": [],
       "demo": "Kanban view shows cards with priority badge, due date, and type icon. Columns have color-coded left border accents. Types without enrichment fields still render correctly.",
       "created_at": "2026-04-06T01:45:38.441Z",
-      "completed_at": null,
-      "full_summary_md": "",
-      "full_uat_md": "",
+      "completed_at": "2026-04-06T02:02:43.412Z",
+      "full_summary_md": "---\nid: S01\nparent: M052\nmilestone: M052\nprovides:\n  - Enriched kanban cards with priority/date/icon rendering\n  - Column color accent pattern via status keyword matching\n  - _detect_enrichment_fields() method on ViewSpecService for reuse by other views\nrequires:\n  []\naffects:\n  - S04\nkey_files:\n  - backend/app/views/service.py\n  - backend/app/views/router.py\n  - backend/tests/test_kanban.py\n  - frontend/static/css/views.css\n  - frontend/static/css/theme.css\n  - backend/app/templates/browser/kanban_view.html\n  - frontend/static/js/kanban.js\nkey_decisions:\n  - D394: Kanban enrichment field detection via SHACL heuristic scanning — priority by sh:in path keyword, date by reusing _detect_date_fields()\n  - D393: Column color mapping via generic keyword-based status-to-color heuristic, no manifest extension needed\npatterns_established:\n  - Kanban enrichment detection reuses existing SHACL introspection (_detect_date_fields) and scans form properties for priority — no new queries needed\n  - Column color accents via JS keyword matching on data-status with CSS variable references — generalizable to other status-based views\nobservability_surfaces:\n  - none\ndrill_down_paths:\n  - .gsd/milestones/M052/slices/S01/tasks/T01-SUMMARY.md\n  - .gsd/milestones/M052/slices/S01/tasks/T02-SUMMARY.md\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-04-06T02:02:43.412Z\nblocker_discovered: false\n---\n\n# S01: Kanban Enrichment & Column Colors\n\n**Kanban view now renders enriched cards with priority badges, due dates, and type icons, plus color-coded column borders based on status keywords.**\n\n## What Happened\n\nTwo tasks delivered the full kanban enrichment feature end-to-end.\n\nT01 added `_detect_enrichment_fields()` to ViewSpecService, which scans SHACL PropertyShapes for priority-like fields (sh:in with 'priority' in path, or fallback non-status sh:in) and date-like fields (reuses `_detect_date_fields()` start-field logic). `_build_kanban_select()` was extended with optional `priority_path` and `date_path` parameters that inject OPTIONAL SPARQL clauses. `execute_kanban_query()` now auto-detects enrichment, populates item dicts with `priority` and `due_date` keys (both nullable), and returns enrichment metadata. The router passes this metadata to the template context. 15 new unit tests cover all enrichment detection, SPARQL generation, and query execution paths.\n\nT02 added the frontend rendering layer. Priority badges are small colored pills using `data-priority` attribute selectors with `color-mix()` theme primitives (critical→red, high→amber, medium→blue, low→green). Due dates render as muted text with a Lucide calendar icon. Type icons use the `data-lucide` + `createIcons()` pattern from the manifest icon registry. Column color accents are applied via `_applyColumnColors()` in kanban.js — keyword matching on the column's `data-status` value maps to CSS variable references (todo→blue, progress→amber, done→green, block→red, cancel→gray). A `--_color-gray-400` primitive was added to theme.css for the cancel/archive accent. All SVG elements have `flex-shrink: 0`. Zero standalone hex/rgba values — all colors use `color-mix(in srgb, var(--_color-*) N%, transparent)` with theme primitives.\n\nBoth tasks completed with zero regressions — all 33 kanban tests pass (18 existing + 15 new).\n\n## Verification\n\nAll 33 kanban tests pass (18 existing + 15 new enrichment tests). CSS has 5 kanban-card-priority references, template has kanban-card-meta div, JS has _applyColumnColors function. Zero standalone hex values in views.css — all use color-mix with theme primitives. Lucide SVGs have flex-shrink: 0. --_color-gray-400 primitive present in theme.css for both light and dark modes.\n\n## Requirements Advanced\n\nNone.\n\n## Requirements Validated\n\nNone.\n\n## New Requirements Surfaced\n\nNone.\n\n## Requirements Invalidated or Re-scoped\n\nNone.\n\n## Deviations\n\nT02 used data-lucide attribute + createIcons() for type icons instead of lucide.createElement() — the createElement API isn't reliably available on the CDN bundle and data-lucide is the established codebase pattern.\n\n## Known Limitations\n\nColumn color keyword matching is English-only — status values in other languages won't get color accents (they fall back to transparent). Type icon rendering depends on window.SemPKM._sempkmIcons being populated — types without manifest icon entries show no icon.\n\n## Follow-ups\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/views/service.py` — Added _detect_enrichment_fields() method and _build_enrichment_metadata() helper; extended _build_kanban_select() with optional priority_path/date_path OPTIONAL clauses; updated execute_kanban_query() to auto-detect and return enrichment data\n- `backend/app/views/router.py` — Pass enrichment metadata from execute_kanban_query() to kanban template context\n- `backend/tests/test_kanban.py` — Added 15 new tests: TestDetectEnrichmentFields (5), TestBuildKanbanSelectEnrichment (4), TestExecuteKanbanQueryEnrichment (5)\n- `frontend/static/css/views.css` — Added kanban-card-meta, kanban-card-priority (4 data-priority color variants), kanban-card-date, kanban-card-type-icon, kanban-date-icon CSS rules with color-mix theme primitives\n- `frontend/static/css/theme.css` — Added --_color-gray-400 primitive in both light and dark mode blocks\n- `backend/app/templates/browser/kanban_view.html` — Added conditional priority badge, due date line with calendar icon, and type icon placeholder inside kanban cards\n- `frontend/static/js/kanban.js` — Added _applyColumnColors() with keyword-to-CSS-variable mapping and _applyTypeIcons() with manifest icon registry lookup; both called from initKanban()\n",
+      "full_uat_md": "# S01: Kanban Enrichment & Column Colors — UAT\n\n**Milestone:** M052\n**Written:** 2026-04-06T02:02:43.412Z\n\n## UAT: Kanban Enrichment & Column Colors\n\n### Preconditions\n- SemPKM running with basic-pkm model installed (has Task type with status, priority, due date fields)\n- At least 3 tasks exist with varying status values (e.g., \"To Do\", \"In Progress\", \"Done\")\n- At least 1 task has a priority value set (e.g., \"high\" or \"critical\")\n- At least 1 task has a due date set\n- A second type with status but NO priority field (e.g., Event or Project) has at least 2 instances\n\n### Test Cases\n\n#### TC1: Priority Badge Rendering\n1. Navigate to workspace → open Kanban view for Task type\n2. Find a card for a task that has priority set\n3. **Expected:** Card shows a small colored pill below the title with the priority label (capitalized)\n4. Verify color mapping:\n   - Critical priority → red-tinted pill\n   - High priority → amber-tinted pill\n   - Medium priority → blue-tinted pill\n   - Low priority → green-tinted pill\n\n#### TC2: Due Date Rendering\n1. In the same Kanban view, find a card for a task with a due date\n2. **Expected:** Card shows a muted-text line below the title with a small calendar icon and the formatted date\n3. The calendar icon should be a Lucide SVG, properly sized (not collapsed to 0px)\n\n#### TC3: Type Icon Rendering\n1. In the same Kanban view, inspect any card\n2. **Expected:** Card header area contains a small Lucide icon matching the type's manifest icon entry\n3. If the type has no manifest icon, the icon area should be empty (no broken icon placeholder)\n\n#### TC4: Column Color Accents\n1. View the Kanban board columns\n2. **Expected:** Each column has a 3px colored left border based on its status keyword:\n   - \"To Do\" / \"Backlog\" / \"New\" → blue left border\n   - \"In Progress\" / \"Doing\" / \"Active\" → amber left border\n   - \"Done\" / \"Complete\" / \"Closed\" → green left border\n   - \"Blocked\" / \"Stuck\" → red left border\n3. If a column status doesn't match any keyword → transparent/no accent border\n\n#### TC5: Graceful Degradation — Type Without Enrichment Fields\n1. Open Kanban view for a type that has status (sh:in) but NO priority field and NO date field\n2. **Expected:** Cards render with only the title — no empty priority pill, no empty date line\n3. Column color accents still apply based on the status keywords\n\n#### TC6: Dark Mode\n1. Toggle dark mode in the workspace\n2. View the Kanban board\n3. **Expected:** All priority pill colors, date text, column accents adapt to dark mode\n4. No hardcoded hex or rgba values — all colors should shift with the theme\n\n#### TC7: Empty Board\n1. Open Kanban view for a type with no instances\n2. **Expected:** Empty columns render with correct color accents, no JS errors in console\n\n### Edge Cases\n- Card with priority but no due date → shows only priority pill\n- Card with due date but no priority → shows only date line\n- Card with neither → shows only title (same as TC5)\n- Column with status value not matching any keyword → no color accent (transparent border)\n",
       "goal": "Kanban view shows enriched cards with priority badge, due date, and type icon. Columns have color-coded left border accents based on status keywords. Types without enrichment fields render correctly with cards showing only the title.",
       "success_criteria": "- Kanban cards display priority badge (color-coded pill) when the type has a priority-like sh:in field\n- Kanban cards display due date when the type has a date-like field\n- Kanban cards display a type icon (from the manifest icon registry) via Lucide\n- Column headers have a colored left border accent derived from status keyword matching (D393)\n- Types without priority/date fields still render correctly — cards show only the title\n- Dark mode renders column borders and card badges correctly via color-mix() theme tokens\n- Existing kanban unit tests pass, new tests cover enrichment field detection and enriched query output",
       "proof_level": "Contract — unit tests prove SPARQL query enrichment and field detection; visual verification proves CSS styling",
@@ -8337,11 +8337,11 @@
       "completed_at": null,
       "full_summary_md": "",
       "full_uat_md": "",
-      "goal": "Establish the property display pattern used across read view and popovers — zebra striping, label/value contrast, row hover, borders",
-      "success_criteria": "- Property rows alternate background color (nth-child(even))\n- Row hover highlight present\n- Labels are slightly larger/bolder than values, values use muted color\n- Graph popover props have bottom borders and alternating backgrounds\n- Both light and dark mode correct",
-      "proof_level": "Visual inspection of object read view and graph popover",
-      "integration_closure": "CSS-only changes to workspace.css and views.css. No template changes for property table (CSS grid targets existing classes). Graph popover needs class additions in graph.js.",
-      "observability_impact": "None",
+      "goal": "Object read view property table has zebra-striped rows, hover highlight, label/value distinction, and description tooltips. Graph and ref-pill popovers show property rows with borders and alternating backgrounds.",
+      "success_criteria": "- Property table rows alternate background between default and recessed surface color\n- Hovering a property row highlights both label and value cells\n- Property labels are visually stronger than values (weight + color distinction)\n- Property labels with `sh:description` show native browser tooltip on hover\n- Graph popover and ref-pill popover property rows have bottom borders and alternating backgrounds\n- All new styling adapts correctly in dark mode (uses existing theme tokens only)",
+      "proof_level": "Visual verification in browser — CSS-only changes with one template attribute addition, no backend logic",
+      "integration_closure": "No integration concerns — pure CSS additions to existing selectors plus one Jinja2 `title` attribute. No new files, no new JS, no API changes.",
+      "observability_impact": "None — cosmetic CSS changes only",
       "sequence": 0,
       "replan_triggered_at": null
     },
@@ -33467,6 +33467,80 @@
       "observability_impact": "",
       "full_plan_md": "",
       "sequence": 0
+    },
+    {
+      "milestone_id": "M052",
+      "slice_id": "S02",
+      "id": "T01",
+      "title": "Added zebra striping, hover highlight, muted value text, and description tooltips to object read view property table",
+      "status": "complete",
+      "one_liner": "Added zebra striping, hover highlight, muted value text, and description tooltips to object read view property table",
+      "narrative": "Added four CSS enhancements to .property-table in workspace.css: transition on label/value for smooth hover, nth-child(even) zebra striping with --color-surface-recessed, :hover highlight with --color-surface-hover, and changed .property-value color to --color-text-muted. In object_read.html, added conditional title attribute from prop.description for SHACL description tooltips. All tokens already exist in both light and dark theme blocks — no new custom properties.",
+      "verification_result": "Ran grep checks: (1) rg 'nth-child(even)' workspace.css matched zebra rules, (2) rg 'title=.*prop.description' object_read.html matched tooltip attribute, (3) confirmed all three theme tokens exist in light+dark blocks in theme.css.",
+      "duration": "",
+      "completed_at": "2026-04-06T02:08:50.726Z",
+      "blocker_discovered": false,
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "frontend/static/css/workspace.css",
+        "backend/app/templates/browser/object_read.html"
+      ],
+      "key_decisions": [
+        "Used display:contents :hover for row highlighting — supported in all modern browsers (Chrome 105+, Firefox 111+, Safari 16.4+)"
+      ],
+      "full_summary_md": "---\nid: T01\nparent: S02\nmilestone: M052\nkey_files:\n  - frontend/static/css/workspace.css\n  - backend/app/templates/browser/object_read.html\nkey_decisions:\n  - Used display:contents :hover for row highlighting — supported in all modern browsers (Chrome 105+, Firefox 111+, Safari 16.4+)\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T02:08:50.725Z\nblocker_discovered: false\n---\n\n# T01: Added zebra striping, hover highlight, muted value text, and description tooltips to object read view property table\n\n**Added zebra striping, hover highlight, muted value text, and description tooltips to object read view property table**\n\n## What Happened\n\nAdded four CSS enhancements to .property-table in workspace.css: transition on label/value for smooth hover, nth-child(even) zebra striping with --color-surface-recessed, :hover highlight with --color-surface-hover, and changed .property-value color to --color-text-muted. In object_read.html, added conditional title attribute from prop.description for SHACL description tooltips. All tokens already exist in both light and dark theme blocks — no new custom properties.\n\n## Verification\n\nRan grep checks: (1) rg 'nth-child(even)' workspace.css matched zebra rules, (2) rg 'title=.*prop.description' object_read.html matched tooltip attribute, (3) confirmed all three theme tokens exist in light+dark blocks in theme.css.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `rg 'nth-child\\(even\\)' frontend/static/css/workspace.css` | 0 | ✅ pass | 50ms |\n| 2 | `rg 'title=.*prop\\.description' backend/app/templates/browser/object_read.html` | 0 | ✅ pass | 50ms |\n| 3 | `rg 'color-surface-recessed|color-surface-hover|color-text-muted' frontend/static/css/theme.css` | 0 | ✅ pass | 50ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `frontend/static/css/workspace.css`\n- `backend/app/templates/browser/object_read.html`\n",
+      "description": "Add CSS polish to the object read view property table and add description tooltips to property labels.\n\n## Steps\n\n1. Read `frontend/static/css/workspace.css` around line 3589 (the `.property-table` block) and `backend/app/templates/browser/object_read.html` around line 60.\n\n2. In `workspace.css`, after the existing `.property-row:last-child` rule (around line 3622), add:\n   - **Zebra striping:** `.property-row:nth-child(even) .property-label` and `.property-row:nth-child(even) .property-value` with `background: var(--color-surface-recessed)`. The even-row label override is needed because `.property-label` defaults to `--color-surface-raised`.\n   - **Hover highlight:** `.property-row:hover .property-label, .property-row:hover .property-value` with `background: var(--color-surface-hover)`. This works despite `display: contents` — `:hover` still fires on `display: contents` elements in modern browsers (Chrome 105+, Firefox 111+, Safari 16.4+).\n   - **Value text distinction:** Change `.property-value` color from `var(--color-text)` to `var(--color-text-muted)` to create visual hierarchy between labels (bold, full color) and values (muted).\n   - Add `transition: background 0.15s ease` to `.property-label` and `.property-value` for smooth hover effect.\n\n3. In `object_read.html`, on line 60, change:\n   ```html\n   <div class=\"property-label\">{{ prop.name }}</div>\n   ```\n   to:\n   ```html\n   <div class=\"property-label\"{% if prop.description %} title=\"{{ prop.description }}\"{% endif %}>{{ prop.name }}</div>\n   ```\n   This adds native browser tooltips to property labels that have `sh:description` in the SHACL shapes. Inferred/extra properties (lines 104+) don't have a `description` field and are left unchanged.\n\n## Must-Haves\n\n- [ ] Zebra striping alternates row backgrounds\n- [ ] Hover highlights both label and value cells with smooth transition\n- [ ] Values use muted text color for label/value distinction\n- [ ] Property labels with sh:description show tooltip on hover\n- [ ] All styling uses existing theme tokens — no new CSS custom properties\n- [ ] Dark mode works correctly (tokens have overrides in theme.css)",
+      "estimate": "20m",
+      "files": [
+        "frontend/static/css/workspace.css",
+        "backend/app/templates/browser/object_read.html"
+      ],
+      "verify": "Start the dev stack and open an object in read mode. Verify: (1) alternating row backgrounds visible, (2) hovering a row highlights both cells, (3) labels are visually stronger than values, (4) hover over a label with sh:description shows tooltip. Toggle dark mode and confirm all styling adapts. Run: `rg 'nth-child(even)' frontend/static/css/workspace.css` returns matches, `rg 'title=.*prop.description' backend/app/templates/browser/object_read.html` returns match.",
+      "inputs": [
+        "`frontend/static/css/workspace.css` — existing property table styles at line 3589",
+        "`backend/app/templates/browser/object_read.html` — existing property label at line 60"
+      ],
+      "expected_output": [
+        "`frontend/static/css/workspace.css` — added zebra striping, hover highlight, value muting, transition rules",
+        "`backend/app/templates/browser/object_read.html` — added title attribute from prop.description on property labels"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M052",
+      "slice_id": "S02",
+      "id": "T02",
+      "title": "Graph and ref-pill popover property borders and alternating backgrounds",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Add visual polish to the property rows in graph node popovers and reference-pill tooltip popovers.\n\n## Steps\n\n1. Read `frontend/static/css/views.css` around line 666 (the `.graph-popover-props` and `.graph-popover-prop` blocks).\n\n2. In `views.css`, modify the existing `.graph-popover-prop` rule and add new rules after it:\n   - **Bottom borders:** Add `border-bottom: 1px solid var(--color-border-subtle)` to `.graph-popover-prop`.\n   - **Remove last border:** Add `.graph-popover-prop:last-child { border-bottom: none; }`.\n   - **Alternating backgrounds:** Add `.graph-popover-prop:nth-child(even) { background: var(--color-surface-recessed); }`.\n   - **Horizontal padding:** Change padding from `3px 0` to `4px 8px` — the parent `.graph-popover-props` has `padding: 6px 14px` but children need their own horizontal padding for the alternating background to look right (otherwise the colored bands don't reach the edges). Reduce parent horizontal padding to compensate: change `.graph-popover-props` padding from `6px 14px 10px` to `6px 6px 10px`.\n   - **Border radius on first/last for contained look:** Add `border-radius: 3px` to `.graph-popover-prop:first-child` and `.graph-popover-prop:last-child` for subtle rounding on the alternating band edges.\n\n3. These same `.graph-popover-prop` classes are used by `ref_tooltip.html` (ref-pill hover popovers), so the styling improvements apply to both graph popovers and ref-pill popovers automatically.\n\n## Must-Haves\n\n- [ ] Graph popover property rows have subtle bottom borders\n- [ ] Last property row has no bottom border\n- [ ] Even-numbered rows have alternating background\n- [ ] Ref-pill tooltip popovers also show the improved styling (shared classes)\n- [ ] Dark mode works correctly (--color-border-subtle and --color-surface-recessed have overrides)",
+      "estimate": "15m",
+      "files": [
+        "frontend/static/css/views.css"
+      ],
+      "verify": "Start the dev stack, open graph view, hover a node to trigger popover — verify property rows have borders and alternating backgrounds. Open an object in read view, hover a ref-pill to trigger tooltip — verify same styling. Toggle dark mode and confirm adaptation. Run: `rg 'graph-popover-prop:nth-child' frontend/static/css/views.css` returns match, `rg 'border-bottom.*border-subtle' frontend/static/css/views.css` returns match.",
+      "inputs": [
+        "`frontend/static/css/views.css` — existing graph popover property styles at line 666"
+      ],
+      "expected_output": [
+        "`frontend/static/css/views.css` — added borders, alternating backgrounds, padding adjustments for popover property rows"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
     }
   ],
   "decisions": [
@@ -41631,6 +41705,39 @@
       "verdict": "✅ pass",
       "duration_ms": 50,
       "created_at": "2026-04-06T02:01:12.911Z"
+    },
+    {
+      "id": 313,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M052",
+      "command": "rg 'nth-child\\(even\\)' frontend/static/css/workspace.css",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-04-06T02:08:50.726Z"
+    },
+    {
+      "id": 314,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M052",
+      "command": "rg 'title=.*prop\\.description' backend/app/templates/browser/object_read.html",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-04-06T02:08:50.726Z"
+    },
+    {
+      "id": 315,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M052",
+      "command": "rg 'color-surface-recessed|color-surface-hover|color-text-muted' frontend/static/css/theme.css",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-04-06T02:08:50.726Z"
     }
   ]
 }

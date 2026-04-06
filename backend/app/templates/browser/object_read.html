@@ -57,7 +57,7 @@
           {% set vals = read_values.get(prop.path, []) %}
           {% if vals %}
           <div class="property-row">
-            <div class="property-label">{{ prop.name }}</div>
+            <div class="property-label"{% if prop.description %} title="{{ prop.description }}"{% endif %}>{{ prop.name }}</div>
             <div class="property-value">
               {% if prop.target_class %}
                 {# Reference property: render as clickable pills with lazy popover #}

@@ -3606,19 +3606,33 @@ details.form-group[open] > .form-group-summary::before {
     background: var(--color-surface-raised);
     border-bottom: 1px solid var(--color-border);
     white-space: nowrap;
+    transition: background 0.15s ease;
 }
 
 .property-value {
     padding: 8px 12px;
     font-size: 0.85rem;
-    color: var(--color-text);
+    color: var(--color-text-muted);
     border-bottom: 1px solid var(--color-border);
     word-break: break-word;
+    transition: background 0.15s ease;
 }
 
 .property-row:last-child .property-label,
 .property-row:last-child .property-value {
     border-bottom: none;
+}
+
+/* Zebra striping — even rows get recessed background on both cells */
+.property-row:nth-child(even) .property-label,
+.property-row:nth-child(even) .property-value {
+    background: var(--color-surface-recessed);
+}
+
+/* Hover highlight — overrides both default and zebra backgrounds */
+.property-row:hover .property-label,
+.property-row:hover .property-value {
+    background: var(--color-surface-hover);
 }
 
 /* --- Reference Pills --- */

@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T02",
+  "unitId": "M052/S01/T02",
+  "timestamp": 1775440875537,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "grep -c 'kanban-card-priority' frontend/static/css/views.css",
+      "exitCode": 0,
+      "durationMs": 26,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -c 'kanban-card-meta' backend/app/templates/browser/kanban_view.html",
+      "exitCode": 0,
+      "durationMs": 27,
+      "verdict": "pass"
+    },
+    {
+      "command": "grep -c '_applyColumnColors' frontend/static/js/kanban.js",
+      "exitCode": 0,
+      "durationMs": 26,
+      "verdict": "pass"
+    }
+  ]
+}
