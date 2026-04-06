@@ -49,34 +49,6 @@ This file is the explicit capability and coverage contract for the project.
 - Primary owning slice: M054/S01
 - Validation: Create config with filter=Tasks, group=Status, sort=Due Date → explorer tree shows type-filtered objects grouped by status values with correct sort order. Unit tests prove SPARQL generation for multi-level configs.
 
-### R011 — Explorer configurations persist server-side and survive browser restart — users can create, name, update, and delete saved configs
-- Class: functional
-- Status: active
-- Description: Explorer configurations persist server-side and survive browser restart — users can create, name, update, and delete saved configs
-- Why it matters: localStorage-only storage loses configs on browser clear and isn't portable across devices. Server-side persistence follows the DashboardSpec pattern.
-- Source: M054
-- Primary owning slice: M054/S02
-- Supporting slices: M054/S01
-- Validation: Save a named config → close browser → reopen → config available in selector and renders correct tree. CRUD API returns proper responses.
-
-### R012 — Multiple OBJECTS explorer sections can be open simultaneously with different configurations
-- Class: functional
-- Status: active
-- Description: Multiple OBJECTS explorer sections can be open simultaneously with different configurations
-- Why it matters: Users need to compare objects across different views — e.g. Tasks by Status alongside Contacts by Company — without switching back and forth
-- Source: M054
-- Primary owning slice: M054/S02
-- Validation: Click Duplicate on OBJECTS section → second section appears with independent config → changing one doesn't affect the other. Both trees render correctly.
-
-### R013 — Existing explorer modes (by-type, hierarchy, by-tag) remain accessible as built-in presets after the composable config system replaces the mode dropdown
-- Class: functional
-- Status: active
-- Description: Existing explorer modes (by-type, hierarchy, by-tag) remain accessible as built-in presets after the composable config system replaces the mode dropdown
-- Why it matters: Backward compatibility — users who rely on the current modes shouldn't lose them. Presets also serve as examples for custom configs.
-- Source: M054
-- Primary owning slice: M054/S02
-- Validation: Config selector shows By Type, Hierarchy, By Tag as preset options. Selecting each produces the same tree as the current mode dropdown.
-
 ## Validated
 
 ### R001 — Non-object-contextual panels (inbox, collaboration) lazy-load on reveal rather than on page load — use hx-trigger="revealed" instead of hx-trigger="load"
@@ -126,6 +98,34 @@ This file is the explicit capability and coverage contract for the project.
 - Supporting slices: M053/S03
 - Validation: 5s httpx timeout with empty-list fallback. test_timeout_returns_empty_list and test_http_error_returns_empty_list prove graceful degradation. S03 check_updates() returns empty dict when disabled/unreachable. Validated in M053/S02/T02 + M053/S03/T01.
 
+### R011 — Explorer configurations persist server-side and survive browser restart — users can create, name, update, and delete saved configs
+- Class: functional
+- Status: validated
+- Description: Explorer configurations persist server-side and survive browser restart — users can create, name, update, and delete saved configs
+- Why it matters: localStorage-only storage loses configs on browser clear and isn't portable across devices. Server-side persistence follows the DashboardSpec pattern.
+- Source: M054
+- Primary owning slice: M054/S02
+- Supporting slices: M054/S01
+- Validation: 24 unit tests prove CRUD round-trip. Config selector loads from API, save persists via POST, reload restores from localStorage UUID reference. Validated in M054/S02.
+
+### R012 — Multiple OBJECTS explorer sections can be open simultaneously with different configurations
+- Class: functional
+- Status: validated
+- Description: Multiple OBJECTS explorer sections can be open simultaneously with different configurations
+- Why it matters: Users need to compare objects across different views — e.g. Tasks by Status alongside Contacts by Company — without switching back and forth
+- Source: M054
+- Primary owning slice: M054/S02
+- Validation: Duplicate creates independent section with own config state Map entry, tree body, and localStorage key. Close removes duplicate without affecting primary. Validated in M054/S02.
+
+### R013 — Existing explorer modes (by-type, hierarchy, by-tag) remain accessible as built-in presets after the composable config system replaces the mode dropdown
+- Class: functional
+- Status: validated
+- Description: Existing explorer modes (by-type, hierarchy, by-tag) remain accessible as built-in presets after the composable config system replaces the mode dropdown
+- Why it matters: Backward compatibility — users who rely on the current modes shouldn't lose them. Presets also serve as examples for custom configs.
+- Source: M054
+- Primary owning slice: M054/S02
+- Validation: Config selector shows By Type, By Tag as API-sourced presets (is_preset=True, seeded on startup) and Hierarchy as pseudo-preset with __hierarchy__ sentinel. Each renders correct tree. Validated in M054/S02.
+
 ## Traceability
 
 | ID | Class | Status | Primary owner | Supporting | Proof |
@@ -140,13 +140,13 @@ This file is the explicit capability and coverage contract for the project.
 | R008 | functional | active | M053/S02 | none | Clicking Install on an already-installed model shows appropriate error message. No duplicate data written. |
 | R009 | functional | active | M054/S01 | none | Explorer tree type nodes show human-readable labels (e.g. 'Task', 'Contact', 'Note') without suffixes. ShapesService.get_types() already strips suffixes — verify it's used in all tree rendering paths. |
 | R010 | functional | active | M054/S01 | none | Create config with filter=Tasks, group=Status, sort=Due Date → explorer tree shows type-filtered objects grouped by status values with correct sort order. Unit tests prove SPARQL generation for multi-level configs. |
-| R011 | functional | active | M054/S02 | M054/S01 | Save a named config → close browser → reopen → config available in selector and renders correct tree. CRUD API returns proper responses. |
-| R012 | functional | active | M054/S02 | none | Click Duplicate on OBJECTS section → second section appears with independent config → changing one doesn't affect the other. Both trees render correctly. |
-| R013 | functional | active | M054/S02 | none | Config selector shows By Type, Hierarchy, By Tag as preset options. Selecting each produces the same tree as the current mode dropdown. |
+| R011 | functional | validated | M054/S02 | M054/S01 | 24 unit tests prove CRUD round-trip. Config selector loads from API, save persists via POST, reload restores from localStorage UUID reference. Validated in M054/S02. |
+| R012 | functional | validated | M054/S02 | none | Duplicate creates independent section with own config state Map entry, tree body, and localStorage key. Close removes duplicate without affecting primary. Validated in M054/S02. |
+| R013 | functional | validated | M054/S02 | none | Config selector shows By Type, By Tag as API-sourced presets (is_preset=True, seeded on startup) and Hierarchy as pseudo-preset with __hierarchy__ sentinel. Each renders correct tree. Validated in M054/S02. |
 
 ## Coverage Summary
 
-- Active requirements: 8
-- Mapped to slices: 8
-- Validated: 5 (R001, R002, R004, R005, R006)
+- Active requirements: 5
+- Mapped to slices: 5
+- Validated: 8 (R001, R002, R004, R005, R006, R011, R012, R013)
 - Unmapped active requirements: 0
