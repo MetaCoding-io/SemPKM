@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T07:22:47.620Z",
+  "exported_at": "2026-04-06T07:25:14.909Z",
   "milestones": [
     {
       "id": "M001",
@@ -35044,19 +35044,26 @@
       "milestone_id": "M056",
       "slice_id": "S01",
       "id": "T02",
-      "title": "Restructure TBox pane layout with graph/tree toggle and bottom detail panel",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Restructured TBox pane from horizontal tree+detail split to vertical graph/tree view on top with toggle and detail panel on bottom",
+      "status": "complete",
+      "one_liner": "Restructured TBox pane from horizontal tree+detail split to vertical graph/tree view on top with toggle and detail panel on bottom",
+      "narrative": "Replaced the .tbox-split horizontal layout (tree left 320px, detail right) with .tbox-vertical-split vertical flex column. Top area contains a toolbar with graph/tree toggle buttons, a graph container (#tbox-graph for Cytoscape mounting in T03), and the existing tree container (hidden by default). Bottom area shows class details at 250px fixed height. Added toggleTboxView() JS function for switching views. Fixed JS selectors referencing removed .tbox-tree-pane class to use .tbox-tree-container.",
+      "verification_result": "All three task-level grep checks pass (tbox-graph in template, toggleTboxView in template, tbox-vertical-split in CSS). Slice-level pytest 16/16 tests pass. No stale class name references remain.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-06T07:25:14.870Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "Fixed JS selectors referencing removed .tbox-tree-pane class — updated to .tbox-tree-container for tree node highlighting and delegated click handler.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/templates/browser/ontology/ontology_page.html",
+        "frontend/static/css/workspace.css"
+      ],
+      "key_decisions": [
+        "Graph view is default/primary; tree view hidden via display:none toggle",
+        "window._tboxCy convention for Cytoscape instance reference across toggle",
+        "Detail panel fixed at 250px height with border-top separator"
+      ],
+      "full_summary_md": "---\nid: T02\nparent: S01\nmilestone: M056\nkey_files:\n  - backend/app/templates/browser/ontology/ontology_page.html\n  - frontend/static/css/workspace.css\nkey_decisions:\n  - Graph view is default/primary; tree view hidden via display:none toggle\n  - window._tboxCy convention for Cytoscape instance reference across toggle\n  - Detail panel fixed at 250px height with border-top separator\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T07:25:14.870Z\nblocker_discovered: false\n---\n\n# T02: Restructured TBox pane from horizontal tree+detail split to vertical graph/tree view on top with toggle and detail panel on bottom\n\n**Restructured TBox pane from horizontal tree+detail split to vertical graph/tree view on top with toggle and detail panel on bottom**\n\n## What Happened\n\nReplaced the .tbox-split horizontal layout (tree left 320px, detail right) with .tbox-vertical-split vertical flex column. Top area contains a toolbar with graph/tree toggle buttons, a graph container (#tbox-graph for Cytoscape mounting in T03), and the existing tree container (hidden by default). Bottom area shows class details at 250px fixed height. Added toggleTboxView() JS function for switching views. Fixed JS selectors referencing removed .tbox-tree-pane class to use .tbox-tree-container.\n\n## Verification\n\nAll three task-level grep checks pass (tbox-graph in template, toggleTboxView in template, tbox-vertical-split in CSS). Slice-level pytest 16/16 tests pass. No stale class name references remain.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `grep -q 'tbox-graph' ... && grep -q 'toggleTboxView' ... && grep -q 'tbox-vertical-split' ... && echo 'PASS'` | 0 | ✅ pass | 50ms |\n| 2 | `cd backend && .venv/bin/python -m pytest tests/test_ontology_graph.py -v` | 0 | ✅ pass | 500ms |\n\n## Deviations\n\nFixed JS selectors referencing removed .tbox-tree-pane class — updated to .tbox-tree-container for tree node highlighting and delegated click handler.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/templates/browser/ontology/ontology_page.html`\n- `frontend/static/css/workspace.css`\n",
       "description": "Rework the TBox pane in `ontology_page.html` from horizontal split (tree left + detail right) to a vertical layout: graph/tree view area on top with a toggle button, detail panel on bottom. The graph view is the primary view per D406.\n\n## Steps\n\n1. Read `backend/app/templates/browser/ontology/ontology_page.html` — understand current TBox pane structure\n2. Read workspace.css lines 563-900 — understand current ontology CSS\n3. Restructure the `#ontology-tbox` pane in `ontology_page.html`:\n   - Replace `.tbox-split` (horizontal) with a new `.tbox-vertical-split` (vertical flex column)\n   - Top area: `.tbox-main-view` containing:\n     - A small toolbar with graph/tree toggle button (graph active by default)\n     - `.tbox-graph-container` div (visible by default) — empty div with `id=\"tbox-graph\"` for Cytoscape to mount into\n     - `.tbox-tree-container` div (hidden by default) — wraps the existing tree scroll + filter bar content\n   - Bottom area: `.tbox-detail-pane` (same as existing, just moves to bottom)\n   - The toggle button uses `data-view=\"graph\"` / `data-view=\"tree\"` to switch visibility\n4. Add a `toggleTboxView(btn, viewName)` function in the `<script>` block that:\n   - Shows/hides `.tbox-graph-container` and `.tbox-tree-container`\n   - Updates toggle button active state\n   - On switching to graph: if Cytoscape instance exists, calls `cy.resize()` to recalculate dimensions\n5. Add CSS in `frontend/static/css/workspace.css` for:\n   - `.tbox-vertical-split` — flex column, height 100%\n   - `.tbox-main-view` — flex: 1, min-height: 0, position relative\n   - `.tbox-graph-container` — width 100%, height 100%, position absolute (fills the main view area)\n   - `.tbox-tree-container` — same dimensions, hidden by default\n   - `.tbox-view-toggle` — small button group in toolbar\n   - `.tbox-detail-pane` — adjust for bottom position (height ~250px, border-top, overflow-y auto)\n6. Ensure the \"Hide gist\" checkbox and existing tree htmx triggers still work when tree view is visible\n7. Ensure all existing modals (create/edit/delete class, property) still work — they are positioned via `.ccf-overlay` which is absolute/fixed, so layout changes shouldn't affect them\n\n## Must-Haves\n\n- [ ] Graph view is the default/primary view when TBox tab loads\n- [ ] Toggle button switches between graph and tree views\n- [ ] Bottom detail panel shows \"Select a class to view its details\" placeholder by default\n- [ ] Existing tree functionality (expand/collapse, hide gist filter, lazy-load children) works when tree is shown\n- [ ] Graph container has id=\"tbox-graph\" for Cytoscape mounting\n- [ ] Graph container fills 100% width and height of the main view area\n- [ ] All existing modals (create class, create property, edit, delete) still function\n\n## Verification\n\n- `grep -q 'tbox-graph' backend/app/templates/browser/ontology/ontology_page.html` confirms graph container exists\n- `grep -q 'toggleTboxView' backend/app/templates/browser/ontology/ontology_page.html` confirms toggle function exists\n- `grep -q 'tbox-vertical-split' frontend/static/css/workspace.css` confirms new layout CSS exists\n- Visual check: open Ontology Viewer → TBox tab shows graph container area (empty until T03 wires JS) and toggle button",
       "estimate": "30m",
       "files": [
@@ -44323,6 +44330,28 @@
       "verdict": "✅ pass",
       "duration_ms": 500,
       "created_at": "2026-04-06T07:22:47.570Z"
+    },
+    {
+      "id": 395,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M056",
+      "command": "grep -q 'tbox-graph' ... && grep -q 'toggleTboxView' ... && grep -q 'tbox-vertical-split' ... && echo 'PASS'",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 50,
+      "created_at": "2026-04-06T07:25:14.870Z"
+    },
+    {
+      "id": 396,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M056",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_ontology_graph.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 500,
+      "created_at": "2026-04-06T07:25:14.870Z"
     }
   ]
 }

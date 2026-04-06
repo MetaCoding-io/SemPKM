@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T01",
+  "unitId": "M056/S01/T01",
+  "timestamp": 1775460172066,
+  "passed": false,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "cd backend",
+      "exitCode": 0,
+      "durationMs": 24,
+      "verdict": "pass"
+    },
+    {
+      "command": ".venv/bin/python -m pytest tests/test_ontology_graph.py -v",
+      "exitCode": 127,
+      "durationMs": 22,
+      "verdict": "fail"
+    }
+  ],
+  "retryAttempt": 1,
+  "maxRetries": 2
+}

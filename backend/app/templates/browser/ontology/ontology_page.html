@@ -91,24 +91,53 @@
   </div>
 
   <div class="ontology-tab-content">
-    {# TBox: split into tree (left) and detail (right) #}
+    {# TBox: vertical split — graph/tree view on top, detail panel on bottom #}
     <div id="ontology-tbox" class="ontology-pane ontology-pane--active" data-testid="tbox-tree">
-      <div class="tbox-split">
-        <div class="tbox-tree-pane">
-          <div class="tbox-filter-bar">
+      <div class="tbox-vertical-split">
+        {# Top: main view area with toolbar + graph/tree #}
+        <div class="tbox-main-view">
+          <div class="tbox-view-toolbar">
+            <div class="tbox-view-toggle" data-testid="tbox-view-toggle">
+              <button class="tbox-toggle-btn tbox-toggle-btn--active"
+                      data-view="graph"
+                      data-testid="tbox-toggle-graph"
+                      onclick="toggleTboxView(this, 'graph')"
+                      title="Graph view">
+                <i data-lucide="git-branch"></i> Graph
+              </button>
+              <button class="tbox-toggle-btn"
+                      data-view="tree"
+                      data-testid="tbox-toggle-tree"
+                      onclick="toggleTboxView(this, 'tree')"
+                      title="Tree view">
+                <i data-lucide="list-tree"></i> Tree
+              </button>
+            </div>
+            {# Hide gist filter — visible in both views #}
             <label class="tbox-filter-toggle" title="Show only your mental model classes">
               <input type="checkbox" id="tbox-hide-gist" onchange="toggleGistFilter(this.checked)">
               <span class="tbox-filter-label">Hide gist</span>
             </label>
           </div>
-          <div class="tbox-tree-scroll"
-               id="tbox-tree-content"
-               hx-get="/browser/ontology/tbox"
-               hx-trigger="load, classCreated from:body, classDeleted from:body, classEdited from:body"
-               hx-swap="innerHTML">
-            <div class="ontology-loading">Loading TBox…</div>
+
+          {# Graph view — visible by default #}
+          <div class="tbox-graph-container" id="tbox-graph-container" data-testid="tbox-graph-container">
+            <div id="tbox-graph" style="width:100%;height:100%;"></div>
+          </div>
+
+          {# Tree view — hidden by default #}
+          <div class="tbox-tree-container" id="tbox-tree-container" style="display:none;" data-testid="tbox-tree-container">
+            <div class="tbox-tree-scroll"
+                 id="tbox-tree-content"
+                 hx-get="/browser/ontology/tbox"
+                 hx-trigger="load, classCreated from:body, classDeleted from:body, classEdited from:body"
+                 hx-swap="innerHTML">
+              <div class="ontology-loading">Loading TBox…</div>
+            </div>
           </div>
         </div>
+
+        {# Bottom: detail panel #}
         <div class="tbox-detail-pane" id="tbox-detail">
           <div class="tbox-detail-empty">
             <span class="tbox-detail-empty-icon">◆</span>
@@ -296,17 +325,44 @@ function loadClassDetail(iri) {
   if (!detail) return;
 
   // Highlight selected node
-  var nodes = document.querySelectorAll('.tbox-tree-pane .tbox-node');
+  var nodes = document.querySelectorAll('.tbox-tree-container .tbox-node');
   for (var i = 0; i < nodes.length; i++) {
     nodes[i].classList.remove('tbox-node--selected');
   }
   // Find and highlight the clicked node
-  var clicked = document.querySelector('.tbox-tree-pane [data-iri="' + CSS.escape(iri) + '"]');
+  var clicked = document.querySelector('.tbox-tree-container [data-iri="' + CSS.escape(iri) + '"]');
   if (clicked) clicked.classList.add('tbox-node--selected');
 
   // Load detail via htmx
   detail.innerHTML = '<div class="ontology-loading">Loading…</div>';
   htmx.ajax('GET', '/browser/ontology/tbox/detail?iri=' + encodeURIComponent(iri), {target: '#tbox-detail', swap: 'innerHTML'});
+}
+
+// Toggle between graph and tree views in the TBox pane
+function toggleTboxView(btn, viewName) {
+  var graphContainer = document.getElementById('tbox-graph-container');
+  var treeContainer = document.getElementById('tbox-tree-container');
+  if (!graphContainer || !treeContainer) return;
+
+  // Update toggle button active state
+  var toggleBtns = btn.parentElement.querySelectorAll('.tbox-toggle-btn');
+  for (var i = 0; i < toggleBtns.length; i++) {
+    toggleBtns[i].classList.remove('tbox-toggle-btn--active');
+  }
+  btn.classList.add('tbox-toggle-btn--active');
+
+  if (viewName === 'graph') {
+    graphContainer.style.display = '';
+    treeContainer.style.display = 'none';
+    // Resize Cytoscape if it exists — it needs recalculation after display change
+    if (window._tboxCy) {
+      window._tboxCy.resize();
+      window._tboxCy.fit();
+    }
+  } else {
+    graphContainer.style.display = 'none';
+    treeContainer.style.display = '';
+  }
 }
 
 // Toggle gist class visibility in the TBox tree.
@@ -324,7 +380,7 @@ function toggleGistFilter(hideGist) {
 
   document.addEventListener('click', function(e) {
     // Only handle clicks inside the TBox tree pane
-    if (!treePane) treePane = document.querySelector('.tbox-tree-pane');
+    if (!treePane) treePane = document.querySelector('.tbox-tree-container');
     if (!treePane || !treePane.contains(e.target)) return;
 
     var node = e.target.closest('.tbox-node');

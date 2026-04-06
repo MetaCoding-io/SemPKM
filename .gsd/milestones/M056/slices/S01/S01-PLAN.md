@@ -54,7 +54,7 @@
   - Estimate: 45m
   - Files: backend/app/ontology/service.py, backend/app/ontology/router.py, backend/tests/test_ontology_graph.py
   - Verify: cd backend && .venv/bin/python -m pytest tests/test_ontology_graph.py -v
-- [ ] **T02: Restructure TBox pane layout with graph/tree toggle and bottom detail panel** — Rework the TBox pane in `ontology_page.html` from horizontal split (tree left + detail right) to a vertical layout: graph/tree view area on top with a toggle button, detail panel on bottom. The graph view is the primary view per D406.
+- [x] **T02: Restructured TBox pane from horizontal tree+detail split to vertical graph/tree view on top with toggle and detail panel on bottom** — Rework the TBox pane in `ontology_page.html` from horizontal split (tree left + detail right) to a vertical layout: graph/tree view area on top with a toggle button, detail panel on bottom. The graph view is the primary view per D406.
 
 ## Steps
 
