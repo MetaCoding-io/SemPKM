@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T03:09:03.683Z",
+  "exported_at": "2026-04-06T03:21:07.621Z",
   "milestones": [
     {
       "id": "M001",
@@ -8446,14 +8446,14 @@
       "milestone_id": "M053",
       "id": "S01",
       "title": "Auto-Discover Bundled Models",
-      "status": "pending",
+      "status": "complete",
       "risk": "low",
       "depends": [],
       "demo": "Admin → Mental Models shows available bundled models as clickable cards. Click Install on one → model installs without typing a path.",
       "created_at": "2026-04-06T02:58:01.960Z",
-      "completed_at": null,
-      "full_summary_md": "",
-      "full_uat_md": "",
+      "completed_at": "2026-04-06T03:10:52.874Z",
+      "full_summary_md": "---\nid: S01\nparent: M053\nmilestone: M053\nprovides:\n  - scan_available_models() function for discovering bundled models\n  - Available-models card grid UI pattern for S02 marketplace extension\n  - model_table block structure that includes both available and installed sections\nrequires:\n  []\naffects:\n  - S02\nkey_files:\n  - backend/app/admin/router.py\n  - backend/app/templates/admin/models.html\n  - frontend/static/css/style.css\nkey_decisions:\n  - Available-models section placed inside model_table Jinja2 block so htmx partial swaps update both available and installed sections atomically\n  - Original text-input install form preserved as collapsed details fallback for advanced users\n  - type_count derived from distinct icon types in manifest rather than parsing ontology files\npatterns_established:\n  - scan_available_models() pattern: scan directory → parse manifests → filter installed → return metadata dicts\n  - Card grid with htmx one-click install: hidden input carries model path, hx-target swaps encompassing block\nobservability_surfaces:\n  - Structured log: 'Scanned %s: found %d available models' on each admin page load\ndrill_down_paths:\n  - .gsd/milestones/M053/slices/S01/tasks/T01-SUMMARY.md\n  - .gsd/milestones/M053/slices/S01/tasks/T02-SUMMARY.md\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-04-06T03:10:52.875Z\nblocker_discovered: false\n---\n\n# S01: Auto-Discover Bundled Models\n\n**Admin Mental Models page now auto-discovers bundled models from /app/models/ and displays them as installable cards with one-click install.**\n\n## What Happened\n\nAdded `scan_available_models()` to `backend/app/admin/router.py` that scans a directory for subdirectories containing valid `manifest.yaml` files, parses each manifest, filters out already-installed models, and returns metadata dicts (model_id, name, description, version, path, type_count, icon_count). Wired the function into all four admin model routes (list, install, remove, refresh-artifacts) so the template always has current `available_models` context.\n\nRestructured the admin Mental Models template to display uninstalled bundled models as styled cards in a responsive CSS grid. Each card shows model name, version badge, line-clamped description, and type/icon counts. Install button triggers htmx POST to the existing install endpoint with the model path as a hidden input. The available-models section lives inside the `model_table` Jinja2 block so htmx partial swaps after install/remove update both available and installed sections atomically. The original text-input install form is preserved as a collapsed `<details>` fallback for advanced path-based installs.\n\nCSS follows the existing `upper-ontology-card` pattern using theme tokens and `color-mix()` for decorative tints. Responsive grid scales from 1 column on mobile to 3 on desktop.\n\n## Verification\n\n- `scan_available_models` import check: PASS\n- Functional test: discovers all 8 bundled models with correct metadata: PASS\n- Filtering: installed models excluded from available list: PASS\n- Empty/invalid directory handling: returns empty list, no crash: PASS\n- Template parse: Jinja2 loads without error: PASS\n- Template structure: available-models-grid inside model_table block: PASS\n- CSS: all new rules use theme tokens, zero hardcoded hex values: PASS\n- htmx attributes: install button POSTs to correct endpoint with model path: PASS\n\n## Requirements Advanced\n\nNone.\n\n## Requirements Validated\n\nNone.\n\n## New Requirements Surfaced\n\nNone.\n\n## Requirements Invalidated or Re-scoped\n\nNone.\n\n## Deviations\n\nscan_available_models also wired into admin_models_refresh_artifacts() route for consistency (not in original plan but logical). Install form kept as collapsed details element instead of fully removed.\n\n## Known Limitations\n\nThe /app/models path is hardcoded at each call site in the routes (not a config variable). Scan reads from filesystem on every page load — no caching. Both are acceptable for the admin page's low traffic.\n\n## Follow-ups\n\nS02 will add marketplace registry (remote models). The available-models section established here is the UI pattern that S02 will extend with a \"Browse Marketplace\" section for cloud-hosted models.\n\n## Files Created/Modified\n\n- `backend/app/admin/router.py` — Added scan_available_models() function and wired into all 4 admin model routes\n- `backend/app/templates/admin/models.html` — Added available-models card grid inside model_table block, collapsed original install form into details element\n- `frontend/static/css/style.css` — Added responsive card grid and card component styles using theme tokens\n",
+      "full_uat_md": "# S01: Auto-Discover Bundled Models — UAT\n\n**Milestone:** M053\n**Written:** 2026-04-06T03:10:52.875Z\n\n# S01 UAT: Auto-Discover Bundled Models\n\n## Preconditions\n- SemPKM running with Docker stack (`docker compose up -d`)\n- At least one Mental Model NOT installed (e.g., fresh instance or after uninstalling a model)\n- Logged in as admin user\n\n## Test 1: Available Models Display\n1. Navigate to Admin → Mental Models (`/admin/models`)\n2. **Expected:** An \"Available Models\" section appears showing cards for each bundled model not yet installed\n3. Each card shows: model name (bold), version badge (e.g., \"v2.2.0\"), description (truncated if long), type count, icon count\n4. Cards are in a responsive grid — resize browser to verify 1→2→3 column layout\n\n## Test 2: One-Click Install\n1. On the Mental Models page, locate a model card (e.g., \"Zettelkasten+\")\n2. Click the \"Install\" button on the card\n3. **Expected:** The page updates (htmx swap) — the installed model appears in the installed models table AND the card disappears from the Available Models section\n4. Navigate to the workspace explorer — the model's types should appear\n\n## Test 3: Uninstall Restores Availability\n1. In the installed models table, click Remove on a previously installed model\n2. **Expected:** The model reappears as a card in the Available Models section after the htmx swap\n\n## Test 4: All Models Installed State\n1. Install all available bundled models\n2. **Expected:** The Available Models section shows \"All bundled models are installed.\" empty state message\n\n## Test 5: Advanced Install Fallback\n1. On the Mental Models page, look for \"Install from path…\" collapsed section below the available models\n2. Click to expand it\n3. **Expected:** The original text-input form appears with a path field and Install button\n4. This form accepts arbitrary filesystem paths for models not in /app/models/\n\n## Test 6: Malformed Model Directory Tolerance\n1. (Requires filesystem access) Create a directory in /app/models/ with no manifest.yaml\n2. Reload Admin → Mental Models\n3. **Expected:** The page loads normally — the invalid directory is silently skipped, other models display correctly\n\n## Edge Cases\n- **No bundled models directory:** If /app/models/ doesn't exist, the Available Models section shows empty state (no crash)\n- **Concurrent install:** Two browser tabs installing the same model — second install should show an error or the model already installed\n",
       "goal": "Admin → Mental Models page auto-discovers bundled models from /app/models/ and displays them as installable cards with one-click install.",
       "success_criteria": "- Available (not-yet-installed) bundled models appear as cards on the Admin → Mental Models page\n- Each card shows name, description, version, and type count from the manifest\n- Clicking Install on a card installs the model without typing a path\n- Already-installed models do not appear in the available section\n- After installing, the card disappears from available and appears in the installed table",
       "proof_level": "integration — the full flow from page load → discovery → card display → one-click install → UI refresh is exercised",
@@ -8476,11 +8476,11 @@
       "completed_at": null,
       "full_summary_md": "",
       "full_uat_md": "",
-      "goal": "Full marketplace install flow: registry client, archive download with security, writable model directory, browse UI, offline fallback",
-      "success_criteria": "RegistryService fetches and caches registry.json. Downloads verified by SHA-256. Tarfile extraction rejects path traversal. Models install to /app/data/models/. refresh_artifacts() searches both model directories. Marketplace UI shows catalog with install buttons. Offline fallback shows graceful error.",
-      "proof_level": "contract + integration + operational",
-      "integration_closure": "All /app/models/ hardcoded paths updated to search /app/data/models/ too. Marketplace install uses same ModelService.install() pipeline as S01.",
-      "observability_impact": "Download progress logging, registry fetch timing, hash verification results in ops log",
+      "goal": "Cloud-hosted model registry so users can browse and install Mental Models from a remote marketplace. Full pipeline: fetch registry catalog → download archive → SHA-256 verify → tarfile extract with bomb/traversal protection → install via existing ModelService.install(). Installed marketplace models fully functional (icons, refresh-artifacts, entailment defaults).",
+      "success_criteria": "- `validate_tar_contents()` rejects path traversal, symlinks, tar bombs, and oversized archives\n- `MarketplaceRegistryService` fetches and caches remote `registry.json`, downloads archives, verifies SHA-256 before extraction\n- All outbound HTTP calls guarded by `validate_outbound_url()` (SSRF protection)\n- Admin UI shows \"Browse Marketplace\" section with model cards loaded lazily from registry\n- One-click Install downloads, verifies, extracts, and installs model via existing pipeline\n- Duplicate install shows error message (R003/R008)\n- Registry unreachable: 5s timeout, graceful fallback, app continues working (R006)\n- Install progress visible via htmx indicator (R007)\n- `resolve_model_dir()` utility searches both `/app/models/` and `/app/data/models/` — refresh_artifacts, _load_entailment_defaults, and IconService use it\n- Unit tests pass for tar_validator and registry service",
+      "proof_level": "Integration — registry service unit-tested with mocked httpx; tar validator unit-tested with real archives; end-to-end wiring verified by template parse and endpoint structure",
+      "integration_closure": "- Upstream: `ModelService.install(Path)` is the clean boundary — marketplace pipeline produces a Path, calls install()\n- Upstream: `scan_available_models()` from S01 provides the card grid UI pattern\n- New wiring: `MarketplaceRegistryService` created at startup, stored on `app.state.registry_service`\n- New wiring: `resolve_model_dir()` replaces hardcoded `/app/models/{id}` in 3 critical call sites\n- Remaining: S03 will add version checking and update badges on top of this registry infrastructure",
+      "observability_impact": "- Structured logs: registry fetch success/failure with timing, download progress, hash verification results\n- Failure visibility: registry errors logged with URL and timeout details; hash mismatch logged with expected vs actual\n- Inspection: `app.state.registry_service._cache` holds last-fetched catalog for debugging",
       "sequence": 0,
       "replan_triggered_at": null
     },
@@ -33923,6 +33923,144 @@
       "observability_impact": "",
       "full_plan_md": "",
       "sequence": 0
+    },
+    {
+      "milestone_id": "M053",
+      "slice_id": "S02",
+      "id": "T01",
+      "title": "Created tar_validator.py with six security checks and safe_extract() using Python 3.12 data_filter, with 33 passing unit tests",
+      "status": "complete",
+      "one_liner": "Created tar_validator.py with six security checks and safe_extract() using Python 3.12 data_filter, with 33 passing unit tests",
+      "narrative": "Adapted the existing zip_validator.py pattern to create tar_validator.py with two public functions: validate_tar_contents() (inspects tar members for absolute paths, .. traversal, symlinks, hardlinks, size bombs, file count, compression ratio) and safe_extract() (validates then extracts using tarfile data_filter for defense-in-depth). Tar format lacks per-entry compressed sizes so the ratio check uses archive-level heuristic. Wrote 33 unit tests across 10 classes covering all rejection criteria, happy paths, boundary conditions, corrupt archives, and error message quality.",
+      "verification_result": "Ran `cd backend && .venv/bin/python -m pytest tests/test_tar_validator.py -v` — 33 tests passed in 0.31s. All six rejection criteria verified, safe_extract confirmed using data_filter, negative tests all pass.",
+      "duration": "",
+      "completed_at": "2026-04-06T03:21:07.580Z",
+      "blocker_discovered": false,
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/security/tar_validator.py",
+        "backend/tests/test_tar_validator.py"
+      ],
+      "key_decisions": [
+        "Archive-level compression ratio heuristic (tar lacks per-entry compressed sizes)",
+        "Corrupt archives wrapped as ValueError for consistent caller error handling"
+      ],
+      "full_summary_md": "---\nid: T01\nparent: S02\nmilestone: M053\nkey_files:\n  - backend/app/security/tar_validator.py\n  - backend/tests/test_tar_validator.py\nkey_decisions:\n  - Archive-level compression ratio heuristic (tar lacks per-entry compressed sizes)\n  - Corrupt archives wrapped as ValueError for consistent caller error handling\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T03:21:07.579Z\nblocker_discovered: false\n---\n\n# T01: Created tar_validator.py with six security checks and safe_extract() using Python 3.12 data_filter, with 33 passing unit tests\n\n**Created tar_validator.py with six security checks and safe_extract() using Python 3.12 data_filter, with 33 passing unit tests**\n\n## What Happened\n\nAdapted the existing zip_validator.py pattern to create tar_validator.py with two public functions: validate_tar_contents() (inspects tar members for absolute paths, .. traversal, symlinks, hardlinks, size bombs, file count, compression ratio) and safe_extract() (validates then extracts using tarfile data_filter for defense-in-depth). Tar format lacks per-entry compressed sizes so the ratio check uses archive-level heuristic. Wrote 33 unit tests across 10 classes covering all rejection criteria, happy paths, boundary conditions, corrupt archives, and error message quality.\n\n## Verification\n\nRan `cd backend && .venv/bin/python -m pytest tests/test_tar_validator.py -v` — 33 tests passed in 0.31s. All six rejection criteria verified, safe_extract confirmed using data_filter, negative tests all pass.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python -m pytest tests/test_tar_validator.py -v` | 0 | ✅ pass | 310ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/security/tar_validator.py`\n- `backend/tests/test_tar_validator.py`\n",
+      "description": "Create `backend/app/security/tar_validator.py` adapting the existing `validate_zip_contents()` pattern for tar.gz archives. Must reject: path traversal (absolute paths, `..` components), symlinks, tar bombs (oversized archives, excessive file count, suspicious compression ratios). Use Python 3.12's `tarfile.data_filter` for safe extraction semantics.\n\nAlso create comprehensive unit tests at `backend/tests/test_tar_validator.py` following the pattern of `test_zip_validator.py`.\n\n## Steps\n\n1. Read `backend/app/security/zip_validator.py` for the pattern — adapt the three-check structure (total size, file count, per-entry ratio) plus add tarfile-specific checks (path traversal, symlinks, absolute paths)\n2. Create `backend/app/security/tar_validator.py` with `validate_tar_contents(tar_path, *, max_uncompressed_mb=2048, max_files=50000, max_ratio=100) -> None` that raises `ValueError` on any failure. Also add `safe_extract(tar_path, dest_dir)` that validates then extracts using `tarfile.data_filter`\n3. Checks to implement:\n   - Total uncompressed size (sum of member.size) vs max_uncompressed_mb\n   - File count vs max_files\n   - Per-entry compression ratio (member.size / tar file size * member count approximation) — tar doesn't have per-entry compressed size like zip, so use total archive size / member count as heuristic\n   - Reject members with absolute paths (`member.name.startswith('/')`)\n   - Reject members with `..` path components (`'..' in member.name.split('/')`)\n   - Reject symlinks (`member.issym()`) and hardlinks (`member.islnk()`)\n4. Create `backend/tests/test_tar_validator.py` with tests for: valid archive passes, path traversal rejected, absolute paths rejected, symlinks rejected, oversized archive rejected, too many files rejected, empty archive passes, custom limits\n5. Run tests to confirm all pass\n\n## Must-Haves\n\n- [x] `validate_tar_contents()` rejects path traversal via `..` components\n- [x] `validate_tar_contents()` rejects absolute paths\n- [x] `validate_tar_contents()` rejects symlinks and hardlinks\n- [x] `validate_tar_contents()` rejects tar bombs (size, count)\n- [x] `safe_extract()` uses `tarfile.data_filter` for Python 3.12+ safe extraction\n- [x] Unit tests cover all rejection criteria and happy path\n\n## Verification\n\n- `cd backend && python -m pytest tests/test_tar_validator.py -v` — all tests pass\n\n## Negative Tests\n\n- Path traversal: archive with `../../etc/passwd` member → ValueError\n- Absolute path: archive with `/etc/passwd` member → ValueError\n- Symlink: archive with symlink member → ValueError\n- Oversized: archive exceeding max_uncompressed_mb → ValueError\n- Too many files: archive exceeding max_files → ValueError\n- Empty archive: passes validation (zero files is valid)\n\n## Failure Modes\n\n| Dependency | On error | On timeout | On malformed response |\n|------------|----------|-----------|----------------------|\n| Filesystem (tar file) | ValueError with descriptive message | N/A | ValueError — corrupt tar raises tarfile.ReadError, caught and re-raised as ValueError |",
+      "estimate": "45m",
+      "files": [
+        "backend/app/security/tar_validator.py",
+        "backend/tests/test_tar_validator.py"
+      ],
+      "verify": "cd backend && python -m pytest tests/test_tar_validator.py -v",
+      "inputs": [
+        "backend/app/security/zip_validator.py",
+        "backend/tests/test_zip_validator.py"
+      ],
+      "expected_output": [
+        "backend/app/security/tar_validator.py",
+        "backend/tests/test_tar_validator.py"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M053",
+      "slice_id": "S02",
+      "id": "T02",
+      "title": "Implement MarketplaceRegistryService with fetch, cache, download, and SHA-256 verification",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Create `backend/app/services/marketplace.py` with a `MarketplaceRegistryService` class that fetches a remote `registry.json`, caches it with a configurable TTL, downloads model archives, verifies SHA-256 hashes, and extracts to a target directory using the tar validator from T01. Also add config fields and create a `resolve_model_dir()` utility. Write unit tests with mocked httpx.\n\n## Steps\n\n1. Add two new config fields to `backend/app/config.py`:\n   - `marketplace_registry_url: str = \"\"` (empty = marketplace disabled)\n   - `marketplace_models_dir: str = \"/app/data/models\"`\n2. Create `backend/app/models/paths.py` with `resolve_model_dir(model_id: str, extra_dirs: list[str] | None = None) -> Path | None` that searches `/app/models/` then `/app/data/models/` (and any extra_dirs) for a directory containing `manifest.yaml`\n3. Create `backend/app/services/marketplace.py` with `MarketplaceRegistryService`:\n   - `__init__(self, registry_url: str, models_data_dir: Path)` — store URL, data dir, init cache fields\n   - `async def fetch_catalog(self) -> list[dict]` — fetch registry.json via httpx with 5s timeout, cache for 1 hour. On network error: log warning, return empty list. Call `validate_outbound_url()` on registry URL before fetch.\n   - `async def download_and_install(self, model_id: str, model_service, user_id) -> dict` — find model in cached catalog, download archive URL (with `validate_outbound_url()`), compute SHA-256 of downloaded bytes and compare to registry manifest hash, extract to tempdir via `safe_extract()`, call `model_service.install(extracted_path, user_id)`, move extracted dir to `models_data_dir/model_id/` on success, clean up tempdir in finally block\n   - Registry JSON schema: `{\"models\": [{\"id\": str, \"name\": str, \"version\": str, \"description\": str, \"archive_url\": str, \"sha256\": str, \"size_bytes\": int, \"tags\": [str]}]}`\n4. Create `backend/tests/test_marketplace_service.py` with tests:\n   - Catalog fetch: mock httpx response → returns parsed models list\n   - Catalog cache: second call within TTL returns cached result without HTTP call\n   - Catalog fetch failure: mock httpx timeout → returns empty list, no crash\n   - Download + verify: mock archive download → SHA-256 matches → extraction succeeds\n   - SHA-256 mismatch: mock download with wrong content → ValueError raised before extraction\n   - SSRF guard: verify `validate_outbound_url()` is called (mock it to raise → confirm no HTTP call made)\n   - Empty registry URL: service disabled, `fetch_catalog()` returns empty list immediately\n5. Run tests\n\n## Must-Haves\n\n- [x] `validate_outbound_url()` called before every httpx request (R004)\n- [x] SHA-256 hash verified before extraction (R005)\n- [x] 5s timeout on registry fetch with graceful empty-list fallback (R006)\n- [x] `resolve_model_dir()` searches both bundled and downloaded model directories\n- [x] Registry response cached with 1-hour TTL\n- [x] Tempdir cleanup in finally block — no leaked files on failure\n- [x] Unit tests cover happy path, cache, timeout, hash mismatch, SSRF guard\n\n## Verification\n\n- `cd backend && python -m pytest tests/test_marketplace_service.py -v` — all tests pass\n\n## Failure Modes\n\n| Dependency | On error | On timeout | On malformed response |\n|------------|----------|-----------|----------------------|\n| Registry HTTP (catalog) | Log warning, return empty list | 5s httpx timeout, return empty list | Log warning for missing fields, return empty list |\n| Archive HTTP (download) | ValueError with descriptive message | 30s httpx timeout, ValueError | ValueError — corrupt download caught by SHA-256 mismatch |\n| Tar extraction | ValueError from tar_validator | N/A | ValueError — corrupt tar handled by tarfile module |\n| Filesystem (tempdir) | OSError propagated | N/A | N/A |\n\n## Observability Impact\n\n- Structured logs: `registry.fetch` with URL, status, model count, duration\n- Structured logs: `registry.download` with model_id, size, hash verification result\n- Failure state: log warning on network errors with URL and exception type",
+      "estimate": "1h",
+      "files": [
+        "backend/app/services/marketplace.py",
+        "backend/app/config.py",
+        "backend/app/models/paths.py",
+        "backend/tests/test_marketplace_service.py"
+      ],
+      "verify": "cd backend && python -m pytest tests/test_marketplace_service.py -v",
+      "inputs": [
+        "backend/app/security/tar_validator.py",
+        "backend/app/security/ssrf.py",
+        "backend/app/config.py",
+        "backend/app/services/models.py"
+      ],
+      "expected_output": [
+        "backend/app/services/marketplace.py",
+        "backend/app/config.py",
+        "backend/app/models/paths.py",
+        "backend/tests/test_marketplace_service.py"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M053",
+      "slice_id": "S02",
+      "id": "T03",
+      "title": "Wire admin endpoints, marketplace UI, model path resolution, and startup integration",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Add admin endpoints for marketplace catalog and install, wire `MarketplaceRegistryService` into app startup, update model path resolution call sites, and extend the admin models template with a Browse Marketplace section.\n\n## Steps\n\n1. **Startup wiring** in `backend/app/main.py`:\n   - Import `MarketplaceRegistryService` from `app.services.marketplace`\n   - After model_service creation, create `MarketplaceRegistryService(settings.marketplace_registry_url, Path(settings.marketplace_models_dir))`\n   - Store on `app.state.registry_service`\n   - Ensure `Path(settings.marketplace_models_dir)` directory exists (`os.makedirs(..., exist_ok=True)`)\n\n2. **Model path resolution** — update 3 critical call sites to search both directories:\n   - `backend/app/services/models.py` line ~616 in `refresh_artifacts()`: replace `Path(f\"/app/models/{model_id}\")` with `resolve_model_dir(model_id)` from `app.models.paths`. If None, return error.\n   - `backend/app/admin/router.py` `_load_entailment_defaults()` line ~1074: replace `os.path.join(\"/app/models\", model_id, ...)` with `resolve_model_dir(model_id)` lookup. If None, return defaults.\n   - `backend/app/services/icons.py` `IconService._build_cache()`: update to scan BOTH `/app/models/` and settings `marketplace_models_dir`. Accept a list of model directories or add a second scan loop.\n\n3. **Admin endpoints** in `backend/app/admin/router.py`:\n   - Add `GET /admin/models/marketplace` endpoint that fetches catalog from `request.app.state.registry_service`, cross-references with installed model IDs, renders a marketplace partial template\n   - Add `POST /admin/models/marketplace-install` endpoint with `model_id: str = Form(...)` that calls `registry_service.download_and_install(model_id, model_service, user.id)`, returns updated model table partial. On success, invalidate ViewSpec cache. On failure, return error in context.\n   - Both endpoints require `owner` role\n\n4. **Admin template** `backend/app/templates/admin/models.html`:\n   - Add a \"Browse Marketplace\" section between the Available Models grid and Installed Models table\n   - Use htmx lazy loading: `<div hx-get=\"/admin/models/marketplace\" hx-trigger=\"load\" hx-swap=\"innerHTML\">Loading marketplace…</div>`\n   - Create marketplace partial template at `backend/app/templates/admin/_marketplace.html` that renders marketplace model cards:\n     - Card grid using same `.available-model-card` CSS pattern from S01\n     - Each card shows: name, version badge, description, size badge, tag pills\n     - Install button: htmx POST to `/admin/models/marketplace-install` with hidden model_id input, `hx-target=\"#model-table\"`, `hx-indicator` for loading state (R007)\n     - \"Already installed\" badge if model_id matches an installed model (R003/R008)\n   - Show error message when registry is unreachable: \"Marketplace unavailable. Check your internet connection.\"\n\n5. **CSS additions** in `frontend/static/css/style.css`:\n   - Add marketplace-specific badge styles (size badge, tag pills) using theme tokens and `color-mix()` per project convention\n   - Reuse the `.available-model-card` and `.available-models-grid` classes from S01 for consistency\n\n6. **Verify** the template renders without Jinja2 errors and endpoints exist in the router\n\n## Must-Haves\n\n- [x] `MarketplaceRegistryService` created at startup and stored on `app.state.registry_service`\n- [x] `/app/data/models/` directory ensured to exist at startup\n- [x] `refresh_artifacts()` finds models in both `/app/models/` and `/app/data/models/`\n- [x] `_load_entailment_defaults()` finds models in both directories\n- [x] `IconService` scans both model directories\n- [x] `GET /admin/models/marketplace` returns marketplace cards from registry\n- [x] `POST /admin/models/marketplace-install` downloads, verifies, extracts, installs model\n- [x] Install button shows loading indicator during operation (R007)\n- [x] Already-installed models show badge instead of install button (R003/R008)\n- [x] Registry failure shows graceful error message, does not crash (R006)\n- [x] Template uses theme tokens, no hardcoded hex values\n\n## Verification\n\n- `cd backend && python -c \"from app.admin.router import router; from app.services.marketplace import MarketplaceRegistryService; from app.models.paths import resolve_model_dir; print('imports OK')\"` — imports succeed\n- `cd backend && python -c \"from jinja2 import Environment, FileSystemLoader; env = Environment(loader=FileSystemLoader('app/templates')); env.get_template('admin/models.html'); env.get_template('admin/_marketplace.html'); print('templates OK')\"` — templates parse\n- `rg 'resolve_model_dir' backend/app/services/models.py backend/app/admin/router.py` — confirms call sites updated\n- `rg '#[0-9a-fA-F]{3,8}\\b' frontend/static/css/style.css | grep -v 'var(' | wc -l` — zero hardcoded hex values outside theme references",
+      "estimate": "1h15m",
+      "files": [
+        "backend/app/main.py",
+        "backend/app/admin/router.py",
+        "backend/app/services/models.py",
+        "backend/app/services/icons.py",
+        "backend/app/templates/admin/models.html",
+        "backend/app/templates/admin/_marketplace.html",
+        "frontend/static/css/style.css"
+      ],
+      "verify": "cd backend && python -c \"from app.admin.router import router; from app.services.marketplace import MarketplaceRegistryService; from app.models.paths import resolve_model_dir; print('imports OK')\" && python -c \"from jinja2 import Environment, FileSystemLoader; env = Environment(loader=FileSystemLoader('app/templates')); env.get_template('admin/models.html'); env.get_template('admin/_marketplace.html'); print('templates OK')\"",
+      "inputs": [
+        "backend/app/services/marketplace.py",
+        "backend/app/security/tar_validator.py",
+        "backend/app/models/paths.py",
+        "backend/app/config.py",
+        "backend/app/main.py",
+        "backend/app/admin/router.py",
+        "backend/app/services/models.py",
+        "backend/app/services/icons.py",
+        "backend/app/templates/admin/models.html",
+        "frontend/static/css/style.css"
+      ],
+      "expected_output": [
+        "backend/app/main.py",
+        "backend/app/admin/router.py",
+        "backend/app/services/models.py",
+        "backend/app/services/icons.py",
+        "backend/app/templates/admin/models.html",
+        "backend/app/templates/admin/_marketplace.html",
+        "frontend/static/css/style.css"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
     }
   ],
   "decisions": [
@@ -38701,6 +38839,18 @@
       "revisable": "Yes — add model signing when community-submitted models are supported",
       "made_by": "agent",
       "superseded_by": null
+    },
+    {
+      "seq": 434,
+      "id": "D399",
+      "when_context": "M053/S02 planning",
+      "scope": "architecture",
+      "decision": "Model directory resolution approach for marketplace models",
+      "choice": "Shared `resolve_model_dir()` utility in `backend/app/models/paths.py` searching [/app/models/, /app/data/models/] in order, used by the 3 critical call sites (refresh_artifacts, _load_entailment_defaults, IconService). S01 bundled-model scan call sites stay hardcoded to /app/models/ since they only need bundled models.",
+      "rationale": "S02 scope requires only that marketplace-installed models work end-to-end (install → icons load → refresh artifacts → entailment defaults). The auto-discover scan in S01 correctly scans only bundled models — marketplace models appear in the \"Installed\" table, not the \"Available\" cards section. Minimum viable change is 3 call sites + IconService, not all 10+ references to /app/models/.",
+      "revisable": "Yes",
+      "made_by": "agent",
+      "superseded_by": null
     }
   ],
   "verification_evidence": [
@@ -42421,6 +42571,17 @@
       "verdict": "✅ pass",
       "duration_ms": 300,
       "created_at": "2026-04-06T03:09:03.593Z"
+    },
+    {
+      "id": 339,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M053",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_tar_validator.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 310,
+      "created_at": "2026-04-06T03:21:07.580Z"
     }
   ]
 }

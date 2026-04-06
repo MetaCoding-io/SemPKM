@@ -10,6 +10,10 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
+**Active milestone:** M053 — Model Marketplace (in progress)
+
+S01 complete: Admin → Mental Models page auto-discovers bundled models from /app/models/ and displays them as installable cards with one-click install. `scan_available_models()` scans for valid manifests, filters already-installed models, and returns metadata. Responsive card grid with htmx one-click install replaces the old text-input form (preserved as collapsed fallback). Next: S02 adds remote marketplace registry for cloud-hosted models.
+
 **Last completed milestone:** M052 — UI Design System & Polish Pass (2026-04-06)
 
 Established consistent visual identity across the Object Browser workspace. Kanban cards enriched with priority badges, due dates, and type icons via SHACL-driven `_detect_enrichment_fields()`; columns have keyword-based status color accents. Property tables have zebra striping with hover highlights and sh:description tooltips. Type badges show Lucide icons with per-type color accents. Active tabs visually distinct with bold weight, 3px accent bar, and box-shadow. View explorer uses 9 colored Lucide icons per renderer replacing Unicode glyphs. Body editor collapsed from dual light/dark CM6 themes to single CSS-var-driven definition. Form section headers have primary-color accent bars with raised backgrounds. Timeline bars show four status colors (done/active/blocked/cancelled). Right panel shows helpful empty state with info icon. 15 files changed, 708 insertions, 33/33 kanban tests pass.
@@ -20,7 +24,7 @@ Fixed six workspace interaction paper-cuts: global dropdown dismiss/escape via n
 
 **Previous milestone:** M050 — View System Rework (2026-04-05)
 
-Replaced the 37-pill type bar with renderer-filtered smart dropdowns across all 11 view templates, removed the confusing View Variants concept, fixed calendar dark mode nav icons via FC6 custom properties, added timeline popover dismiss on Escape/click-outside, and repaired the save/restore view flow with E2E coverage. Key additions: `get_compatible_types()` on ViewSpecService reuses SHACL introspection to filter types by renderer compatibility, `type_filter_dropdown.html` partial, `openGenericViewTab()` selectedType parameter for saved view restoration.
+Replaced the 37-pill type bar with renderer-filtered smart dropdowns across all 11 view templates, removed the confusing View Variants concept, fixed calendar dark mode nav icons via FC6 custom properties, added timeline popover dismiss on Escape/click-outside, and repaired the save/restore view flow with E2E coverage.
 
 **Previous milestone:** M049 — Backend Performance & Observability (2026-04-05)
 
