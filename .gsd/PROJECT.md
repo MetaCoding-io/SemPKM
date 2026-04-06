@@ -10,17 +10,17 @@ Install a Mental Model and immediately create, browse, and explore structured kn
 
 ## Current State
 
-**Last completed milestone:** M050 — View System Rework (2026-04-05)
+**Last completed milestone:** M051 — Workspace UX Improvements (2026-04-06)
+
+Fixed six workspace interaction paper-cuts: global dropdown dismiss/escape via new `dropdown-dismiss.js` (click-outside, Escape, position:fixed repositioning escaping dockview overflow), stripped ' Shape' suffix from explorer type labels at the backend, replaced stale event log placeholder, enriched VFS mount dropdown with human-readable model titles, added object tab refresh button, fixed command palette scroll jump, replaced fragile shadow-DOM persona/layout input hacks with reusable `showInputDialog()` using native `<dialog>`, and fixed admin graph popover positioning. 10 files changed, 388 insertions.
+
+**Previous milestone:** M050 — View System Rework (2026-04-05)
 
 Replaced the 37-pill type bar with renderer-filtered smart dropdowns across all 11 view templates, removed the confusing View Variants concept, fixed calendar dark mode nav icons via FC6 custom properties, added timeline popover dismiss on Escape/click-outside, and repaired the save/restore view flow with E2E coverage. Key additions: `get_compatible_types()` on ViewSpecService reuses SHACL introspection to filter types by renderer compatibility, `type_filter_dropdown.html` partial, `openGenericViewTab()` selectedType parameter for saved view restoration.
 
 **Previous milestone:** M049 — Backend Performance & Observability (2026-04-05)
 
 Eliminated the sequential SPARQL query waterfall in object tab loads (3→1 queries, 5→1 label batches, asyncio.gather parallelization), added OpenTelemetry distributed tracing with Jaeger v2 backend, and built Server-Timing headers plus an admin performance dashboard with p50/p95/p99 percentile charts. 70 new tests. R001 (lazy-loaded panels) validated.
-
-**Previous milestone:** M048 — Critical Bug Fixes (2026-04-05)
-
-Fixed five showstopper bugs: broken Table/Cards view rendering (missing SPARQL PREFIX declarations in reconstructed queries), phantom save events (save now diff-based — only changed properties generate events), missing delete UI (toolbar + command palette + explorer hover with inbound edge cleanup), absent creation timestamps (auto-injected dcterms:created/modified on object creation), and Docker fresh-volume deploy failures (entrypoint script, consolidated lucene volume, triplestore readiness polling). 45 new unit tests across 4 test files.
 
 ## Architecture
 

@@ -792,3 +792,13 @@ Dockview uses `contain: layout` on `.dv-grid-view.dv-dockview`. This CSS propert
 **CSS properties that create containing blocks for fixed elements:** `contain` (any value except `none`), `transform` (any value except `none`), `will-change: transform`, `filter` (any value except `none`), `perspective` (any value except `none`).
 
 **Affected file:** `frontend/static/js/dropdown-dismiss.js`
+
+### Click-outside dismiss: use mousedown, not click
+
+**Discovered:** M051/S01/T01
+
+For dismiss-on-click-outside patterns (dropdowns, popovers, modals), use `document.addEventListener('mousedown', handler)` instead of `click`. The `mousedown` event fires before the browser moves focus — so the dropdown clears before the click target receives focus. With `click`, the dropdown is still open when focus shifts to the click target, which can cause focus-trapping issues where the dropdown steals focus back.
+
+**Pattern:** `dropdown-dismiss.js` uses document-level `mousedown` to dismiss all `.suggestions-dropdown` elements. The handler checks `e.target.closest('.suggestions-dropdown, .reference-field, .tag-autocomplete-field')` to avoid dismissing when the click is inside the dropdown or its associated input wrapper.
+
+**Affected file:** `frontend/static/js/dropdown-dismiss.js`
