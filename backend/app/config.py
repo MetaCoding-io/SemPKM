@@ -85,6 +85,11 @@ class Settings(BaseSettings):
     # Empty string means FCM is disabled (no-op mode).
     firebase_credentials_path: str = ""
 
+    # Marketplace — remote model registry
+    # Empty URL means marketplace is disabled.
+    marketplace_registry_url: str = ""
+    marketplace_models_dir: str = "/app/data/models"
+
     # PostHog analytics and error monitoring
     # Set posthog_enabled=True for cloud deployments; leave False for self-hosted
     posthog_enabled: bool = False

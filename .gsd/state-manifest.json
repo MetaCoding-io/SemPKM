@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T03:21:07.621Z",
+  "exported_at": "2026-04-06T03:24:47.020Z",
   "milestones": [
     {
       "id": "M001",
@@ -33970,19 +33970,27 @@
       "milestone_id": "M053",
       "slice_id": "S02",
       "id": "T02",
-      "title": "Implement MarketplaceRegistryService with fetch, cache, download, and SHA-256 verification",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Created MarketplaceRegistryService with catalog caching, SSRF-guarded HTTP, SHA-256 archive verification, and safe extraction — 21 unit tests passing",
+      "status": "complete",
+      "one_liner": "Created MarketplaceRegistryService with catalog caching, SSRF-guarded HTTP, SHA-256 archive verification, and safe extraction — 21 unit tests passing",
+      "narrative": "Built MarketplaceRegistryService in backend/app/services/marketplace.py with fetch_catalog() (5s timeout, 1-hour monotonic cache, empty-list fallback on any error) and download_and_install() (SSRF guard, SHA-256 verification, safe_extract from T01, tempdir cleanup in finally). Added resolve_model_dir() utility in backend/app/models/paths.py searching bundled and downloaded model directories. Added marketplace_registry_url and marketplace_models_dir config fields. 21 unit tests cover happy path, caching, TTL expiry, timeout, HTTP errors, malformed JSON, disabled service, SSRF guard on both catalog and archive, SHA-256 mismatch, missing manifest, empty hash skip, and path resolution.",
+      "verification_result": "All 21 marketplace service tests pass. All 33 tar validator tests from T01 still pass. Total 54 tests passing across both test files.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-06T03:24:46.976Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "httpx.Response mock required request= parameter for raise_for_status() — added _mock_response() test helper. Test-only adaptation, no code change.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/services/marketplace.py",
+        "backend/app/models/paths.py",
+        "backend/tests/test_marketplace_service.py",
+        "backend/app/config.py"
+      ],
+      "key_decisions": [
+        "Empty sha256 in catalog skips hash verification to support unsigned models during development",
+        "Archive manifest discovery uses rglob to handle both root-level and nested directory structures in tar archives"
+      ],
+      "full_summary_md": "---\nid: T02\nparent: S02\nmilestone: M053\nkey_files:\n  - backend/app/services/marketplace.py\n  - backend/app/models/paths.py\n  - backend/tests/test_marketplace_service.py\n  - backend/app/config.py\nkey_decisions:\n  - Empty sha256 in catalog skips hash verification to support unsigned models during development\n  - Archive manifest discovery uses rglob to handle both root-level and nested directory structures in tar archives\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T03:24:46.976Z\nblocker_discovered: false\n---\n\n# T02: Created MarketplaceRegistryService with catalog caching, SSRF-guarded HTTP, SHA-256 archive verification, and safe extraction — 21 unit tests passing\n\n**Created MarketplaceRegistryService with catalog caching, SSRF-guarded HTTP, SHA-256 archive verification, and safe extraction — 21 unit tests passing**\n\n## What Happened\n\nBuilt MarketplaceRegistryService in backend/app/services/marketplace.py with fetch_catalog() (5s timeout, 1-hour monotonic cache, empty-list fallback on any error) and download_and_install() (SSRF guard, SHA-256 verification, safe_extract from T01, tempdir cleanup in finally). Added resolve_model_dir() utility in backend/app/models/paths.py searching bundled and downloaded model directories. Added marketplace_registry_url and marketplace_models_dir config fields. 21 unit tests cover happy path, caching, TTL expiry, timeout, HTTP errors, malformed JSON, disabled service, SSRF guard on both catalog and archive, SHA-256 mismatch, missing manifest, empty hash skip, and path resolution.\n\n## Verification\n\nAll 21 marketplace service tests pass. All 33 tar validator tests from T01 still pass. Total 54 tests passing across both test files.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python -m pytest tests/test_marketplace_service.py -v` | 0 | ✅ pass | 360ms |\n| 2 | `cd backend && .venv/bin/python -m pytest tests/test_tar_validator.py -v` | 0 | ✅ pass | 290ms |\n\n## Deviations\n\nhttpx.Response mock required request= parameter for raise_for_status() — added _mock_response() test helper. Test-only adaptation, no code change.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/services/marketplace.py`\n- `backend/app/models/paths.py`\n- `backend/tests/test_marketplace_service.py`\n- `backend/app/config.py`\n",
       "description": "Create `backend/app/services/marketplace.py` with a `MarketplaceRegistryService` class that fetches a remote `registry.json`, caches it with a configurable TTL, downloads model archives, verifies SHA-256 hashes, and extracts to a target directory using the tar validator from T01. Also add config fields and create a `resolve_model_dir()` utility. Write unit tests with mocked httpx.\n\n## Steps\n\n1. Add two new config fields to `backend/app/config.py`:\n   - `marketplace_registry_url: str = \"\"` (empty = marketplace disabled)\n   - `marketplace_models_dir: str = \"/app/data/models\"`\n2. Create `backend/app/models/paths.py` with `resolve_model_dir(model_id: str, extra_dirs: list[str] | None = None) -> Path | None` that searches `/app/models/` then `/app/data/models/` (and any extra_dirs) for a directory containing `manifest.yaml`\n3. Create `backend/app/services/marketplace.py` with `MarketplaceRegistryService`:\n   - `__init__(self, registry_url: str, models_data_dir: Path)` — store URL, data dir, init cache fields\n   - `async def fetch_catalog(self) -> list[dict]` — fetch registry.json via httpx with 5s timeout, cache for 1 hour. On network error: log warning, return empty list. Call `validate_outbound_url()` on registry URL before fetch.\n   - `async def download_and_install(self, model_id: str, model_service, user_id) -> dict` — find model in cached catalog, download archive URL (with `validate_outbound_url()`), compute SHA-256 of downloaded bytes and compare to registry manifest hash, extract to tempdir via `safe_extract()`, call `model_service.install(extracted_path, user_id)`, move extracted dir to `models_data_dir/model_id/` on success, clean up tempdir in finally block\n   - Registry JSON schema: `{\"models\": [{\"id\": str, \"name\": str, \"version\": str, \"description\": str, \"archive_url\": str, \"sha256\": str, \"size_bytes\": int, \"tags\": [str]}]}`\n4. Create `backend/tests/test_marketplace_service.py` with tests:\n   - Catalog fetch: mock httpx response → returns parsed models list\n   - Catalog cache: second call within TTL returns cached result without HTTP call\n   - Catalog fetch failure: mock httpx timeout → returns empty list, no crash\n   - Download + verify: mock archive download → SHA-256 matches → extraction succeeds\n   - SHA-256 mismatch: mock download with wrong content → ValueError raised before extraction\n   - SSRF guard: verify `validate_outbound_url()` is called (mock it to raise → confirm no HTTP call made)\n   - Empty registry URL: service disabled, `fetch_catalog()` returns empty list immediately\n5. Run tests\n\n## Must-Haves\n\n- [x] `validate_outbound_url()` called before every httpx request (R004)\n- [x] SHA-256 hash verified before extraction (R005)\n- [x] 5s timeout on registry fetch with graceful empty-list fallback (R006)\n- [x] `resolve_model_dir()` searches both bundled and downloaded model directories\n- [x] Registry response cached with 1-hour TTL\n- [x] Tempdir cleanup in finally block — no leaked files on failure\n- [x] Unit tests cover happy path, cache, timeout, hash mismatch, SSRF guard\n\n## Verification\n\n- `cd backend && python -m pytest tests/test_marketplace_service.py -v` — all tests pass\n\n## Failure Modes\n\n| Dependency | On error | On timeout | On malformed response |\n|------------|----------|-----------|----------------------|\n| Registry HTTP (catalog) | Log warning, return empty list | 5s httpx timeout, return empty list | Log warning for missing fields, return empty list |\n| Archive HTTP (download) | ValueError with descriptive message | 30s httpx timeout, ValueError | ValueError — corrupt download caught by SHA-256 mismatch |\n| Tar extraction | ValueError from tar_validator | N/A | ValueError — corrupt tar handled by tarfile module |\n| Filesystem (tempdir) | OSError propagated | N/A | N/A |\n\n## Observability Impact\n\n- Structured logs: `registry.fetch` with URL, status, model count, duration\n- Structured logs: `registry.download` with model_id, size, hash verification result\n- Failure state: log warning on network errors with URL and exception type",
       "estimate": "1h",
       "files": [
@@ -42582,6 +42590,28 @@
       "verdict": "✅ pass",
       "duration_ms": 310,
       "created_at": "2026-04-06T03:21:07.580Z"
+    },
+    {
+      "id": 340,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M053",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_marketplace_service.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 360,
+      "created_at": "2026-04-06T03:24:46.977Z"
+    },
+    {
+      "id": 341,
+      "task_id": "T02",
+      "slice_id": "S02",
+      "milestone_id": "M053",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_tar_validator.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 290,
+      "created_at": "2026-04-06T03:24:46.977Z"
     }
   ]
 }

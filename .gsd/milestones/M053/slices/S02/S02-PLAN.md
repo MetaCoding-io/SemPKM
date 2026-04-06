@@ -52,7 +52,7 @@ Also create comprehensive unit tests at `backend/tests/test_tar_validator.py` fo
   - Estimate: 45m
   - Files: backend/app/security/tar_validator.py, backend/tests/test_tar_validator.py
   - Verify: cd backend && python -m pytest tests/test_tar_validator.py -v
-- [ ] **T02: Implement MarketplaceRegistryService with fetch, cache, download, and SHA-256 verification** — Create `backend/app/services/marketplace.py` with a `MarketplaceRegistryService` class that fetches a remote `registry.json`, caches it with a configurable TTL, downloads model archives, verifies SHA-256 hashes, and extracts to a target directory using the tar validator from T01. Also add config fields and create a `resolve_model_dir()` utility. Write unit tests with mocked httpx.
+- [x] **T02: Created MarketplaceRegistryService with catalog caching, SSRF-guarded HTTP, SHA-256 archive verification, and safe extraction — 21 unit tests passing** — Create `backend/app/services/marketplace.py` with a `MarketplaceRegistryService` class that fetches a remote `registry.json`, caches it with a configurable TTL, downloads model archives, verifies SHA-256 hashes, and extracts to a target directory using the tar validator from T01. Also add config fields and create a `resolve_model_dir()` utility. Write unit tests with mocked httpx.
 
 ## Steps
 
