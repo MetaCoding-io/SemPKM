@@ -49,6 +49,42 @@ This file is the explicit capability and coverage contract for the project.
 - Primary owning slice: M054/S01
 - Validation: Create config with filter=Tasks, group=Status, sort=Due Date → explorer tree shows type-filtered objects grouped by status values with correct sort order. Unit tests prove SPARQL generation for multi-level configs.
 
+### R014 — Closed tab recovery — Ctrl+Shift+T reopens the last closed tab, and "Reopen Closed Tab" is available in the command palette
+- Class: functional
+- Status: active
+- Description: Closed tab recovery — Ctrl+Shift+T reopens the last closed tab, and "Reopen Closed Tab" is available in the command palette
+- Why it matters: Accidentally closing a tab is a common user error. Every IDE and browser provides Ctrl+Shift+T. The workspace should match this convention.
+- Source: M055
+- Primary owning slice: M055/S02
+- Validation: Close a tab → Ctrl+Shift+T → tab reopens with same content. F1 → "Reopen Closed Tab" → same result.
+
+### R015 — URL reflects active tab — URL updates with ?tab= query parameter when user switches between object tabs in the workspace
+- Class: functional
+- Status: active
+- Description: URL reflects active tab — URL updates with ?tab= query parameter when user switches between object tabs in the workspace
+- Why it matters: Users expect the URL to reflect application state for bookmarking and sharing
+- Source: M055
+- Primary owning slice: M055/S01
+- Validation: Open object A → URL shows ?tab=A → open object B → URL shows ?tab=B
+
+### R016 — Bookmarkable URLs — pasting a workspace URL containing ?tab= opens the correct object tab on page load
+- Class: functional
+- Status: active
+- Description: Bookmarkable URLs — pasting a workspace URL containing ?tab= opens the correct object tab on page load
+- Why it matters: Bookmarks and shared links are core web affordances that must work
+- Source: M055
+- Primary owning slice: M055/S01
+- Validation: Copy URL with ?tab=iri → open in new browser tab → workspace loads with that object tab open and focused
+
+### R017 — Closed tab recovery — Ctrl+Shift+T reopens last closed tab and command palette offers Reopen Closed Tab action
+- Class: functional
+- Status: active
+- Description: Closed tab recovery — Ctrl+Shift+T reopens last closed tab and command palette offers Reopen Closed Tab action
+- Why it matters: Accidental tab close is a common error; every IDE and browser provides undo-close-tab
+- Source: M055
+- Primary owning slice: M055/S02
+- Validation: Close a tab → Ctrl+Shift+T → tab reopens. F1 → "Reopen Closed Tab" → same result.
+
 ## Validated
 
 ### R001 — Non-object-contextual panels (inbox, collaboration) lazy-load on reveal rather than on page load — use hx-trigger="revealed" instead of hx-trigger="load"
@@ -124,7 +160,7 @@ This file is the explicit capability and coverage contract for the project.
 - Why it matters: Backward compatibility — users who rely on the current modes shouldn't lose them. Presets also serve as examples for custom configs.
 - Source: M054
 - Primary owning slice: M054/S02
-- Validation: Config selector shows By Type, By Tag as API-sourced presets (is_preset=True, seeded on startup) and Hierarchy as pseudo-preset with __hierarchy__ sentinel. Each renders correct tree. Validated in M054/S02.
+- Validation: Config selector shows By Type, By Tag as API-sourced presets and Hierarchy as pseudo-preset with __hierarchy__ sentinel. Each renders correct tree (composable config for By Type/Tag, legacy endpoint for Hierarchy). Validated in M054/S02.
 
 ## Traceability
 
@@ -142,11 +178,15 @@ This file is the explicit capability and coverage contract for the project.
 | R010 | functional | active | M054/S01 | none | Create config with filter=Tasks, group=Status, sort=Due Date → explorer tree shows type-filtered objects grouped by status values with correct sort order. Unit tests prove SPARQL generation for multi-level configs. |
 | R011 | functional | validated | M054/S02 | M054/S01 | 24 unit tests prove CRUD round-trip. Config selector loads from API, save persists via POST, reload restores from localStorage UUID reference. Validated in M054/S02. |
 | R012 | functional | validated | M054/S02 | none | Duplicate creates independent section with own config state Map entry, tree body, and localStorage key. Close removes duplicate without affecting primary. Validated in M054/S02. |
-| R013 | functional | validated | M054/S02 | none | Config selector shows By Type, By Tag as API-sourced presets (is_preset=True, seeded on startup) and Hierarchy as pseudo-preset with __hierarchy__ sentinel. Each renders correct tree. Validated in M054/S02. |
+| R013 | functional | validated | M054/S02 | none | Config selector shows By Type, By Tag as API-sourced presets and Hierarchy as pseudo-preset with __hierarchy__ sentinel. Each renders correct tree (composable config for By Type/Tag, legacy endpoint for Hierarchy). Validated in M054/S02. |
+| R014 | functional | active | M055/S02 | none | Close a tab → Ctrl+Shift+T → tab reopens with same content. F1 → "Reopen Closed Tab" → same result. |
+| R015 | functional | active | M055/S01 | none | Open object A → URL shows ?tab=A → open object B → URL shows ?tab=B |
+| R016 | functional | active | M055/S01 | none | Copy URL with ?tab=iri → open in new browser tab → workspace loads with that object tab open and focused |
+| R017 | functional | active | M055/S02 | none | Close a tab → Ctrl+Shift+T → tab reopens. F1 → "Reopen Closed Tab" → same result. |
 
 ## Coverage Summary
 
-- Active requirements: 5
-- Mapped to slices: 5
+- Active requirements: 9
+- Mapped to slices: 9
 - Validated: 8 (R001, R002, R004, R005, R006, R011, R012, R013)
 - Unmapped active requirements: 0

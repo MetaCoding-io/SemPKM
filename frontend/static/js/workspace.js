@@ -571,8 +571,10 @@
       panelState.open = true;
       panelState.activeTab = 'sparql';
       savePanelState();
-      // Clean up URL
-      history.replaceState({}, '', window.location.pathname);
+      // Clean up URL — remove only ?panel=, preserve other params (e.g. ?tab=)
+      var cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete('panel');
+      history.replaceState({}, '', cleanUrl.pathname + (cleanUrl.search || ''));
     }
 
     _applyPanelState();
@@ -2971,8 +2973,11 @@
     if (window.location.hash === '#ontology-viewer' && typeof openOntologyTab === 'function') {
       // Small delay to ensure dockview is fully initialized
       setTimeout(function() { openOntologyTab(); }, 100);
-      // Clean hash from URL
-      if (history.replaceState) history.replaceState(null, '', window.location.pathname);
+      // Clean hash from URL — preserve search params (e.g. ?tab=)
+      if (history.replaceState) {
+        var noHashUrl = window.location.pathname + (window.location.search || '');
+        history.replaceState(null, '', noHashUrl);
+      }
     }
 
     // --- Explorer config: composable filter/group/sort system ---

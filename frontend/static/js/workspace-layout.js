@@ -34,6 +34,14 @@
   // Tab metadata sidecar: { [panelId]: { label, dirty, typeIcon, typeColor } }
   var _tabMeta = {};
 
+  // Guard flag: when true, onDidActivePanelChange skips pushState.
+  // Set by the popstate handler to prevent re-pushing state when navigating history.
+  var _navigatingFromHistory = false;
+
+  // Suppresses pushState until layout restore is complete, preventing
+  // history entries from being created during dv.fromJSON().
+  var _historyReady = false;
+
 
   // -----------------------------------------------------------------------
   // WorkspaceLayout class (minimal metadata sidecar)
@@ -372,6 +380,13 @@
       }
       if (layout) layout.activeGroupId = groupId;
 
+      // Update URL to reflect active tab (skip ephemeral create-form tabs)
+      if (_historyReady && !_navigatingFromHistory && !panel.id.startsWith('__new-object-')) {
+        var url = new URL(window.location.href);
+        url.searchParams.set('tab', panel.id);
+        history.pushState({ tabId: panel.id }, '', url.pathname + url.search);
+      }
+
       // Apply type-aware tab accent color per-group (not container-level)
       var meta = _tabMeta[panel.id];
       var accentColor = (meta && meta.typeColor) ? meta.typeColor : '';
@@ -436,6 +451,43 @@
     layout._dv = dv;
     window.SemPKM._workspaceLayout = layout;
     window.SemPKM._tabMeta = _tabMeta;
+
+    // ---- History API: popstate handler for back/forward navigation ----
+    window.addEventListener('popstate', function (e) {
+      var state = e.state;
+      if (!state || !state.tabId) {
+        // No tab in state — might be the initial empty state or a non-tab entry.
+        // Remove ?tab= from the URL if present (user went back past all tabs).
+        var curUrl = new URL(window.location.href);
+        if (curUrl.searchParams.has('tab')) {
+          curUrl.searchParams.delete('tab');
+          history.replaceState(null, '', curUrl.pathname + (curUrl.search || ''));
+        }
+        return;
+      }
+      var panel = dv.getGroupPanel(state.tabId);
+      if (panel) {
+        _navigatingFromHistory = true;
+        panel.api.setActive();
+        _navigatingFromHistory = false;
+      } else {
+        // Panel was closed — clean up stale ?tab= from URL
+        var url = new URL(window.location.href);
+        url.searchParams.delete('tab');
+        history.replaceState(null, '', url.pathname + (url.search || ''));
+      }
+    });
+
+    // ---- Enable history tracking now that layout restore is complete ----
+    _historyReady = true;
+
+    // Set initial history state via replaceState (not pushState) so the current
+    // active tab is recorded without adding a new history entry.
+    if (dv.activePanel && !dv.activePanel.id.startsWith('__new-object-')) {
+      var initUrl = new URL(window.location.href);
+      initUrl.searchParams.set('tab', dv.activePanel.id);
+      history.replaceState({ tabId: dv.activePanel.id }, '', initUrl.pathname + initUrl.search);
+    }
   }
 
   // -----------------------------------------------------------------------

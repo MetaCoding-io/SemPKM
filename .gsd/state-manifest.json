@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T05:38:10.003Z",
+  "exported_at": "2026-04-06T06:08:05.965Z",
   "milestones": [
     {
       "id": "M001",
@@ -2073,22 +2073,62 @@
     },
     {
       "id": "M055",
-      "title": "",
+      "title": "Browser History & Tab Recovery",
       "status": "active",
       "depends_on": [],
       "created_at": "2026-04-05T17:38:45.585Z",
       "completed_at": null,
-      "vision": "",
-      "success_criteria": [],
-      "key_risks": [],
-      "proof_strategy": [],
-      "verification_contract": "",
-      "verification_integration": "",
-      "verification_operational": "",
-      "verification_uat": "",
-      "definition_of_done": [],
-      "requirement_coverage": "",
-      "boundary_map_markdown": ""
+      "vision": "Make the workspace URL reflect the active tab, enable browser back/forward navigation between tabs, support bookmarkable/shareable URLs, and add closed-tab recovery via Ctrl+Shift+T and command palette.",
+      "success_criteria": [
+        "Open object A → URL shows ?tab=A → open object B → URL shows ?tab=B → press back → A is focused → URL shows A → press forward → B focused → URL shows B",
+        "Copy URL while viewing object A → open in new browser tab → object A opens in workspace",
+        "Close a tab → Ctrl+Shift+T → tab reopens with same content",
+        "F1 → type 'Reopen Closed Tab' → last closed tab reopens"
+      ],
+      "key_risks": [
+        {
+          "risk": "pushState/popstate loop — activating a panel from popstate triggers onDidActivePanelChange which pushes state again",
+          "whyItMatters": "Causes infinite history entries and breaks back/forward navigation entirely"
+        },
+        {
+          "risk": "Deep link timing — ?tab= param must be processed after dockview layout restore completes",
+          "whyItMatters": "Opening a tab before layout restore may cause duplicates or errors in dockview"
+        },
+        {
+          "risk": "Panel metadata availability at close time — onDidRemovePanel may fire after panel is disposed",
+          "whyItMatters": "Closed tab stack needs component type, params, and title to reopen correctly"
+        }
+      ],
+      "proof_strategy": [
+        {
+          "riskOrUnknown": "pushState/popstate loop",
+          "retireIn": "S01",
+          "whatWillBeProven": "Guard flag (_navigatingFromHistory) prevents re-push during popstate-driven activation. Manual test: open A → open B → back → forward cycles cleanly without history explosion."
+        },
+        {
+          "riskOrUnknown": "Deep link timing",
+          "retireIn": "S01",
+          "whatWillBeProven": "Page load with ?tab= param opens correct tab after layout restore. Tested by navigating to /browser/?tab=<iri> in browser."
+        },
+        {
+          "riskOrUnknown": "Panel metadata at close time",
+          "retireIn": "S02",
+          "whatWillBeProven": "Closed tab stack captures correct metadata from _tabMeta before panel disposal. Verified by close → reopen → same content."
+        }
+      ],
+      "verification_contract": "Unit-level: guard flag prevents pushState during popstate-driven activation. Tab metadata captured correctly in closed-tab stack.",
+      "verification_integration": "Browser verification: open multiple objects → back/forward cycles URL and focus correctly. Copy URL → paste in new tab → correct object opens. Close → Ctrl+Shift+T → reopens.",
+      "verification_operational": "N/A — no server-side operational concerns. Pure client-side feature.",
+      "verification_uat": "E2E Playwright tests: history navigation, deep link round-trip, closed tab recovery.",
+      "definition_of_done": [
+        "All slices marked [x] in roadmap",
+        "URL updates on tab switch, back/forward works, deep link works",
+        "Closed tab recovery works via Ctrl+Shift+T and command palette",
+        "No regression in existing workspace functionality",
+        "E2E tests pass for history navigation and closed tab recovery"
+      ],
+      "requirement_coverage": "R014 (back/forward navigation) → S01 primary. R015 (URL reflects active tab) → S01 primary. R016 (bookmarkable URLs) → S01 primary. R017 (closed tab recovery) → S02 primary. All Active requirements mapped. No orphaned requirements.",
+      "boundary_map_markdown": "```\\nworkspace.js (openTab, closeTab, initKeyboardShortcuts)\\n  ↕ delegates to\\nworkspace-layout.js (dockview lifecycle: onDidActivePanelChange, onDidRemovePanel, _tabMeta)\\n  ↕ produces\\nHistory API (pushState, replaceState, popstate)\\n  ↕ consumed by\\nBrowser (URL bar, back/forward buttons, bookmarks)\\n```"
     },
     {
       "id": "M056",
@@ -8592,6 +8632,46 @@
       "proof_level": "contract + integration — unit tests prove CRUD, browser verification proves end-to-end persistence and multi-panel independence",
       "integration_closure": "Upstream: S01's `explorer_config.py` (ExplorerConfig dataclass + query composition), `explorer-config.js` (config state + tree rendering), `workspace.py` (3 config endpoints). New wiring: ExplorerConfigService on app.state, 4 CRUD endpoints on workspace_router, migration 026. What remains: nothing — this completes the M054 composable explorer feature.",
       "observability_impact": "Inspection surfaces: GET /api/explorer/configs returns all saved configs for the user. explorer_configs SQLite table queryable directly. Failure visibility: API returns 404 for missing config, 403 for wrong user, validation errors as 400.",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M055",
+      "id": "S01",
+      "title": "URL Sync & History Navigation",
+      "status": "pending",
+      "risk": "medium",
+      "depends": [],
+      "demo": "Open object A → URL shows ?tab=A → open B → URL shows ?tab=B → back → A focused → URL shows A. Paste bookmarked URL → correct object opens.",
+      "created_at": "2026-04-06T05:48:35.499Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Wire the History API to dockview panel activation so the URL reflects the active tab, back/forward navigates tab history, and deep links from ?tab= work on page load.",
+      "success_criteria": "1. URL updates with ?tab=<panelId> on every tab switch\\n2. Browser back/forward changes active tab and URL\\n3. No pushState/popstate loop (guard flag works)\\n4. /browser/?tab=<iri> on fresh load opens the correct object\\n5. Existing ?panel=sparql handling unaffected",
+      "proof_level": "Browser verification + E2E test",
+      "integration_closure": "URL reflects active panel, popstate activates correct panel, deep link resolves on page load",
+      "observability_impact": "None",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M055",
+      "id": "S02",
+      "title": "Closed Tab Recovery",
+      "status": "pending",
+      "risk": "low",
+      "depends": [],
+      "demo": "Close a tab → Ctrl+Shift+T → tab reopens with same content. F1 → 'Reopen Closed Tab' → same result.",
+      "created_at": "2026-04-06T05:48:35.499Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Add a closed-tab stack that captures panel metadata on close, and provide keyboard shortcut and command palette entry to reopen the last closed tab.",
+      "success_criteria": "1. Closing any tab type pushes its metadata onto the stack (capped at 20)\\n2. Ctrl+Shift+T pops from stack and reopens via correct open*Tab() function\\n3. Command palette shows 'Reopen Closed Tab' entry\\n4. Empty stack does nothing (no error)\\n5. Works for object tabs, view tabs, and special tabs",
+      "proof_level": "Browser verification + E2E test",
+      "integration_closure": "Closed tab stack is independent module state — no cross-slice dependencies",
+      "observability_impact": "None",
       "sequence": 0,
       "replan_triggered_at": null
     }
@@ -34632,6 +34712,189 @@
       "observability_impact": "",
       "full_plan_md": "",
       "sequence": 0
+    },
+    {
+      "milestone_id": "M055",
+      "slice_id": "S01",
+      "id": "T01",
+      "title": "Wire History API pushState/popstate to dockview panel activation — URL reflects active tab, back/forward switches tabs, stale entries cleaned up",
+      "status": "complete",
+      "one_liner": "Wire History API pushState/popstate to dockview panel activation — URL reflects active tab, back/forward switches tabs, stale entries cleaned up",
+      "narrative": "Extended workspace-layout.js with pushState on tab switch (onDidActivePanelChange), popstate handler for back/forward navigation, replaceState for initial page load, and two guard flags (_historyReady suppresses during layout restore, _navigatingFromHistory suppresses during popstate-triggered activation). Fixed existing ?panel=sparql and #ontology-viewer URL cleanup in workspace.js to preserve ?tab= parameter. Rebuilt frontend assets to deploy changes.",
+      "verification_result": "All 8 verification items confirmed via live browser testing on dev stack: pushState on tab open, URL update on tab switch, back/forward navigation correctly activates panels, 5-tab traversal with no loops, ephemeral tabs excluded, closed panel entries cleaned up, ?panel=sparql still works including combined with ?tab=.",
+      "duration": "",
+      "completed_at": "2026-04-06T06:08:05.925Z",
+      "blocker_discovered": false,
+      "deviations": "Added _historyReady flag (not in plan) to prevent layout restore from polluting history. Fixed existing URL cleanup code in workspace.js to preserve ?tab= parameter. Had to rebuild frontend assets since dev stack serves pre-built minified assets.",
+      "known_issues": "None.",
+      "key_files": [
+        "frontend/static/js/workspace-layout.js",
+        "frontend/static/js/workspace.js"
+      ],
+      "key_decisions": [
+        "Two guard flags (_historyReady, _navigatingFromHistory) for history loop prevention",
+        "History state shape: { tabId: string }",
+        "replaceState for initial load, pushState for user-driven tab switches",
+        "Fixed ?panel=sparql cleanup to use surgical searchParams.delete instead of stripping all params"
+      ],
+      "full_summary_md": "---\nid: T01\nparent: S01\nmilestone: M055\nkey_files:\n  - frontend/static/js/workspace-layout.js\n  - frontend/static/js/workspace.js\nkey_decisions:\n  - Two guard flags (_historyReady, _navigatingFromHistory) for history loop prevention\n  - History state shape: { tabId: string }\n  - replaceState for initial load, pushState for user-driven tab switches\n  - Fixed ?panel=sparql cleanup to use surgical searchParams.delete instead of stripping all params\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T06:08:05.924Z\nblocker_discovered: false\n---\n\n# T01: Wire History API pushState/popstate to dockview panel activation — URL reflects active tab, back/forward switches tabs, stale entries cleaned up\n\n**Wire History API pushState/popstate to dockview panel activation — URL reflects active tab, back/forward switches tabs, stale entries cleaned up**\n\n## What Happened\n\nExtended workspace-layout.js with pushState on tab switch (onDidActivePanelChange), popstate handler for back/forward navigation, replaceState for initial page load, and two guard flags (_historyReady suppresses during layout restore, _navigatingFromHistory suppresses during popstate-triggered activation). Fixed existing ?panel=sparql and #ontology-viewer URL cleanup in workspace.js to preserve ?tab= parameter. Rebuilt frontend assets to deploy changes.\n\n## Verification\n\nAll 8 verification items confirmed via live browser testing on dev stack: pushState on tab open, URL update on tab switch, back/forward navigation correctly activates panels, 5-tab traversal with no loops, ephemeral tabs excluded, closed panel entries cleaned up, ?panel=sparql still works including combined with ?tab=.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `Browser: open tab → URL has ?tab=` | 0 | ✅ pass | 500ms |\n| 2 | `Browser: open second tab → URL updates` | 0 | ✅ pass | 300ms |\n| 3 | `Browser: history.back() → correct tab active` | 0 | ✅ pass | 300ms |\n| 4 | `Browser: history.forward() → correct tab active` | 0 | ✅ pass | 300ms |\n| 5 | `Browser: 5-tab back traversal — no loops` | 0 | ✅ pass | 1500ms |\n| 6 | `Browser: ephemeral __new-object- tab excluded` | 0 | ✅ pass | 500ms |\n| 7 | `Browser: closed panel entry cleaned via replaceState` | 0 | ✅ pass | 300ms |\n| 8 | `Browser: ?panel=sparql works with ?tab= preserved` | 0 | ✅ pass | 1000ms |\n\n## Deviations\n\nAdded _historyReady flag (not in plan) to prevent layout restore from polluting history. Fixed existing URL cleanup code in workspace.js to preserve ?tab= parameter. Had to rebuild frontend assets since dev stack serves pre-built minified assets.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `frontend/static/js/workspace-layout.js`\n- `frontend/static/js/workspace.js`\n",
+      "description": "Wire URL updates to dockview panel activation and back/forward navigation.\n\n1. In workspace-layout.js, extend the onDidActivePanelChange handler to call history.pushState with ?tab=<panelId> (skip ephemeral __new-object- tabs)\n2. Add a _navigatingFromHistory guard flag that suppresses pushState when a panel activation is triggered by popstate\n3. Add a window popstate listener that reads state.tabId and activates the corresponding panel via panel.api.setActive() (with guard flag set)\n4. If the panel referenced by popstate no longer exists (was closed), update URL with replaceState to remove stale ?tab=\n5. Use replaceState (not pushState) for the initial page load state to avoid double-entry in history\n6. Ensure existing ?panel=sparql handling in initBottomPanel is unaffected",
+      "estimate": "30min",
+      "files": [
+        "frontend/static/js/workspace-layout.js",
+        "frontend/static/js/workspace.js"
+      ],
+      "verify": "Start dev stack. Open /browser/. Open object A → check URL has ?tab= with A's IRI. Open object B → URL updates. Press back → A is focused, URL shows A. Press forward → B focused. Open 5 tabs, navigate back through all of them — no loop, no duplicate entries. Verify ?panel=sparql still works.",
+      "inputs": [
+        "frontend/static/js/workspace-layout.js (onDidActivePanelChange handler)",
+        "frontend/static/js/workspace.js (existing pushState/replaceState patterns)"
+      ],
+      "expected_output": [
+        "frontend/static/js/workspace-layout.js (modified — pushState + popstate handler)"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M055",
+      "slice_id": "S01",
+      "id": "T02",
+      "title": "Deep link: open tab from ?tab= on page load",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Handle the ?tab= query parameter on initial page load to open the referenced tab.\n\n1. In workspace.js, after initWorkspaceLayout() completes (where dockview layout is restored), read ?tab= from the URL\n2. If ?tab= is present:\n   a. Check if the panel is already open (may have been restored from layout). If so, just focus it with setActive()\n   b. If not open, determine the tab type from the ID format (raw IRI = object tab, 'view:*' = view tab, 'special:*' = special tab, etc.) and call the appropriate open*Tab() function\n   c. For object tabs, call openTab(iri) — label will be fetched by the htmx partial\n3. Do NOT clean the ?tab= from URL after processing — keeping it makes the URL persistently bookmarkable\n4. Ensure this works with replaceState initial state from T01 (no duplicate history entry)",
+      "estimate": "20min",
+      "files": [
+        "frontend/static/js/workspace.js"
+      ],
+      "verify": "Navigate to /browser/?tab=<known-object-iri>. Object tab opens and is focused. URL still shows ?tab=. Refresh the page — same object tab opens. Navigate to /browser/?tab=view:<viewId> — view tab opens.",
+      "inputs": [
+        "frontend/static/js/workspace.js (initWorkspaceLayout, openTab, openViewTab)",
+        "T01 output (pushState/popstate handler)"
+      ],
+      "expected_output": [
+        "frontend/static/js/workspace.js (modified — deep link handler)"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M055",
+      "slice_id": "S01",
+      "id": "T03",
+      "title": "E2E tests for URL sync and history navigation",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Write Playwright E2E tests proving the URL sync and history navigation work.\n\n1. Create e2e/tests/55-browser-history/history.spec.ts\n2. Test cases:\n   a. Open an object → URL contains ?tab= with the object IRI\n   b. Open object A, open object B → URL shows B → page.goBack() → URL shows A, tab A is active → page.goForward() → URL shows B, tab B is active\n   c. Navigate to /browser/?tab=<iri> → object tab opens with correct content\n   d. Open two objects, close one, press back → URL updates correctly (no error from missing panel)\n3. Use existing E2E helpers (openTab from dockview.ts, SEL selectors)\n4. Add history-related selectors to selectors.ts if needed",
+      "estimate": "25min",
+      "files": [
+        "e2e/tests/55-browser-history/history.spec.ts",
+        "e2e/helpers/selectors.ts"
+      ],
+      "verify": "cd e2e && npx playwright test tests/55-browser-history/history.spec.ts --headed",
+      "inputs": [
+        "e2e/helpers/dockview.ts (openTab helper)",
+        "e2e/helpers/selectors.ts",
+        "T01+T02 implementation"
+      ],
+      "expected_output": [
+        "e2e/tests/55-browser-history/history.spec.ts"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M055",
+      "slice_id": "S02",
+      "id": "T01",
+      "title": "Closed-tab stack capture and reopen dispatch",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Implement the closed-tab recovery stack and reopener.\n\n1. In workspace-layout.js, add a module-level _closedTabStack array (max 20 entries)\n2. Modify the onDidRemovePanel handler to accept the panel argument and capture metadata BEFORE _tabMeta is deleted:\n   - Read panel.id, panel.params (component, isView, isSpecial, viewId, viewType, etc.), and _tabMeta[panel.id].label\n   - Push { id, component: panel.params component type string, params: panel.params, label } onto _closedTabStack\n   - If stack exceeds 20 entries, shift the oldest\n3. Note: closeTab() in workspace.js deletes _tabMeta[objectIri] AFTER panel.api.close(). The onDidRemovePanel fires synchronously during close(). So _tabMeta should still be available. Verify this.\n4. Create reopenClosedTab() function:\n   - Pop from _closedTabStack. If empty, return.\n   - Based on the component field, dispatch to the correct opener:\n     - 'object-editor' → openTab(entry.id, entry.label)\n     - 'view-panel' → openViewTab(entry.params.viewId, entry.label, entry.params.viewType)\n     - 'special-panel' → call the specific openDocsTab/openCanvasTab/openSettingsTab based on entry.id pattern\n     - Dashboard/workflow/app tabs → openDashboardTab/openWorkflowTab etc.\n   - If the tab is already open (user reopened it manually), skip and try next entry\n5. Export reopenClosedTab on window.SemPKM\n6. In workspace.js initKeyboardShortcuts, add Ctrl+Shift+T handler that calls reopenClosedTab()\n7. In workspace.js initCommandPalette, add 'Reopen Closed Tab' entry with handler calling reopenClosedTab()",
+      "estimate": "30min",
+      "files": [
+        "frontend/static/js/workspace-layout.js",
+        "frontend/static/js/workspace.js"
+      ],
+      "verify": "Start dev stack. Open /browser/. Open 3 object tabs. Close the last one. Press Ctrl+Shift+T → it reopens. Close a view tab, press Ctrl+Shift+T → view tab reopens. F1 → 'Reopen' → entry appears. Press Ctrl+Shift+T with no closed tabs → nothing happens, no error in console.",
+      "inputs": [
+        "frontend/static/js/workspace-layout.js (onDidRemovePanel, _tabMeta)",
+        "frontend/static/js/workspace.js (openTab, openViewTab, initKeyboardShortcuts, initCommandPalette)"
+      ],
+      "expected_output": [
+        "frontend/static/js/workspace-layout.js (modified — closed tab stack + reopen)",
+        "frontend/static/js/workspace.js (modified — Ctrl+Shift+T + command palette entry)"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M055",
+      "slice_id": "S02",
+      "id": "T02",
+      "title": "E2E tests for closed tab recovery",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Write Playwright E2E tests proving closed tab recovery works.\n\n1. Create e2e/tests/55-browser-history/closed-tab.spec.ts\n2. Test cases:\n   a. Open an object tab, close it, press Ctrl+Shift+T → tab reopens with same IRI\n   b. Close 3 tabs in sequence, press Ctrl+Shift+T 3 times → all reopen in reverse order\n   c. Press Ctrl+Shift+T with no closed tabs → no error, no new tab\n   d. Close a tab, reopen it manually (click in explorer), then Ctrl+Shift+T → skips already-open tab\n3. Use dockview.ts helpers for tab operations",
+      "estimate": "20min",
+      "files": [
+        "e2e/tests/55-browser-history/closed-tab.spec.ts"
+      ],
+      "verify": "cd e2e && npx playwright test tests/55-browser-history/closed-tab.spec.ts --headed",
+      "inputs": [
+        "e2e/helpers/dockview.ts",
+        "T01 implementation"
+      ],
+      "expected_output": [
+        "e2e/tests/55-browser-history/closed-tab.spec.ts"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
     }
   ],
   "decisions": [
@@ -39458,6 +39721,18 @@
       "revisable": "Yes",
       "made_by": "agent",
       "superseded_by": null
+    },
+    {
+      "seq": 443,
+      "id": "D403",
+      "when_context": "M055 planning",
+      "scope": "architecture",
+      "decision": "Closed tab stack persistence",
+      "choice": "In-memory array only (session-scoped), no localStorage/sessionStorage persistence",
+      "rationale": "The stack is for undo-close during a single work session. Cross-session persistence adds complexity (stale IRIs, deleted objects) for minimal value. Browser convention (Ctrl+Shift+T) is also session-scoped in most browsers.",
+      "revisable": "Yes",
+      "made_by": "agent",
+      "superseded_by": null
     }
   ],
   "verification_evidence": [
@@ -43552,6 +43827,94 @@
       "verdict": "✅ pass",
       "duration_ms": 0,
       "created_at": "2026-04-06T05:29:56.023Z"
+    },
+    {
+      "id": 373,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M055",
+      "command": "Browser: open tab → URL has ?tab=",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 500,
+      "created_at": "2026-04-06T06:08:05.925Z"
+    },
+    {
+      "id": 374,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M055",
+      "command": "Browser: open second tab → URL updates",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 300,
+      "created_at": "2026-04-06T06:08:05.925Z"
+    },
+    {
+      "id": 375,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M055",
+      "command": "Browser: history.back() → correct tab active",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 300,
+      "created_at": "2026-04-06T06:08:05.925Z"
+    },
+    {
+      "id": 376,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M055",
+      "command": "Browser: history.forward() → correct tab active",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 300,
+      "created_at": "2026-04-06T06:08:05.925Z"
+    },
+    {
+      "id": 377,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M055",
+      "command": "Browser: 5-tab back traversal — no loops",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1500,
+      "created_at": "2026-04-06T06:08:05.925Z"
+    },
+    {
+      "id": 378,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M055",
+      "command": "Browser: ephemeral __new-object- tab excluded",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 500,
+      "created_at": "2026-04-06T06:08:05.925Z"
+    },
+    {
+      "id": 379,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M055",
+      "command": "Browser: closed panel entry cleaned via replaceState",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 300,
+      "created_at": "2026-04-06T06:08:05.925Z"
+    },
+    {
+      "id": 380,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M055",
+      "command": "Browser: ?panel=sparql works with ?tab= preserved",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1000,
+      "created_at": "2026-04-06T06:08:05.925Z"
     }
   ]
 }
