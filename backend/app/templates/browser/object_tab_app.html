@@ -10,7 +10,10 @@
   <div class="object-toolbar">
     <span class="object-toolbar-title">{{ object_label }}</span>
     {% if object_type_label %}
-    <span class="object-toolbar-type" title="{{ object_iri }}" data-iri="{{ object_iri }}">{{ object_type_label }}</span>
+    <span class="object-toolbar-type" title="{{ object_iri }}" data-iri="{{ object_iri }}"
+          style="--type-color: {{ type_icon.color if type_icon else '' }}">
+      {% if type_icon %}<i data-lucide="{{ type_icon.icon }}"></i>{% endif %}{{ object_type_label }}
+    </span>
     {% endif %}
     <span class="object-toolbar-renderer-badge" title="Rendered by {{ renderer_label }}">
       <i data-lucide="blocks"></i> {{ renderer_label }}

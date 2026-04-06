@@ -34,7 +34,9 @@
 
 /* Type-aware tab accent bar (BUG-04) — only on active tab in the focused group */
 #editor-groups-container .dv-active-group .dv-tab.dv-active-tab {
-  border-bottom: 2px solid var(--tab-accent-color, var(--color-accent)) !important;
+  border-bottom: 3px solid var(--tab-accent-color, var(--color-accent)) !important;
+  font-weight: 600;
+  box-shadow: 0 -1px 3px color-mix(in srgb, var(--_color-black-shadow-sm) 50%, transparent);
 }
 
 /* Tab type icon — injected by custom tab renderer */
