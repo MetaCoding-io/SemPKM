@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T02:36:49.533Z",
+  "exported_at": "2026-04-06T02:41:18.358Z",
   "milestones": [
     {
       "id": "M001",
@@ -33683,19 +33683,25 @@
       "milestone_id": "M052",
       "slice_id": "S04",
       "id": "T02",
-      "title": "Add cancelled timeline bar color, right panel empty state, and tree-leaf underline fix",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Added all four Frappe Gantt timeline bar status colors, updated right-panel empty state with info icon and descriptive text, and fixed tree-leaf link underlines",
+      "status": "complete",
+      "one_liner": "Added all four Frappe Gantt timeline bar status colors, updated right-panel empty state with info icon and descriptive text, and fixed tree-leaf link underlines",
+      "narrative": "Three independent CSS/template fixes: (1) Added .bar-done, .bar-active, .bar-blocked, and .bar-cancelled CSS rules in views.css for Frappe Gantt timeline status coloring — all four were missing despite the plan saying S01 added three. (2) Replaced three \"No object selected\" right-panel empty states in workspace.html with \"Select an object to see its details\" plus Lucide info icon with proper flex-shrink:0 sizing. (3) Added text-decoration:none to .tree-leaf in workspace.css to prevent browser default underlines.",
+      "verification_result": "All five task-level checks pass: bar-cancelled rule exists in views.css, tree-leaf has text-decoration:none, three instances of new empty state text in workspace.html, right-empty-icon has flex-shrink:0, zero hardcoded hex values in new CSS.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-06T02:41:18.314Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "Plan stated S01 added bar-done/bar-active/bar-blocked rules — none existed. Added all four status color rules to avoid partial implementation.",
+      "known_issues": "None.",
+      "key_files": [
+        "frontend/static/css/views.css",
+        "frontend/static/css/workspace.css",
+        "backend/app/templates/browser/workspace.html"
+      ],
+      "key_decisions": [
+        "Added all four timeline bar status colors (done/active/blocked/cancelled) since none existed — plan incorrectly assumed S01 added the first three"
+      ],
+      "full_summary_md": "---\nid: T02\nparent: S04\nmilestone: M052\nkey_files:\n  - frontend/static/css/views.css\n  - frontend/static/css/workspace.css\n  - backend/app/templates/browser/workspace.html\nkey_decisions:\n  - Added all four timeline bar status colors (done/active/blocked/cancelled) since none existed — plan incorrectly assumed S01 added the first three\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T02:41:18.313Z\nblocker_discovered: false\n---\n\n# T02: Added all four Frappe Gantt timeline bar status colors, updated right-panel empty state with info icon and descriptive text, and fixed tree-leaf link underlines\n\n**Added all four Frappe Gantt timeline bar status colors, updated right-panel empty state with info icon and descriptive text, and fixed tree-leaf link underlines**\n\n## What Happened\n\nThree independent CSS/template fixes: (1) Added .bar-done, .bar-active, .bar-blocked, and .bar-cancelled CSS rules in views.css for Frappe Gantt timeline status coloring — all four were missing despite the plan saying S01 added three. (2) Replaced three \"No object selected\" right-panel empty states in workspace.html with \"Select an object to see its details\" plus Lucide info icon with proper flex-shrink:0 sizing. (3) Added text-decoration:none to .tree-leaf in workspace.css to prevent browser default underlines.\n\n## Verification\n\nAll five task-level checks pass: bar-cancelled rule exists in views.css, tree-leaf has text-decoration:none, three instances of new empty state text in workspace.html, right-empty-icon has flex-shrink:0, zero hardcoded hex values in new CSS.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `rg 'bar-cancelled' frontend/static/css/views.css | grep -q bar-progress` | 0 | ✅ pass | 100ms |\n| 2 | `rg -A15 '.tree-leaf {' frontend/static/css/workspace.css | grep -q 'text-decoration.*none'` | 0 | ✅ pass | 100ms |\n| 3 | `test $(rg -c 'Select an object' backend/app/templates/browser/workspace.html) -ge 3` | 0 | ✅ pass | 100ms |\n| 4 | `rg -A5 'right-empty-icon' frontend/static/css/workspace.css | grep -q 'flex-shrink'` | 0 | ✅ pass | 100ms |\n| 5 | `rg 'bar-cancelled|right-empty-icon' frontend/static/css/views.css frontend/static/css/workspace.css | grep '#'` | 1 | ✅ pass (no hardcoded hex) | 100ms |\n\n## Deviations\n\nPlan stated S01 added bar-done/bar-active/bar-blocked rules — none existed. Added all four status color rules to avoid partial implementation.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `frontend/static/css/views.css`\n- `frontend/static/css/workspace.css`\n- `backend/app/templates/browser/workspace.html`\n",
       "description": "## Description\n\nThree independent CSS/template fixes bundled together because each is a one-line or small edit.\n\n### Timeline cancelled bar color\nThe backend maps cancelled status to CSS class `bar-cancelled` (see `_TIMELINE_STATUS_CLASSES` in `service.py:3224`). S01 added CSS rules for `.bar-done`, `.bar-active`, and `.bar-blocked` in `views.css` — but `.bar-cancelled` is missing. Add it with a gray fill using the `--_color-gray-400` primitive from theme.css.\n\n### Right panel empty state\nThe right pane in `workspace.html` shows three `<div class=\"right-empty\">No object selected</div>` elements as default content. Replace these with a more helpful prompt: 'Select an object to see its details' and add a Lucide info icon. Add CSS styling for the empty state.\n\n### Tree-leaf underline fix\n`.tree-leaf` in workspace.css is an `<a>` tag but has no `text-decoration: none`. Browser default underline shows on all tree leaf links (objects, views, saved views). Add `text-decoration: none` to the `.tree-leaf` rule.\n\n## Steps\n\n1. Read `frontend/static/css/views.css` around line 1547 to see existing bar status rules. Add `.bar-cancelled .bar-progress` rule after `.bar-blocked .bar-progress` with `fill: var(--_color-gray-400);` (the primitive already exists in theme.css).\n2. Read `frontend/static/css/workspace.css` around line 281 (`.tree-leaf`). Add `text-decoration: none;` to the existing rule block.\n3. Edit `backend/app/templates/browser/workspace.html` to replace the three `<div class=\"right-empty\">No object selected</div>` elements in the right pane sections with `<div class=\"right-empty\"><i data-lucide=\"info\" class=\"right-empty-icon\"></i> Select an object to see its details</div>`.\n4. Add CSS for `.right-empty-icon` in workspace.css near the existing `.right-empty` rule (line ~2062): `width: 14px; height: 14px; flex-shrink: 0; stroke: currentColor; vertical-align: -2px;` (inline SVG from Lucide). Also add `display: inline-flex; align-items: center; gap: 4px;` to `.right-empty` so the icon sits properly.\n5. Verify all three changes with grep.\n\n## Must-Haves\n\n- [ ] `.bar-cancelled .bar-progress` CSS rule exists in views.css\n- [ ] `.tree-leaf` has `text-decoration: none` in workspace.css\n- [ ] Right panel shows 'Select an object to see its details' instead of 'No object selected'\n- [ ] Right empty icon has `flex-shrink: 0` (per CLAUDE.md Lucide icon rule)\n- [ ] Zero hardcoded hex values in new CSS rules\n\n## Verification\n\n- `rg 'bar-cancelled' frontend/static/css/views.css | grep -q bar-progress` exits 0\n- `rg 'text-decoration.*none' frontend/static/css/workspace.css | grep -q tree-leaf` exits 0\n- `rg 'Select an object' backend/app/templates/browser/workspace.html | wc -l` returns 3\n- `rg 'right-empty-icon' frontend/static/css/workspace.css | grep -q flex-shrink` exits 0",
       "estimate": "20m",
       "files": [
@@ -42036,6 +42042,61 @@
       "verdict": "✅ pass",
       "duration_ms": 100,
       "created_at": "2026-04-06T02:36:49.482Z"
+    },
+    {
+      "id": 327,
+      "task_id": "T02",
+      "slice_id": "S04",
+      "milestone_id": "M052",
+      "command": "rg 'bar-cancelled' frontend/static/css/views.css | grep -q bar-progress",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-06T02:41:18.314Z"
+    },
+    {
+      "id": 328,
+      "task_id": "T02",
+      "slice_id": "S04",
+      "milestone_id": "M052",
+      "command": "rg -A15 '.tree-leaf {' frontend/static/css/workspace.css | grep -q 'text-decoration.*none'",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-06T02:41:18.314Z"
+    },
+    {
+      "id": 329,
+      "task_id": "T02",
+      "slice_id": "S04",
+      "milestone_id": "M052",
+      "command": "test $(rg -c 'Select an object' backend/app/templates/browser/workspace.html) -ge 3",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-06T02:41:18.314Z"
+    },
+    {
+      "id": 330,
+      "task_id": "T02",
+      "slice_id": "S04",
+      "milestone_id": "M052",
+      "command": "rg -A5 'right-empty-icon' frontend/static/css/workspace.css | grep -q 'flex-shrink'",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-06T02:41:18.314Z"
+    },
+    {
+      "id": 331,
+      "task_id": "T02",
+      "slice_id": "S04",
+      "milestone_id": "M052",
+      "command": "rg 'bar-cancelled|right-empty-icon' frontend/static/css/views.css frontend/static/css/workspace.css | grep '#'",
+      "exit_code": 1,
+      "verdict": "✅ pass (no hardcoded hex)",
+      "duration_ms": 100,
+      "created_at": "2026-04-06T02:41:18.314Z"
     }
   ]
 }

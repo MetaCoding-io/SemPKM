@@ -33,7 +33,7 @@ Add visual prominence to form section headers (`.form-group-summary`) and tighte
   - Estimate: 15m
   - Files: frontend/static/css/workspace.css
   - Verify: rg 'border-left.*primary' frontend/static/css/workspace.css | grep -q form-group-summary && rg 'surface-raised' frontend/static/css/workspace.css | grep -q form-group-summary && rg 'margin-bottom.*3px' frontend/static/css/workspace.css | grep -q field-help
-- [ ] **T02: Add cancelled timeline bar color, right panel empty state, and tree-leaf underline fix** — ## Description
+- [x] **T02: Added all four Frappe Gantt timeline bar status colors, updated right-panel empty state with info icon and descriptive text, and fixed tree-leaf link underlines** — ## Description
 
 Three independent CSS/template fixes bundled together because each is a one-line or small edit.
 

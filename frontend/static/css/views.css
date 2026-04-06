@@ -1855,6 +1855,20 @@ select.cards-group-select {
     padding: 4px 6px;
 }
 
+/* ── Timeline (Frappe Gantt) status bar colors ── */
+.bar-done .bar-progress {
+    fill: var(--color-success, #22c55e);
+}
+.bar-active .bar-progress {
+    fill: var(--color-primary);
+}
+.bar-blocked .bar-progress {
+    fill: var(--color-danger, #e53e3e);
+}
+.bar-cancelled .bar-progress {
+    fill: var(--_color-gray-400);
+}
+
 /* ── Recurring event visual indicator ── */
 .fc-event-recurring {
     border-style: dashed !important;

@@ -286,6 +286,7 @@
     cursor: pointer;
     font-size: 0.83rem;
     color: var(--color-text);
+    text-decoration: none;
     user-select: none;
     transition: background 0.1s;
 }
@@ -2060,10 +2061,20 @@ tr:hover .rbox-edit-btn {
 }
 
 .right-empty {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     font-size: 0.85rem;
     color: var(--color-text-muted);
     font-style: italic;
     padding: 8px 0;
+}
+
+.right-empty-icon svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
 }
 
 /* ============================================
