@@ -21,7 +21,23 @@
             {% endif %}
         </div>
         {% if model.id in installed_ids %}
-        <span class="marketplace-installed-badge">✓ Installed</span>
+            {% set status = update_status.get(model.id, {}) if update_status is defined and update_status else {} %}
+            {% if status and status.has_update %}
+            <div class="marketplace-update-row">
+                <span class="version-badge version-badge--update">Update available: v{{ status.latest_version }}</span>
+                <button class="btn btn-primary btn-sm"
+                        hx-post="/admin/models/{{ model.id }}/update"
+                        hx-target="#model-table"
+                        hx-swap="outerHTML"
+                        hx-confirm="Update {{ model.name or model.id }} to v{{ status.latest_version }}?"
+                        hx-indicator="find .update-indicator">
+                    Update
+                </button>
+                <span class="update-indicator htmx-indicator loading">Updating…</span>
+            </div>
+            {% else %}
+            <span class="marketplace-installed-badge">✓ Installed</span>
+            {% endif %}
         {% else %}
         <form hx-post="/admin/models/marketplace-install"
               hx-target="#model-table"

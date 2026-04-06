@@ -634,6 +634,38 @@ pre.json-output {
   padding: 4px 0;
 }
 
+.marketplace-update-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Version status badges for installed models */
+.version-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.version-badge--uptodate {
+  background: color-mix(in srgb, var(--_color-green-500) 15%, transparent);
+  color: var(--_color-green-500);
+}
+
+.version-badge--update {
+  background: color-mix(in srgb, var(--_color-amber-500) 15%, transparent);
+  color: var(--_color-amber-500);
+}
+
+.update-indicator {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
 .marketplace-loading,
 .marketplace-empty,
 .marketplace-error,

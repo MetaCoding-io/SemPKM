@@ -111,6 +111,7 @@
                 <tr>
                     <th>Name</th>
                     <th>Version</th>
+                    <th>Status</th>
                     <th>Description</th>
                     <th>Installed</th>
                     <th>Actions</th>
@@ -119,6 +120,7 @@
             <tbody>
                 {% if models %}
                 {% for model in models %}
+                {% set status = update_status.get(model.model_id, {}) if update_status is defined and update_status else {} %}
                 <tr>
                     <td>
                         <a href="/admin/models/{{ model.model_id }}" class="model-name-link"
@@ -127,9 +129,27 @@
                         </a>
                     </td>
                     <td>{{ model.version }}</td>
+                    <td>
+                        {% if status and status.has_update %}
+                        <span class="version-badge version-badge--update">Update available: v{{ status.latest_version }}</span>
+                        {% elif status %}
+                        <span class="version-badge version-badge--uptodate">Up to date</span>
+                        {% endif %}
+                    </td>
                     <td>{{ model.description }}</td>
                     <td>{{ model.installed_at[:10] if model.installed_at else "Unknown" }}</td>
                     <td>
+                        {% if status and status.has_update %}
+                        <button class="btn btn-primary btn-sm"
+                                hx-post="/admin/models/{{ model.model_id }}/update"
+                                hx-target="#model-table"
+                                hx-swap="outerHTML"
+                                hx-confirm="Update {{ model.name }} to v{{ status.latest_version }}?"
+                                hx-indicator="find .update-indicator">
+                            Update
+                        </button>
+                        <span class="update-indicator htmx-indicator loading">Updating…</span>
+                        {% endif %}
                         <button class="btn btn-warning btn-sm"
                                 hx-get="/admin/models/{{ model.model_id }}/entailment"
                                 hx-target="#app-content" hx-swap="innerHTML" hx-push-url="true">
@@ -156,7 +176,7 @@
                 {% endfor %}
                 {% else %}
                 <tr>
-                    <td colspan="5" style="text-align: center; color: var(--color-text-muted); padding: 2rem;">
+                    <td colspan="6" style="text-align: center; color: var(--color-text-muted); padding: 2rem;">
                         No models installed.
                     </td>
                 </tr>

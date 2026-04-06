@@ -62,7 +62,7 @@ Add version comparison logic to `MarketplaceRegistryService` and a safe model up
   - Estimate: 45m
   - Files: backend/app/services/marketplace.py, backend/app/admin/router.py, backend/tests/test_marketplace_service.py
   - Verify: cd backend && .venv/bin/python -m pytest tests/test_marketplace_service.py -v && .venv/bin/python -c "from app.services.marketplace import MarketplaceRegistryService; print('ok')"
-- [ ] **T02: Add version badges, update button, and CSS to admin templates** — ## Description
+- [x] **T02: Added version status badges and htmx Update button to installed models table and marketplace cards** — ## Description
 
 Wire the `update_status` context variable into the installed models table and marketplace cards. Show version status badges and an Update button for models with available updates.
 
