@@ -1,4 +1,4 @@
-# M047: PPV Model v2 — Versioned Manifests, TBox Dashboards/Workflows & Review System
+# M047: PPV Model v2 - Versioned Manifests, TBox Dashboards/Workflows & Review System
 
 ## Vision
 Mental Model manifests carry their full operational definition — dashboards, workflows, and templates ship with the model and are managed through the install/uninstall lifecycle. PPV becomes the reference v2 model, shipping August Bradley's complete review system as TBox operational surfaces.

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-05T22:37:29.783Z",
+  "exported_at": "2026-04-06T00:46:48.256Z",
   "milestones": [
     {
       "id": "M001",
@@ -1802,22 +1802,67 @@
     },
     {
       "id": "M051",
-      "title": "",
+      "title": "Workspace UX Improvements",
       "status": "active",
       "depends_on": [],
       "created_at": "2026-04-05T17:38:45.584Z",
       "completed_at": null,
-      "vision": "",
-      "success_criteria": [],
-      "key_risks": [],
-      "proof_strategy": [],
-      "verification_contract": "",
-      "verification_integration": "",
-      "verification_operational": "",
-      "verification_uat": "",
-      "definition_of_done": [],
-      "requirement_coverage": "",
-      "boundary_map_markdown": ""
+      "vision": "Fix workspace-level interaction paper-cuts: autocomplete dropdowns that trap focus, stale placeholder text, missing explorer hover actions, broken persona/layout creation UX, command palette scroll jump, and missing object tab refresh. Collectively these make the workspace feel polished and trustworthy.",
+      "success_criteria": [
+        "Open edit form → click a reference/tag field → type → see suggestions → click outside → dropdown dismissed. Press Escape → dropdown dismissed.",
+        "Tag autocomplete dropdown renders fully visible even when the form field is near the bottom of a dockview panel (dropdown escapes overflow boundary).",
+        "Explorer shows 'Project' not 'Project Shape' — no ' Shape' suffix on type names.",
+        "Bottom panel → Event Log tab → shows actual event log content (not 'coming in Phase 16' placeholder).",
+        "Object tab toolbar → click refresh icon → tab content reloads from server.",
+        "F1 → 'Persona: Create New' → proper input dialog appears → type name → Create → persona saved.",
+        "F1 → 'Layout: Save As' → proper input dialog appears → type name → Save → layout saved.",
+        "Command palette opens without causing page scroll jump.",
+        "Admin model detail → ontology graph → hover node → popover appears near the node (not offset far away)."
+      ],
+      "key_risks": [
+        {
+          "risk": "Document-level click-outside listener for autocomplete dismiss may conflict with dockview panel drag, tree node selection, or other document click handlers",
+          "whyItMatters": "A poorly scoped click handler could break drag-drop, tree expansion, or modal interactions across the workspace"
+        },
+        {
+          "risk": "Tag dropdown body-append for overflow escape requires intercepting the htmx swap lifecycle to relocate content from inline div to body-appended div",
+          "whyItMatters": "htmx replaces the inline dropdown on each keystroke — the body-append logic must run after every swap, not just once"
+        },
+        {
+          "risk": "ninja-keys shadow DOM limits CSS and JS access for scroll fix (#24)",
+          "whyItMatters": "The scroll jump may originate from scrollIntoView inside the shadow root, which cannot be directly intercepted from outside"
+        }
+      ],
+      "proof_strategy": [
+        {
+          "riskOrUnknown": "Click-outside handler coexistence with dockview/tree",
+          "retireIn": "S01",
+          "whatWillBeProven": "Open an edit form with suggestions visible → click on tree node → suggestions dismiss AND tree node selects correctly. Drag a panel → no interference."
+        },
+        {
+          "riskOrUnknown": "htmx swap lifecycle for body-appended dropdowns",
+          "retireIn": "S01",
+          "whatWillBeProven": "Type in tag field → see suggestions in body-appended dropdown → select one → dropdown clears. Type again → new suggestions appear correctly positioned."
+        },
+        {
+          "riskOrUnknown": "ninja-keys shadow DOM scroll fix",
+          "retireIn": "S03",
+          "whatWillBeProven": "Open command palette on a scrolled page → arrow-key navigate items → page does not scroll/jump."
+        }
+      ],
+      "verification_contract": "E2E tests for autocomplete dismiss (click-outside, Escape). E2E test for object tab refresh button. Manual verification for command palette scroll and admin graph popover.",
+      "verification_integration": "All fixes work together in the workspace without regressions — open edit form, use autocomplete, switch explorer modes, use command palette, refresh object tab.",
+      "verification_operational": "N/A — no backend services or infrastructure changes beyond a one-line label fix.",
+      "verification_uat": "Open edit form → click relation field → type → click outside → dismissed. Tag field → type → dropdown visible even at bottom of panel → Escape → dismissed. Explorer shows clean type names. Event Log tab shows content. Object tab → refresh icon → reloads. F1 → Persona/Layout create → dialog input. Command palette opens without scroll jump. Admin graph popover near node.",
+      "definition_of_done": [
+        "All 3 slices complete with task summaries",
+        "E2E tests pass for autocomplete dismiss and object tab refresh",
+        "Zero regressions in existing E2E test suite",
+        "No ' Shape' suffix visible in explorer type names",
+        "Event Log panel shows real content, not placeholder"
+      ],
+      "requirement_coverage": "No active requirements directly map to M051. This is UX polish work. R001 (lazy-load panels) is tangentially relevant — the event log panel fix (#10) confirms the lazy-load pattern is working correctly.",
+      "boundary_map_markdown": "```\\nFrontend JS (workspace.js, object_form.html inline) ←→ htmx swap lifecycle\\nFrontend JS (workspace.js) ←→ ninja-keys shadow DOM\\nBackend (shapes.py get_types) → Frontend (nav_tree.html, type_picker.html)\\nFrontend (workspace-layout.js tab renderer) ←→ dockview panel API\\nFrontend (model_ontology_diagram.html) ←→ Cytoscape.js renderedPosition\\n```"
     },
     {
       "id": "M052",
@@ -8147,6 +8192,66 @@
       "proof_level": "Integration — proves the full save→sidebar→restore round-trip works with real backend + frontend + dockview.",
       "integration_closure": "Upstream surfaces consumed: S01 type_filter_dropdown.html partial, S01 get_compatible_types() endpoint, S02 clean toolbar. New wiring: openGenericViewTab() 4th parameter flows from my_views.html → workspace.js → dockview panel params → view URL. What remains: nothing — this is the final slice.",
       "observability_impact": "None — this is a parameter-plumbing fix with no new runtime signals.",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M051",
+      "id": "S01",
+      "title": "Autocomplete Dismiss & Dropdown Escape",
+      "status": "pending",
+      "risk": "high",
+      "depends": [],
+      "demo": "Open edit form → click reference field → type → see suggestions → click outside → dismissed. Tag field near bottom of panel → type → dropdown visible outside overflow → Escape → dismissed.",
+      "created_at": "2026-04-06T00:29:13.071Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "All autocomplete suggestion dropdowns (reference fields, tag fields, builder fields) dismiss on click-outside and Escape key. Tag/reference dropdowns near panel edges are fully visible — not clipped by overflow ancestors.",
+      "success_criteria": "- Click outside any open `.suggestions-dropdown` → dropdown dismissed (innerHTML cleared)\n- Press Escape while any `.suggestions-dropdown` is open → dropdown dismissed\n- Tag autocomplete near bottom of a scrollable dockview panel → dropdown renders fully visible above or below the input, not clipped\n- Reference field autocomplete near bottom of form → dropdown renders fully visible\n- Builder autocomplete in dashboard/workflow builders → dismiss on click-outside and Escape\n- No regressions: selecting a suggestion still works, htmx-driven population still works, multi-value add still clones correctly",
+      "proof_level": "This slice proves: integration (dismiss behavior across multiple dropdown contexts within the dockview workspace). Real runtime required: yes (dockview panels, htmx partials). Human/UAT required: no.",
+      "integration_closure": "Upstream surfaces consumed: `frontend/static/css/forms.css` (dropdown styling), `backend/app/templates/forms/object_form.html` (inline autocomplete JS), `backend/app/templates/forms/_field.html` (htmx-driven dropdown targets), `backend/app/templates/browser/dashboard_builder.html` and `workflow_builder.html` (builder autocomplete). New wiring: a `dropdown-dismiss.js` script loaded in `base.html` that registers document-level event listeners. What remains: S02 and S03 are independent.",
+      "observability_impact": "None — pure UI behavior, no backend changes, no state persistence.",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M051",
+      "id": "S02",
+      "title": "Explorer & Nav Cleanup + Object Tab Refresh",
+      "status": "pending",
+      "risk": "moderate",
+      "depends": [],
+      "demo": "Explorer shows 'Project' not 'Project Shape'. Event Log tab shows actual event content. VFS mount dropdown has clean labels. Object tab has a refresh button that reloads content.",
+      "created_at": "2026-04-06T00:29:13.071Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Strip ' Shape' suffix from type labels in backend, replace Event Log placeholder with lazy-loaded content, clean up VFS mount display, and add refresh button to object tab toolbar.",
+      "success_criteria": "1. Explorer type names display without ' Shape' suffix.\n2. Event Log panel shows real event content on tab click.\n3. VFS mount entries show human-readable model names.\n4. Object tab toolbar has refresh button that reloads tab via htmx.\n5. E2E test passes for refresh button.",
+      "proof_level": "E2E test for refresh button. grep verification for ' Shape' absence in rendered output.",
+      "integration_closure": "Backend label change flows through all existing consumers (explorer, type picker, command palette). Refresh button uses existing htmx reload pattern.",
+      "observability_impact": "None",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M051",
+      "id": "S03",
+      "title": "Command Palette & Persona/Layout Dialog UX",
+      "status": "pending",
+      "risk": "moderate",
+      "depends": [],
+      "demo": "F1 → 'Persona: Create New' → input dialog → type name → Create → persona saved. F1 → 'Layout: Save As' → input dialog → type name → Save → layout saved. Command palette opens without scroll jump. Admin graph popover positions near the node.",
+      "created_at": "2026-04-06T00:29:13.071Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Replace 'type above then select' antipattern with proper input dialogs for persona create and layout save. Fix ninja-keys scroll jump. Fix admin graph popover positioning. Improve persona/layout labels.",
+      "success_criteria": "1. Persona: Create New opens a dialog with text input and Create/Cancel buttons.\n2. Layout: Save As opens a dialog with text input and Save/Cancel buttons.\n3. Command palette opens on a scrolled page without jumping.\n4. Admin graph hover popover appears adjacent to the hovered node.\n5. Persona and Layout sections have clearer labels/help text in command palette.",
+      "proof_level": "Manual verification for dialog UX, scroll fix, and popover positioning.",
+      "integration_closure": "Dialog pattern extends existing showConfirmDialog. Persona/layout API calls unchanged. Scroll fix is CSS-only or minimal JS on ninja-keys wrapper.",
+      "observability_impact": "None",
       "sequence": 0,
       "replan_triggered_at": null
     }
@@ -32870,6 +32975,87 @@
       "observability_impact": "",
       "full_plan_md": "",
       "sequence": 0
+    },
+    {
+      "milestone_id": "M051",
+      "slice_id": "S01",
+      "id": "T01",
+      "title": "Created dropdown-dismiss.js with document-level mousedown and Escape handlers that dismiss all open .suggestions-dropdown elements on click-outside or Escape key",
+      "status": "complete",
+      "one_liner": "Created dropdown-dismiss.js with document-level mousedown and Escape handlers that dismiss all open .suggestions-dropdown elements on click-outside or Escape key",
+      "narrative": "Created `frontend/static/js/dropdown-dismiss.js` as an IIFE with two document-level listeners: (1) mousedown — dismisses all non-empty `.suggestions-dropdown` elements when click target is outside `.suggestions-dropdown`, `.reference-field`, and `.tag-autocomplete-field` wrappers; (2) keydown Escape — clears all open dropdowns without preventDefault so Escape still bubbles for modals. Exports `SemPKM.dismissAllDropdowns` for programmatic use. Added script tag to `base.html` between `column-prefs.js` and `sempkm-shims.js`.",
+      "verification_result": "Verified all 6 behavior scenarios in-browser: click-outside dismiss for reference and tag fields, Escape dismiss for both, suggestion selection still works (mousedown guard recognizes click inside .suggestions-dropdown), and htmx re-population works after dismiss. File-level checks: rg confirms export and script tag, node syntax check passes, HTTP 200 from nginx.",
+      "duration": "",
+      "completed_at": "2026-04-06T00:46:48.218Z",
+      "blocker_discovered": false,
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "frontend/static/js/dropdown-dismiss.js",
+        "backend/app/templates/base.html"
+      ],
+      "key_decisions": [
+        "Used mousedown instead of click for dismiss — fires before focus shift so dropdown clears before click target receives focus",
+        "Guard checks .suggestions-dropdown, .reference-field, and .tag-autocomplete-field to avoid false dismissals on legitimate interactions"
+      ],
+      "full_summary_md": "---\nid: T01\nparent: S01\nmilestone: M051\nkey_files:\n  - frontend/static/js/dropdown-dismiss.js\n  - backend/app/templates/base.html\nkey_decisions:\n  - Used mousedown instead of click for dismiss — fires before focus shift so dropdown clears before click target receives focus\n  - Guard checks .suggestions-dropdown, .reference-field, and .tag-autocomplete-field to avoid false dismissals on legitimate interactions\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T00:46:48.217Z\nblocker_discovered: false\n---\n\n# T01: Created dropdown-dismiss.js with document-level mousedown and Escape handlers that dismiss all open .suggestions-dropdown elements on click-outside or Escape key\n\n**Created dropdown-dismiss.js with document-level mousedown and Escape handlers that dismiss all open .suggestions-dropdown elements on click-outside or Escape key**\n\n## What Happened\n\nCreated `frontend/static/js/dropdown-dismiss.js` as an IIFE with two document-level listeners: (1) mousedown — dismisses all non-empty `.suggestions-dropdown` elements when click target is outside `.suggestions-dropdown`, `.reference-field`, and `.tag-autocomplete-field` wrappers; (2) keydown Escape — clears all open dropdowns without preventDefault so Escape still bubbles for modals. Exports `SemPKM.dismissAllDropdowns` for programmatic use. Added script tag to `base.html` between `column-prefs.js` and `sempkm-shims.js`.\n\n## Verification\n\nVerified all 6 behavior scenarios in-browser: click-outside dismiss for reference and tag fields, Escape dismiss for both, suggestion selection still works (mousedown guard recognizes click inside .suggestions-dropdown), and htmx re-population works after dismiss. File-level checks: rg confirms export and script tag, node syntax check passes, HTTP 200 from nginx.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `rg 'dismissAllDropdowns' frontend/static/js/dropdown-dismiss.js` | 0 | ✅ pass | 100ms |\n| 2 | `rg 'dropdown-dismiss' backend/app/templates/base.html` | 0 | ✅ pass | 100ms |\n| 3 | `node -c frontend/static/js/dropdown-dismiss.js` | 0 | ✅ pass | 200ms |\n| 4 | `curl -s -o /dev/null -w '%{http_code}' http://localhost:3901/js/dropdown-dismiss.js` | 0 | ✅ pass | 300ms |\n| 5 | `Browser: click-outside + Escape dismiss for reference and tag fields; suggestion selection; htmx re-population` | 0 | ✅ pass | 15000ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `frontend/static/js/dropdown-dismiss.js`\n- `backend/app/templates/base.html`\n",
+      "description": "## Description\n\nAll `.suggestions-dropdown` elements in the workspace (reference fields, tag fields, dashboard/workflow builder fields) lack dismiss-on-click-outside and dismiss-on-Escape behavior. Once a dropdown opens, it stays open until the user selects an item or clears the input. This traps focus and leaves stale suggestions visible.\n\n**Current state:**\n- Reference field autocomplete: htmx populates `#suggestions-{field_id}` div via `/browser/search`. Selecting calls `SemPKM.selectReference()` which clears innerHTML. No click-outside or Escape handling.\n- Tag field autocomplete: htmx populates via `/browser/tag-suggestions`. Selecting is handled by inline onclick in `tag_suggestions.html` partial. No click-outside or Escape.\n- Builder autocomplete: dashboard/workflow builders create `.suggestions-dropdown.builder-suggestions` divs. Selection clears them. No click-outside or Escape.\n- The `.suggestions-dropdown` CSS uses `display: none` by default, `display: block` when `:not(:empty)`. Clearing innerHTML hides the dropdown.\n\n**Approach:** Create a new `frontend/static/js/dropdown-dismiss.js` that registers two document-level event listeners:\n1. `mousedown` on `document` — if click target is NOT inside a `.suggestions-dropdown` and NOT inside its associated input (`.reference-search`, `.tag-autocomplete-field input`, or builder input), clear all open `.suggestions-dropdown` elements.\n2. `keydown` on `document` for Escape — if any `.suggestions-dropdown` is non-empty and visible, clear all of them and refocus the associated input.\n\nUsing `mousedown` instead of `click` ensures the dropdown dismisses before the click target receives focus.\n\n## Steps\n\n1. Create `frontend/static/js/dropdown-dismiss.js` with an IIFE containing:\n   - A `_dismissAllDropdowns()` helper that finds all `.suggestions-dropdown:not(:empty)` and sets `innerHTML = ''`.\n   - A `mousedown` document listener: if `e.target.closest('.suggestions-dropdown')` or `e.target.closest('.reference-field')` or `e.target.closest('.tag-autocomplete-field')` or `e.target.closest('.builder-suggestions')` — do nothing. Otherwise call `_dismissAllDropdowns()`.\n   - A `keydown` document listener: if `e.key === 'Escape'`, call `_dismissAllDropdowns()`. Don't `preventDefault()` — let Escape bubble for other uses (modal close, etc.).\n   - Export `SemPKM.dismissAllDropdowns = _dismissAllDropdowns` for programmatic use.\n\n2. Add `<script src=\"{{ 'dropdown-dismiss.js' | asset_url }}\"></script>` to `backend/app/templates/base.html` — insert after `workspace.js` and before `sempkm-shims.js`.\n\n3. Verify that htmx-driven population still works: the htmx `hx-swap=\"innerHTML\"` sets new content which triggers `:not(:empty)` display. The dismiss listeners only fire on user interaction (mousedown, keydown), not on htmx swaps.\n\n4. Verify no interference with `SemPKM.selectReference()` — the onclick handler in suggestion items calls `selectReference()` which clears the dropdown. The mousedown listener fires first but the click target IS inside `.suggestions-dropdown`, so it's a no-op.\n\n## Must-Haves\n\n- [ ] `mousedown` listener dismisses dropdowns on click outside\n- [ ] `Escape` key dismisses all open dropdowns\n- [ ] Clicking a suggestion item still selects it (not dismissed before onclick fires)\n- [ ] htmx-driven dropdown population still works after dismiss\n- [ ] Works for reference fields, tag fields, and builder fields\n- [ ] No duplicate listener registration on htmx partial reloads",
+      "estimate": "30m",
+      "files": [
+        "frontend/static/js/dropdown-dismiss.js",
+        "backend/app/templates/base.html"
+      ],
+      "verify": "Start the dev Docker stack. Open an object edit form with a reference field. Type to trigger suggestions. Click outside the dropdown — it should disappear. Type again to re-trigger. Press Escape — it should disappear. Select a suggestion by clicking — it should populate the hidden input. Repeat for a tag field. Verify: `rg 'dismissAllDropdowns' frontend/static/js/dropdown-dismiss.js` returns matches; `rg 'dropdown-dismiss' backend/app/templates/base.html` returns the script tag.",
+      "inputs": [
+        "`frontend/static/css/forms.css` — existing dropdown CSS (`:not(:empty)` display rule)",
+        "`backend/app/templates/forms/object_form.html` — existing autocomplete JS (selectReference, tag selection)",
+        "`backend/app/templates/forms/_field.html` — htmx-driven dropdown targets",
+        "`backend/app/templates/base.html` — script loading order"
+      ],
+      "expected_output": [
+        "`frontend/static/js/dropdown-dismiss.js` — new file with document-level dismiss listeners",
+        "`backend/app/templates/base.html` — updated with dropdown-dismiss.js script tag"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M051",
+      "slice_id": "S01",
+      "id": "T02",
+      "title": "Fix dropdown overflow clipping near panel edges with position:fixed repositioning",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "## Description\n\nWhen a reference or tag field is near the bottom of a scrollable dockview panel, the `.suggestions-dropdown` renders below the input via `position: absolute; top: 100%` — but gets clipped by the panel's `overflow-y: auto`. The user can't see or interact with the suggestions.\n\n**Current CSS state:**\n- `.suggestions-dropdown` in `forms.css`: `position: absolute; top: 100%; z-index: 9999; max-height: 200px`\n- `.reference-field` and `.tag-autocomplete-field`: `position: relative` (dropdown anchor)\n- Dockview panels: scrollable content area with `overflow-y: auto`\n- Comment in `workspace.js` line 738 says \"position:fixed already escapes overflow:hidden containers\" — but the actual CSS uses `position: absolute`, not `position: fixed`\n\n**Approach:** Add a repositioning function that runs when a dropdown becomes non-empty. Use a `MutationObserver` on `.suggestions-dropdown` elements to detect when content is inserted (htmx swap). When content appears:\n1. Get the input element's `getBoundingClientRect()` for screen position\n2. Measure available space below and above the input within the viewport\n3. If the dropdown would be clipped below, flip it above the input\n4. Apply `position: fixed` + computed `top`/`left`/`width` from the input's rect\n5. On dismiss (innerHTML cleared), reset to `position: absolute` defaults\n\nThis follows the same pattern as dockview popover escape (KNOWLEDGE: \"Popovers inside dockview panels must escape stacking context via document.body\"), but instead of appending to `document.body`, we switch to `position: fixed` which also escapes overflow containers without moving the element in the DOM. This is simpler and avoids breaking htmx targeting (htmx expects the dropdown div at its original location in the DOM).\n\n## Steps\n\n1. In `frontend/static/js/dropdown-dismiss.js`, add a `_repositionDropdown(dropdown)` function:\n   - Find the parent input: `dropdown.closest('.reference-field')?.querySelector('.reference-search')` or `dropdown.closest('.tag-autocomplete-field')?.querySelector('input')`\n   - If no parent input found (builder context), skip repositioning (builders render in modal-like containers that don't clip)\n   - Get `inputRect = input.getBoundingClientRect()`\n   - Compute `spaceBelow = window.innerHeight - inputRect.bottom`\n   - If `spaceBelow < 220` (dropdown max-height 200px + 20px margin), position above: `dropdown.style.bottom = (window.innerHeight - inputRect.top) + 'px'; dropdown.style.top = 'auto'`\n   - Else position below: `dropdown.style.top = inputRect.bottom + 'px'; dropdown.style.bottom = 'auto'`\n   - Set `dropdown.style.position = 'fixed'`; `dropdown.style.left = inputRect.left + 'px'`; `dropdown.style.width = inputRect.width + 'px'`\n\n2. Add a `_resetDropdownPosition(dropdown)` function that removes the inline styles: `dropdown.style.cssText = ''`\n\n3. Set up a `MutationObserver` that watches for `childList` changes on all `.suggestions-dropdown` elements. When children are added (dropdown populated), call `_repositionDropdown()`. When children are removed or innerHTML cleared, call `_resetDropdownPosition()`.\n\n4. Since dropdowns are created dynamically (htmx swaps, multi-value clones), use a delegated approach: observe `document.body` with `{ childList: true, subtree: true }` but filter mutations to only act on `.suggestions-dropdown` elements. Alternatively, use the existing dismiss mousedown listener to also handle repositioning on the htmx `htmx:afterSwap` event.\n\n5. Update `_dismissAllDropdowns()` in the same file to also call `_resetDropdownPosition()` on each cleared dropdown.\n\n6. Update `frontend/static/css/forms.css` — ensure `.suggestions-dropdown` has a `z-index` high enough for fixed positioning (9999 is already set, good). No other CSS changes needed since the JS overrides position inline.\n\n## Must-Haves\n\n- [ ] Dropdown near bottom of scrollable panel flips above the input instead of being clipped\n- [ ] Dropdown in normal position (plenty of space below) renders below as before\n- [ ] Fixed positioning includes correct left/width matching the input field\n- [ ] Dismiss resets position to defaults (no stale inline styles)\n- [ ] Works for both reference fields and tag fields\n- [ ] No regression on builder dropdowns (they should skip repositioning)\n- [ ] Scroll/resize while dropdown is open does not leave dropdown orphaned (dismiss on scroll)",
+      "estimate": "45m",
+      "files": [
+        "frontend/static/js/dropdown-dismiss.js",
+        "frontend/static/css/forms.css"
+      ],
+      "verify": "Start the dev Docker stack. Open an object edit form with several fields so a reference or tag field is near the bottom of the panel. Type to trigger suggestions. The dropdown should appear above the input (flipped) or be fully visible — not clipped. Scroll the panel — dropdown should dismiss. Verify: `rg '_repositionDropdown' frontend/static/js/dropdown-dismiss.js` returns matches.",
+      "inputs": [
+        "`frontend/static/js/dropdown-dismiss.js` — dismiss logic from T01",
+        "`frontend/static/css/forms.css` — dropdown CSS positioning rules",
+        "`backend/app/templates/forms/_field.html` — dropdown HTML structure"
+      ],
+      "expected_output": [
+        "`frontend/static/js/dropdown-dismiss.js` — updated with repositioning logic",
+        "`frontend/static/css/forms.css` — minor updates if needed for fixed-position z-index"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
     }
   ],
   "decisions": [
@@ -37552,6 +37738,18 @@
       "revisable": "Yes",
       "made_by": "agent",
       "superseded_by": null
+    },
+    {
+      "seq": 425,
+      "id": "D391",
+      "when_context": "M051",
+      "scope": "UX",
+      "decision": "Where to strip ' Shape' suffix from type labels",
+      "choice": "Strip in backend get_types() before returning, not in individual templates or client-side JS",
+      "rationale": "The label comes from rdfs:label on SHACL NodeShape nodes (e.g. 'Project Shape'). Stripping in get_types() fixes all downstream consumers at once — explorer nav tree, type picker, command palette, view type dropdowns. The existing workspace.js client-side strip for command palette becomes redundant but harmless.",
+      "revisable": "Yes",
+      "made_by": "agent",
+      "superseded_by": null
     }
   ],
   "verification_evidence": [
@@ -40722,6 +40920,61 @@
       "verdict": "✅ pass",
       "duration_ms": 16700,
       "created_at": "2026-04-05T22:30:45.303Z"
+    },
+    {
+      "id": 289,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M051",
+      "command": "rg 'dismissAllDropdowns' frontend/static/js/dropdown-dismiss.js",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-06T00:46:48.218Z"
+    },
+    {
+      "id": 290,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M051",
+      "command": "rg 'dropdown-dismiss' backend/app/templates/base.html",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-06T00:46:48.218Z"
+    },
+    {
+      "id": 291,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M051",
+      "command": "node -c frontend/static/js/dropdown-dismiss.js",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 200,
+      "created_at": "2026-04-06T00:46:48.218Z"
+    },
+    {
+      "id": 292,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M051",
+      "command": "curl -s -o /dev/null -w '%{http_code}' http://localhost:3901/js/dropdown-dismiss.js",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 300,
+      "created_at": "2026-04-06T00:46:48.218Z"
+    },
+    {
+      "id": 293,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M051",
+      "command": "Browser: click-outside + Escape dismiss for reference and tag fields; suggestion selection; htmx re-population",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 15000,
+      "created_at": "2026-04-06T00:46:48.218Z"
     }
   ]
 }

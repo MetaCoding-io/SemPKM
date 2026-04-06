@@ -547,6 +547,22 @@
       "doneMilestones": 49,
       "totalMilestones": 56,
       "phase": "pre-planning"
+    },
+    {
+      "filename": "M050-2026-04-05T22-38-07.html",
+      "generatedAt": "2026-04-05T22:38:07.840Z",
+      "milestoneId": "M050",
+      "milestoneTitle": "View System Rework",
+      "label": "M050: View System Rework",
+      "kind": "milestone",
+      "totalCost": 2076.623880000002,
+      "totalTokens": 2969300967,
+      "totalDuration": 382836591,
+      "doneSlices": 286,
+      "totalSlices": 288,
+      "doneMilestones": 50,
+      "totalMilestones": 56,
+      "phase": "pre-planning"
     }
   ]
 }
