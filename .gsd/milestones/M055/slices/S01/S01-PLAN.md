@@ -15,7 +15,7 @@
   - Estimate: 30min
   - Files: frontend/static/js/workspace-layout.js, frontend/static/js/workspace.js
   - Verify: Start dev stack. Open /browser/. Open object A → check URL has ?tab= with A's IRI. Open object B → URL updates. Press back → A is focused, URL shows A. Press forward → B focused. Open 5 tabs, navigate back through all of them — no loop, no duplicate entries. Verify ?panel=sparql still works.
-- [ ] **T02: Deep link: open tab from ?tab= on page load** — Handle the ?tab= query parameter on initial page load to open the referenced tab.
+- [x] **T02: Added deep-link handler that opens and focuses the correct tab type from ?tab= query parameter on initial page load** — Handle the ?tab= query parameter on initial page load to open the referenced tab.
 
 1. In workspace.js, after initWorkspaceLayout() completes (where dockview layout is restored), read ?tab= from the URL
 2. If ?tab= is present:

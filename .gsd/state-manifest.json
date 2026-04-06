@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T06:08:05.965Z",
+  "exported_at": "2026-04-06T06:25:50.516Z",
   "milestones": [
     {
       "id": "M001",
@@ -34760,19 +34760,24 @@
       "milestone_id": "M055",
       "slice_id": "S01",
       "id": "T02",
-      "title": "Deep link: open tab from ?tab= on page load",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Added deep-link handler that opens and focuses the correct tab type from ?tab= query parameter on initial page load",
+      "status": "complete",
+      "one_liner": "Added deep-link handler that opens and focuses the correct tab type from ?tab= query parameter on initial page load",
+      "narrative": "Added a deep-link handler in workspace.js that reads the ?tab= query parameter and opens the corresponding tab after dockview layout initialization. The key challenge was that initWorkspaceLayout() includes a replaceState that overwrites ?tab= with the restored layout's active panel, so the value must be captured before calling initWorkspaceLayout(). The handler supports all tab ID formats: object IRIs, special:*, view:*, generic-view:*, dashboard:*, workflow:*, catalog:*, app-page:*, app-view:*. If the panel is already open from layout restore, it calls setActive() instead of opening a duplicate.",
+      "verification_result": "Tested 4 scenarios in browser: (1) deep-link to object IRI — Concept tab opens and is active, (2) refresh preserves the tab, (3) deep-link to special:docs — docs tab opens, (4) no ?tab= parameter — normal behavior with no errors. All tests pass.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-06T06:25:50.476Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "Had to capture ?tab= BEFORE initWorkspaceLayout() instead of after, because replaceState inside init overwrites the URL parameter. Required frontend asset rebuild and Docker volume deployment.",
+      "known_issues": "None.",
+      "key_files": [
+        "frontend/static/js/workspace.js"
+      ],
+      "key_decisions": [
+        "Capture ?tab= before initWorkspaceLayout because replaceState overwrites URL param",
+        "Route tab IDs through type-detection dispatch supporting all 9 tab ID formats"
+      ],
+      "full_summary_md": "---\nid: T02\nparent: S01\nmilestone: M055\nkey_files:\n  - frontend/static/js/workspace.js\nkey_decisions:\n  - Capture ?tab= before initWorkspaceLayout because replaceState overwrites URL param\n  - Route tab IDs through type-detection dispatch supporting all 9 tab ID formats\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T06:25:50.475Z\nblocker_discovered: false\n---\n\n# T02: Added deep-link handler that opens and focuses the correct tab type from ?tab= query parameter on initial page load\n\n**Added deep-link handler that opens and focuses the correct tab type from ?tab= query parameter on initial page load**\n\n## What Happened\n\nAdded a deep-link handler in workspace.js that reads the ?tab= query parameter and opens the corresponding tab after dockview layout initialization. The key challenge was that initWorkspaceLayout() includes a replaceState that overwrites ?tab= with the restored layout's active panel, so the value must be captured before calling initWorkspaceLayout(). The handler supports all tab ID formats: object IRIs, special:*, view:*, generic-view:*, dashboard:*, workflow:*, catalog:*, app-page:*, app-view:*. If the panel is already open from layout restore, it calls setActive() instead of opening a duplicate.\n\n## Verification\n\nTested 4 scenarios in browser: (1) deep-link to object IRI — Concept tab opens and is active, (2) refresh preserves the tab, (3) deep-link to special:docs — docs tab opens, (4) no ?tab= parameter — normal behavior with no errors. All tests pass.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `Browser: navigate ?tab=Concept IRI → tab opens and is active` | 0 | ✅ pass | 2000ms |\n| 2 | `Browser: reload → same tab active, URL preserved` | 0 | ✅ pass | 3000ms |\n| 3 | `Browser: navigate ?tab=special:docs → docs tab opens` | 0 | ✅ pass | 2000ms |\n| 4 | `Browser: navigate /browser/ without ?tab= → no errors` | 0 | ✅ pass | 2000ms |\n| 5 | `Browser: URL assert contains correct tab ID` | 0 | ✅ pass | 100ms |\n\n## Deviations\n\nHad to capture ?tab= BEFORE initWorkspaceLayout() instead of after, because replaceState inside init overwrites the URL parameter. Required frontend asset rebuild and Docker volume deployment.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `frontend/static/js/workspace.js`\n",
       "description": "Handle the ?tab= query parameter on initial page load to open the referenced tab.\n\n1. In workspace.js, after initWorkspaceLayout() completes (where dockview layout is restored), read ?tab= from the URL\n2. If ?tab= is present:\n   a. Check if the panel is already open (may have been restored from layout). If so, just focus it with setActive()\n   b. If not open, determine the tab type from the ID format (raw IRI = object tab, 'view:*' = view tab, 'special:*' = special tab, etc.) and call the appropriate open*Tab() function\n   c. For object tabs, call openTab(iri) — label will be fetched by the htmx partial\n3. Do NOT clean the ?tab= from URL after processing — keeping it makes the URL persistently bookmarkable\n4. Ensure this works with replaceState initial state from T01 (no duplicate history entry)",
       "estimate": "20min",
       "files": [
@@ -43915,6 +43920,61 @@
       "verdict": "✅ pass",
       "duration_ms": 1000,
       "created_at": "2026-04-06T06:08:05.925Z"
+    },
+    {
+      "id": 381,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M055",
+      "command": "Browser: navigate ?tab=Concept IRI → tab opens and is active",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 2000,
+      "created_at": "2026-04-06T06:25:50.476Z"
+    },
+    {
+      "id": 382,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M055",
+      "command": "Browser: reload → same tab active, URL preserved",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 3000,
+      "created_at": "2026-04-06T06:25:50.476Z"
+    },
+    {
+      "id": 383,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M055",
+      "command": "Browser: navigate ?tab=special:docs → docs tab opens",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 2000,
+      "created_at": "2026-04-06T06:25:50.476Z"
+    },
+    {
+      "id": 384,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M055",
+      "command": "Browser: navigate /browser/ without ?tab= → no errors",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 2000,
+      "created_at": "2026-04-06T06:25:50.476Z"
+    },
+    {
+      "id": 385,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M055",
+      "command": "Browser: URL assert contains correct tab ID",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-06T06:25:50.476Z"
     }
   ]
 }

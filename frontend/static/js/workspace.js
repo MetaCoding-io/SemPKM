@@ -2951,6 +2951,9 @@
     initPanelDragDrop();
     restorePanelPositions();
 
+    // Capture ?tab= before initWorkspaceLayout's replaceState overwrites it
+    var _deepLinkTabId = new URLSearchParams(window.location.search).get('tab');
+
     // Initialize workspace layout (dockview)
     if (typeof window.SemPKM.initWorkspaceLayout === 'function') {
       window.SemPKM.initWorkspaceLayout();
@@ -2963,6 +2966,80 @@
         var panelId = dv.activePanel.id;
         var isObjectTab = panelId && !panelId.startsWith('view:') && !panelId.startsWith('special:');
         setContextualPanelActive(isObjectTab);
+      }());
+
+      // --- Deep-link: open tab from ?tab= query parameter ---
+      // Uses _deepLinkTabId captured before initWorkspaceLayout, because
+      // replaceState inside init overwrites ?tab= with the restored panel.
+      (function handleDeepLink() {
+        var tabId = _deepLinkTabId;
+        if (!tabId) return;
+
+        var dv = window.SemPKM._dockview;
+        if (!dv) return;
+
+        // Check if panel already open (restored from layout) — just focus it
+        var existing = dv.panels.find(function(p) { return p.id === tabId; });
+        if (existing) {
+          existing.api.setActive();
+          return;
+        }
+
+        // Determine tab type from ID format and open accordingly
+        if (tabId.startsWith('special:')) {
+          var specialName = tabId.substring(8); // after 'special:'
+          var specialOpeners = {
+            'docs': typeof openDocsTab === 'function' ? openDocsTab : null,
+            'canvas': typeof openCanvasTab === 'function' ? openCanvasTab : null,
+            'vfs': typeof openVfsTab === 'function' ? openVfsTab : null,
+            'import': typeof openImportTab === 'function' ? openImportTab : null,
+            'rdf-import': typeof openRdfImportTab === 'function' ? openRdfImportTab : null,
+            'ontology': typeof openOntologyTab === 'function' ? openOntologyTab : null
+          };
+          if (specialOpeners[specialName]) {
+            specialOpeners[specialName]();
+          }
+        } else if (tabId.startsWith('view:')) {
+          var viewId = tabId.substring(5); // after 'view:'
+          openViewTab(viewId, viewId, null);
+        } else if (tabId.startsWith('generic-view:')) {
+          // generic-view:<renderer>:scope:<scopeQueryId> or generic-view:<renderer>:<timestamp>
+          var parts = tabId.substring(13).split(':'); // after 'generic-view:'
+          var renderer = parts[0];
+          if (parts[1] === 'scope' && parts[2]) {
+            openGenericViewTab(renderer, parts[2]);
+          } else {
+            openGenericViewTab(renderer);
+          }
+        } else if (tabId.startsWith('dashboard:')) {
+          var dashId = tabId.substring(10); // after 'dashboard:'
+          openDashboardTab(dashId, dashId);
+        } else if (tabId.startsWith('workflow:')) {
+          var wfId = tabId.substring(9); // after 'workflow:'
+          openWorkflowTab(wfId, wfId);
+        } else if (tabId.startsWith('catalog:')) {
+          var catPart = tabId.substring(8); // after 'catalog:'
+          if (catPart === 'list') {
+            openCatalogTab();
+          } else {
+            openCatalogDetailTab(catPart, catPart);
+          }
+        } else if (tabId.startsWith('app-page:')) {
+          // app-page:<appId>:<pageId>
+          var appPageParts = tabId.substring(9).split(':');
+          if (appPageParts.length >= 2) {
+            openAppPageTab(appPageParts[0], appPageParts.slice(1).join(':'), tabId);
+          }
+        } else if (tabId.startsWith('app-view:')) {
+          // app-view:<appId>:<viewId>
+          var appViewParts = tabId.substring(9).split(':');
+          if (appViewParts.length >= 2) {
+            openAppViewTab(appViewParts[0], appViewParts.slice(1).join(':'), tabId);
+          }
+        } else {
+          // Default: treat as object IRI
+          openTab(tabId);
+        }
       }());
     }
 
