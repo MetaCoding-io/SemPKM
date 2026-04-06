@@ -37,23 +37,6 @@
     </div>
     {% endif %}
 
-    <h3 class="section-label" style="margin-top: 24px;">Installed Models</h3>
-
-    <form hx-post="/admin/models/install" hx-target="#model-table" hx-swap="outerHTML"
-          hx-indicator="#install-spinner"
-          style="display: flex; align-items: end; gap: 12px; margin-bottom: 1.5rem;">
-        <div style="flex: 1; max-width: 500px;">
-            <label for="model-path" style="display: block; margin-bottom: 4px; font-weight: 500; font-size: 0.85rem;">Install Model</label>
-            <input type="text" id="model-path" name="path"
-                   class="form-input"
-                   placeholder="/app/models/basic-pkm" required>
-        </div>
-        <div>
-            <button type="submit" class="btn btn-primary">Install</button>
-            <span id="install-spinner" class="htmx-indicator loading">Installing...</span>
-        </div>
-    </form>
-
     {% block model_table %}
     <div id="model-table" data-testid="model-list">
         {% if error is defined and error %}
@@ -61,6 +44,58 @@
         {% elif success is defined and success %}
         <div class="success-box" id="admin-messages">{{ success }}</div>
         {% endif %}
+
+        {# Available (uninstalled) bundled models #}
+        {% if available_models is defined and available_models | length > 0 %}
+        <h3 class="section-label" style="margin-top: 24px;">Available Models</h3>
+        <div class="available-models-grid">
+            {% for model in available_models %}
+            <div class="available-model-card">
+                <div class="available-model-header">
+                    <h4 class="available-model-name">{{ model.name }}</h4>
+                    <span class="available-model-version">v{{ model.version }}</span>
+                </div>
+                <p class="available-model-desc">{{ model.description }}</p>
+                <div class="available-model-stats">
+                    <span class="available-model-stat"><strong>{{ model.type_count }}</strong> types</span>
+                    <span class="available-model-stat"><strong>{{ model.icon_count }}</strong> icons</span>
+                </div>
+                <form hx-post="/admin/models/install" hx-target="#model-table" hx-swap="outerHTML"
+                      hx-indicator="find .install-indicator">
+                    <input type="hidden" name="path" value="{{ model.path }}">
+                    <button type="submit" class="btn btn-primary btn-sm available-model-install">
+                        Install
+                    </button>
+                    <span class="install-indicator htmx-indicator loading">Installing…</span>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+        {% elif available_models is defined and available_models | length == 0 %}
+        <h3 class="section-label" style="margin-top: 24px;">Available Models</h3>
+        <p class="available-models-empty">All bundled models are installed.</p>
+        {% endif %}
+
+        <h3 class="section-label" style="margin-top: 24px;">Installed Models</h3>
+
+        {# Advanced: install from custom path #}
+        <details class="install-path-details">
+            <summary>Install from path…</summary>
+            <form hx-post="/admin/models/install" hx-target="#model-table" hx-swap="outerHTML"
+                  hx-indicator="#install-spinner"
+                  class="install-path-form">
+                <div style="flex: 1; max-width: 500px;">
+                    <label for="model-path" style="display: block; margin-bottom: 4px; font-weight: 500; font-size: 0.85rem;">Model Path</label>
+                    <input type="text" id="model-path" name="path"
+                           class="form-input"
+                           placeholder="/app/models/basic-pkm" required>
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary">Install</button>
+                    <span id="install-spinner" class="htmx-indicator loading">Installing…</span>
+                </div>
+            </form>
+        </details>
 
         <table class="sparql-results">
             <thead>

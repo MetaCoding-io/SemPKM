@@ -26,7 +26,7 @@ Constraints:
   - Estimate: 30m
   - Files: backend/app/admin/router.py, backend/app/models/manifest.py
   - Verify: cd backend && python -c "from app.admin.router import scan_available_models; print('import OK')" && echo 'PASS'
-- [ ] **T02: Add available-models card grid UI and one-click install** — Add an 'Available Models' section to the admin models template showing discoverable bundled models as styled cards. Each card displays model name, description, version, and type count from the manifest. An Install button on each card triggers installation via htmx POST to the existing /admin/models/install endpoint with the model path.
+- [x] **T02: Added responsive card grid showing discoverable bundled models with one-click install, replacing the text-input form as the primary install path** — Add an 'Available Models' section to the admin models template showing discoverable bundled models as styled cards. Each card displays model name, description, version, and type count from the manifest. An Install button on each card triggers installation via htmx POST to the existing /admin/models/install endpoint with the model path.
 
 Steps:
 1. Read `backend/app/templates/admin/models.html` — current template structure

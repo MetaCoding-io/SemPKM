@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T03:05:50.311Z",
+  "exported_at": "2026-04-06T03:09:03.683Z",
   "milestones": [
     {
       "id": "M001",
@@ -33885,19 +33885,25 @@
       "milestone_id": "M053",
       "slice_id": "S01",
       "id": "T02",
-      "title": "Add available-models card grid UI and one-click install",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Added responsive card grid showing discoverable bundled models with one-click install, replacing the text-input form as the primary install path",
+      "status": "complete",
+      "one_liner": "Added responsive card grid showing discoverable bundled models with one-click install, replacing the text-input form as the primary install path",
+      "narrative": "Restructured the admin Mental Models template to display uninstalled bundled models as styled cards in a responsive grid. Each card shows name, version badge, description (line-clamped), and type/icon counts. Install button triggers hx-post with model path as hidden input. Moved available-models section inside the model_table Jinja2 block so htmx partial swaps update both sections on install/remove. Original text-input install form collapsed into a details element as advanced fallback. CSS follows upper-ontology-card pattern with theme tokens and color-mix() for decorative tints.",
+      "verification_result": "Template parse check passed. Block structure verified — model_table block contains available-models-grid, install-path-details, and sparql-results table. Task plan rg verification command passed. No hardcoded colors in new CSS.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-06T03:09:03.593Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "Expanded model_table block to encompass both available and installed sections instead of creating a separate wrapper div. Per-card hx-indicator uses htmx relative selector instead of global spinner.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/templates/admin/models.html",
+        "frontend/static/css/style.css"
+      ],
+      "key_decisions": [
+        "Moved available-models grid inside model_table Jinja2 block so htmx partial swaps update both sections",
+        "Original install form collapsed into details element as advanced fallback"
+      ],
+      "full_summary_md": "---\nid: T02\nparent: S01\nmilestone: M053\nkey_files:\n  - backend/app/templates/admin/models.html\n  - frontend/static/css/style.css\nkey_decisions:\n  - Moved available-models grid inside model_table Jinja2 block so htmx partial swaps update both sections\n  - Original install form collapsed into details element as advanced fallback\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T03:09:03.592Z\nblocker_discovered: false\n---\n\n# T02: Added responsive card grid showing discoverable bundled models with one-click install, replacing the text-input form as the primary install path\n\n**Added responsive card grid showing discoverable bundled models with one-click install, replacing the text-input form as the primary install path**\n\n## What Happened\n\nRestructured the admin Mental Models template to display uninstalled bundled models as styled cards in a responsive grid. Each card shows name, version badge, description (line-clamped), and type/icon counts. Install button triggers hx-post with model path as hidden input. Moved available-models section inside the model_table Jinja2 block so htmx partial swaps update both sections on install/remove. Original text-input install form collapsed into a details element as advanced fallback. CSS follows upper-ontology-card pattern with theme tokens and color-mix() for decorative tints.\n\n## Verification\n\nTemplate parse check passed. Block structure verified — model_table block contains available-models-grid, install-path-details, and sparql-results table. Task plan rg verification command passed. No hardcoded colors in new CSS.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `rg 'available-models-grid' backend/app/templates/admin/models.html && rg 'available-model-card' frontend/static/css/style.css && echo 'PASS'` | 0 | ✅ pass | 500ms |\n| 2 | `cd backend && .venv/bin/python -c \"from jinja2 import ...; env.get_template('admin/models.html'); print('OK')\"` | 0 | ✅ pass | 1000ms |\n| 3 | `Block structure assertions (all sections inside model_table block)` | 0 | ✅ pass | 500ms |\n| 4 | `rg hardcoded colors in new CSS | wc -l → 0` | 0 | ✅ pass | 300ms |\n\n## Deviations\n\nExpanded model_table block to encompass both available and installed sections instead of creating a separate wrapper div. Per-card hx-indicator uses htmx relative selector instead of global spinner.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/templates/admin/models.html`\n- `frontend/static/css/style.css`\n",
       "description": "Add an 'Available Models' section to the admin models template showing discoverable bundled models as styled cards. Each card displays model name, description, version, and type count from the manifest. An Install button on each card triggers installation via htmx POST to the existing /admin/models/install endpoint with the model path.\n\nSteps:\n1. Read `backend/app/templates/admin/models.html` — current template structure\n2. Read `frontend/static/css/style.css` — existing admin and upper-ontology card styles (lines 415-470)\n3. Add an 'Available Models' section between the install form and the installed models table:\n   - Section header: `<h3 class=\"section-label\">Available Models</h3>`\n   - Grid container: `<div class=\"available-models-grid\">`\n   - For each model in available_models: a card div with:\n     - Model name (h4), version badge, description (p), type count stat\n     - Install button that does `hx-post=\"/admin/models/install\"` with hidden input `name=\"path\" value=\"/app/models/{{model.model_id}}\"`\n     - The button should use `hx-target=\"#model-table\"` and `hx-swap=\"outerHTML\"` to match existing install behavior\n     - Add hx-indicator for loading state on the button\n   - Empty state when available_models is empty: 'All bundled models are installed.'\n4. Move the available models section to render INSIDE the `#model-table` div (or create a wrapper that includes both available + installed sections) so that after install/remove htmx swaps, both sections update correctly.\n   - Actually, the simplest approach: keep the available section OUTSIDE #model-table but use `hx-target=\"body\"` with full page swap — NO. Instead, wrap the available-models section + install form + model-table into a single `#models-content` div that gets swapped on install/remove.\n   - The existing model_table block returns `#model-table` div. Expand this block to include both available-models and installed-models so htmx partial swaps update both.\n5. Add CSS to `frontend/static/css/style.css` in the admin section:\n   - `.available-models-grid` — CSS grid, 1-3 columns responsive, gap\n   - `.available-model-card` — border, border-radius, padding, hover shadow\n   - `.available-model-card h4` — model name styling\n   - `.available-model-card .model-version` — version badge\n   - `.available-model-card .model-desc` — description, muted text, line-clamp\n   - `.available-model-card .model-stats` — type count row\n   - `.available-model-card .btn` — install button styling\n   - All colors use theme tokens (var(--color-*)), not hardcoded values\n6. Remove or hide the text input install form — the available-models cards replace it. Keep the form as a fallback wrapped in a `<details>` element with summary 'Install from path...' for advanced users who might need to specify a custom path.\n7. Verify the install button works by checking that the htmx attributes match the existing form's POST behavior.\n\nCSS note per CLAUDE.md: all colors must use theme tokens. Use `color-mix()` with theme primitives for decorative tints. Follow the existing `.upper-ontology-card` pattern for card styling consistency.\n\nLucide icons note per CLAUDE.md: if adding any Lucide icons to cards, size via CSS not inline styles, add `flex-shrink: 0` in flex containers.",
       "estimate": "45m",
       "files": [
@@ -42371,6 +42377,50 @@
       "verdict": "✅ pass",
       "duration_ms": 1000,
       "created_at": "2026-04-06T03:05:50.265Z"
+    },
+    {
+      "id": 335,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M053",
+      "command": "rg 'available-models-grid' backend/app/templates/admin/models.html && rg 'available-model-card' frontend/static/css/style.css && echo 'PASS'",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 500,
+      "created_at": "2026-04-06T03:09:03.593Z"
+    },
+    {
+      "id": 336,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M053",
+      "command": "cd backend && .venv/bin/python -c \"from jinja2 import ...; env.get_template('admin/models.html'); print('OK')\"",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1000,
+      "created_at": "2026-04-06T03:09:03.593Z"
+    },
+    {
+      "id": 337,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M053",
+      "command": "Block structure assertions (all sections inside model_table block)",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 500,
+      "created_at": "2026-04-06T03:09:03.593Z"
+    },
+    {
+      "id": 338,
+      "task_id": "T02",
+      "slice_id": "S01",
+      "milestone_id": "M053",
+      "command": "rg hardcoded colors in new CSS | wc -l → 0",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 300,
+      "created_at": "2026-04-06T03:09:03.593Z"
     }
   ]
 }
