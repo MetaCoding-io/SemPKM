@@ -14,7 +14,7 @@ import logging
 from urllib.parse import unquote
 
 from fastapi import APIRouter, Depends, Form, Query, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
@@ -85,6 +85,28 @@ async def tbox_tree(
         "browser/ontology/tbox_tree.html",
         {"classes": classes, "error": not classes},
     )
+
+
+@ontology_router.get("/ontology/tbox/graph-data")
+async def tbox_graph_data(
+    request: Request,
+    user: User = Depends(get_current_user),
+) -> JSONResponse:
+    """Return Cytoscape-compatible TBox graph data as JSON.
+
+    Returns all owl:Class nodes and rdfs:subClassOf edges across
+    gist + installed model ontology graphs + user-types.
+    Edge direction is parent→child so dagre TB puts parents on top.
+
+    On SPARQL failure, returns empty arrays (not 500).
+    """
+    ontology_service = request.app.state.ontology_service
+    try:
+        data = await ontology_service.get_tbox_graph_data()
+    except Exception:
+        logger.error("Failed to load TBox graph data", exc_info=True)
+        data = {"nodes": [], "edges": []}
+    return JSONResponse(content=data)
 
 
 @ontology_router.get("/ontology/tbox/children")

@@ -542,6 +542,103 @@ ORDER BY ?label"""
         )
         return classes
 
+    async def get_tbox_graph_data(self) -> dict:
+        """Query all TBox classes and subClassOf edges for Cytoscape graph rendering.
+
+        Returns Cytoscape-compatible graph data with all owl:Class instances
+        across gist + installed model ontology graphs + user-types.
+        Excludes owl:Thing and blank nodes.
+
+        Edge direction is parent→child so dagre TB layout puts parents at top.
+
+        Returns:
+            Dict with keys:
+            - nodes: list of {id: str, label: str, source: str}
+            - edges: list of {source: str, target: str, label: str}
+        """
+        try:
+            graph_iris = await self.get_ontology_graph_iris()
+            from_clauses = self._build_from_clauses(graph_iris)
+
+            sparql = f"""PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT ?class ?label ?parent
+{from_clauses}
+WHERE {{
+  ?class a owl:Class .
+  FILTER(isIRI(?class))
+  FILTER(?class != owl:Thing)
+  OPTIONAL {{ ?class skos:prefLabel ?skosLabel .
+              FILTER(LANG(?skosLabel) = "" || LANG(?skosLabel) = "en") }}
+  OPTIONAL {{ ?class rdfs:label ?rdfsLabel .
+              FILTER(LANG(?rdfsLabel) = "" || LANG(?rdfsLabel) = "en") }}
+  BIND(COALESCE(?skosLabel, ?rdfsLabel,
+       REPLACE(STR(?class), "^.*/|^.*#|^.*:", "", "")) AS ?label)
+  OPTIONAL {{
+    ?class rdfs:subClassOf ?parent .
+    FILTER(isIRI(?parent) && ?parent != owl:Thing)
+  }}
+}}"""
+
+            result = await self._client.query(sparql)
+            bindings = result.get("results", {}).get("bindings", [])
+
+            # Deduplicate nodes (a class may appear in multiple rows due to
+            # multiple parents) and build edge list.
+            node_map: dict[str, dict] = {}
+            edges: list[dict] = []
+
+            for b in bindings:
+                cls_iri = b["class"]["value"]
+                cls_label = b.get("label", {}).get(
+                    "value",
+                    cls_iri.rsplit("/", 1)[-1].rsplit("#", 1)[-1],
+                )
+
+                if cls_iri not in node_map:
+                    node_map[cls_iri] = {
+                        "id": cls_iri,
+                        "label": cls_label,
+                        "source": _property_source(cls_iri),
+                    }
+
+                parent_iri = b.get("parent", {}).get("value")
+                if parent_iri:
+                    # Ensure parent node exists (it might be from a different
+                    # row or not yet seen).
+                    if parent_iri not in node_map:
+                        parent_label = parent_iri.rsplit("/", 1)[-1].rsplit(
+                            "#", 1
+                        )[-1]
+                        node_map[parent_iri] = {
+                            "id": parent_iri,
+                            "label": parent_label,
+                            "source": _property_source(parent_iri),
+                        }
+                    # Edge direction: parent → child (dagre TB puts parent on top)
+                    edges.append({
+                        "source": parent_iri,
+                        "target": cls_iri,
+                        "label": "subClassOf",
+                    })
+
+            nodes = list(node_map.values())
+
+            logger.info(
+                "TBox graph-data: %d nodes, %d edges from %d graphs",
+                len(nodes),
+                len(edges),
+                len(graph_iris),
+            )
+
+            return {"nodes": nodes, "edges": edges}
+
+        except Exception:
+            logger.error("Failed to query TBox graph data", exc_info=True)
+            return {"nodes": [], "edges": []}
+
     async def get_model_classes_with_parents(self) -> list[dict]:
         """Get non-gist classes grouped under their gist parent classes.
 

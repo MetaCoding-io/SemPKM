@@ -49,6 +49,52 @@ This file is the explicit capability and coverage contract for the project.
 - Primary owning slice: M054/S01
 - Validation: Create config with filter=Tasks, group=Status, sort=Due Date → explorer tree shows type-filtered objects grouped by status values with correct sort order. Unit tests prove SPARQL generation for multi-level configs.
 
+### R018 — Hover popover appears correctly anchored to the hovered graph node, not displaced
+- Class: functional
+- Status: active
+- Description: Hover popover appears correctly anchored to the hovered graph node, not displaced
+- Why it matters: Bug fix — current model detail graph has popover displacement issues inside dockview panels
+- Source: M056
+- Primary owning slice: M056/S02
+- Supporting slices: M056/S01
+- Validation: Hover any node in the ontology graph → popover appears adjacent to the node, not displaced to a far corner. Uses graph.js body-appended popover pattern.
+
+### R019 — Ontology Viewer TBox tab shows a hierarchical graph of all installed model classes with gist at the top layer
+- Class: functional
+- Status: active
+- Description: Ontology Viewer TBox tab shows a hierarchical graph of all installed model classes with gist at the top layer
+- Why it matters: Core value of M056 — users need to see the full ontology hierarchy visually, not just as a tree list
+- Source: M056
+- Primary owning slice: M056/S01
+- Validation: Open Ontology Viewer → TBox tab shows Cytoscape graph with gist classes at top, model types below. dagre TB layout produces clean hierarchy.
+
+### R020 — Multi-select model filter updates ontology graph in real-time without page reload
+- Class: functional
+- Status: active
+- Description: Multi-select model filter updates ontology graph in real-time without page reload
+- Why it matters: Users need to focus on specific model subsets rather than seeing all 170+ nodes at once
+- Source: M056
+- Primary owning slice: M056/S02
+- Validation: Filter to show only CRM → graph re-renders with just CRM types plus gist connections. Uncheck CRM, check business-planning → graph updates live.
+
+### R021 — Clicking a graph node shows class detail (properties, relationships, instance count) in a bottom detail panel
+- Class: functional
+- Status: active
+- Description: Clicking a graph node shows class detail (properties, relationships, instance count) in a bottom detail panel
+- Why it matters: Interactive exploration is the point of having a graph — users need to drill into node details
+- Source: M056
+- Primary owning slice: M056/S01
+- Validation: Click any node in the ontology graph → bottom detail panel shows class properties, relationships, instance count via existing tbox/detail endpoint.
+
+### R022 — Ontology graph state (positions, zoom, pan) persists when switching between TBox/ABox/RBox tabs
+- Class: functional
+- Status: active
+- Description: Ontology graph state (positions, zoom, pan) persists when switching between TBox/ABox/RBox tabs
+- Why it matters: Explicit user request — switching tabs should not reset graph position
+- Source: M056
+- Primary owning slice: M056/S02
+- Validation: Position/zoom graph → switch to ABox → switch back to TBox → graph in same position. cy.resize() called on tab activation.
+
 ## Validated
 
 ### R001 — Non-object-contextual panels (inbox, collaboration) lazy-load on reveal rather than on page load — use hx-trigger="revealed" instead of hx-trigger="load"
@@ -183,10 +229,15 @@ This file is the explicit capability and coverage contract for the project.
 | R015 | functional | validated | M055/S01 | none | 6 Playwright E2E tests in e2e/tests/55-browser-history/history.spec.ts pass on Chromium and Firefox. Tests 1-3 prove pushState on tab open, URL update on switch, and back/forward navigation. Validated in M055/S01. |
 | R016 | functional | validated | M055/S01 | none | E2E test 4 navigates to /browser/?tab=<iri> and confirms correct object tab opens on page load. Deep-link handler supports all 9 tab ID formats. Manual verification: deep-link works, refresh preserves tab. Validated in M055/S01. |
 | R017 | functional | validated | M055/S02 | none | Duplicate of R014 — same 8 E2E tests validate both requirements. Validated in M055/S02. |
+| R018 | functional | active | M056/S02 | M056/S01 | Hover any node in the ontology graph → popover appears adjacent to the node, not displaced to a far corner. Uses graph.js body-appended popover pattern. |
+| R019 | functional | active | M056/S01 | none | Open Ontology Viewer → TBox tab shows Cytoscape graph with gist classes at top, model types below. dagre TB layout produces clean hierarchy. |
+| R020 | functional | active | M056/S02 | none | Filter to show only CRM → graph re-renders with just CRM types plus gist connections. Uncheck CRM, check business-planning → graph updates live. |
+| R021 | functional | active | M056/S01 | none | Click any node in the ontology graph → bottom detail panel shows class properties, relationships, instance count via existing tbox/detail endpoint. |
+| R022 | functional | active | M056/S02 | none | Position/zoom graph → switch to ABox → switch back to TBox → graph in same position. cy.resize() called on tab activation. |
 
 ## Coverage Summary
 
-- Active requirements: 5
-- Mapped to slices: 5
+- Active requirements: 10
+- Mapped to slices: 10
 - Validated: 12 (R001, R002, R004, R005, R006, R011, R012, R013, R014, R015, R016, R017)
 - Unmapped active requirements: 0

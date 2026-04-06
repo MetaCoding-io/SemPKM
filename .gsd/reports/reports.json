@@ -627,6 +627,22 @@
       "doneMilestones": 54,
       "totalMilestones": 56,
       "phase": "pre-planning"
+    },
+    {
+      "filename": "M055-2026-04-06T07-03-08.html",
+      "generatedAt": "2026-04-06T07:03:08.333Z",
+      "milestoneId": "M055",
+      "milestoneTitle": "Browser History & Tab Recovery",
+      "label": "M055: Browser History & Tab Recovery",
+      "kind": "milestone",
+      "totalCost": 2284.4770542500028,
+      "totalTokens": 3309874565,
+      "totalDuration": 407473790,
+      "doneSlices": 300,
+      "totalSlices": 302,
+      "doneMilestones": 55,
+      "totalMilestones": 56,
+      "phase": "pre-planning"
     }
   ]
 }

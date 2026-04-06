@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T07:02:31.055Z",
+  "exported_at": "2026-04-06T07:22:47.620Z",
   "milestones": [
     {
       "id": "M001",
@@ -2132,22 +2132,57 @@
     },
     {
       "id": "M056",
-      "title": "",
+      "title": "Ontology Visualization Overhaul",
       "status": "active",
       "depends_on": [],
       "created_at": "2026-04-05T17:38:45.585Z",
       "completed_at": null,
-      "vision": "",
-      "success_criteria": [],
-      "key_risks": [],
-      "proof_strategy": [],
-      "verification_contract": "",
-      "verification_integration": "",
-      "verification_operational": "",
-      "verification_uat": "",
-      "definition_of_done": [],
-      "requirement_coverage": "",
-      "boundary_map_markdown": ""
+      "vision": "Replace the tree-only TBox view in the Ontology Viewer with a Cytoscape.js hierarchical graph showing all installed model classes with gist as the upper ontology, interactive multi-model filtering, click-to-detail, and persistent graph state across tab switches.",
+      "success_criteria": [
+        "Install 3+ models → Ontology Viewer → TBox graph shows all types with gist at top layer, model types below in dagre TB layout",
+        "Filter to show only CRM model → graph re-renders with just CRM types plus gist connections",
+        "Click a node (e.g. CRM Contact) → bottom detail panel shows properties, relationships, instance count",
+        "Switch to ABox tab → switch back to TBox → graph is in the same position/zoom",
+        "Hover a node → popover appears anchored to the node, not displaced"
+      ],
+      "key_risks": [
+        {
+          "risk": "dagre layout may not produce clean layered hierarchy from gist subclass data — gist uses owl:equivalentClass/intersectionOf rather than direct rdfs:subClassOf",
+          "whyItMatters": "_extract_implied_subclasses() materializes ~42 implied triples at startup, but the graph endpoint must also include these edges for dagre to rank correctly. If edges are incomplete, nodes cluster randomly."
+        },
+        {
+          "risk": "170+ nodes may be visually overwhelming without grouping or color differentiation",
+          "whyItMatters": "If nodes from 8 models + gist all render as identical circles, the graph is useless. Per-model coloring and client-side filtering are essential for readability."
+        }
+      ],
+      "proof_strategy": [
+        {
+          "riskOrUnknown": "dagre hierarchy from gist subclass data",
+          "retireIn": "S01",
+          "whatWillBeProven": "Real graph endpoint returns correct layer assignments, dagre TB layout produces visually clean hierarchy with gist at top"
+        },
+        {
+          "riskOrUnknown": "Visual readability at 170+ nodes",
+          "retireIn": "S02",
+          "whatWillBeProven": "Per-model color coding + client-side filter reduces visual noise to manageable levels"
+        }
+      ],
+      "verification_contract": "Backend unit tests for graph endpoint (node/edge counts, layer assignments). E2E tests opening Ontology Viewer and verifying graph container, node count, filter behavior.",
+      "verification_integration": "E2E test: install 3+ models → open Ontology Viewer → graph renders with expected node count. Click node → detail panel loads. Filter by model → node count changes.",
+      "verification_operational": "None — no new infrastructure or external dependencies.",
+      "verification_uat": "Manual UAT: graph shows clean hierarchy, filter works, tab persistence works, popovers anchored correctly.",
+      "definition_of_done": [
+        "TBox tab shows Cytoscape graph with dagre TB layout showing gist at top layer",
+        "Graph/tree view toggle lets user switch between graph and existing tree view",
+        "Click node → bottom detail panel shows class detail via existing endpoint",
+        "Multi-model filter checkboxes show/hide nodes by source model",
+        "Per-model color coding distinguishes model classes from gist",
+        "Graph state persists across TBox/ABox/RBox tab switches",
+        "Hover popover anchored to node using graph.js body-append pattern",
+        "E2E tests pass for graph rendering, filter, and tab persistence"
+      ],
+      "requirement_coverage": "R018 (popover anchoring) → S02. R019 (hierarchical graph) → S01. R020 (multi-model filter) → S02. R021 (click-to-detail) → S01. R022 (tab persistence) → S02. All Active requirements relevant to M056 are mapped.",
+      "boundary_map_markdown": "```\nBackend (ontology/router.py)        Frontend (ontology_page.html + ontology-graph.js)\n─────────────────────────────       ──────────────────────────────────────────────────\nGET /browser/ontology/tbox/graph    → Cytoscape initOntologyGraph(containerId)\n  ?models=all|crm,basic-pkm          dagre TB layout with layer data\n  Response: {nodes, edges,            Per-model coloring from type_colors\n    available_models, type_colors}    Client-side filterGraph by source attr\n                                      Node click → htmx load detail endpoint\n\nGET /browser/ontology/tbox/detail   → Bottom detail panel (existing, reused)\n  ?iri=<encoded>\n  Response: HTML fragment\n\nswitchOntologyTab() JS              → cy.resize() on TBox pane activation\n```"
     }
   ],
   "slices": [
@@ -8672,6 +8707,48 @@
       "proof_level": "Browser verification + E2E test",
       "integration_closure": "Closed tab stack is independent module state — no cross-slice dependencies",
       "observability_impact": "None",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M056",
+      "id": "S01",
+      "title": "TBox Graph API + Hierarchical Rendering + Detail Panel",
+      "status": "pending",
+      "risk": "high",
+      "depends": [],
+      "demo": "Open Ontology Viewer → TBox tab shows a hierarchical Cytoscape graph with gist classes at top, model types below. Toggle between graph/tree view. Click a node → detail panel shows class properties and instance count.",
+      "created_at": "2026-04-06T07:14:11.418Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "TBox tab in the Ontology Viewer shows a hierarchical Cytoscape graph with gist classes at the top layer and model types below, with a toggle to switch between graph/tree view, and a bottom detail panel that loads class properties/relationships/instance count when a node is clicked.",
+      "success_criteria": "**Must-Haves:**\n- New JSON API endpoint `/browser/ontology/tbox/graph-data` returns all TBox classes as Cytoscape nodes with `rdfs:subClassOf` edges, source metadata (gist/model/user), and labels\n- TBox pane layout restructured: graph view as primary (top area), detail panel (bottom area), with a graph/tree toggle button\n- Cytoscape graph renders with dagre TB layout producing a top-down hierarchy (gist roots at top, model classes below)\n- Clicking a graph node loads class detail (properties, relationships, instance count) in the bottom detail panel via the existing `/browser/ontology/tbox/detail` endpoint\n- Tree view remains accessible via toggle button, preserving all existing tree functionality\n- Graph fills available width and height in the TBox pane\n\n**Threat Surface:**\n- **Abuse**: The graph-data endpoint queries the triplestore with dynamically assembled FROM clauses. All graph IRIs are derived from server-side model registry (no user input in IRIs). Low risk.\n- **Data exposure**: Only ontology schema data (class names, property definitions) — no PII or secrets.\n- **Input trust**: The `iri` query param on the existing detail endpoint already handles untrusted input via URL encoding. No new input trust boundaries.\n\n**Requirement Impact:**\n- **Requirements touched**: R019, R021\n- **Re-verify**: Existing TBox tree functionality must still work after layout restructure. Existing class creation/editing/deletion modals must still function.\n- **Decisions revisited**: D406 (graph as primary, tree as toggle)\n\n**Proof Level:**\n- This slice proves: integration (graph renders from live triplestore data across multiple ontology graphs)\n- Real runtime required: yes (needs RDF4J triplestore with loaded ontologies)\n- Human/UAT required: no\n\n**Verification:**\n- `cd backend && .venv/bin/python -m pytest tests/test_ontology_graph.py -v` — unit tests for the graph-data endpoint (node count, edge structure, source labels)\n- `curl -s http://localhost:4000/browser/ontology/tbox/graph-data -H 'Cookie: ...' | python3 -c \"import json,sys; d=json.load(sys.stdin); assert len(d['nodes'])>0; assert len(d['edges'])>0; print(f'OK: {len(d[\\\"nodes\\\"])} nodes, {len(d[\\\"edges\\\"])} edges')\"` — smoke test against running stack\n- Manual verification: Open Ontology Viewer → TBox tab shows graph → click node → detail panel populates → toggle to tree → tree still works\n\n**Observability / Diagnostics:**\n- Runtime signals: `logger.info(\"TBox graph-data: %d nodes, %d edges from %d graphs\", ...)` on the new endpoint\n- Inspection surfaces: `/browser/ontology/tbox/graph-data` returns structured JSON inspectable via curl\n- Failure visibility: SPARQL query errors logged with exc_info, endpoint returns empty nodes/edges arrays (not 500) on triplestore failure\n- Redaction constraints: none (ontology schema data only)\n\n**Integration Closure:**\n- Upstream surfaces consumed: `OntologyService.get_ontology_graph_iris()`, `OntologyService.get_root_classes()`, existing `/browser/ontology/tbox/detail` endpoint, `graph.js` patterns (Cytoscape init, popover, layout)\n- New wiring introduced: `/browser/ontology/tbox/graph-data` JSON endpoint, `ontology-graph.js` initializer called from template, graph/tree toggle JS\n- What remains before the milestone is truly usable end-to-end: S02 adds multi-model filtering, per-model color coding, graph persistence across tab switches, and popover hover anchoring fix",
+      "proof_level": "integration",
+      "integration_closure": "Upstream: OntologyService SPARQL methods, existing tbox/detail endpoint, graph.js patterns. New: /browser/ontology/tbox/graph-data JSON endpoint, ontology-graph.js. Remaining: S02 adds filtering, persistence, popover fix.",
+      "observability_impact": "New endpoint logs node/edge counts. SPARQL errors logged with traceback. Empty-array fallback on failure (no 500s). JSON endpoint inspectable via curl.",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M056",
+      "id": "S02",
+      "title": "Multi-Model Filter + Visual Polish + Persistence",
+      "status": "pending",
+      "risk": "low",
+      "depends": [
+        "S01"
+      ],
+      "demo": "Filter graph by model (checkboxes) → graph updates live. Per-model color coding distinguishes sources. Switch tabs → graph persists. Hover nodes → popovers anchored correctly.",
+      "created_at": "2026-04-06T07:14:11.418Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Complete the interactive features: model filtering, visual differentiation, tab persistence, and popover anchoring.",
+      "success_criteria": "- Model filter checkboxes above graph, one per installed model + 'All' toggle\n- Client-side filtering via source data attribute (show/hide nodes)\n- Per-model background colors from type_colors\n- cy.resize() on TBox tab activation preserves graph state\n- Hover popover uses graph.js body-append pattern, anchored to node\n- E2E tests verify filter behavior and tab persistence",
+      "proof_level": "E2E: filter to one model → node count decreases. Switch to ABox → back to TBox → graph visible with same layout.",
+      "integration_closure": "Filter operates on client-side data already fetched in S01. Popover reuses graph.js pattern. Tab persistence via cy.resize() in switchOntologyTab().",
+      "observability_impact": "None additional.",
       "sequence": 0,
       "replan_triggered_at": null
     }
@@ -34916,6 +34993,126 @@
       "observability_impact": "",
       "full_plan_md": "",
       "sequence": 0
+    },
+    {
+      "milestone_id": "M056",
+      "slice_id": "S01",
+      "id": "T01",
+      "title": "Added GET /browser/ontology/tbox/graph-data JSON endpoint returning all TBox classes and subClassOf edges as Cytoscape-compatible graph data",
+      "status": "complete",
+      "one_liner": "Added GET /browser/ontology/tbox/graph-data JSON endpoint returning all TBox classes and subClassOf edges as Cytoscape-compatible graph data",
+      "narrative": "Added get_tbox_graph_data() to OntologyService — a single SPARQL query across all ontology graphs (gist + installed models + user-types) that retrieves all owl:Class instances with their labels and optional rdfs:subClassOf parents. The method deduplicates nodes, auto-creates parent nodes when only referenced by children, and assigns source labels via _property_source(). owl:Thing and blank nodes are excluded. Added the GET /browser/ontology/tbox/graph-data route returning JSONResponse with {nodes, edges}. Error handling returns empty arrays on failure. Wrote 16 unit tests covering node structure, edge direction, source labels, deduplication, empty results, SPARQL failure, and query structure.",
+      "verification_result": "All 16 tests pass: cd backend && .venv/bin/python -m pytest tests/test_ontology_graph.py -v — 16 passed in 0.50s. LSP diagnostics clean on both modified files.",
+      "duration": "",
+      "completed_at": "2026-04-06T07:22:47.570Z",
+      "blocker_discovered": false,
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/ontology/service.py",
+        "backend/app/ontology/router.py",
+        "backend/tests/test_ontology_graph.py"
+      ],
+      "key_decisions": [
+        "Edge direction parent→child matches dagre TB convention (parents at top)",
+        "Error handling returns empty {nodes:[], edges:[]} instead of 500",
+        "Parent nodes auto-created when only referenced by child bindings"
+      ],
+      "full_summary_md": "---\nid: T01\nparent: S01\nmilestone: M056\nkey_files:\n  - backend/app/ontology/service.py\n  - backend/app/ontology/router.py\n  - backend/tests/test_ontology_graph.py\nkey_decisions:\n  - Edge direction parent→child matches dagre TB convention (parents at top)\n  - Error handling returns empty {nodes:[], edges:[]} instead of 500\n  - Parent nodes auto-created when only referenced by child bindings\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T07:22:47.570Z\nblocker_discovered: false\n---\n\n# T01: Added GET /browser/ontology/tbox/graph-data JSON endpoint returning all TBox classes and subClassOf edges as Cytoscape-compatible graph data\n\n**Added GET /browser/ontology/tbox/graph-data JSON endpoint returning all TBox classes and subClassOf edges as Cytoscape-compatible graph data**\n\n## What Happened\n\nAdded get_tbox_graph_data() to OntologyService — a single SPARQL query across all ontology graphs (gist + installed models + user-types) that retrieves all owl:Class instances with their labels and optional rdfs:subClassOf parents. The method deduplicates nodes, auto-creates parent nodes when only referenced by children, and assigns source labels via _property_source(). owl:Thing and blank nodes are excluded. Added the GET /browser/ontology/tbox/graph-data route returning JSONResponse with {nodes, edges}. Error handling returns empty arrays on failure. Wrote 16 unit tests covering node structure, edge direction, source labels, deduplication, empty results, SPARQL failure, and query structure.\n\n## Verification\n\nAll 16 tests pass: cd backend && .venv/bin/python -m pytest tests/test_ontology_graph.py -v — 16 passed in 0.50s. LSP diagnostics clean on both modified files.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python -m pytest tests/test_ontology_graph.py -v` | 0 | ✅ pass | 500ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/ontology/service.py`\n- `backend/app/ontology/router.py`\n- `backend/tests/test_ontology_graph.py`\n",
+      "description": "Create a new JSON endpoint at `/browser/ontology/tbox/graph-data` that queries all TBox classes across gist + installed model ontology graphs + user-types and returns Cytoscape-compatible graph data.\n\n## Failure Modes\n\n| Dependency | On error | On timeout | On malformed response |\n|------------|----------|-----------|----------------------|\n| RDF4J triplestore | Return empty {nodes:[], edges:[]} with logged error | Same — async query timeout logged | Should not occur — SPARQL result format is fixed |\n\n## Steps\n\n1. Read `backend/app/ontology/service.py` — understand `get_ontology_graph_iris()`, `get_root_classes()`, `_build_from_clauses()` patterns\n2. Add a new method `get_tbox_graph_data()` to `OntologyService` that:\n   - Gets all ontology graph IRIs via `get_ontology_graph_iris()`\n   - Queries ALL `owl:Class` instances (not just roots) with their labels and `rdfs:subClassOf` parents\n   - Returns nodes as `[{id: iri, label: str, source: 'gist'|'model-id'|'user'}]`\n   - Returns edges as `[{source: parent_iri, target: child_iri, label: 'subClassOf'}]` (direction: parent→child for dagre TB to put parents on top)\n   - Determines `source` using the existing `_property_source()` helper\n   - Filters out owl:Thing and blank nodes\n3. Add a new route `GET /browser/ontology/tbox/graph-data` to `backend/app/ontology/router.py` that:\n   - Calls `ontology_service.get_tbox_graph_data()`\n   - Returns `JSONResponse` with `{nodes: [...], edges: [...]}`\n   - Catches exceptions and returns empty arrays with error logged\n4. Write unit tests in `backend/tests/test_ontology_graph.py`:\n   - Test that `get_tbox_graph_data()` returns correct node structure\n   - Test that edges connect correct parent→child pairs\n   - Test that source labels are correctly assigned\n   - Mock the triplestore client to return known SPARQL results\n\n## Must-Haves\n\n- [ ] `get_tbox_graph_data()` queries ALL classes across all ontology graphs, not just roots\n- [ ] Nodes include `id` (IRI), `label`, and `source` fields\n- [ ] Edges represent `rdfs:subClassOf` with direction parent→child (so dagre TB puts parents at top)\n- [ ] owl:Thing nodes and blank nodes are excluded\n- [ ] Endpoint returns JSON, not HTML\n- [ ] Error handling: empty arrays returned on SPARQL failure, not 500\n\n## Verification\n\n- `cd backend && .venv/bin/python -m pytest tests/test_ontology_graph.py -v` passes\n- The endpoint is reachable and returns valid JSON with nodes and edges arrays\n\n## Observability Impact\n\n- Signals added: `logger.info(\"TBox graph-data: %d nodes, %d edges from %d graphs\", ...)` on successful query\n- How a future agent inspects: `curl localhost:4000/browser/ontology/tbox/graph-data` (with auth cookie)\n- Failure state exposed: SPARQL errors logged with `exc_info=True`",
+      "estimate": "45m",
+      "files": [
+        "backend/app/ontology/service.py",
+        "backend/app/ontology/router.py",
+        "backend/tests/test_ontology_graph.py"
+      ],
+      "verify": "cd backend && .venv/bin/python -m pytest tests/test_ontology_graph.py -v",
+      "inputs": [
+        "`backend/app/ontology/service.py` — existing OntologyService with SPARQL query patterns and _property_source() helper",
+        "`backend/app/ontology/router.py` — existing ontology router to add new endpoint to"
+      ],
+      "expected_output": [
+        "`backend/app/ontology/service.py` — new get_tbox_graph_data() method added",
+        "`backend/app/ontology/router.py` — new GET /browser/ontology/tbox/graph-data endpoint added",
+        "`backend/tests/test_ontology_graph.py` — unit tests for graph data endpoint"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M056",
+      "slice_id": "S01",
+      "id": "T02",
+      "title": "Restructure TBox pane layout with graph/tree toggle and bottom detail panel",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Rework the TBox pane in `ontology_page.html` from horizontal split (tree left + detail right) to a vertical layout: graph/tree view area on top with a toggle button, detail panel on bottom. The graph view is the primary view per D406.\n\n## Steps\n\n1. Read `backend/app/templates/browser/ontology/ontology_page.html` — understand current TBox pane structure\n2. Read workspace.css lines 563-900 — understand current ontology CSS\n3. Restructure the `#ontology-tbox` pane in `ontology_page.html`:\n   - Replace `.tbox-split` (horizontal) with a new `.tbox-vertical-split` (vertical flex column)\n   - Top area: `.tbox-main-view` containing:\n     - A small toolbar with graph/tree toggle button (graph active by default)\n     - `.tbox-graph-container` div (visible by default) — empty div with `id=\"tbox-graph\"` for Cytoscape to mount into\n     - `.tbox-tree-container` div (hidden by default) — wraps the existing tree scroll + filter bar content\n   - Bottom area: `.tbox-detail-pane` (same as existing, just moves to bottom)\n   - The toggle button uses `data-view=\"graph\"` / `data-view=\"tree\"` to switch visibility\n4. Add a `toggleTboxView(btn, viewName)` function in the `<script>` block that:\n   - Shows/hides `.tbox-graph-container` and `.tbox-tree-container`\n   - Updates toggle button active state\n   - On switching to graph: if Cytoscape instance exists, calls `cy.resize()` to recalculate dimensions\n5. Add CSS in `frontend/static/css/workspace.css` for:\n   - `.tbox-vertical-split` — flex column, height 100%\n   - `.tbox-main-view` — flex: 1, min-height: 0, position relative\n   - `.tbox-graph-container` — width 100%, height 100%, position absolute (fills the main view area)\n   - `.tbox-tree-container` — same dimensions, hidden by default\n   - `.tbox-view-toggle` — small button group in toolbar\n   - `.tbox-detail-pane` — adjust for bottom position (height ~250px, border-top, overflow-y auto)\n6. Ensure the \"Hide gist\" checkbox and existing tree htmx triggers still work when tree view is visible\n7. Ensure all existing modals (create/edit/delete class, property) still work — they are positioned via `.ccf-overlay` which is absolute/fixed, so layout changes shouldn't affect them\n\n## Must-Haves\n\n- [ ] Graph view is the default/primary view when TBox tab loads\n- [ ] Toggle button switches between graph and tree views\n- [ ] Bottom detail panel shows \"Select a class to view its details\" placeholder by default\n- [ ] Existing tree functionality (expand/collapse, hide gist filter, lazy-load children) works when tree is shown\n- [ ] Graph container has id=\"tbox-graph\" for Cytoscape mounting\n- [ ] Graph container fills 100% width and height of the main view area\n- [ ] All existing modals (create class, create property, edit, delete) still function\n\n## Verification\n\n- `grep -q 'tbox-graph' backend/app/templates/browser/ontology/ontology_page.html` confirms graph container exists\n- `grep -q 'toggleTboxView' backend/app/templates/browser/ontology/ontology_page.html` confirms toggle function exists\n- `grep -q 'tbox-vertical-split' frontend/static/css/workspace.css` confirms new layout CSS exists\n- Visual check: open Ontology Viewer → TBox tab shows graph container area (empty until T03 wires JS) and toggle button",
+      "estimate": "30m",
+      "files": [
+        "backend/app/templates/browser/ontology/ontology_page.html",
+        "frontend/static/css/workspace.css"
+      ],
+      "verify": "grep -q 'tbox-graph' backend/app/templates/browser/ontology/ontology_page.html && grep -q 'toggleTboxView' backend/app/templates/browser/ontology/ontology_page.html && grep -q 'tbox-vertical-split' frontend/static/css/workspace.css && echo 'PASS'",
+      "inputs": [
+        "`backend/app/templates/browser/ontology/ontology_page.html` — current template with horizontal split layout",
+        "`frontend/static/css/workspace.css` — current ontology CSS (lines 563-900)"
+      ],
+      "expected_output": [
+        "`backend/app/templates/browser/ontology/ontology_page.html` — restructured TBox pane with graph/tree toggle and bottom detail panel",
+        "`frontend/static/css/workspace.css` — new CSS for vertical split layout, graph container, toggle button"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M056",
+      "slice_id": "S01",
+      "id": "T03",
+      "title": "Wire Cytoscape graph initialization, node click → detail, and graph/tree toggle",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Create `ontology-graph.js` that fetches TBox graph data from the API endpoint (T01), initializes a Cytoscape instance with dagre TB layout in the graph container (T02), handles node clicks to load class detail in the bottom panel, and integrates with the graph/tree toggle.\n\n## Steps\n\n1. Read `frontend/static/js/graph.js` — understand existing Cytoscape patterns (init, style builder, popover, layout registry, cleanup)\n2. Read `backend/app/templates/browser/ontology/ontology_page.html` (T02 output) — understand the graph container ID and toggle mechanism\n3. Create `frontend/static/js/ontology-graph.js` as a new IIFE module that:\n   - Exports `window.SemPKM.initTboxGraph(containerId)` function\n   - Fetches `/browser/ontology/tbox/graph-data` via `apiFetch()`\n   - Converts response nodes/edges to Cytoscape elements format\n   - Assigns per-source colors: gist nodes get a neutral slate color, each model source gets a distinct color (use a small palette), user-types get a teal accent\n   - Initializes Cytoscape with dagre TB layout (`rankDir: 'TB'`, `rankSep: 60`, `nodeSep: 30`)\n   - Styles nodes with labels, source-based colors, and selection highlight\n   - On `tap` node event: calls `loadClassDetail(nodeIri)` (already defined in ontology_page.html) to load detail in the bottom panel\n   - On `mouseover`/`mouseout` node events: adds/removes `.hovered` class for visual feedback\n   - Stores the cy instance as `window.SemPKM._tboxGraph` for cleanup and toggle resize\n   - Registers cleanup via `window.SemPKM.registerCleanup()` if available\n4. Add a `<script src=\"/js/ontology-graph.js\"></script>` tag in `ontology_page.html` (or lazy-load it)\n5. Wire the graph initialization: when TBox tab is active and graph view is shown, call `SemPKM.initTboxGraph('tbox-graph')` — add this call to the template's `<script>` block, triggered on page load or on TBox tab activation\n6. Wire the toggle: when switching to graph view, call `cy.resize()` + `cy.fit()` to recalculate layout after visibility change. When switching from graph to tree, no special handling needed.\n7. Handle dark mode: listen for `sempkm:theme-changed` event and rebuild the Cytoscape stylesheet (same pattern as graph.js `switchGraphTheme`)\n8. Handle empty state: if the API returns 0 nodes, show a \"No ontology classes found\" message in the container\n\n## Must-Haves\n\n- [ ] Cytoscape graph renders with dagre TB layout (top-down hierarchy)\n- [ ] Gist classes appear at the top of the hierarchy, model classes below them\n- [ ] Clicking a node loads class detail in the bottom panel\n- [ ] Graph fills the available space (100% width and height)\n- [ ] Graph respects dark/light theme\n- [ ] Empty state handled gracefully\n- [ ] Cleanup registered to destroy Cytoscape instance on panel dispose\n- [ ] Uses `apiFetch()` for the data fetch (per KNOWLEDGE.md Pattern 13)\n\n## Negative Tests\n\n- **Malformed inputs**: API returns empty nodes array → show \"No ontology classes found\" message\n- **Error paths**: API fetch fails → show error message in container, log to console\n- **Boundary conditions**: Single node with no edges → graph renders the lone node centered\n\n## Verification\n\n- `test -f frontend/static/js/ontology-graph.js` confirms the file exists\n- `grep -q 'initTboxGraph' frontend/static/js/ontology-graph.js` confirms the export\n- `grep -q 'apiFetch' frontend/static/js/ontology-graph.js` confirms proper fetch usage\n- `grep -q 'dagre' frontend/static/js/ontology-graph.js` confirms dagre layout usage\n- Visual verification: Open Ontology Viewer → TBox shows hierarchical graph → click node → detail panel populates → toggle to tree → tree works → toggle back to graph → graph still there",
+      "estimate": "1h",
+      "files": [
+        "frontend/static/js/ontology-graph.js",
+        "backend/app/templates/browser/ontology/ontology_page.html"
+      ],
+      "verify": "test -f frontend/static/js/ontology-graph.js && grep -q 'initTboxGraph' frontend/static/js/ontology-graph.js && grep -q 'apiFetch' frontend/static/js/ontology-graph.js && grep -q 'dagre' frontend/static/js/ontology-graph.js && echo 'PASS'",
+      "inputs": [
+        "`backend/app/ontology/router.py` — T01 output: the /browser/ontology/tbox/graph-data endpoint",
+        "`backend/app/templates/browser/ontology/ontology_page.html` — T02 output: restructured template with graph container and toggle",
+        "`frontend/static/js/graph.js` — reference patterns for Cytoscape init, styling, popover, cleanup",
+        "`frontend/static/css/workspace.css` — T02 output: CSS for graph container"
+      ],
+      "expected_output": [
+        "`frontend/static/js/ontology-graph.js` — new Cytoscape graph module for TBox visualization",
+        "`backend/app/templates/browser/ontology/ontology_page.html` — updated with script tag and init call for ontology-graph.js"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
     }
   ],
   "decisions": [
@@ -39778,6 +39975,18 @@
       "revisable": "Yes",
       "made_by": "agent",
       "superseded_by": null
+    },
+    {
+      "seq": 451,
+      "id": "D406",
+      "when_context": "M056 planning",
+      "scope": "architecture",
+      "decision": "TBox tab layout: graph vs tree as primary view",
+      "choice": "Graph becomes the primary TBox view. Tree available via toggle button. Layout changes from horizontal split (tree + detail) to vertical split (graph/tree top + detail bottom).",
+      "rationale": "The graph is the milestone's core value proposition. The tree remains as secondary navigation for users who prefer text-based browsing. A toggle switch keeps both accessible without tabs-within-tabs complexity.",
+      "revisable": "Yes",
+      "made_by": "agent",
+      "superseded_by": null
     }
   ],
   "verification_evidence": [
@@ -44103,6 +44312,17 @@
       "verdict": "✅ pass",
       "duration_ms": 62800,
       "created_at": "2026-04-06T06:55:50.272Z"
+    },
+    {
+      "id": 394,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M056",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_ontology_graph.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 500,
+      "created_at": "2026-04-06T07:22:47.570Z"
     }
   ]
 }
