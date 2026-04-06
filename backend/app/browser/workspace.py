@@ -2,6 +2,7 @@
 
 import logging
 import re
+import uuid
 from typing import Callable
 from urllib.parse import unquote
 
@@ -1511,3 +1512,121 @@ async def migrate_queries(
         except Exception:
             logger.exception("Query migration failed")
             raise HTTPException(status_code=500, detail="Query migration failed")
+
+
+# ---------------------------------------------------------------------------
+# Explorer config CRUD API
+# ---------------------------------------------------------------------------
+
+def _get_explorer_config_service(request: Request):
+    """Get explorer config service from app state."""
+    from app.browser.explorer_config_service import ExplorerConfigService
+    return request.app.state.explorer_config_service
+
+
+@workspace_router.get("/api/explorer/configs")
+async def list_explorer_configs(
+    request: Request,
+    user: User = Depends(get_current_user),
+):
+    """List all explorer configs for the current user plus presets."""
+    service = _get_explorer_config_service(request)
+    configs = await service.list_for_user(user.id)
+    return JSONResponse(content=[
+        {
+            "id": c.id,
+            "name": c.name,
+            "config": c.config,
+            "is_preset": c.is_preset,
+        }
+        for c in configs
+    ])
+
+
+@workspace_router.post("/api/explorer/configs")
+async def create_explorer_config(
+    request: Request,
+    user: User = Depends(get_current_user),
+):
+    """Create a new explorer configuration."""
+    service = _get_explorer_config_service(request)
+    body = await request.json()
+    name = body.get("name", "").strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Name is required")
+
+    config = body.get("config") or body.get("config_json")
+    if isinstance(config, str):
+        import json as _json
+        try:
+            config = _json.loads(config)
+        except (ValueError, TypeError):
+            raise HTTPException(status_code=400, detail="Invalid config JSON")
+
+    result = await service.create(
+        user_id=user.id,
+        name=name,
+        config=config or {},
+    )
+    return JSONResponse(
+        content={"id": result.id, "name": result.name, "config": result.config},
+        status_code=201,
+    )
+
+
+@workspace_router.patch("/api/explorer/configs/{config_id}")
+async def update_explorer_config(
+    request: Request,
+    config_id: str,
+    user: User = Depends(get_current_user),
+):
+    """Update an explorer configuration (name or config)."""
+    service = _get_explorer_config_service(request)
+
+    try:
+        cid = uuid.UUID(config_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid config ID")
+
+    body = await request.json()
+    updates = {}
+    if "name" in body:
+        updates["name"] = body["name"]
+    if "config" in body:
+        updates["config"] = body["config"]
+    if "config_json" in body:
+        import json as _json
+        try:
+            updates["config"] = _json.loads(body["config_json"]) if isinstance(body["config_json"], str) else body["config_json"]
+        except (ValueError, TypeError):
+            raise HTTPException(status_code=400, detail="Invalid config JSON")
+
+    if not updates:
+        raise HTTPException(status_code=400, detail="No updates provided")
+
+    result = await service.update(cid, user.id, **updates)
+    if not result:
+        raise HTTPException(status_code=404, detail="Config not found")
+
+    return JSONResponse(content={"id": result.id, "name": result.name, "config": result.config})
+
+
+@workspace_router.delete("/api/explorer/configs/{config_id}")
+async def delete_explorer_config(
+    request: Request,
+    config_id: str,
+    user: User = Depends(get_current_user),
+):
+    """Delete a user explorer configuration. Presets cannot be deleted."""
+    service = _get_explorer_config_service(request)
+
+    try:
+        cid = uuid.UUID(config_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid config ID")
+
+    deleted = await service.delete(cid, user.id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Config not found or is a preset")
+
+    return JSONResponse(content={"deleted": True})

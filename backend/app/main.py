@@ -353,6 +353,10 @@ async def lifespan(app: FastAPI):
     auth_service = AuthService(async_session_factory)
     app.state.auth_service = auth_service
 
+    # Create ExplorerConfigService and store on app state
+    from app.browser.explorer_config_service import ExplorerConfigService
+    app.state.explorer_config_service = ExplorerConfigService(async_session_factory)
+
     # Create DashboardService and store on app state
     from app.dashboard.service import DashboardService
     app.state.dashboard_service = DashboardService(async_session_factory)
