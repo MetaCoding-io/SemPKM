@@ -13,34 +13,6 @@ This file is the explicit capability and coverage contract for the project.
 - Primary owning slice: M053/S02
 - Validation: Clicking Install on an already-installed model shows appropriate error message. No duplicate data written.
 
-### R004 — Registry HTTP fetches must use validate_outbound_url() SSRF guard before making requests
-- Class: security
-- Status: active
-- Description: Registry HTTP fetches must use validate_outbound_url() SSRF guard before making requests
-- Why it matters: Prevents SSRF attacks via crafted registry URLs pointing to internal services
-- Source: M053
-- Primary owning slice: M053/S02
-- Validation: All httpx calls to registry/archive URLs preceded by validate_outbound_url(). Verified by grep.
-
-### R005 — Archive downloads verified by SHA-256 hash against registry manifest before extraction
-- Class: security
-- Status: active
-- Description: Archive downloads verified by SHA-256 hash against registry manifest before extraction
-- Why it matters: Prevents installation of tampered or corrupted model archives
-- Source: M053
-- Primary owning slice: M053/S02
-- Validation: Download flow computes SHA-256 of downloaded archive and compares to registry.json value. Hash mismatch raises error before extraction.
-
-### R006 — Application must function normally when the model registry is unreachable — no crashes, no blocking waits
-- Class: operational
-- Status: active
-- Description: Application must function normally when the model registry is unreachable — no crashes, no blocking waits
-- Why it matters: Network failures and offline environments should not break existing functionality
-- Source: M053
-- Primary owning slice: M053/S02
-- Supporting slices: M053/S03
-- Validation: Registry fetch timeout (5s) with graceful fallback to empty catalog. UI shows informative error, not crash. Existing model management continues working.
-
 ### R007 — Install progress visible in admin UI during marketplace model download and installation
 - Class: functional
 - Status: active
@@ -78,24 +50,52 @@ This file is the explicit capability and coverage contract for the project.
 - Why it matters: Prevents path traversal attacks (../../etc/passwd) via malicious model archives
 - Source: M053
 - Primary owning slice: M053/S02
-- Validation: 33 unit tests in test_tar_validator.py prove path traversal, absolute paths, symlinks, hardlinks all rejected. safe_extract() uses Python 3.12 data_filter for defense-in-depth.
+- Validation: 33 unit tests in test_tar_validator.py prove path traversal, absolute paths, symlinks, hardlinks all rejected with ValueError. safe_extract() uses Python 3.12 data_filter for defense-in-depth. Validated in M053/S02/T01.
+
+### R004 — Registry HTTP fetches must use validate_outbound_url() SSRF guard before making requests
+- Class: security
+- Status: validated
+- Description: Registry HTTP fetches must use validate_outbound_url() SSRF guard before making requests
+- Why it matters: Prevents SSRF attacks via crafted registry URLs pointing to internal services
+- Source: M053
+- Primary owning slice: M053/S02
+- Validation: validate_outbound_url() called on both registry URL (catalog fetch) and archive URL (download) in marketplace.py. SSRF guard unit tests confirm blocking behavior. Validated in M053/S02/T02.
+
+### R005 — Archive downloads verified by SHA-256 hash against registry manifest before extraction
+- Class: security
+- Status: validated
+- Description: Archive downloads verified by SHA-256 hash against registry manifest before extraction
+- Why it matters: Prevents installation of tampered or corrupted model archives
+- Source: M053
+- Primary owning slice: M053/S02
+- Validation: SHA-256 computed on downloaded bytes and compared to registry manifest value. test_sha256_mismatch_raises proves hash mismatch blocks extraction. Validated in M053/S02/T02.
+
+### R006 — Application must function normally when the model registry is unreachable — no crashes, no blocking waits
+- Class: operational
+- Status: validated
+- Description: Application must function normally when the model registry is unreachable — no crashes, no blocking waits
+- Why it matters: Network failures and offline environments should not break existing functionality
+- Source: M053
+- Primary owning slice: M053/S02
+- Supporting slices: M053/S03
+- Validation: 5s httpx timeout with empty-list fallback. test_timeout_returns_empty_list and test_http_error_returns_empty_list prove graceful degradation. S03 check_updates() returns empty dict when disabled/unreachable. Validated in M053/S02/T02 + M053/S03/T01.
 
 ## Traceability
 
 | ID | Class | Status | Primary owner | Supporting | Proof |
 |---|---|---|---|---|---|
 | R001 | non-functional | validated | M049/S03 | M049/S01 | Both inbox_panel.html and collaboration_panel.html changed from hx-trigger="load" to hx-trigger="revealed". Grep confirms no load triggers remain in either file. HTTP requests fire only when panels enter viewport via IntersectionObserver. Validated in M049/S03/T03. |
-| R002 | security | validated | M053/S02 | none | 33 unit tests in test_tar_validator.py prove path traversal, absolute paths, symlinks, hardlinks all rejected. safe_extract() uses Python 3.12 data_filter for defense-in-depth. |
+| R002 | security | validated | M053/S02 | none | 33 unit tests in test_tar_validator.py prove path traversal, absolute paths, symlinks, hardlinks all rejected with ValueError. safe_extract() uses Python 3.12 data_filter for defense-in-depth. Validated in M053/S02/T01. |
 | R003 | functional | active | M053/S02 | none | Clicking Install on an already-installed model shows appropriate error message. No duplicate data written. |
-| R004 | security | active | M053/S02 | none | All httpx calls to registry/archive URLs preceded by validate_outbound_url(). Verified by grep. |
-| R005 | security | active | M053/S02 | none | Download flow computes SHA-256 of downloaded archive and compares to registry.json value. Hash mismatch raises error before extraction. |
-| R006 | operational | active | M053/S02 | M053/S03 | Registry fetch timeout (5s) with graceful fallback to empty catalog. UI shows informative error, not crash. Existing model management continues working. |
+| R004 | security | validated | M053/S02 | none | validate_outbound_url() called on both registry URL (catalog fetch) and archive URL (download) in marketplace.py. SSRF guard unit tests confirm blocking behavior. Validated in M053/S02/T02. |
+| R005 | security | validated | M053/S02 | none | SHA-256 computed on downloaded bytes and compared to registry manifest value. test_sha256_mismatch_raises proves hash mismatch blocks extraction. Validated in M053/S02/T02. |
+| R006 | operational | validated | M053/S02 | M053/S03 | 5s httpx timeout with empty-list fallback. test_timeout_returns_empty_list and test_http_error_returns_empty_list prove graceful degradation. S03 check_updates() returns empty dict when disabled/unreachable. Validated in M053/S02/T02 + M053/S03/T01. |
 | R007 | functional | active | M053/S02 | none | Install button shows loading spinner during download+install. Success/error message displayed after completion. |
 | R008 | functional | active | M053/S02 | none | Clicking Install on an already-installed model shows appropriate error message. No duplicate data written. |
 
 ## Coverage Summary
 
-- Active requirements: 6
-- Mapped to slices: 6
-- Validated: 2 (R001, R002)
+- Active requirements: 3
+- Mapped to slices: 3
+- Validated: 5 (R001, R002, R004, R005, R006)
 - Unmapped active requirements: 0
