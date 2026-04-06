@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T01:28:36.715Z",
+  "exported_at": "2026-04-06T01:30:08.559Z",
   "milestones": [
     {
       "id": "M001",
@@ -33199,19 +33199,23 @@
       "milestone_id": "M051",
       "slice_id": "S03",
       "id": "T02",
-      "title": "Fix admin graph popover viewport-relative positioning",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Fixed admin ontology diagram popover positioning by removing panel-relative offset subtraction from both node and edge hover handlers, using viewport coordinates to match position:fixed CSS",
+      "status": "complete",
+      "one_liner": "Fixed admin ontology diagram popover positioning by removing panel-relative offset subtraction from both node and edge hover handlers, using viewport coordinates to match position:fixed CSS",
+      "narrative": "The .graph-popover element uses position:fixed but the positioning JS subtracted panelRect offsets, double-transforming coordinates and misplacing the popover. Removed panelRect subtraction from all coordinate calculations in both node hover (showPopover) and edge hover (setTimeout callback), switched overflow boundary checks from panel bounds to window.innerWidth/innerHeight.",
+      "verification_result": "All grep checks pass: zero panelRect references remain, containerRect.left + pos confirms viewport-relative coords, window.innerWidth/innerHeight confirms viewport overflow checks.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-06T01:30:08.521Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "Fixed edge hover popover in addition to node hover — plan only mentioned showPopover but identical bug was in edge hover callback.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/templates/admin/model_ontology_diagram.html"
+      ],
+      "key_decisions": [
+        "Fixed both node and edge hover popovers since both had identical panel-relative positioning bug"
+      ],
+      "full_summary_md": "---\nid: T02\nparent: S03\nmilestone: M051\nkey_files:\n  - backend/app/templates/admin/model_ontology_diagram.html\nkey_decisions:\n  - Fixed both node and edge hover popovers since both had identical panel-relative positioning bug\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T01:30:08.520Z\nblocker_discovered: false\n---\n\n# T02: Fixed admin ontology diagram popover positioning by removing panel-relative offset subtraction from both node and edge hover handlers, using viewport coordinates to match position:fixed CSS\n\n**Fixed admin ontology diagram popover positioning by removing panel-relative offset subtraction from both node and edge hover handlers, using viewport coordinates to match position:fixed CSS**\n\n## What Happened\n\nThe .graph-popover element uses position:fixed but the positioning JS subtracted panelRect offsets, double-transforming coordinates and misplacing the popover. Removed panelRect subtraction from all coordinate calculations in both node hover (showPopover) and edge hover (setTimeout callback), switched overflow boundary checks from panel bounds to window.innerWidth/innerHeight.\n\n## Verification\n\nAll grep checks pass: zero panelRect references remain, containerRect.left + pos confirms viewport-relative coords, window.innerWidth/innerHeight confirms viewport overflow checks.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `grep -c panelRect | grep '^0$' && grep -q containerRect.left+pos && grep -q window.innerWidth` | 0 | ✅ pass | 100ms |\n\n## Deviations\n\nFixed edge hover popover in addition to node hover — plan only mentioned showPopover but identical bug was in edge hover callback.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/templates/admin/model_ontology_diagram.html`\n",
       "description": "## Description\n\nThe admin model ontology diagram popover (`.graph-popover`) has `position: fixed` in CSS but the positioning JS in `model_ontology_diagram.html` computes panel-relative coordinates by subtracting `panelRect`. This causes the popover to appear offset from the hovered node.\n\n## Steps\n\n1. Read `backend/app/templates/admin/model_ontology_diagram.html` lines 215-235 (the `showPopover` function's positioning block).\n\n2. Fix the initial position calculation. Change:\n   ```javascript\n   var left = (containerRect.left - panelRect.left) + pos.x + 16;\n   var top = (containerRect.top - panelRect.top) + pos.y - 12;\n   ```\n   To:\n   ```javascript\n   var left = containerRect.left + pos.x + 16;\n   var top = containerRect.top + pos.y - 12;\n   ```\n\n3. Fix the right-edge overflow check. Change:\n   ```javascript\n   popover.style.left = ((containerRect.left - panelRect.left) + pos.x - pRect.width - 12) + 'px';\n   ```\n   To:\n   ```javascript\n   popover.style.left = (containerRect.left + pos.x - pRect.width - 12) + 'px';\n   ```\n\n4. Fix the bottom-edge overflow check. Change:\n   ```javascript\n   popover.style.top = ((containerRect.top - panelRect.top) + pos.y - pRect.height + 12) + 'px';\n   ```\n   To:\n   ```javascript\n   popover.style.top = (containerRect.top + pos.y - pRect.height + 12) + 'px';\n   ```\n\n5. Update the overflow boundary checks from panel bounds to viewport bounds. Change:\n   ```javascript\n   if (pRect.right > panelRect.right - 8) {\n   ```\n   To:\n   ```javascript\n   if (pRect.right > window.innerWidth - 8) {\n   ```\n   And change:\n   ```javascript\n   if (pRect.bottom > panelRect.bottom - 8) {\n   ```\n   To:\n   ```javascript\n   if (pRect.bottom > window.innerHeight - 8) {\n   ```\n\n6. The `panelRect` variable is no longer needed in the positioning block. It can be removed or left — the `panel` variable is still used for `panel.appendChild(popover)` earlier in the function.\n\n7. Verify: `grep -c 'panelRect.left\\|panelRect.right\\|panelRect.top\\|panelRect.bottom' backend/app/templates/admin/model_ontology_diagram.html` returns 0. `grep -c 'containerRect.left + pos' backend/app/templates/admin/model_ontology_diagram.html` returns at least 1.",
       "estimate": "15m",
       "files": [
@@ -41279,6 +41283,17 @@
       "verdict": "✅ pass",
       "duration_ms": 80,
       "created_at": "2026-04-06T01:28:36.677Z"
+    },
+    {
+      "id": 306,
+      "task_id": "T02",
+      "slice_id": "S03",
+      "milestone_id": "M051",
+      "command": "grep -c panelRect | grep '^0$' && grep -q containerRect.left+pos && grep -q window.innerWidth",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 100,
+      "created_at": "2026-04-06T01:30:08.521Z"
     }
   ]
 }

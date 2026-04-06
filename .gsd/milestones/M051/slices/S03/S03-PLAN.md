@@ -43,7 +43,7 @@ Three related changes in workspace.js and workspace.css:
   - Estimate: 45m
   - Files: frontend/static/js/workspace.js, frontend/static/css/workspace.css
   - Verify: grep -c 'persona-create-confirm' frontend/static/js/workspace.js | grep -q '^0$' && grep -c 'layout-save-confirm' frontend/static/js/workspace.js | grep -q '^0$' && grep -q 'showInputDialog' frontend/static/js/workspace.js && grep -q '_savedOverflow' frontend/static/js/workspace.js && grep -q 'btn-primary' frontend/static/css/workspace.css && echo 'PASS'
-- [ ] **T02: Fix admin graph popover viewport-relative positioning** — ## Description
+- [x] **T02: Fixed admin ontology diagram popover positioning by removing panel-relative offset subtraction from both node and edge hover handlers, using viewport coordinates to match position:fixed CSS** — ## Description
 
 The admin model ontology diagram popover (`.graph-popover`) has `position: fixed` in CSS but the positioning JS in `model_ontology_diagram.html` computes panel-relative coordinates by subtracting `panelRect`. This causes the popover to appear offset from the hovered node.
 

@@ -211,24 +211,23 @@
         popover.innerHTML = html;
         popover.style.display = 'block';
 
-        // Position relative to the container element within the panel
+        // Position using viewport coordinates (popover has position:fixed)
         var containerRect = container.getBoundingClientRect();
-        var panelRect = panel.getBoundingClientRect();
-        var left = (containerRect.left - panelRect.left) + pos.x + 16;
-        var top = (containerRect.top - panelRect.top) + pos.y - 12;
+        var left = containerRect.left + pos.x + 16;
+        var top = containerRect.top + pos.y - 12;
 
         popover.style.left = left + 'px';
         popover.style.top = top + 'px';
 
-        // Adjust if overflowing right edge
+        // Adjust if overflowing right edge of viewport
         var pRect = popover.getBoundingClientRect();
-        if (pRect.right > panelRect.right - 8) {
-          popover.style.left = ((containerRect.left - panelRect.left) + pos.x - pRect.width - 12) + 'px';
+        if (pRect.right > window.innerWidth - 8) {
+          popover.style.left = (containerRect.left + pos.x - pRect.width - 12) + 'px';
         }
-        // Adjust if overflowing bottom
+        // Adjust if overflowing bottom of viewport
         pRect = popover.getBoundingClientRect();
-        if (pRect.bottom > panelRect.bottom - 8) {
-          popover.style.top = ((containerRect.top - panelRect.top) + pos.y - pRect.height + 12) + 'px';
+        if (pRect.bottom > window.innerHeight - 8) {
+          popover.style.top = (containerRect.top + pos.y - pRect.height + 12) + 'px';
         }
       }
 
@@ -277,19 +276,18 @@
           popover.style.display = 'block';
 
           var containerRect = container.getBoundingClientRect();
-          var panelRect = panel.getBoundingClientRect();
-          var left = (containerRect.left - panelRect.left) + pos.x + 16;
-          var top = (containerRect.top - panelRect.top) + pos.y - 12;
+          var left = containerRect.left + pos.x + 16;
+          var top = containerRect.top + pos.y - 12;
           popover.style.left = left + 'px';
           popover.style.top = top + 'px';
 
           var pRect = popover.getBoundingClientRect();
-          if (pRect.right > panelRect.right - 8) {
-            popover.style.left = ((containerRect.left - panelRect.left) + pos.x - pRect.width - 12) + 'px';
+          if (pRect.right > window.innerWidth - 8) {
+            popover.style.left = (containerRect.left + pos.x - pRect.width - 12) + 'px';
           }
           pRect = popover.getBoundingClientRect();
-          if (pRect.bottom > panelRect.bottom - 8) {
-            popover.style.top = ((containerRect.top - panelRect.top) + pos.y - pRect.height + 12) + 'px';
+          if (pRect.bottom > window.innerHeight - 8) {
+            popover.style.top = (containerRect.top + pos.y - pRect.height + 12) + 'px';
           }
         }, 200);
       });
