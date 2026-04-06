@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T06:29:08.353Z",
+  "exported_at": "2026-04-06T06:46:21.995Z",
   "milestones": [
     {
       "id": "M001",
@@ -8639,14 +8639,14 @@
       "milestone_id": "M055",
       "id": "S01",
       "title": "URL Sync & History Navigation",
-      "status": "pending",
+      "status": "complete",
       "risk": "medium",
       "depends": [],
       "demo": "Open object A → URL shows ?tab=A → open B → URL shows ?tab=B → back → A focused → URL shows A. Paste bookmarked URL → correct object opens.",
       "created_at": "2026-04-06T05:48:35.499Z",
-      "completed_at": null,
-      "full_summary_md": "",
-      "full_uat_md": "",
+      "completed_at": "2026-04-06T06:31:37.409Z",
+      "full_summary_md": "---\nid: S01\nparent: M055\nmilestone: M055\nprovides:\n  - ?tab= URL sync — all workspace tab types update the URL on activation\n  - Browser back/forward navigation between tabs\n  - Deep-link support — ?tab=<id> opens correct tab on page load\n  - 6 E2E tests in e2e/tests/55-browser-history/history.spec.ts\nrequires:\n  []\naffects:\n  []\nkey_files:\n  - frontend/static/js/workspace-layout.js\n  - frontend/static/js/workspace.js\n  - e2e/tests/55-browser-history/history.spec.ts\nkey_decisions:\n  - Two guard flags (_historyReady, _navigatingFromHistory) prevent history pollution during layout restore and popstate handling\n  - History state shape is { tabId: string } — minimal, sufficient for panel lookup\n  - replaceState for initial load, pushState for user-driven tab switches\n  - Deep-link ?tab= captured before initWorkspaceLayout because replaceState inside init overwrites URL params\n  - Deep-link supports all 9 tab ID formats via prefix dispatch (IRIs, special:*, view:*, etc.)\npatterns_established:\n  - History API pushState/popstate wiring pattern with guard flags for dockview integration\n  - Deep-link ?tab= capture-before-init pattern for workspace URL processing\n  - page_settle E2E helper (500ms + networkidle) for async History API operations\nobservability_surfaces:\n  - none\ndrill_down_paths:\n  - .gsd/milestones/M055/slices/S01/tasks/T01-SUMMARY.md\n  - .gsd/milestones/M055/slices/S01/tasks/T02-SUMMARY.md\n  - .gsd/milestones/M055/slices/S01/tasks/T03-SUMMARY.md\nduration: \"\"\nverification_result: passed\ncompleted_at: 2026-04-06T06:31:37.410Z\nblocker_discovered: false\n---\n\n# S01: URL Sync & History Navigation\n\n**Wired History API to dockview panel activation — URL reflects active tab via ?tab=, back/forward navigates tab history, and deep-link URLs open correct tabs on page load.**\n\n## What Happened\n\nThree tasks delivered the full URL sync feature. T01 wired pushState/popstate to dockview's onDidActivePanelChange handler with two guard flags: `_historyReady` (suppresses pushState during layout restore to prevent history pollution) and `_navigatingFromHistory` (suppresses pushState during popstate-triggered panel activation to prevent infinite loops). Initial state uses replaceState to avoid double-entry. Ephemeral `__new-object-` tabs are excluded from history. Stale entries from closed panels trigger replaceState cleanup instead of errors. Existing `?panel=sparql` handling was fixed to use surgical `searchParams.delete` instead of stripping all params — preserving `?tab=` when both are present.\n\nT02 added the deep-link handler. The key challenge: `initWorkspaceLayout()` includes a replaceState that overwrites URL params with the restored layout's active panel. Solution: capture `?tab=` before calling init, then process it after layout restore completes. The handler supports all 9 tab ID formats (object IRIs, special:*, view:*, generic-view:*, dashboard:*, workflow:*, catalog:*, app-page:*, app-view:*) via prefix dispatch. If the panel was already restored from saved layout, it calls setActive() instead of opening a duplicate.\n\nT03 wrote 6 Playwright E2E tests covering URL update on tab open, tab switch URL sync, back/forward navigation, deep-link via ?tab=, stale entry cleanup after tab close, and ephemeral tab exclusion. Tests use `page.evaluate` for panel activation (more reliable than UI clicks) and a `page_settle` helper (500ms + waitForIdle) for async pushState/popstate completion. All 6 pass on both Chromium and Firefox.\n\n## Verification\n\n6 Playwright E2E tests pass on Chromium (16.1s) and Firefox. Tests cover: (1) URL update on tab open, (2) tab switch URL sync, (3) back/forward navigation, (4) deep-link via ?tab= query param, (5) stale entry cleanup after closing a tab, (6) ephemeral tabs excluded from history. Source code verified: pushState/popstate/replaceState wiring in workspace-layout.js, deep-link handler in workspace.js.\n\n## Requirements Advanced\n\nNone.\n\n## Requirements Validated\n\n- R015 — E2E tests 1-3 prove pushState on tab open, URL update on switch, and back/forward navigation. 6/6 pass on Chromium and Firefox.\n- R016 — E2E test 4 navigates to /browser/?tab=<iri> and confirms correct object tab opens on page load. Manual verification: deep-link works, refresh preserves tab.\n\n## New Requirements Surfaced\n\nNone.\n\n## Requirements Invalidated or Re-scoped\n\nNone.\n\n## Deviations\n\nT01 added `_historyReady` guard flag (not in plan) to prevent layout restore from polluting history. T01 fixed existing `?panel=sparql` URL cleanup in workspace.js to preserve `?tab=` — a necessary compatibility fix not in the plan. T02 had to capture `?tab=` before initWorkspaceLayout() instead of after, because replaceState inside init overwrites the URL. T03 did not modify selectors.ts — tests use JS APIs and URL assertions, not CSS selectors.\n\n## Known Limitations\n\nNone.\n\n## Follow-ups\n\nNone.\n\n## Files Created/Modified\n\n- `frontend/static/js/workspace-layout.js` — Added pushState on panel activation, popstate listener for back/forward, replaceState for initial state, _historyReady and _navigatingFromHistory guard flags\n- `frontend/static/js/workspace.js` — Added deep-link handler reading ?tab= before init, supports 9 tab ID formats. Fixed ?panel=sparql cleanup to preserve ?tab=.\n- `e2e/tests/55-browser-history/history.spec.ts` — 6 Playwright E2E tests covering URL sync, back/forward, deep-link, stale cleanup, ephemeral exclusion\n",
+      "full_uat_md": "# S01: URL Sync & History Navigation — UAT\n\n**Milestone:** M055\n**Written:** 2026-04-06T06:31:37.410Z\n\n# UAT: S01 — URL Sync & History Navigation\n\n## Preconditions\n- Dev stack running at localhost (or test stack at localhost:3901)\n- At least 2 objects exist in the knowledge base (e.g., seed data from an installed Mental Model)\n- User is authenticated and on the workspace page (/browser/)\n\n## Test Cases\n\n### TC1: URL updates when opening an object tab\n1. Navigate to `/browser/`\n2. Verify URL has no `?tab=` parameter\n3. Open any object (e.g., click a seed data item in the explorer)\n4. **Expected:** URL updates to include `?tab=<object-IRI>` where `<object-IRI>` is the full IRI of the opened object\n\n### TC2: URL updates when switching between tabs\n1. Open object A — note URL shows `?tab=<A-IRI>`\n2. Open object B\n3. **Expected:** URL now shows `?tab=<B-IRI>`\n4. Click back on object A's tab header\n5. **Expected:** URL updates back to `?tab=<A-IRI>`\n\n### TC3: Browser back/forward navigates between tabs\n1. Open object A, then open object B (two entries in history)\n2. Press browser Back button\n3. **Expected:** Object A's tab is now active, URL shows `?tab=<A-IRI>`\n4. Press browser Forward button\n5. **Expected:** Object B's tab is now active, URL shows `?tab=<B-IRI>`\n\n### TC4: Deep-link via ?tab= opens correct tab\n1. Copy the URL from TC1 (should be `/browser/?tab=<object-IRI>`)\n2. Open a new browser tab and paste the URL\n3. **Expected:** Workspace loads, and the referenced object tab opens and is focused\n4. Reload the page (F5)\n5. **Expected:** Same object tab remains open and focused after reload\n\n### TC5: Deep-link to special tab\n1. Navigate to `/browser/?tab=special:docs`\n2. **Expected:** The Docs & Tutorials tab opens and is focused\n\n### TC6: Stale history entry cleanup after closing a tab\n1. Open object A, then open object B (URL shows B)\n2. Close object B's tab (click the X on the tab)\n3. Press browser Back button\n4. **Expected:** No error occurs. URL updates — either shows object A's tab (if A is still the active entry) or removes the stale `?tab=` parameter\n\n### TC7: Ephemeral tabs excluded from history\n1. Click \"New Object\" to create a new object (opens an ephemeral `__new-object-` tab)\n2. Check the URL\n3. **Expected:** URL does NOT contain `?tab=__new-object-*`. The ephemeral tab is excluded from history pushState.\n\n### TC8: ?panel=sparql coexists with ?tab=\n1. Open an object (URL shows `?tab=<IRI>`)\n2. Open the SPARQL console via the command palette or keyboard shortcut\n3. **Expected:** Both `?tab=` and `?panel=sparql` can coexist in the URL, or ?panel=sparql is handled independently without breaking ?tab=\n\n## Edge Cases\n- Opening 5+ tabs and navigating back through all of them should work without loops or duplicate entries\n- Closing all tabs then pressing Back should not produce JavaScript errors\n- The deep-link handler does not open duplicate tabs if the panel was already restored from saved layout\n",
       "goal": "Wire the History API to dockview panel activation so the URL reflects the active tab, back/forward navigates tab history, and deep links from ?tab= work on page load.",
       "success_criteria": "1. URL updates with ?tab=<panelId> on every tab switch\\n2. Browser back/forward changes active tab and URL\\n3. No pushState/popstate loop (guard flag works)\\n4. /browser/?tab=<iri> on fresh load opens the correct object\\n5. Existing ?panel=sparql handling unaffected",
       "proof_level": "Browser verification + E2E test",
@@ -34840,19 +34840,26 @@
       "milestone_id": "M055",
       "slice_id": "S02",
       "id": "T01",
-      "title": "Closed-tab stack capture and reopen dispatch",
-      "status": "pending",
-      "one_liner": "",
-      "narrative": "",
-      "verification_result": "",
+      "title": "Added closed-tab recovery stack with Ctrl+Shift+T reopen and command palette entry",
+      "status": "complete",
+      "one_liner": "Added closed-tab recovery stack with Ctrl+Shift+T reopen and command palette entry",
+      "narrative": "Implemented closed-tab recovery in workspace-layout.js (module-private _closedTabStack array, onDidRemovePanel captures panel metadata, reopenClosedTab() dispatches to correct opener for all 18+ tab types) and workspace.js (Ctrl+Shift+T keyboard shortcut, \"Reopen Closed Tab\" command palette entry). Stack is LIFO with 20-entry max. Skip-and-try-next when a tab was manually reopened.",
+      "verification_result": "Verified in browser: (1) Close object tab → Ctrl+Shift+T reopens with full content, (2) Close view tab → Ctrl+Shift+T reopens, (3) Empty stack → no action, no errors, (4) F1 → \"Reopen\" shows command entry with hotkey badge.",
       "duration": "",
-      "completed_at": null,
+      "completed_at": "2026-04-06T06:46:21.955Z",
       "blocker_discovered": false,
-      "deviations": "",
-      "known_issues": "",
-      "key_files": [],
-      "key_decisions": [],
-      "full_summary_md": "",
+      "deviations": "Required rebuilding frontend assets via node build.js since production manifest was active.",
+      "known_issues": "None.",
+      "key_files": [
+        "frontend/static/js/workspace-layout.js",
+        "frontend/static/js/workspace.js"
+      ],
+      "key_decisions": [
+        "Module-private _closedTabStack — not exposed on window, accessed via closure by reopenClosedTab()",
+        "Component type inferred from params flags as fallback during panel disposal",
+        "Skip-and-try-next when closed tab already manually reopened"
+      ],
+      "full_summary_md": "---\nid: T01\nparent: S02\nmilestone: M055\nkey_files:\n  - frontend/static/js/workspace-layout.js\n  - frontend/static/js/workspace.js\nkey_decisions:\n  - Module-private _closedTabStack — not exposed on window, accessed via closure by reopenClosedTab()\n  - Component type inferred from params flags as fallback during panel disposal\n  - Skip-and-try-next when closed tab already manually reopened\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T06:46:21.954Z\nblocker_discovered: false\n---\n\n# T01: Added closed-tab recovery stack with Ctrl+Shift+T reopen and command palette entry\n\n**Added closed-tab recovery stack with Ctrl+Shift+T reopen and command palette entry**\n\n## What Happened\n\nImplemented closed-tab recovery in workspace-layout.js (module-private _closedTabStack array, onDidRemovePanel captures panel metadata, reopenClosedTab() dispatches to correct opener for all 18+ tab types) and workspace.js (Ctrl+Shift+T keyboard shortcut, \"Reopen Closed Tab\" command palette entry). Stack is LIFO with 20-entry max. Skip-and-try-next when a tab was manually reopened.\n\n## Verification\n\nVerified in browser: (1) Close object tab → Ctrl+Shift+T reopens with full content, (2) Close view tab → Ctrl+Shift+T reopens, (3) Empty stack → no action, no errors, (4) F1 → \"Reopen\" shows command entry with hotkey badge.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `Browser: Open 3 tabs, close last, Ctrl+Shift+T reopens` | 0 | ✅ pass | 3000ms |\n| 2 | `Browser: Close view tab, Ctrl+Shift+T reopens` | 0 | ✅ pass | 2000ms |\n| 3 | `Browser: Ctrl+Shift+T with empty stack, no errors` | 0 | ✅ pass | 1000ms |\n| 4 | `Browser: F1 → Reopen shows command palette entry` | 0 | ✅ pass | 1000ms |\n\n## Deviations\n\nRequired rebuilding frontend assets via node build.js since production manifest was active.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `frontend/static/js/workspace-layout.js`\n- `frontend/static/js/workspace.js`\n",
       "description": "Implement the closed-tab recovery stack and reopener.\n\n1. In workspace-layout.js, add a module-level _closedTabStack array (max 20 entries)\n2. Modify the onDidRemovePanel handler to accept the panel argument and capture metadata BEFORE _tabMeta is deleted:\n   - Read panel.id, panel.params (component, isView, isSpecial, viewId, viewType, etc.), and _tabMeta[panel.id].label\n   - Push { id, component: panel.params component type string, params: panel.params, label } onto _closedTabStack\n   - If stack exceeds 20 entries, shift the oldest\n3. Note: closeTab() in workspace.js deletes _tabMeta[objectIri] AFTER panel.api.close(). The onDidRemovePanel fires synchronously during close(). So _tabMeta should still be available. Verify this.\n4. Create reopenClosedTab() function:\n   - Pop from _closedTabStack. If empty, return.\n   - Based on the component field, dispatch to the correct opener:\n     - 'object-editor' → openTab(entry.id, entry.label)\n     - 'view-panel' → openViewTab(entry.params.viewId, entry.label, entry.params.viewType)\n     - 'special-panel' → call the specific openDocsTab/openCanvasTab/openSettingsTab based on entry.id pattern\n     - Dashboard/workflow/app tabs → openDashboardTab/openWorkflowTab etc.\n   - If the tab is already open (user reopened it manually), skip and try next entry\n5. Export reopenClosedTab on window.SemPKM\n6. In workspace.js initKeyboardShortcuts, add Ctrl+Shift+T handler that calls reopenClosedTab()\n7. In workspace.js initCommandPalette, add 'Reopen Closed Tab' entry with handler calling reopenClosedTab()",
       "estimate": "30min",
       "files": [
@@ -39743,6 +39750,18 @@
       "revisable": "Yes",
       "made_by": "agent",
       "superseded_by": null
+    },
+    {
+      "seq": 445,
+      "id": "D404",
+      "when_context": "",
+      "scope": "requirement",
+      "decision": "R016 — Bookmarkable URLs",
+      "choice": "validated",
+      "rationale": "E2E test 4 navigates to /browser/?tab=<iri> and asserts the correct object tab opens. Manually verified in browser during T02 — deep-link opens tab, refresh preserves it.",
+      "revisable": "Yes",
+      "made_by": "agent",
+      "superseded_by": null
     }
   ],
   "verification_evidence": [
@@ -44002,6 +44021,50 @@
       "verdict": "✅ pass",
       "duration_ms": 17600,
       "created_at": "2026-04-06T06:29:08.314Z"
+    },
+    {
+      "id": 388,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M055",
+      "command": "Browser: Open 3 tabs, close last, Ctrl+Shift+T reopens",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 3000,
+      "created_at": "2026-04-06T06:46:21.955Z"
+    },
+    {
+      "id": 389,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M055",
+      "command": "Browser: Close view tab, Ctrl+Shift+T reopens",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 2000,
+      "created_at": "2026-04-06T06:46:21.955Z"
+    },
+    {
+      "id": 390,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M055",
+      "command": "Browser: Ctrl+Shift+T with empty stack, no errors",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1000,
+      "created_at": "2026-04-06T06:46:21.955Z"
+    },
+    {
+      "id": 391,
+      "task_id": "T01",
+      "slice_id": "S02",
+      "milestone_id": "M055",
+      "command": "Browser: F1 → Reopen shows command palette entry",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 1000,
+      "created_at": "2026-04-06T06:46:21.955Z"
     }
   ]
 }

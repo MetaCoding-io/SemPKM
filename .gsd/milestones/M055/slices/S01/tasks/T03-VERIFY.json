@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T03",
+  "unitId": "M055/S01/T03",
+  "timestamp": 1775456951322,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "cd e2e",
+      "exitCode": 0,
+      "durationMs": 25,
+      "verdict": "pass"
+    },
+    {
+      "command": "npx playwright test tests/55-browser-history/history.spec.ts --headed",
+      "exitCode": 0,
+      "durationMs": 36304,
+      "verdict": "pass"
+    }
+  ]
+}

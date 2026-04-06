@@ -58,24 +58,6 @@ This file is the explicit capability and coverage contract for the project.
 - Primary owning slice: M055/S02
 - Validation: Close a tab → Ctrl+Shift+T → tab reopens with same content. F1 → "Reopen Closed Tab" → same result.
 
-### R015 — URL reflects active tab — URL updates with ?tab= query parameter when user switches between object tabs in the workspace
-- Class: functional
-- Status: active
-- Description: URL reflects active tab — URL updates with ?tab= query parameter when user switches between object tabs in the workspace
-- Why it matters: Users expect the URL to reflect application state for bookmarking and sharing
-- Source: M055
-- Primary owning slice: M055/S01
-- Validation: Open object A → URL shows ?tab=A → open object B → URL shows ?tab=B
-
-### R016 — Bookmarkable URLs — pasting a workspace URL containing ?tab= opens the correct object tab on page load
-- Class: functional
-- Status: active
-- Description: Bookmarkable URLs — pasting a workspace URL containing ?tab= opens the correct object tab on page load
-- Why it matters: Bookmarks and shared links are core web affordances that must work
-- Source: M055
-- Primary owning slice: M055/S01
-- Validation: Copy URL with ?tab=iri → open in new browser tab → workspace loads with that object tab open and focused
-
 ### R017 — Closed tab recovery — Ctrl+Shift+T reopens last closed tab and command palette offers Reopen Closed Tab action
 - Class: functional
 - Status: active
@@ -162,6 +144,24 @@ This file is the explicit capability and coverage contract for the project.
 - Primary owning slice: M054/S02
 - Validation: Config selector shows By Type, By Tag as API-sourced presets and Hierarchy as pseudo-preset with __hierarchy__ sentinel. Each renders correct tree (composable config for By Type/Tag, legacy endpoint for Hierarchy). Validated in M054/S02.
 
+### R015 — URL reflects active tab — URL updates with ?tab= query parameter when user switches between object tabs in the workspace
+- Class: functional
+- Status: validated
+- Description: URL reflects active tab — URL updates with ?tab= query parameter when user switches between object tabs in the workspace
+- Why it matters: Users expect the URL to reflect application state for bookmarking and sharing
+- Source: M055
+- Primary owning slice: M055/S01
+- Validation: 6 Playwright E2E tests in e2e/tests/55-browser-history/history.spec.ts pass on Chromium and Firefox. Tests 1-3 prove pushState on tab open, URL update on switch, and back/forward navigation. Manual browser verification in T01.
+
+### R016 — Bookmarkable URLs — pasting a workspace URL containing ?tab= opens the correct object tab on page load
+- Class: functional
+- Status: validated
+- Description: Bookmarkable URLs — pasting a workspace URL containing ?tab= opens the correct object tab on page load
+- Why it matters: Bookmarks and shared links are core web affordances that must work
+- Source: M055
+- Primary owning slice: M055/S01
+- Validation: E2E test 4 navigates to /browser/?tab=<iri> and confirms correct object tab opens on page load. Manual browser verification in T02: deep-link opens tab, page refresh preserves it, ?tab= stays in URL.
+
 ## Traceability
 
 | ID | Class | Status | Primary owner | Supporting | Proof |
@@ -180,13 +180,13 @@ This file is the explicit capability and coverage contract for the project.
 | R012 | functional | validated | M054/S02 | none | Duplicate creates independent section with own config state Map entry, tree body, and localStorage key. Close removes duplicate without affecting primary. Validated in M054/S02. |
 | R013 | functional | validated | M054/S02 | none | Config selector shows By Type, By Tag as API-sourced presets and Hierarchy as pseudo-preset with __hierarchy__ sentinel. Each renders correct tree (composable config for By Type/Tag, legacy endpoint for Hierarchy). Validated in M054/S02. |
 | R014 | functional | active | M055/S02 | none | Close a tab → Ctrl+Shift+T → tab reopens with same content. F1 → "Reopen Closed Tab" → same result. |
-| R015 | functional | active | M055/S01 | none | Open object A → URL shows ?tab=A → open object B → URL shows ?tab=B |
-| R016 | functional | active | M055/S01 | none | Copy URL with ?tab=iri → open in new browser tab → workspace loads with that object tab open and focused |
+| R015 | functional | validated | M055/S01 | none | 6 Playwright E2E tests in e2e/tests/55-browser-history/history.spec.ts pass on Chromium and Firefox. Tests 1-3 prove pushState on tab open, URL update on switch, and back/forward navigation. Manual browser verification in T01. |
+| R016 | functional | validated | M055/S01 | none | E2E test 4 navigates to /browser/?tab=<iri> and confirms correct object tab opens on page load. Manual browser verification in T02: deep-link opens tab, page refresh preserves it, ?tab= stays in URL. |
 | R017 | functional | active | M055/S02 | none | Close a tab → Ctrl+Shift+T → tab reopens. F1 → "Reopen Closed Tab" → same result. |
 
 ## Coverage Summary
 
-- Active requirements: 9
-- Mapped to slices: 9
-- Validated: 8 (R001, R002, R004, R005, R006, R011, R012, R013)
+- Active requirements: 7
+- Mapped to slices: 7
+- Validated: 10 (R001, R002, R004, R005, R006, R011, R012, R013, R015, R016)
 - Unmapped active requirements: 0

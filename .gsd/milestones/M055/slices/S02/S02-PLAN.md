@@ -4,7 +4,7 @@
 **Demo:** After this: Close a tab → Ctrl+Shift+T → tab reopens with same content. F1 → 'Reopen Closed Tab' → same result.
 
 ## Tasks
-- [ ] **T01: Closed-tab stack capture and reopen dispatch** — Implement the closed-tab recovery stack and reopener.
+- [x] **T01: Added closed-tab recovery stack with Ctrl+Shift+T reopen and command palette entry** — Implement the closed-tab recovery stack and reopener.
 
 1. In workspace-layout.js, add a module-level _closedTabStack array (max 20 entries)
 2. Modify the onDidRemovePanel handler to accept the panel argument and capture metadata BEFORE _tabMeta is deleted:

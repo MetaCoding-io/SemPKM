@@ -34,6 +34,11 @@
   // Tab metadata sidecar: { [panelId]: { label, dirty, typeIcon, typeColor } }
   var _tabMeta = {};
 
+  // Closed-tab recovery stack (max 20 entries, LIFO)
+  // Each entry: { id, component, params, label }
+  var _closedTabStack = [];
+  var _CLOSED_TAB_MAX = 20;
+
   // Guard flag: when true, onDidActivePanelChange skips pushState.
   // Set by the popstate handler to prevent re-pushing state when navigating history.
   var _navigatingFromHistory = false;
@@ -401,8 +406,40 @@
       }
     });
 
-    // Wire panel remove: dispatch sempkm:tabs-empty when no object panels remain
-    dv.onDidRemovePanel(function () {
+    // Wire panel remove: capture closed-tab metadata + dispatch sempkm:tabs-empty
+    dv.onDidRemovePanel(function (panel) {
+      // Capture metadata for closed-tab recovery BEFORE _tabMeta is cleaned up.
+      // panel is the removed IDockviewPanel — it still has id, params, title.
+      if (panel && panel.id && !panel.id.startsWith('__new-object-')) {
+        var component = '';
+        var params = {};
+        // Try view.contentComponent first; fall back to inference from params
+        if (panel.view && panel.view.contentComponent) {
+          component = panel.view.contentComponent;
+        }
+        if (panel.params) {
+          params = Object.assign({}, panel.params);
+          if (!component) {
+            // Infer component from params flags
+            if (params.isView) component = 'view-panel';
+            else if (params.isSpecial) component = 'special-panel';
+            else component = 'object-editor';
+          }
+        }
+        var meta = _tabMeta[panel.id];
+        var label = (meta && meta.label) ? meta.label : (panel.title || panel.id);
+
+        _closedTabStack.push({
+          id: panel.id,
+          component: component,
+          params: params,
+          label: label
+        });
+        if (_closedTabStack.length > _CLOSED_TAB_MAX) {
+          _closedTabStack.shift();
+        }
+      }
+
       var hasObjectPanel = dv.panels.some(function (p) {
         return p.params && !p.params.isView && !p.params.isSpecial;
       });
@@ -674,6 +711,90 @@
   }
 
   // -----------------------------------------------------------------------
+  // Closed-tab recovery
+  // -----------------------------------------------------------------------
+
+  /**
+   * Reopen the most recently closed tab. Pops from _closedTabStack and
+   * dispatches to the correct opener based on the component type.
+   * If the tab is already open (user reopened it manually), skips it
+   * and tries the next entry.
+   */
+  function reopenClosedTab() {
+    var dv = window.SemPKM._dockview;
+    if (!dv) return;
+
+    while (_closedTabStack.length > 0) {
+      var entry = _closedTabStack.pop();
+
+      // Skip if the tab is already open
+      var existing = dv.panels.find(function (p) { return p.id === entry.id; });
+      if (existing) {
+        existing.api.setActive();
+        continue;
+      }
+
+      var S = window.SemPKM;
+      var p = entry.params || {};
+
+      if (entry.component === 'object-editor') {
+        if (typeof S.openTab === 'function') {
+          S.openTab(entry.id, entry.label, p.mode);
+        }
+        return;
+      }
+
+      if (entry.component === 'view-panel') {
+        if (typeof S.openViewTab === 'function') {
+          S.openViewTab(p.viewId, entry.label, p.viewType);
+        }
+        return;
+      }
+
+      if (entry.component === 'special-panel') {
+        var st = p.specialType;
+        if (st === 'docs' && typeof S.openDocsTab === 'function') {
+          S.openDocsTab();
+        } else if (st === 'canvas' && typeof S.openCanvasTab === 'function') {
+          S.openCanvasTab();
+        } else if (st === 'dashboard' && typeof S.openDashboardTab === 'function') {
+          S.openDashboardTab(p.dashboardId, entry.label);
+        } else if (st === 'dashboard-builder' && typeof S.openDashboardBuilderTab === 'function') {
+          S.openDashboardBuilderTab(p.dashboardId);
+        } else if (st === 'workflow' && typeof S.openWorkflowTab === 'function') {
+          S.openWorkflowTab(p.workflowId, entry.label);
+        } else if (st === 'workflow-builder' && typeof S.openWorkflowBuilderTab === 'function') {
+          S.openWorkflowBuilderTab(p.workflowId);
+        } else if (st === 'generic-view' && typeof S.openGenericViewTab === 'function') {
+          S.openGenericViewTab(p.renderer, p.scopeQuery, null, p.selectedType);
+        } else if (st === 'app-page' && typeof S.openAppPageTab === 'function') {
+          S.openAppPageTab(p.appId, p.pageId, entry.label);
+        } else if (st === 'app-view' && typeof S.openAppViewTab === 'function') {
+          S.openAppViewTab(p.appId, p.viewId, entry.label);
+        } else if (st === 'catalog' && typeof S.openCatalogTab === 'function') {
+          S.openCatalogTab();
+        } else if (st === 'catalog-detail' && typeof S.openCatalogDetailTab === 'function') {
+          S.openCatalogDetailTab(p.appId, entry.label);
+        } else if (st === 'vfs' && typeof S.openVfsTab === 'function') {
+          S.openVfsTab();
+        } else if (st === 'import' && typeof S.openImportTab === 'function') {
+          S.openImportTab();
+        } else if (st === 'rdf-import' && typeof S.openRdfImportTab === 'function') {
+          S.openRdfImportTab();
+        } else if (st === 'ontology' && typeof S.openOntologyTab === 'function') {
+          S.openOntologyTab();
+        } else {
+          // Unknown special type — can't reopen
+          continue;
+        }
+        return;
+      }
+
+      // Unknown component type — skip and try next
+    }
+  }
+
+  // -----------------------------------------------------------------------
   // Window exports
   // -----------------------------------------------------------------------
 
@@ -688,6 +809,7 @@
   window.SemPKM.closeTabInGroup = closeTabInGroup;
   window.SemPKM.renderGroupTabBar = renderGroupTabBar;
   window.SemPKM.loadTabInGroup = loadTabInGroup;
+  window.SemPKM.reopenClosedTab = reopenClosedTab;
 
 
 })();

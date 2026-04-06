@@ -1167,6 +1167,14 @@
         return;
       }
 
+      // Ctrl+Shift+T: Reopen last closed tab
+      if (e.ctrlKey && e.shiftKey && e.key === 'T' && !e.altKey && !e.metaKey) {
+        e.preventDefault();
+        if (typeof window.SemPKM.reopenClosedTab === 'function') {
+          window.SemPKM.reopenClosedTab();
+        }
+      }
+
       // Alt+1/2/3/4: Focus editor group by index
       if (alt && ['1', '2', '3', '4'].indexOf(e.key) !== -1) {
         e.preventDefault();
@@ -1564,6 +1572,17 @@
             var dv = window.SemPKM._dockview;
             if (dv && dv.activeGroup) {
               dv.activeGroup.api.close();
+            }
+          }
+        },
+        {
+          id: 'reopen-closed-tab',
+          title: 'Reopen Closed Tab',
+          section: 'View',
+          hotkey: 'ctrl+shift+t',
+          handler: function () {
+            if (typeof window.SemPKM.reopenClosedTab === 'function') {
+              window.SemPKM.reopenClosedTab();
             }
           }
         },
