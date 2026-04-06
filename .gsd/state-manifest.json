@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-04-06T03:55:57.935Z",
+  "exported_at": "2026-04-06T04:20:41.691Z",
   "milestones": [
     {
       "id": "M001",
@@ -2007,22 +2007,69 @@
     },
     {
       "id": "M054",
-      "title": "",
+      "title": "Explorer Composable Filter/Group/Sort",
       "status": "active",
       "depends_on": [],
       "created_at": "2026-04-05T17:38:45.585Z",
       "completed_at": null,
-      "vision": "",
-      "success_criteria": [],
-      "key_risks": [],
-      "proof_strategy": [],
-      "verification_contract": "",
-      "verification_integration": "",
-      "verification_operational": "",
-      "verification_uat": "",
-      "definition_of_done": [],
-      "requirement_coverage": "",
-      "boundary_map_markdown": ""
+      "vision": "Replace the flat OBJECTS dropdown with a composable explorer where filtering, grouping, and sorting are independent stackable layers — giving users the power to define how objects are organized in the explorer tree.",
+      "success_criteria": [
+        "Create a config: Filter=Tasks, Group=Status, Sort=Due Date → explorer tree shows tasks organized in status groups sorted by due date",
+        "Config builder UI allows selecting type filter, group-by property, and sort field from SHACL-discovered properties",
+        "Save a named config → close browser → reopen → config restored and renders correct tree",
+        "Multiple OBJECTS sections open simultaneously with different configurations",
+        "By Type, Hierarchy, By Tag available as preset configs in the selector",
+        "VFS Mounts removed from explorer mode dropdown",
+        "Clean type labels — no raw model IDs, no ' Shape' suffixes",
+        "Unit tests prove correct SPARQL generation for filter+group+sort combinations",
+        "E2E tests cover config creation, tree rendering, save/restore, and multi-panel"
+      ],
+      "key_risks": [
+        {
+          "risk": "Composable SPARQL query builder may produce expensive multi-level queries",
+          "whyItMatters": "Filter+group+sort layers each add SPARQL clauses — combined query performance with 1000+ objects is unknown until tested against RDF4J"
+        },
+        {
+          "risk": "Config builder UI complexity — dynamic property pickers based on selected types",
+          "whyItMatters": "When the type filter changes, available group-by and sort properties must update. This requires a JSON API for SHACL property discovery and dynamic UI updates."
+        },
+        {
+          "risk": "Multiple sidebar sections may feel cramped in the fixed-width sidebar",
+          "whyItMatters": "Each config section has a tree body that can grow large. Multiple sections competing for sidebar space could degrade usability."
+        }
+      ],
+      "proof_strategy": [
+        {
+          "riskOrUnknown": "SPARQL query composition correctness and performance",
+          "retireIn": "S01",
+          "whatWillBeProven": "Unit tests prove filter+group+sort SPARQL generation. Live tree rendering with config proves query execution against RDF4J."
+        },
+        {
+          "riskOrUnknown": "Dynamic property picker from SHACL shapes",
+          "retireIn": "S01",
+          "whatWillBeProven": "JSON API returns type properties from ShapesService. Config builder UI renders property options dynamically when type changes."
+        },
+        {
+          "riskOrUnknown": "Multiple sidebar sections UX",
+          "retireIn": "S02",
+          "whatWillBeProven": "Duplicate button creates independent section. Collapse-on-expand keeps sidebar manageable."
+        }
+      ],
+      "verification_contract": "Unit tests for ExplorerConfigService CRUD, composable query builder, and types/properties API. All tests pass in backend venv.",
+      "verification_integration": "Config builder UI creates config → tree renders with correct grouping from live triplestore data. Save/restore round-trips through SQL storage.",
+      "verification_operational": "None — no external services or background processes involved.",
+      "verification_uat": "E2E Playwright tests: create config with filter+group+sort → verify tree structure → save config → reload → verify restored → duplicate panel → verify independence.",
+      "definition_of_done": [
+        "All slices complete with summaries",
+        "All unit tests pass (CRUD service, query builder, API)",
+        "E2E tests pass for config creation, tree rendering, save/restore, multi-panel",
+        "Source files on integration branch (verified by git diff --stat)",
+        "No conflict markers in committed files",
+        "VFS Mounts removed from explorer dropdown",
+        "Clean type labels in all tree rendering paths"
+      ],
+      "requirement_coverage": "R009 (clean type labels) → S01 primary. R010 (composable filter/group/sort) → S01 primary. R011 (config persistence) → S02 primary, S01 supporting. R012 (multiple panels) → S02 primary. R013 (backward compat presets) → S02 primary. No active requirements orphaned.",
+      "boundary_map_markdown": "```\nExplorer Config Builder UI (frontend/static/js/explorer-config.js)\n  ↕ htmx partials + JSON API\nExplorer Config Router (backend/app/browser/explorer.py)\n  ↕ service calls\nExplorerConfigService (backend/app/explorer/service.py)\n  ↕ SQL CRUD          ↕ SPARQL query building\nExplorerConfig model   Composable Query Builder (backend/app/explorer/query_builder.py)\n(backend/app/explorer/models.py)   ↕ reuses\n                       VFS strategies.py query fragments\n  ↕ async session\nSQLite/PostgreSQL      RDF4J triplestore\n```"
     },
     {
       "id": "M055",
@@ -8503,6 +8550,48 @@
       "proof_level": "Contract — unit tests prove version comparison and update flow logic. UI verified by template parse checks and CSS grep.",
       "integration_closure": "- Upstream: `MarketplaceRegistryService.fetch_catalog()`, `download_and_install()`, `ModelService.remove()`, `_cleanup_inference_on_uninstall()` — all from S02/existing code\n- New wiring: `check_updates()` called from `admin_models()` and `admin_models_marketplace()` context, POST update endpoint added to admin router\n- After this: M053 is complete — all three slices delivered",
       "observability_impact": "- Structured log: `marketplace.update` with model_id, old_version, new_version, duration_ms\n- Ops log entry for model update (activity_type=\"model.marketplace_update\")\n- Warning log when update download succeeds but install fails (partial-failure diagnostic)",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M054",
+      "id": "S01",
+      "title": "Composable Explorer with Config Builder",
+      "status": "pending",
+      "risk": "high",
+      "depends": [],
+      "demo": "User opens explorer → clicks Configure → selects type filter (Tasks), group-by (Status), sort (Due Date) → tree renders tasks grouped by status with sorted items within each group",
+      "created_at": "2026-04-06T04:08:10.585Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Replace the flat OBJECTS dropdown with a composable explorer where users configure filter (by type), group-by (by property value), and sort (by label/date/property) — rendering a grouped tree with sorted items within each group.",
+      "success_criteria": "- User clicks Configure in the OBJECTS section header → config builder panel appears\n- User selects type filter (e.g. Task) → tree shows only tasks\n- User selects group-by (e.g. Status) → tree shows folder nodes per status value with task items inside\n- User selects sort (e.g. Due Date) → items within each group are sorted by that property\n- Explorer tree type nodes show clean labels (no ' Shape' suffix, no raw model IDs)\n- Config builder shows available types from ShapesService, groupable properties from SHACL shapes, and sort options\n- Old by-type/hierarchy/by-tag dropdown is replaced by the new config-driven system\n- Backend unit tests pass for query composition with filter, group, sort, and combined configs\n- R009 validated: type labels are clean\n- R010 validated: composable filter/group/sort produces correct SPARQL",
+      "proof_level": "Contract + integration. Backend unit tests prove SPARQL generation correctness. Browser verification proves the UI renders the correct tree structure from live triplestore data.",
+      "integration_closure": "- Upstream consumed: `backend/app/vfs/strategies.py` (query builders), `backend/app/services/shapes.py` (ShapesService for types/properties), `backend/app/browser/workspace.py` (explorer tree endpoints), `frontend/static/js/workspace.js` (refreshNavTree, explorer mode handling)\n- New wiring: config builder UI in OBJECTS header → new JS module → new backend endpoints → strategies.py query builders\n- What remains for M054 completion: S02 adds config persistence (server-side save/restore), multi-panel support, and presets",
+      "observability_impact": "- Backend logs explorer config queries at DEBUG level with config params and result counts\n- Config builder failures surface as user-visible error messages via apiFetch error handling\n- SPARQL query composition errors logged with full config context for diagnosis",
+      "sequence": 0,
+      "replan_triggered_at": null
+    },
+    {
+      "milestone_id": "M054",
+      "id": "S02",
+      "title": "Config Persistence, Multi-Panel & Presets",
+      "status": "pending",
+      "risk": "medium",
+      "depends": [
+        "S01"
+      ],
+      "demo": "User saves a named config → reloads browser → config appears in selector → clicks Duplicate → second OBJECTS section with different config appears → selects By Type preset in the original → both render independently",
+      "created_at": "2026-04-06T04:08:10.585Z",
+      "completed_at": null,
+      "full_summary_md": "",
+      "full_uat_md": "",
+      "goal": "Complete the feature with save/restore, named config management, multiple simultaneous OBJECTS panels, backward-compatible presets for existing modes, VFS mount removal, and E2E test coverage.",
+      "success_criteria": "- Named configs save to SQL and appear in config selector dropdown\n- Config selector replaces mode dropdown with presets (By Type, Hierarchy, By Tag) plus user configs\n- Duplicate button creates independent OBJECTS section with own config and tree\n- VFS Mounts removed from explorer dropdown\n- Persona system captures active config ID\n- E2E tests cover: create config → render tree → save → reload → restore → duplicate panel\n- Clean type labels in all tree rendering paths verified",
+      "proof_level": "contract + integration + UAT",
+      "integration_closure": "Save config via API → reload page → config restored from SQL → tree re-renders. Duplicate creates isolated section with independent htmx targets. Persona save/restore captures config ID.",
+      "observability_impact": "None",
       "sequence": 0,
       "replan_triggered_at": null
     }
@@ -34175,6 +34264,183 @@
       "observability_impact": "",
       "full_plan_md": "",
       "sequence": 0
+    },
+    {
+      "milestone_id": "M054",
+      "slice_id": "S01",
+      "id": "T01",
+      "title": "Created ExplorerConfig dataclass with composable SPARQL query builder and config-options JSON endpoint for the explorer config UI",
+      "status": "complete",
+      "one_liner": "Created ExplorerConfig dataclass with composable SPARQL query builder and config-options JSON endpoint for the explorer config UI",
+      "narrative": "Built the backend foundation for the composable explorer: an ExplorerConfig dataclass with filter/group/sort fields, two SPARQL query builders (build_explorer_query for object listing, build_group_folders_query for folder counts), and a GET /browser/explorer/config-options endpoint that returns available types, built-in group/sort options, and per-type SHACL property lists. Label resolution reuses _LABEL_OPTIONALS/_LABEL_COALESCE from strategies.py. All IRI interpolation uses safe_iri(). 20 unit tests cover all config combinations.",
+      "verification_result": "Ran pytest tests/test_explorer_config.py — all 20 tests pass. Verified module imports and endpoint registration.",
+      "duration": "",
+      "completed_at": "2026-04-06T04:20:41.652Z",
+      "blocker_discovered": false,
+      "deviations": "None.",
+      "known_issues": "None.",
+      "key_files": [
+        "backend/app/browser/explorer_config.py",
+        "backend/tests/test_explorer_config.py",
+        "backend/app/browser/workspace.py"
+      ],
+      "key_decisions": [
+        "Reuse _LABEL_OPTIONALS/_LABEL_COALESCE from strategies.py — no duplication",
+        "Tag grouping uses UNION across known tag predicates",
+        "Config-options endpoint flags sh:in properties as preferred_group"
+      ],
+      "full_summary_md": "---\nid: T01\nparent: S01\nmilestone: M054\nkey_files:\n  - backend/app/browser/explorer_config.py\n  - backend/tests/test_explorer_config.py\n  - backend/app/browser/workspace.py\nkey_decisions:\n  - Reuse _LABEL_OPTIONALS/_LABEL_COALESCE from strategies.py — no duplication\n  - Tag grouping uses UNION across known tag predicates\n  - Config-options endpoint flags sh:in properties as preferred_group\nduration: \nverification_result: passed\ncompleted_at: 2026-04-06T04:20:41.651Z\nblocker_discovered: false\n---\n\n# T01: Created ExplorerConfig dataclass with composable SPARQL query builder and config-options JSON endpoint for the explorer config UI\n\n**Created ExplorerConfig dataclass with composable SPARQL query builder and config-options JSON endpoint for the explorer config UI**\n\n## What Happened\n\nBuilt the backend foundation for the composable explorer: an ExplorerConfig dataclass with filter/group/sort fields, two SPARQL query builders (build_explorer_query for object listing, build_group_folders_query for folder counts), and a GET /browser/explorer/config-options endpoint that returns available types, built-in group/sort options, and per-type SHACL property lists. Label resolution reuses _LABEL_OPTIONALS/_LABEL_COALESCE from strategies.py. All IRI interpolation uses safe_iri(). 20 unit tests cover all config combinations.\n\n## Verification\n\nRan pytest tests/test_explorer_config.py — all 20 tests pass. Verified module imports and endpoint registration.\n\n## Verification Evidence\n\n| # | Command | Exit Code | Verdict | Duration |\n|---|---------|-----------|---------|----------|\n| 1 | `cd backend && .venv/bin/python -m pytest tests/test_explorer_config.py -v` | 0 | ✅ pass | 170ms |\n\n## Deviations\n\nNone.\n\n## Known Issues\n\nNone.\n\n## Files Created/Modified\n\n- `backend/app/browser/explorer_config.py`\n- `backend/tests/test_explorer_config.py`\n- `backend/app/browser/workspace.py`\n",
+      "description": "Create the backend foundation: an ExplorerConfig dataclass, a query composition engine that builds SPARQL from filter/group/sort layers, and a config-options API endpoint.\n\n**Slice context:** This is S01 of M054 — replacing the flat OBJECTS dropdown with composable filter/group/sort. This task builds the engine; T02 builds the tree-rendering endpoint; T03 builds the frontend config builder; T04 wires everything together.\n\n**Architecture (D400):** Reuse VFS strategies.py query builders with a new composition layer.\n\n## Steps\n\n1. Create `backend/app/browser/explorer_config.py` with:\n   - `ExplorerConfig` dataclass: `type_filter: str | None` (type IRI), `group_by: str | None` (property IRI or special values 'type', 'tag'), `sort_by: str | None` (property IRI or special values 'label', 'created'), `sort_order: str` ('asc'/'desc', default 'asc')\n   - `build_explorer_query(config: ExplorerConfig) -> str` function that composes SPARQL:\n     - Base: `SELECT ?iri ?label ?typeIri ?groupValue ?groupLabel ?sortValue` from current graph\n     - Filter layer: if type_filter set, add `?iri a <type_filter_iri>`\n     - Group layer: if group_by is 'type', bind `?groupValue` to `?typeIri` and `?groupLabel` to type local name; if group_by is 'tag', query `bpkm:tags`/`schema:keywords`; if group_by is a property IRI, query that property's values\n     - Sort layer: if sort_by is 'label', ORDER BY ?label; if sort_by is 'created', ORDER BY dcterms:created; if sort_by is a property IRI, OPTIONAL bind that property and ORDER BY it\n     - Always include label resolution using `_LABEL_OPTIONALS` and `_LABEL_COALESCE` from strategies.py\n   - `build_group_folders_query(config: ExplorerConfig) -> str | None` — returns a query for folder-level groups (distinct group values + counts), or None if no grouping configured\n\n2. Create `GET /browser/explorer/config-options` endpoint in workspace.py:\n   - Returns JSON with: `types` (from ShapesService.get_types with hidden types excluded), `properties` (from ShapesService — for each type, list groupable/sortable properties with path IRI and label), `sort_options` (built-in: label, created; plus type-specific date/enum properties)\n   - This endpoint powers the config builder dropdowns in T03\n\n3. Create `backend/tests/test_explorer_config.py` with unit tests:\n   - Test `build_explorer_query` with no config (all objects, sorted by label)\n   - Test with type_filter only (produces `?iri a <type>` constraint)\n   - Test with group_by='type' (produces groupValue/groupLabel bindings)\n   - Test with group_by=property IRI (produces OPTIONAL property binding)\n   - Test with sort_by='created' + sort_order='desc' (produces ORDER BY DESC)\n   - Test with combined filter+group+sort (all layers compose correctly)\n   - Test `build_group_folders_query` returns correct folder query or None\n\n**Key constraints:**\n- Import `_LABEL_OPTIONALS`, `_LABEL_COALESCE` from `app.vfs.strategies` — do NOT duplicate\n- Use `CURRENT_GRAPH` from `app.rdf.namespaces`\n- Use `safe_iri()` from `app.sparql.builder` for any IRI interpolation (Knowledge pattern 12)\n- Filter out `rdfs:Resource` type from results\n- Properties for grouping: use ShapesService.get_node_shapes() → iterate PropertyShape objects, expose those with `in_values` (enum-like) as preferred group candidates, and all others as available",
+      "estimate": "2h",
+      "files": [
+        "backend/app/browser/explorer_config.py",
+        "backend/app/browser/workspace.py",
+        "backend/tests/test_explorer_config.py"
+      ],
+      "verify": "cd backend && .venv/bin/python -m pytest tests/test_explorer_config.py -v",
+      "inputs": [
+        "`backend/app/vfs/strategies.py` — existing SPARQL query builders to reuse (_LABEL_OPTIONALS, _LABEL_COALESCE, query_type_folders pattern)",
+        "`backend/app/services/shapes.py` — ShapesService.get_types(), get_node_shapes() for type/property enumeration",
+        "`backend/app/browser/workspace.py` — explorer_tree endpoint pattern, _execute_sparql_select helper",
+        "`backend/app/rdf/namespaces.py` — CURRENT_GRAPH constant",
+        "`backend/app/sparql/builder.py` — safe_iri() for SPARQL IRI interpolation"
+      ],
+      "expected_output": [
+        "`backend/app/browser/explorer_config.py` — ExplorerConfig dataclass + build_explorer_query() + build_group_folders_query()",
+        "`backend/tests/test_explorer_config.py` — unit tests for query composition with all config combinations",
+        "`backend/app/browser/workspace.py` — new config-options endpoint added"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M054",
+      "slice_id": "S01",
+      "id": "T02",
+      "title": "Backend config-driven tree rendering endpoint",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Add the `/browser/explorer/config-tree` endpoint that accepts explorer config params and returns a grouped, sorted HTML tree using the query composition engine from T01.\n\n**Slice context:** T01 built the query engine and config-options API. This task builds the endpoint that renders the actual explorer tree HTML. T03 builds the frontend config builder. T04 wires them together.\n\n## Steps\n\n1. Create `backend/app/templates/browser/explorer_config_tree.html` template:\n   - If groups exist: render folder nodes (like mount_tree.html pattern) with group label, item count, and expand-on-click via htmx\n   - Each folder: `<div class='tree-node'>` with folder icon + group label + count badge\n   - Folder children loaded lazily via `hx-get='/browser/explorer/config-children?group_value=X&...'` with `hx-trigger='click once'`\n   - If no groups (flat list): render object leaf nodes directly (like tree_children.html pattern)\n   - Empty state: 'No objects match this configuration'\n\n2. Create `backend/app/templates/browser/explorer_config_children.html` template:\n   - Render sorted object leaf nodes within a group (same structure as tree_children.html: iri, label, type icon, click-to-open-tab)\n\n3. Add `GET /browser/explorer/config-tree` endpoint to workspace.py:\n   - Query params: `type_filter`, `group_by`, `sort_by`, `sort_order` (all optional)\n   - Build ExplorerConfig from params\n   - If group_by is set: run `build_group_folders_query()` to get folder data, render explorer_config_tree.html with folders\n   - If no group_by: run `build_explorer_query()` to get flat sorted objects, render explorer_config_tree.html with objects\n   - Resolve labels via LabelService, icons via IconService\n\n4. Add `GET /browser/explorer/config-children` endpoint:\n   - Query params: `type_filter`, `group_by`, `group_value`, `sort_by`, `sort_order`\n   - Build scoped SPARQL: filter by type + filter by group value + sort\n   - Return explorer_config_children.html with sorted objects for that group\n\n5. Add tests to `backend/tests/test_explorer_config.py` (extend from T01):\n   - Test config-tree endpoint returns HTML with folder nodes when group_by is set\n   - Test config-children endpoint returns objects filtered by group value\n\n**Key constraints:**\n- Object leaf nodes must use the same click-to-open-tab pattern as existing tree: `onclick='openTab(\"iri\")'`\n- Use `get_hidden_types()` to exclude internal types\n- Label resolution: use LabelService.resolve_batch() for object labels\n- Icon resolution: use IconService.get_type_icon() for object type icons",
+      "estimate": "2h",
+      "files": [
+        "backend/app/browser/workspace.py",
+        "backend/app/browser/explorer_config.py",
+        "backend/app/templates/browser/explorer_config_tree.html",
+        "backend/app/templates/browser/explorer_config_children.html",
+        "backend/tests/test_explorer_config.py"
+      ],
+      "verify": "cd backend && .venv/bin/python -m pytest tests/test_explorer_config.py -v",
+      "inputs": [
+        "`backend/app/browser/explorer_config.py` — ExplorerConfig, build_explorer_query(), build_group_folders_query() from T01",
+        "`backend/app/templates/browser/mount_tree.html` — folder node HTML pattern to follow",
+        "`backend/app/templates/browser/tree_children.html` — object leaf node HTML pattern to follow",
+        "`backend/app/templates/browser/nav_tree.html` — type node pattern for reference",
+        "`backend/app/browser/workspace.py` — existing endpoint patterns, _execute_sparql_select, _bindings_to_objects helpers"
+      ],
+      "expected_output": [
+        "`backend/app/templates/browser/explorer_config_tree.html` — grouped tree template with folder nodes and lazy-load children",
+        "`backend/app/templates/browser/explorer_config_children.html` — sorted object nodes within a group",
+        "`backend/app/browser/workspace.py` — config-tree and config-children endpoints added",
+        "`backend/tests/test_explorer_config.py` — extended with endpoint response tests"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M054",
+      "slice_id": "S01",
+      "id": "T03",
+      "title": "Frontend config builder UI and explorer JS module",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Build the config builder panel UI and a new JS module that manages explorer configuration state, populates the builder dropdowns from the config-options API, and triggers tree re-renders.\n\n**Slice context:** T01+T02 built the backend. This task builds the frontend config panel. T04 wires it into the workspace and replaces the old dropdown.\n\n## Steps\n\n1. Create `frontend/static/js/explorer-config.js` (IIFE pattern, exports to `window.SemPKM`):\n   - `initExplorerConfig()` — called once on workspace load:\n     - Fetch `/browser/explorer/config-options` to populate type/property/sort dropdowns\n     - Bind event listeners on config selects\n     - Store current config in module-scoped variable\n   - `applyExplorerConfig()` — read current dropdown values, build query params, trigger htmx fetch of `/browser/explorer/config-tree?type_filter=X&group_by=Y&sort_by=Z&sort_order=asc` into `#explorer-tree-body`\n   - `resetExplorerConfig()` — clear all selectors, reload default by-type tree\n   - `refreshExplorerTree()` — re-apply current config (called after object CRUD)\n   - Export: `window.SemPKM.initExplorerConfig`, `window.SemPKM.applyExplorerConfig`, `window.SemPKM.refreshExplorerTree`\n\n2. Create `frontend/static/css/explorer-config.css`:\n   - `.explorer-config-panel` — collapsible panel below the OBJECTS header, above the tree body\n   - Three rows: Filter (type select), Group By (property select), Sort (property select + asc/desc toggle)\n   - Compact styling matching workspace.css explorer theme (dark background, small text, subtle borders)\n   - Apply/Reset buttons at bottom\n   - Collapsed state: slim bar showing current config summary (e.g. 'Tasks → by Status → Due Date ↑')\n   - Expanded state: full form with dropdowns\n\n3. Create `backend/app/templates/browser/explorer_config_panel.html` partial:\n   - Config builder form with three `<select>` elements:\n     - Type filter: populated from config-options API types list, includes 'All Types' default\n     - Group by: populated from config-options API properties for selected type, includes 'None' default; special entries 'By Type', 'By Tag' always available\n     - Sort by: 'Label' (default), 'Date Created', plus type-specific properties\n   - Sort order toggle button (asc/desc)\n   - Apply button triggers `applyExplorerConfig()`\n   - Configure toggle button (gear icon) in the OBJECTS header to expand/collapse\n\n4. Wire the type filter dropdown to dynamically update the group-by and sort options:\n   - When type changes → fetch properties for that type from config-options → repopulate group-by and sort dropdowns\n   - Use `apiFetch()` from `api-fetch.js` (Knowledge pattern 13)\n\n**Key constraints:**\n- Follow IIFE pattern matching workspace.js, copilot.js\n- Use `apiFetch()` for all fetch calls (Knowledge pattern 13)\n- Size Lucide icons via CSS with flex-shrink:0 (CLAUDE.md rule)\n- CSS colors use theme tokens via color-mix() (Knowledge pattern 14)\n- No inline styles on SVGs (CLAUDE.md rule)",
+      "estimate": "2h",
+      "files": [
+        "frontend/static/js/explorer-config.js",
+        "frontend/static/css/explorer-config.css",
+        "backend/app/templates/browser/explorer_config_panel.html"
+      ],
+      "verify": "test -f frontend/static/js/explorer-config.js && test -f frontend/static/css/explorer-config.css && test -f backend/app/templates/browser/explorer_config_panel.html && rg 'SemPKM.initExplorerConfig' frontend/static/js/explorer-config.js && rg 'SemPKM.applyExplorerConfig' frontend/static/js/explorer-config.js && rg 'SemPKM.refreshExplorerTree' frontend/static/js/explorer-config.js && rg 'apiFetch' frontend/static/js/explorer-config.js",
+      "inputs": [
+        "`frontend/static/js/workspace.js` — IIFE pattern, refreshNavTree(), explorer mode handling to understand current integration points",
+        "`frontend/static/js/api-fetch.js` — apiFetch() for all HTTP calls",
+        "`frontend/static/css/workspace.css` — explorer section styling to match",
+        "`backend/app/templates/browser/workspace.html` — OBJECTS section structure, explorer-mode-select placement"
+      ],
+      "expected_output": [
+        "`frontend/static/js/explorer-config.js` — config builder JS module with initExplorerConfig, applyExplorerConfig, refreshExplorerTree",
+        "`frontend/static/css/explorer-config.css` — config panel styling",
+        "`backend/app/templates/browser/explorer_config_panel.html` — config builder form partial"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
+    },
+    {
+      "milestone_id": "M054",
+      "slice_id": "S01",
+      "id": "T04",
+      "title": "Integration: wire config builder into workspace, replace old dropdown, verify end-to-end",
+      "status": "pending",
+      "one_liner": "",
+      "narrative": "",
+      "verification_result": "",
+      "duration": "",
+      "completed_at": null,
+      "blocker_discovered": false,
+      "deviations": "",
+      "known_issues": "",
+      "key_files": [],
+      "key_decisions": [],
+      "full_summary_md": "",
+      "description": "Wire the config builder into the workspace, replace the old explorer mode dropdown, update refreshNavTree to use the new config system, and verify the full flow works end-to-end.\n\n**Slice context:** T01-T03 built all components. This task integrates them and proves the slice demo works.\n\n## Steps\n\n1. Update `backend/app/templates/browser/workspace.html`:\n   - Replace the `<select id='explorer-mode-select'>` dropdown with a Configure button (gear icon) that toggles the config panel\n   - Include the `explorer_config_panel.html` partial in the OBJECTS section body, above `explorer-tree-body`\n   - Add `<link>` for explorer-config.css and `<script>` for explorer-config.js\n   - Keep the existing header action buttons (refresh, new object, bulk delete)\n\n2. Update `frontend/static/js/workspace.js`:\n   - Replace `refreshNavTree()` implementation: if a config is active (any filter/group/sort set), call `SemPKM.applyExplorerConfig()` instead of the old htmx mode-based fetch\n   - If no config is active, default to the by-type tree (backward compat)\n   - Remove the `EXPLORER_MODE_KEY` localStorage handling and the `explorer-mode-select` change listener\n   - Update persona switching: personas that saved `explorer_mode` should map to the new config system (by-type → default, by-tag → group_by=tag)\n   - Call `SemPKM.initExplorerConfig()` in the workspace init sequence\n\n3. Update `frontend/nginx.conf` if needed — verify `/js/explorer-config.js` and `/css/explorer-config.css` are served (they should be, since nginx serves `/js/` and `/css/` from the static mount)\n\n4. Update `backend/tests/test_explorer_modes.py`:\n   - Update tests to verify the new config-tree endpoint is registered\n   - Add test that old modes still work for backward compatibility (hierarchy and by-tag are still valid via the config system)\n\n5. Verify in browser:\n   - Navigate to /browser/ → OBJECTS section shows Configure button instead of dropdown\n   - Click Configure → config panel expands with type/group/sort selectors\n   - Select type=Task → tree shows only tasks\n   - Select group=Status → tree shows folder nodes per status value\n   - Select sort=Due Date → items sorted within groups\n   - Click Apply → tree updates\n   - Click Reset → default by-type tree restored\n   - R009: type labels in tree show clean names without ' Shape' suffix\n   - R010: composable layers produce correct results\n\n**Key constraints:**\n- nginx serves `/js/` and `/css/` — use those paths, not `/static/js/` (Knowledge pattern about nginx paths)\n- Don't break existing object-open-on-click behavior in the tree\n- Persona explorer_mode backward compat: map old values to new config",
+      "estimate": "2h",
+      "files": [
+        "backend/app/templates/browser/workspace.html",
+        "frontend/static/js/workspace.js",
+        "backend/tests/test_explorer_modes.py",
+        "frontend/static/js/explorer-config.js"
+      ],
+      "verify": "cd backend && .venv/bin/python -m pytest tests/test_explorer_config.py tests/test_explorer_modes.py -v",
+      "inputs": [
+        "`backend/app/browser/explorer_config.py` — ExplorerConfig, query composition from T01",
+        "`backend/app/browser/workspace.py` — config-tree and config-children endpoints from T02",
+        "`frontend/static/js/explorer-config.js` — config builder JS module from T03",
+        "`frontend/static/css/explorer-config.css` — config panel styling from T03",
+        "`backend/app/templates/browser/explorer_config_panel.html` — config builder partial from T03",
+        "`backend/app/templates/browser/workspace.html` — current OBJECTS section with explorer-mode-select dropdown",
+        "`frontend/static/js/workspace.js` — current refreshNavTree, explorer mode handling"
+      ],
+      "expected_output": [
+        "`backend/app/templates/browser/workspace.html` — OBJECTS section updated with config builder integration",
+        "`frontend/static/js/workspace.js` — refreshNavTree updated to use config system",
+        "`backend/tests/test_explorer_modes.py` — updated to cover new config-tree endpoint"
+      ],
+      "observability_impact": "",
+      "full_plan_md": "",
+      "sequence": 0
     }
   ],
   "decisions": [
@@ -38965,6 +39231,30 @@
       "revisable": "Yes",
       "made_by": "agent",
       "superseded_by": null
+    },
+    {
+      "seq": 437,
+      "id": "D400",
+      "when_context": "M054",
+      "scope": "architecture",
+      "decision": "How to build composable SPARQL queries for filter/group/sort",
+      "choice": "Reuse VFS strategies.py query builders (build_scope_filter, query_type_folders, query_property_folders, etc.) with a new composition layer that chains filter→group→sort. Add sort-by-property capability as ORDER BY extension.",
+      "rationale": "strategies.py already solves multi-level grouping with chain narrowing filters. Reusing these proven SPARQL builders avoids duplicating complex query logic. The new explorer query builder wraps them with a config-driven dispatch layer.",
+      "revisable": "Yes",
+      "made_by": "agent",
+      "superseded_by": null
+    },
+    {
+      "seq": 438,
+      "id": "D401",
+      "when_context": "M054/S01",
+      "scope": "architecture",
+      "decision": "How to structure the composable explorer backend for M054/S01",
+      "choice": "New `explorer_config.py` module with ExplorerConfig dataclass + query composition functions that import and reuse strategies.py SPARQL builders. Config-options API endpoint returns types/properties/sort options from ShapesService. Config-tree endpoint renders grouped/sorted HTML tree. Two new templates for grouped tree (folders + children). Frontend JS module manages config state and triggers htmx re-renders.",
+      "rationale": "Follows D400's direction to reuse strategies.py query builders. Keeps the composition logic in a dedicated module rather than cluttering workspace.py further (already 1341 lines). The config-options API enables the frontend to dynamically populate dropdowns based on installed models' SHACL shapes. Templates follow the existing mount_tree.html pattern for folder/children lazy loading.",
+      "revisable": "Yes",
+      "made_by": "agent",
+      "superseded_by": null
     }
   ],
   "verification_evidence": [
@@ -42894,6 +43184,17 @@
       "verdict": "✅ pass",
       "duration_ms": 200,
       "created_at": "2026-04-06T03:48:16.396Z"
+    },
+    {
+      "id": 358,
+      "task_id": "T01",
+      "slice_id": "S01",
+      "milestone_id": "M054",
+      "command": "cd backend && .venv/bin/python -m pytest tests/test_explorer_config.py -v",
+      "exit_code": 0,
+      "verdict": "✅ pass",
+      "duration_ms": 170,
+      "created_at": "2026-04-06T04:20:41.652Z"
     }
   ]
 }

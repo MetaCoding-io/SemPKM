@@ -745,6 +745,60 @@ async def tree_children(
     )
 
 
+@workspace_router.get("/explorer/config-options")
+async def explorer_config_options(
+    request: Request,
+    user: User = Depends(get_current_user),
+    shapes_service: ShapesService = Depends(get_shapes_service),
+):
+    """Return available filter/group/sort options for the explorer config builder.
+
+    Returns JSON with:
+      - types: available object types (label + IRI)
+      - groupable_properties: per-type properties suitable for grouping
+      - sort_options: built-in + type-specific sortable properties
+    """
+    hidden = get_hidden_types()
+    types = await shapes_service.get_types(exclude_iris=hidden)
+    node_shapes = await shapes_service.get_node_shapes()
+
+    # Build per-type property lists for grouping and sorting
+    groupable: dict[str, list[dict]] = {}
+    sortable: dict[str, list[dict]] = {}
+
+    for shape in node_shapes:
+        if shape.target_class in hidden:
+            continue
+        type_iri = shape.target_class
+        g_props: list[dict] = []
+        s_props: list[dict] = []
+
+        for prop in shape.properties:
+            prop_entry = {"iri": prop.path, "label": prop.name}
+            # Enum-like properties (sh:in) are preferred group candidates
+            if prop.in_values:
+                prop_entry["preferred_group"] = True
+            g_props.append(prop_entry)
+            s_props.append(prop_entry)
+
+        groupable[type_iri] = g_props
+        sortable[type_iri] = s_props
+
+    return JSONResponse({
+        "types": types,
+        "group_by_builtins": [
+            {"value": "type", "label": "Type"},
+            {"value": "tag", "label": "Tag"},
+        ],
+        "sort_by_builtins": [
+            {"value": "label", "label": "Label"},
+            {"value": "created", "label": "Date Created"},
+        ],
+        "groupable_properties": groupable,
+        "sortable_properties": sortable,
+    })
+
+
 @workspace_router.get("/explorer/children")
 async def explorer_children(
     request: Request,
