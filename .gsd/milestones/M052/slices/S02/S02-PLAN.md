@@ -37,7 +37,7 @@
   - Estimate: 20m
   - Files: frontend/static/css/workspace.css, backend/app/templates/browser/object_read.html
   - Verify: Start the dev stack and open an object in read mode. Verify: (1) alternating row backgrounds visible, (2) hovering a row highlights both cells, (3) labels are visually stronger than values, (4) hover over a label with sh:description shows tooltip. Toggle dark mode and confirm all styling adapts. Run: `rg 'nth-child(even)' frontend/static/css/workspace.css` returns matches, `rg 'title=.*prop.description' backend/app/templates/browser/object_read.html` returns match.
-- [ ] **T02: Graph and ref-pill popover property borders and alternating backgrounds** — Add visual polish to the property rows in graph node popovers and reference-pill tooltip popovers.
+- [x] **T02: Added bottom borders, alternating-row backgrounds, padding, and border-radius to graph and ref-pill popover property rows in views.css** — Add visual polish to the property rows in graph node popovers and reference-pill tooltip popovers.
 
 ## Steps
 

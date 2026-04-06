@@ -664,15 +664,29 @@
 }
 
 .graph-popover-props {
-    padding: 6px 14px 10px;
+    padding: 6px 6px 10px;
 }
 
 .graph-popover-prop {
     display: flex;
     gap: 6px;
-    padding: 3px 0;
+    padding: 4px 8px;
     font-size: 0.82rem;
     line-height: 1.4;
+    border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.graph-popover-prop:nth-child(even) {
+    background: var(--color-surface-recessed);
+}
+
+.graph-popover-prop:first-child {
+    border-radius: 3px 3px 0 0;
+}
+
+.graph-popover-prop:last-child {
+    border-bottom: none;
+    border-radius: 0 0 3px 3px;
 }
 
 .graph-popover-prop-name {
