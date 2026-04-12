@@ -108,11 +108,12 @@ These are not yet decided. Leaving them here to return to before implementation 
    - (b) Lens stays active; target opens in a tab flagged "outside lens" with a prompt to clear or expand the lens.
    - (c) Navigation is refused with a toast asking the user to exit the lens first.
 3. **Lens memory per object.** When a user re-enters a lens they've been inside before (e.g. Project Alpha), should the workspace restore the last view/tab state it had inside that lens, or start fresh each time?
-4. **Multiple lenses active at once.** Does the model support one lens at a time, or multiple?
-   - (a) Single active lens (simplest; matches the holonic "you are inside one whole" framing).
-   - (b) Multiple lenses with **union** semantics — explorer/search/views show items that descend from ANY active lens. Useful for "show me everything across Project Alpha and Project Beta."
-   - (c) Side-by-side panes, each pane a workspace with its own independent lens. Preserves single-lens semantics per pane but gives multi-lens UX.
-   - Open sub-question: does multi-lens break the holonic metaphor? Arguably not — Koestler's holon is a property of the *thing*, not a restriction on the observer. A user may peek into multiple holons.
+4. **Multiple lenses active at once.** Does the model support one lens at a time, or multiple? The options split along a holonic-purity line:
+   - (a) **Single active lens per workspace.** Matches the holonic "you are inside one coherent whole" framing — one vocabulary, one boundary, one narrative at a time.
+   - (b) **Union semantics** — explorer/search/views show items descending from ANY active lens. *Goes against holonic thinking*: a coherent "inside" requires a single boundary. If the user repeatedly wants lens A ∪ lens B, that is a signal the data is missing a common parent holon (e.g., "Active Projects") which, once created, can be lensed to give the union view naturally.
+   - (c) **Side-by-side panes, each with its own independent lens.** Fully compatible with holonic thinking: each pane is a separate observer, each observer is inside exactly one whole. Holons constrain the *thing*, not the number of simultaneous observers.
+
+   **Recommended position**: within a single pane, one lens at a time. If multi-lens UX is needed later, add side-by-side panes rather than union semantics. Persistent desire for a union is a prompt to model a containing holon.
 
 ### Files to modify
 
