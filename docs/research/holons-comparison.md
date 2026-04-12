@@ -57,9 +57,46 @@ Federation is real. Multi-user sync of named graphs means boundary semantics (wh
 
 **One small feature, two places to wire it, that delivers both "projection views" and most of "scoped hierarchy":**
 
-### Feature: Parameterized Views with Object Context
+### Feature: Parameterized Views with Object Context, plus a "Lens" navigation mode
 
-Extend saved queries with a parameter declaration, extend ViewSpec execution with a context binding, and add a view picker to the object tab.
+Extend saved queries with a parameter declaration, extend ViewSpec execution with a context binding, add a view picker to the object tab, and add a workspace-wide "Lens" mode that scopes the entire UI to a chosen object's sub-holarchy.
+
+### User-Facing Terminology
+
+- **Lens** — the user-facing term for what a developer might call a "holon scope." Works as a noun ("You are viewing through the lens of Project Alpha") and as a verb ("View through this lens").
+- Breadcrumb shows the lens stack: `Home › Research › Project Alpha`.
+- The SPARQL binding for parameterized views is `?lens` (the IRI of the object the lens is focused on).
+- "Holon" stays in developer docs only.
+
+### Which Objects Can Be a Lens?
+
+**Class-declared with implicit fallback.** An ontology class can assert `sempkm:focusable true` (predicate TBD under `urn:sempkm:vocab:`) to declare that its instances can be viewed through. If no class in any installed model declares focusability, fall back to "any object that has `dcterms:isPartOf` incoming edges is focusable." This lets `basic-pkm` work out of the box while allowing richer models (`projects`, `ppv`, etc.) to be opinionated about which entities represent coherent wholes.
+
+UI affordance: a small Lucide icon (`scan` or `focus`) on the object header, next to the view picker. Tooltip: "View through this lens."
+
+### What Changes When a Lens Is Active
+
+| Area | Behavior |
+|---|---|
+| Explorer tree root | Becomes the lens object; only descendants via `dcterms:isPartOf*` are shown |
+| New-object form | `dcterms:isPartOf` pre-filled to the lens object |
+| Search | Scoped to lens descendants by default, with a "search everywhere" toggle |
+| Graph view | Renders the lens sub-graph only |
+| Recent items | Filtered to lens descendants |
+| Card / table views | Default filter appends `?x dcterms:isPartOf+ <lens>` |
+| Tabs already open for objects outside the lens | Stay open but visually de-emphasized with an "outside lens" badge — closing them is manual |
+| View picker on objects | Any view with a `?lens` parameter pre-binds it to the active lens |
+
+### Entering, Stacking, and Exiting a Lens
+
+- **Enter**: click the lens icon on an object header → workspace re-scopes, breadcrumb updates.
+- **Stack**: entering a lens from within another lens deepens the stack (`Home › Research › Project Alpha › Phase 2`).
+- **Exit**: click any breadcrumb segment to pop to that level; click `Home` to clear entirely; `Esc` pops one level.
+- **Persistence**: lens stack stored in session state alongside tab state so a page reload resumes where the user was.
+
+### Federation Bonus
+
+The lens gives a clean sync primitive: "share this lens" = share the transitive `dcterms:isPartOf` closure of the lens object. That is the holonic boundary for export purposes, without needing per-entity named graphs.
 
 ### Files to modify
 
