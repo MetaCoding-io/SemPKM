@@ -98,6 +98,22 @@ UI affordance: a small Lucide icon (`scan` or `focus`) on the object header, nex
 
 The lens gives a clean sync primitive: "share this lens" = share the transitive `dcterms:isPartOf` closure of the lens object. That is the holonic boundary for export purposes, without needing per-entity named graphs.
 
+### Open Design Questions
+
+These are not yet decided. Leaving them here to return to before implementation begins.
+
+1. **Icon choice.** Lucide candidates: `scan`, `focus`, `aperture`. `aperture` leans most into the lens metaphor; `focus` is most literal; `scan` is neutral.
+2. **Navigating out of a lens via a link.** When the user clicks a backlink or inline reference to an object that sits outside the current lens, what happens?
+   - (a) Lens clears automatically and the target opens at top level.
+   - (b) Lens stays active; target opens in a tab flagged "outside lens" with a prompt to clear or expand the lens.
+   - (c) Navigation is refused with a toast asking the user to exit the lens first.
+3. **Lens memory per object.** When a user re-enters a lens they've been inside before (e.g. Project Alpha), should the workspace restore the last view/tab state it had inside that lens, or start fresh each time?
+4. **Multiple lenses active at once.** Does the model support one lens at a time, or multiple?
+   - (a) Single active lens (simplest; matches the holonic "you are inside one whole" framing).
+   - (b) Multiple lenses with **union** semantics — explorer/search/views show items that descend from ANY active lens. Useful for "show me everything across Project Alpha and Project Beta."
+   - (c) Side-by-side panes, each pane a workspace with its own independent lens. Preserves single-lens semantics per pane but gives multi-lens UX.
+   - Open sub-question: does multi-lens break the holonic metaphor? Arguably not — Koestler's holon is a property of the *thing*, not a restriction on the observer. A user may peek into multiple holons.
+
 ### Files to modify
 
 | File | Change |
