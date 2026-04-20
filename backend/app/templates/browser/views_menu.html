@@ -14,7 +14,7 @@
            href="#"
            onclick="openViewTab('{{ spec.spec_iri }}', '{{ spec.label }}', '{{ spec.renderer_type }}'); return false;">
             <span class="view-menu-icon">
-                {% if spec.renderer_type == 'table' %}&#9638;{% elif spec.renderer_type == 'card' %}&#9641;{% elif spec.renderer_type == 'graph' %}&#9672;{% else %}&#9654;{% endif %}
+                {% if spec.renderer_type == 'table' %}&#9638;{% elif spec.renderer_type == 'card' %}&#9641;{% elif spec.renderer_type == 'graph' %}&#9672;{% elif spec.renderer_type == 'graph-3d' %}&#9733;{% else %}&#9654;{% endif %}
             </span>
             <span class="view-menu-label">{{ spec.label }}</span>
             <span class="view-menu-type">{{ spec.renderer_type | upper }}</span>

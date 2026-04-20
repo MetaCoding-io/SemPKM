@@ -524,6 +524,33 @@
     transition: none;
 }
 
+/* --- 3D Graph (WebGL via 3d-force-graph / Three.js) --- */
+
+.graph-3d-wrapper {
+    position: relative;
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    overflow: hidden;
+}
+
+.graph-3d-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    flex: 1;
+    min-height: 400px;
+    overflow: hidden;
+    background: var(--color-bg);
+    border-radius: 4px;
+}
+
+.graph-3d-container canvas {
+    display: block;
+    outline: none;
+}
+
 .graph-toolbar {
     display: flex;
     align-items: center;

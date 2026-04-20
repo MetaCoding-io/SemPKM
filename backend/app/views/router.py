@@ -205,7 +205,7 @@ async def views_menu(
     )
 
 
-_VALID_RENDERERS = {"table", "card", "graph", "kanban", "calendar", "map", "timeline", "quadrant", "bmc", "okr", "decision-matrix"}
+_VALID_RENDERERS = {"table", "card", "graph", "graph-3d", "kanban", "calendar", "map", "timeline", "quadrant", "bmc", "okr", "decision-matrix"}
 
 
 @router.get("/generic/{renderer}")
@@ -456,6 +456,50 @@ async def generic_view(
         if embed:
             return _embed_response(templates, request, "browser/graph_view.html", context)
         return templates.TemplateResponse(request, "browser/graph_view.html", context)
+
+    elif renderer == "graph-3d":
+        # For 3D graph: execute the same CONSTRUCT query, hand off to WebGL template
+        result = await view_spec_service.execute_graph_query(spec)
+
+        graph_data_url = f"/browser/views/generic/graph-3d/data"
+        graph_data_params = []
+        if type_iri:
+            graph_data_params.append(f"type={quote(type_iri, safe='')}")
+        if scope_query:
+            graph_data_params.append(f"scope_query={quote(scope_query, safe='')}")
+        if graph_data_params:
+            graph_data_url += "?" + "&".join(graph_data_params)
+
+        context = {
+            "request": request,
+            "spec": spec,
+            "spec_iri": spec.spec_iri,
+            "spec_iri_encoded": encoded_spec_iri,
+            "model_view_specs": model_view_specs,
+            "type_label": type_label,
+            "type_iri": spec.target_class,
+            "available_layouts": [
+                {"name": "d3-force-3d", "label": "Force-Directed 3D"},
+                {"name": "ngraph", "label": "ngraph 3D"},
+            ],
+            "type_colors": result.get("type_colors", {}),
+            "sort_col": "",
+            "sort_dir": "asc",
+            "current_filter": filter,
+            "is_generic": True,
+            "pagination_base_url": pagination_base_url,
+            "pag_extra": pag_extra,
+            "selected_type": type_iri or "",
+            "graph_data_url": graph_data_url,
+            "types": types_list,
+            "renderer": renderer,
+            "scope_query": scope_query,
+            "user_saved_queries": user_saved_queries,
+            "model_saved_queries": model_saved_queries,
+        }
+        if embed:
+            return _embed_response(templates, request, "browser/graph_3d_view.html", context)
+        return templates.TemplateResponse(request, "browser/graph_3d_view.html", context)
 
     elif renderer == "calendar":
         if not type_iri:
@@ -1250,7 +1294,7 @@ async def generic_view_data(
     For map: detects geo fields and returns marker data with coordinates.
     Accepts optional scope_query to filter results by saved query.
     """
-    if renderer not in ("graph", "calendar", "map", "timeline", "quadrant", "bmc", "okr", "decision-matrix"):
+    if renderer not in ("graph", "graph-3d", "calendar", "map", "timeline", "quadrant", "bmc", "okr", "decision-matrix"):
         return JSONResponse(content={"error": "Invalid renderer for data endpoint"}, status_code=404)
 
     type_iri = type if type else None
@@ -1355,16 +1399,17 @@ async def generic_view_data(
         )
         return JSONResponse(content=result)
 
-    # graph renderer
+    # graph + graph-3d renderers share the same CONSTRUCT query and JSON shape
+    effective_renderer = "graph-3d" if renderer == "graph-3d" else "graph"
     sparql_query, _ = await view_spec_service.build_dynamic_query(
-        type_iri, "graph", scope_filter=scope_filter_text,
+        type_iri, effective_renderer, scope_filter=scope_filter_text,
     )
 
     spec = ViewSpec(
-        spec_iri="urn:sempkm:view:generic-graph",
-        label="Graph View",
+        spec_iri=f"urn:sempkm:view:generic-{effective_renderer}",
+        label="3D Graph View" if effective_renderer == "graph-3d" else "Graph View",
         target_class=type_iri or "",
-        renderer_type="graph",
+        renderer_type=effective_renderer,
         sparql_query=sparql_query,
         source_model="system",
     )
@@ -1927,4 +1972,95 @@ async def graph_view(
 
     return templates.TemplateResponse(
         request, "browser/graph_view.html", context
+    )
+
+
+@router.get("/graph-3d/{spec_iri:path}/data")
+async def graph_3d_data(
+    request: Request,
+    spec_iri: str,
+    user: User = Depends(get_current_user),
+    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
+):
+    """Return graph data as JSON for the 3D (WebGL) graph renderer.
+
+    Shares the exact JSON shape ({nodes, edges, type_colors}) with the
+    2D /graph/{spec_iri}/data endpoint. The client renames edges → links
+    before handing off to 3d-force-graph.
+    """
+    decoded_iri = unquote(spec_iri)
+
+    spec = await view_spec_service.get_view_spec_by_iri(
+        decoded_iri, user_id=user.id,
+    )
+    if not spec:
+        return JSONResponse(
+            content={"nodes": [], "edges": [], "type_colors": {}},
+            status_code=404,
+        )
+
+    result = await view_spec_service.execute_graph_query(spec)
+    return JSONResponse(content=result)
+
+
+@router.get("/graph-3d/{spec_iri:path}")
+async def graph_3d_view(
+    request: Request,
+    spec_iri: str,
+    filter: str = Query(default=""),
+    user: User = Depends(get_current_user),
+    view_spec_service: ViewSpecService = Depends(get_view_spec_service),
+    label_service: LabelService = Depends(get_label_service),
+):
+    """Render the 3D graph view container with 3d-force-graph initialization.
+
+    Mirrors graph_view(): fetches the ViewSpec, resolves type labels, but
+    points to a Three.js/WebGL template. Graph data is loaded async via
+    /graph-3d/{spec_iri}/data after the DOM is ready.
+    """
+    templates = request.app.state.templates
+    decoded_iri = unquote(spec_iri)
+
+    spec = await view_spec_service.get_view_spec_by_iri(
+        decoded_iri, user_id=user.id,
+    )
+    if not spec:
+        return HTMLResponse(
+            content='<div class="editor-empty"><p>View spec not found.</p></div>',
+            status_code=404,
+        )
+
+    if spec.source_model == "user":
+        type_label = "Custom View"
+    else:
+        type_labels = await label_service.resolve_batch([spec.target_class])
+        type_label = type_labels.get(spec.target_class, spec.target_class)
+
+    built_in_layouts = [
+        {"name": "d3-force-3d", "label": "Force-Directed 3D"},
+        {"name": "ngraph", "label": "ngraph 3D"},
+    ]
+    model_layouts = await view_spec_service.get_model_layouts()
+    available_layouts = built_in_layouts + model_layouts
+
+    encoded_spec_iri = quote(decoded_iri, safe="")
+
+    context = {
+        "request": request,
+        "spec": spec,
+        "spec_iri": decoded_iri,
+        "spec_iri_encoded": encoded_spec_iri,
+        "model_view_specs": [],
+        "type_label": type_label,
+        "type_iri": spec.target_class,
+        "available_layouts": available_layouts,
+        "type_colors": {},
+        "sort_col": "",
+        "sort_dir": "asc",
+        "current_filter": filter,
+        "pagination_base_url": f"/browser/views/graph-3d/{encoded_spec_iri}",
+    }
+
+    return templates.TemplateResponse(
+        request, "browser/graph_3d_view.html", context
     )

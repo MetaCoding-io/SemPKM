@@ -246,6 +246,14 @@ WHERE {{
                 sparql_query="",
                 source_model="system",
             ),
+            ViewSpec(
+                spec_iri="urn:sempkm:view:generic-graph-3d",
+                label="3D Graph View",
+                target_class="",
+                renderer_type="graph-3d",
+                sparql_query="",
+                source_model="system",
+            ),
         ]
         logger.info("Registered %d generic views", len(self._generic_specs))
 
@@ -316,9 +324,9 @@ WHERE {{
                 When provided, a sub-select constraining ?s is injected
                 into the generated query.
         """
-        if renderer == "graph":
+        if renderer in ("graph", "graph-3d"):
             query = self._build_graph_query(type_iri, scope_filter=scope_filter)
-            logger.debug("build_dynamic_query: type=%s renderer=graph scope=%s", type_iri, bool(scope_filter))
+            logger.debug("build_dynamic_query: type=%s renderer=%s scope=%s", type_iri, renderer, bool(scope_filter))
             return query, []
 
         shapes, columns = await self.get_generic_columns(type_iri)

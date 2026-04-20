@@ -8,7 +8,7 @@
            href="#"
            onclick="openViewTab('{{ spec.spec_iri }}', '{{ spec.label }}', '{{ rtype }}'); return false;">
             <span class="view-menu-icon">
-                {% if rtype == 'table' %}&#9638;{% elif rtype == 'card' %}&#9641;{% elif rtype == 'graph' %}&#9672;{% else %}&#9654;{% endif %}
+                {% if rtype == 'table' %}&#9638;{% elif rtype == 'card' %}&#9641;{% elif rtype == 'graph' %}&#9672;{% elif rtype == 'graph-3d' %}&#9733;{% else %}&#9654;{% endif %}
             </span>
             <span class="view-menu-label">{{ spec.label }}</span>
         </a>

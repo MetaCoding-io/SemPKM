@@ -1,0 +1,48 @@
+<div class="view-flex-column">
+{% if is_generic | default(false) %}
+{% include "browser/type_filter_pills.html" %}
+{% endif %}
+{% include "browser/view_toolbar.html" %}
+
+<div class="graph-toolbar">
+    <label class="layout-picker-label" for="layout-picker-3d">Layout:</label>
+    <select id="layout-picker-3d" class="layout-picker" onchange="if(window.changeLayout3D) changeLayout3D(this.value)">
+        {% for layout in available_layouts %}
+        {% if loop.index0 == 2 and available_layouts | length > 2 %}
+        <option disabled>--- Model Layouts ---</option>
+        {% endif %}
+        <option value="{{ layout.name }}"{% if loop.first %} selected{% endif %}>{{ layout.label }}</option>
+        {% endfor %}
+    </select>
+    <button class="graph-fit-btn" onclick="if(window._sempkmGraph3D) window._sempkmGraph3D.zoomToFit(500)" title="Fit graph to view">Fit</button>
+</div>
+
+<div class="graph-3d-wrapper" id="fg3d-wrapper">
+    <div id="fg3d-container" class="graph-3d-container" data-testid="graph-3d-view"></div>
+</div>
+</div>
+
+<script src="https://unpkg.com/3d-force-graph"></script>
+<script>
+(function() {
+    var specIri = '{{ spec_iri_encoded }}';
+    var typeColors = {{ type_colors | tojson }};
+    var availableLayouts = {{ available_layouts | tojson }};
+    var customDataUrl = {{ graph_data_url | tojson if graph_data_url is defined and graph_data_url else 'null' }};
+
+    var initialFilter = '{{ current_filter | e }}';
+
+    // Wait for both graph-3d.js and 3d-force-graph CDN to load, then initialize
+    function tryInit() {
+        if (typeof window.initGraph3D === 'function' && typeof ForceGraph3D !== 'undefined') {
+            window.initGraph3D('fg3d-container', specIri, typeColors, availableLayouts, customDataUrl);
+            if (initialFilter && typeof window.filterGraph3D === 'function') {
+                setTimeout(function() { window.filterGraph3D(initialFilter); }, 500);
+            }
+        } else {
+            setTimeout(tryInit, 50);
+        }
+    }
+    tryInit();
+})();
+</script>

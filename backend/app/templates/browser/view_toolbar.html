@@ -45,6 +45,13 @@
                placeholder="Filter {{ type_label }}..."
                value="{{ current_filter }}"
                oninput="if(typeof filterGraph==='function') filterGraph(this.value)">
+        {% elif spec.renderer_type == 'graph-3d' %}
+        <input type="text"
+               id="view-filter"
+               class="view-filter-input"
+               placeholder="Filter {{ type_label }}..."
+               value="{{ current_filter }}"
+               oninput="if(typeof filterGraph3D==='function') filterGraph3D(this.value)">
         {% else %}
         <input type="text"
                id="view-filter"

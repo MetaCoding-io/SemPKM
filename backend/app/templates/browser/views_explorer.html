@@ -36,6 +36,13 @@
 </a>
 <a class="tree-leaf view-leaf" href="#"
    draggable="true"
+   ondragstart="event.dataTransfer.setData('text/plain', '3D Graph View'); event.dataTransfer.effectAllowed = 'copy'; window.__canvasDragPayload = {type:'view', id:'generic-graph-3d', label:'3D Graph View', url:'/browser/views/generic/graph-3d?embed=1'};"
+   onclick="openGenericViewTab('graph-3d'); return false;">
+    <span class="tree-leaf-icon">&#9733;</span>
+    <span class="tree-leaf-label">3D Graph View</span>
+</a>
+<a class="tree-leaf view-leaf" href="#"
+   draggable="true"
    ondragstart="event.dataTransfer.setData('text/plain', 'Kanban View'); event.dataTransfer.effectAllowed = 'copy'; window.__canvasDragPayload = {type:'view', id:'generic-kanban', label:'Kanban View', url:'/browser/views/generic/kanban?embed=1'};"
    onclick="openGenericViewTab('kanban'); return false;">
     <span class="tree-leaf-icon">&#9707;</span>
