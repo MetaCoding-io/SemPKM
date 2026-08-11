@@ -1,3 +1,0 @@
-# Generated output files — do not commit
-output/*
-!output/.gitkeep

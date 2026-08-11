@@ -1,3 +1,5 @@
+name: sempkm
+
 services:
   triplestore:
     image: eclipse/rdf4j-workbench:5.0.1
@@ -77,11 +79,12 @@ services:
       - sempkm
 
   jaeger:
-    image: jaegertracing/jaeger:2
+    image: jaegertracing/all-in-one:1.62.0
     ports:
       - "16686:16686"   # Jaeger UI
       - "4318:4318"     # OTLP HTTP receiver
     environment:
+      COLLECTOR_OTLP_ENABLED: "true"
       MEMORY_MAX_TRACES: "10000"
     mem_limit: 512m
     networks:
