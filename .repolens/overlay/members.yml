@@ -1,0 +1,45 @@
+# Which files each drawing node is made of.
+#
+# This is the one genuinely authored mapping: the drawing's 33 nodes are an
+# editorial merge of 39 backend modules plus the front end, the templates and
+# the test suite. Metrics are rolled up from these globs, so a node's height is
+# always measured rather than asserted.
+
+U:  ["frontend/static/js/**/*.js", "frontend/static/css/**/*.css"]
+N:  ["frontend/nginx.conf"]
+A:  ["backend/app/*.py"]
+C:  ["backend/app/commands/**/*.py"]
+E:  ["backend/app/events/**/*.py"]
+T:  ["backend/app/triplestore/**/*.py"]
+S:  ["backend/app/sparql/**/*.py"]
+L:  ["backend/app/services/labels.py"]
+B:  ["backend/app/browser/**/*.py"]
+J:  ["backend/app/templates/**/*.html"]
+
+P:  ["backend/app/apps/**/*.py"]
+X:  ["backend/app/obsidian/**/*.py"]
+Z:  ["backend/app/notion/**/*.py"]
+R:  ["backend/app/rdf_import/**/*.py"]
+
+M:  ["backend/app/models/**/*.py"]
+H:  ["backend/app/services/shapes.py"]
+O:  ["backend/app/ontology/**/*.py"]
+I:  ["backend/app/inference/**/*.py"]
+V:  ["backend/app/views/**/*.py"]
+
+Q:  ["backend/app/validation/**/*.py"]
+W:  ["backend/app/services/webhooks.py"]
+F:  ["backend/app/federation/**/*.py"]
+LT: ["backend/app/lint/**/*.py"]
+
+G:  ["backend/app/auth/**/*.py"]
+Y:  ["backend/app/indieauth/**/*.py", "backend/app/webid/**/*.py"]
+DB: ["backend/app/db/**/*.py"]
+
+K:  ["backend/app/services/search.py"]
+CV: ["backend/app/canvas/**/*.py"]
+DS: ["backend/app/dashboard/**/*.py"]
+CX: ["backend/app/context/**/*.py"]
+VF: ["backend/app/vfs/**/*.py"]
+AI: ["backend/app/copilot/**/*.py"]
+ET: ["e2e/tests/**/*.spec.ts"]

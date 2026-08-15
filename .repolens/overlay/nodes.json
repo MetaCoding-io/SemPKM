@@ -1,0 +1,1034 @@
+[
+  {
+    "id": "U",
+    "key": "U",
+    "short": "WORKSPACE",
+    "name": "Workspace UI",
+    "group": "loop",
+    "layer": "client",
+    "tier": 0,
+    "survey": {
+      "x": 4.6,
+      "y": 4.5,
+      "w": 2.7,
+      "d": 2.7
+    },
+    "sub": "htmx + 33 JS modules + 17 stylesheets",
+    "does": "The screen the person actually uses: an IDE-style workspace with an explorer, tabs, auto-generated forms, tables, cards and graph views. It holds almost no state of its own \u2014 it asks the server for HTML and swaps it in.",
+    "built": "htmx drives nearly every DOM update; there is no SPA framework. 20,781 lines of JS across 33 modules and 21,066 lines of CSS across 17 sheets. Dockview manages the pane layout, Cytoscape draws graphs, CodeMirror edits Markdown and SPARQL.",
+    "cond": [
+      [
+        "measured",
+        "33 JS modules, 17 CSS files, ~41.8k lines of front-end source."
+      ],
+      [
+        "note",
+        "workspace.js is the heaviest single module and carries the object-tab flip-card logic that CLAUDE.md documents as historically fragile."
+      ]
+    ],
+    "claimed": {
+      "loc": 41847,
+      "files": 50
+    }
+  },
+  {
+    "id": "N",
+    "key": "N",
+    "short": "NGINX",
+    "name": "nginx edge",
+    "group": "loop",
+    "layer": "client",
+    "tier": 1,
+    "survey": {
+      "x": 8.7,
+      "y": 4.5,
+      "w": 1.9,
+      "d": 1.9
+    },
+    "sub": "static assets + reverse proxy, port 4000",
+    "does": "Serves the static front-end and forwards every /api and /browser request to the FastAPI container. The only door into the system from a browser.",
+    "built": "nginx:stable-alpine with a single nginx.conf. The static directory is bind-mounted read-only, so CSS and JS edits appear on refresh with no rebuild \u2014 only nginx.conf changes need a container restart.",
+    "cond": [
+      [
+        "measured",
+        "One config file, one container, no application logic."
+      ]
+    ],
+    "claimed": {
+      "loc": 240,
+      "files": 1
+    }
+  },
+  {
+    "id": "A",
+    "key": "A",
+    "short": "FASTAPI",
+    "name": "FastAPI app",
+    "group": "loop",
+    "layer": "client",
+    "tier": 2,
+    "survey": {
+      "x": 12.6,
+      "y": 4.5,
+      "w": 2.5,
+      "d": 2.5
+    },
+    "sub": "main.py \u2014 48 routers, 4 middlewares",
+    "does": "The application factory. On startup it builds every service singleton, hangs them on app.state, wires 48 routers and opens the triplestore connection. Everything downstream is reached through dependency injection from here.",
+    "built": "main.py is 907 lines and registers 48 routers serving 219 endpoints. 40 service singletons live on app.state and are injected via Depends() from dependencies.py. Four middlewares wrap every request: rate limiting, PostHog error capture, conditional GET and timing.",
+    "cond": [
+      [
+        "measured",
+        "907-line main.py, 48 include_router calls, 40 app.state services."
+      ],
+      [
+        "note",
+        "330 broad exception handlers (except Exception / bare except) across the backend package."
+      ]
+    ],
+    "claimed": {
+      "loc": 1539,
+      "files": 6
+    }
+  },
+  {
+    "id": "C",
+    "key": "C",
+    "short": "COMMANDS",
+    "name": "Commands API",
+    "group": "loop",
+    "layer": "manager",
+    "tier": 3,
+    "survey": {
+      "x": 16.7,
+      "y": 4.5,
+      "w": 2.3,
+      "d": 2.3
+    },
+    "sub": "POST /api/commands \u2014 the documented write door",
+    "does": "The public write endpoint. A request carries a batch of commands; each is dispatched to a handler that returns an Operation describing the triples to add and remove, and the batch commits atomically. It is documented as the only way to write \u2014 in practice most of the codebase calls the event store beneath it directly.",
+    "built": "router.py validates a discriminated union of exactly six command types, dispatch() maps each to a handler in handlers/, and the resulting Operations commit together through one EventStore.commit(). A slot mechanism lets one command reference an IRI minted by an earlier one in the same batch. Webhook dispatch and validation enqueueing are attached here, at the router.",
+    "cond": [
+      [
+        "measured",
+        "6 command types: object.create, object.patch, body.set, body.diff, edge.create, edge.patch."
+      ],
+      [
+        "note",
+        "Only 2 of the 28 event_store.commit() call sites in the backend are in this module. 6 other modules import its handlers directly."
+      ]
+    ],
+    "claimed": {
+      "loc": 1063,
+      "files": 12
+    }
+  },
+  {
+    "id": "E",
+    "key": "E",
+    "short": "EVENTS",
+    "name": "Event store",
+    "group": "loop",
+    "layer": "access",
+    "tier": 5,
+    "survey": {
+      "x": 16.7,
+      "y": 8.7,
+      "w": 2.5,
+      "d": 2.5
+    },
+    "sub": "immutable named graphs + materialisation",
+    "does": "Turns operations into history. Each commit mints an event graph holding what happened, who did it and when, then materialises the same triples into the one graph the interface reads. Both writes ride in a single transaction, so state and history can never disagree. This \u2014 not the endpoint above it \u2014 is the invariant that actually holds everywhere.",
+    "built": "EventStore.commit() opens an RDF4J transaction, writes metadata and data triples into urn:sempkm:event:{uuid}, applies inserts and deletes to urn:sempkm:current, then commits atomically. Failure rolls the whole thing back. commit_bulk() exists for imports that would otherwise mint one event per object.",
+    "cond": [
+      [
+        "measured",
+        "Two write methods, 1,110 lines. Called from 28 sites across 11 modules."
+      ],
+      [
+        "ok",
+        "No module writes raw SPARQL UPDATE \u2014 the event-sourcing invariant is intact."
+      ],
+      [
+        "note",
+        "A get_event_store() provider exists in dependencies.py, but views/router.py, task_templates/router.py and sparql/router.py construct EventStore(client) inline instead."
+      ]
+    ],
+    "claimed": {
+      "loc": 1110,
+      "files": 4
+    }
+  },
+  {
+    "id": "T",
+    "key": "T",
+    "short": "RDF4J",
+    "name": "RDF4J triplestore",
+    "group": "loop",
+    "layer": "resource",
+    "tier": 6,
+    "survey": {
+      "x": 16.7,
+      "y": 12.8,
+      "w": 3.1,
+      "d": 3.1
+    },
+    "sub": "eclipse/rdf4j 5.0.1 + LuceneSail",
+    "does": "Where the knowledge actually lives. Holds the current-state graph, every event graph ever written, the installed ontologies and shapes, and the inferred triples \u2014 each in its own named graph.",
+    "built": "Reached over HTTP by an async client wrapping transactions, queries and updates. Named graphs partition everything: urn:sempkm:current for state, urn:sempkm:event:{uuid} per commit, urn:sempkm:model:{id}:{artifact} per installed model, urn:sempkm:inferred for entailments.",
+    "cond": [
+      [
+        "measured",
+        "Client is 378 lines across 4 files \u2014 thin by design."
+      ],
+      [
+        "note",
+        "The graph count grows without bound: one named graph per write, forever. That is the intended trade for a complete audit trail."
+      ]
+    ],
+    "claimed": {
+      "loc": 378,
+      "files": 4
+    }
+  },
+  {
+    "id": "S",
+    "key": "S",
+    "short": "SPARQL",
+    "name": "SPARQL client",
+    "group": "loop",
+    "layer": "access",
+    "tier": 5,
+    "survey": {
+      "x": 12.6,
+      "y": 12.8,
+      "w": 2.4,
+      "d": 2.4
+    },
+    "sub": "passthrough + scope_to_current_graph()",
+    "does": "Every read goes through here. Its most important job is scoping: rewriting queries so they can only see the current-state graph, which keeps raw event history from leaking into ordinary reads.",
+    "built": "3,352 lines across 12 files: a passthrough router for the admin console, the scoping rewriter, and the query paths used by views and the browser. Also serves the federated mirror endpoint.",
+    "cond": [
+      [
+        "measured",
+        "12 files, 3,352 lines \u2014 the fifth-largest module."
+      ],
+      [
+        "ok",
+        "Graph scoping is applied centrally rather than per-caller."
+      ]
+    ],
+    "claimed": {
+      "loc": 3352,
+      "files": 12
+    }
+  },
+  {
+    "id": "L",
+    "key": "L",
+    "short": "LABELS",
+    "name": "Label cache",
+    "group": "loop",
+    "layer": "access",
+    "tier": 5,
+    "survey": {
+      "x": 8.7,
+      "y": 12.8,
+      "w": 1.9,
+      "d": 1.9
+    },
+    "sub": "TTL-cached label resolution",
+    "does": "Decides what to call things. Given a batch of IRIs it returns display names using a fixed precedence, and caches the answers so a page full of relations does not become a page full of queries.",
+    "built": "Precedence is dcterms:title, then rdfs:label, skos:prefLabel, schema:name, foaf:name, and finally the QName. resolve_batch() folds a whole page's IRIs into one query; a 300-second TTL cache fronts it.",
+    "cond": [
+      [
+        "measured",
+        "172 lines. invalidate() is called from 6 write sites in the browser module."
+      ],
+      [
+        "ok",
+        "The stale-label bug recorded in the planning notes is fixed \u2014 every commit path now invalidates affected IRIs."
+      ]
+    ],
+    "claimed": {
+      "loc": 172,
+      "files": 1
+    }
+  },
+  {
+    "id": "B",
+    "key": "B",
+    "short": "BROWSER",
+    "name": "Browser routers",
+    "group": "loop",
+    "layer": "client",
+    "tier": 2,
+    "survey": {
+      "x": 4.6,
+      "y": 12.8,
+      "w": 2.7,
+      "d": 2.7
+    },
+    "sub": "workspace, objects, explorer, search",
+    "does": "Builds the workspace. Serves both whole pages and the small HTML fragments htmx swaps in \u2014 the nav tree, object tabs, forms, relation panels, comments, favourites and tag trees. It also writes: object edits from the UI commit straight to the event store rather than posting to the commands endpoint.",
+    "built": "The largest module: 6,406 lines across 17 files. router.py is now a 38-line aggregator; the real work sits in workspace.py (1,632) and objects.py (1,559). It takes the event store through Depends(get_event_store) and imports command handlers directly to build Operations.",
+    "cond": [
+      [
+        "measured",
+        "17 files, 6,406 lines. 8 event_store.commit() call sites \u2014 the most of any module."
+      ],
+      [
+        "ok",
+        "The monolithic router documented in CODEBASE.md has been split; router.py is a 38-line shim."
+      ],
+      [
+        "note",
+        "A presentation-layer module holding the most write sites in the codebase is the clearest layering smell here."
+      ]
+    ],
+    "claimed": {
+      "loc": 6406,
+      "files": 17
+    }
+  },
+  {
+    "id": "J",
+    "key": "J",
+    "short": "TEMPLATES",
+    "name": "Templates",
+    "group": "loop",
+    "layer": "client",
+    "tier": 2,
+    "survey": {
+      "x": 8.7,
+      "y": 8.7,
+      "w": 2.1,
+      "d": 2.1
+    },
+    "sub": "163 Jinja2 templates",
+    "does": "Renders the HTML. The same route serves a full page or a single fragment depending on what htmx asked for, so there is one template tree rather than a page tree and an API.",
+    "built": "jinja2-fragments block rendering lets a route return one named block of a template. 163 templates, 17,699 lines, grouped by feature: browser, admin, forms, importer, ontology, indieauth, webid.",
+    "cond": [
+      [
+        "measured",
+        "163 templates across 12 directories, ~17.7k lines."
+      ]
+    ],
+    "claimed": {
+      "loc": 17699,
+      "files": 163
+    }
+  },
+  {
+    "id": "P",
+    "key": "P",
+    "short": "APPS",
+    "name": "Apps framework",
+    "group": "feed",
+    "layer": "manager",
+    "tier": 3,
+    "survey": {
+      "x": 0.5,
+      "y": 0.4,
+      "w": 2.3,
+      "d": 2.3
+    },
+    "sub": "12 installable apps + scheduler",
+    "does": "Runs third-party integrations inside the instance. Apps declare scheduled tasks in a manifest; the scheduler ticks them, and whatever they produce is written back as commands.",
+    "built": "manager, registry, manifest, scheduler, proxy and token modules \u2014 2,557 lines. Twelve bundled apps (~29.8k lines) cover GitHub, Jira, Linear, Asana, Monday, Todoist, Google/Outlook/CalDAV calendars, RSS and media scheduling. The scheduler parses intervals, evaluates due tasks, applies backoff on failure and records every run.",
+    "cond": [
+      [
+        "measured",
+        "12 apps bundled, ~29.8k lines of app code outside the backend package."
+      ],
+      [
+        "ok",
+        "Apps hold no privileged write path of their own."
+      ]
+    ],
+    "claimed": {
+      "loc": 2557,
+      "files": 10
+    }
+  },
+  {
+    "id": "X",
+    "key": "X",
+    "short": "OBSIDIAN",
+    "name": "Obsidian import",
+    "group": "feed",
+    "layer": "manager",
+    "tier": 3,
+    "survey": {
+      "x": 4.6,
+      "y": 0.4,
+      "w": 2,
+      "d": 2
+    },
+    "sub": "ZIP upload, scan, streaming progress",
+    "does": "Takes an Obsidian vault and turns Markdown files with front-matter and wiki-links into typed objects and edges, streaming progress while it works.",
+    "built": "scanner.py reads the vault and plans the import, executor.py runs it, broadcast.py pushes progress to the browser. 2,011 lines across 6 files with a 10-template wizard. The executor imports command handlers directly and commits through the event store.",
+    "cond": [
+      [
+        "measured",
+        "6 files, 2,011 lines, 3 e2e specs. 3 commit sites."
+      ],
+      [
+        "note",
+        "Commits here neither dispatch webhooks nor enqueue SHACL validation \u2014 both are attached to the commands router."
+      ]
+    ],
+    "claimed": {
+      "loc": 2011,
+      "files": 6
+    }
+  },
+  {
+    "id": "Z",
+    "key": "Z",
+    "short": "NOTION",
+    "name": "Notion import",
+    "group": "feed",
+    "layer": "manager",
+    "tier": 3,
+    "survey": {
+      "x": 8.7,
+      "y": 0.4,
+      "w": 2,
+      "d": 2
+    },
+    "sub": "database + page ingestion",
+    "does": "Pulls Notion databases and pages in as objects, mapping Notion property types onto the installed model's predicates.",
+    "built": "2,352 lines across 6 files. Like the other importers it builds Operations from the command handlers and commits them directly.",
+    "cond": [
+      [
+        "measured",
+        "6 files, 2,352 lines. 4 commit sites \u2014 the most outside browser."
+      ],
+      [
+        "note",
+        "Same gap as the other importers: no webhook dispatch, no validation enqueue."
+      ]
+    ],
+    "claimed": {
+      "loc": 2352,
+      "files": 6
+    }
+  },
+  {
+    "id": "R",
+    "key": "R",
+    "short": "RDF IN",
+    "name": "RDF import",
+    "group": "feed",
+    "layer": "manager",
+    "tier": 3,
+    "survey": {
+      "x": 12.6,
+      "y": 0.4,
+      "w": 1.9,
+      "d": 1.9
+    },
+    "sub": "Turtle / JSON-LD ingestion",
+    "does": "Loads existing RDF straight in \u2014 the path for people who already have graph data and do not want to re-key it.",
+    "built": "880 lines across 5 files, parsing into the same Operation shape the command handlers emit.",
+    "cond": [
+      [
+        "measured",
+        "5 files, 880 lines, 2 commit sites."
+      ]
+    ],
+    "claimed": {
+      "loc": 880,
+      "files": 5
+    }
+  },
+  {
+    "id": "M",
+    "key": "M",
+    "short": "MODELS",
+    "name": "Model registry",
+    "group": "schema",
+    "layer": "manager",
+    "tier": 4,
+    "survey": {
+      "x": 4.6,
+      "y": 16.8,
+      "w": 2.3,
+      "d": 2.3
+    },
+    "sub": "8 mental models, installed at runtime",
+    "does": "Domain schemas are plug-ins, not code. A mental model bundles an ontology, SHACL shapes, view specs and seed data; installing one teaches the instance a new vocabulary without a deploy.",
+    "built": "loader, registry and manifest validation \u2014 1,286 lines, plus a 1,512-line service. Each model's artefacts land in their own named graphs. Eight are bundled: basic-pkm, ppv, crm, research, zettelkasten, business-planning, rss-feeds and media-scheduler.",
+    "cond": [
+      [
+        "measured",
+        "8 model bundles, 46 files under models/."
+      ],
+      [
+        "note",
+        "CODEBASE.md still lists only 2 installed models."
+      ]
+    ],
+    "claimed": {
+      "loc": 1286,
+      "files": 8
+    }
+  },
+  {
+    "id": "H",
+    "key": "H",
+    "short": "SHAPES",
+    "name": "Shapes service",
+    "group": "schema",
+    "layer": "engine",
+    "tier": 4,
+    "survey": {
+      "x": 0.5,
+      "y": 16.8,
+      "w": 2,
+      "d": 2
+    },
+    "sub": "SHACL shapes drive the forms",
+    "does": "There are no hand-written forms. A SHACL NodeShape describes what a type may hold, and the form for that type is generated from it \u2014 so adding a property to a model adds a field to the UI.",
+    "built": "575 lines reading NodeShapes from the installed models' shapes graphs and producing the field descriptors that forms/ templates render.",
+    "cond": [
+      [
+        "measured",
+        "575 lines, single service file."
+      ],
+      [
+        "ok",
+        "Form generation stays declarative \u2014 new types need no UI code."
+      ]
+    ],
+    "claimed": {
+      "loc": 575,
+      "files": 1
+    }
+  },
+  {
+    "id": "O",
+    "key": "O",
+    "short": "ONTOLOGY",
+    "name": "Ontology service",
+    "group": "schema",
+    "layer": "engine",
+    "tier": 4,
+    "survey": {
+      "x": 8.7,
+      "y": 16.8,
+      "w": 2.4,
+      "d": 2.4
+    },
+    "sub": "TBox / ABox / RBox viewer",
+    "does": "Lets you look at the schema itself: classes and their hierarchy, individuals, and the properties that relate them, as a browsable graph rather than a file.",
+    "built": "3,164 lines in just two files \u2014 a 2,277-line service and an 887-line router \u2014 backing the three-way TBox/ABox/RBox viewer with per-model filtering.",
+    "cond": [
+      [
+        "measured",
+        "2 files, 3,164 lines \u2014 the densest module by lines per file."
+      ],
+      [
+        "note",
+        "service.py at 2,277 lines is the second-largest file in the backend."
+      ]
+    ],
+    "claimed": {
+      "loc": 3164,
+      "files": 3
+    }
+  },
+  {
+    "id": "I",
+    "key": "I",
+    "short": "INFERENCE",
+    "name": "Inference",
+    "group": "schema",
+    "layer": "engine",
+    "tier": 4,
+    "survey": {
+      "x": 12.6,
+      "y": 16.8,
+      "w": 2.1,
+      "d": 2.1
+    },
+    "sub": "OWL 2 RL forward chaining",
+    "does": "Derives the facts that follow from the ones you stated \u2014 subclass membership, inverse and transitive properties \u2014 and keeps them in their own graph so derived knowledge never gets mistaken for asserted knowledge.",
+    "built": "1,387 lines across 5 files implementing an OWL 2 RL entailment set. Results are materialised into urn:sempkm:inferred.",
+    "cond": [
+      [
+        "measured",
+        "5 files, 1,387 lines, 1 e2e spec, 2 commit sites."
+      ]
+    ],
+    "claimed": {
+      "loc": 1387,
+      "files": 5
+    }
+  },
+  {
+    "id": "V",
+    "key": "V",
+    "short": "VIEWS",
+    "name": "Views / ViewSpec",
+    "group": "schema",
+    "layer": "engine",
+    "tier": 4,
+    "survey": {
+      "x": 0.5,
+      "y": 8.7,
+      "w": 2.5,
+      "d": 2.5
+    },
+    "sub": "table, cards and graph renderers",
+    "does": "How a type is displayed is data too. A view spec declares the columns, the query and the renderer, so a model ships its own tables and card layouts alongside its ontology.",
+    "built": "5,923 lines across only 4 files \u2014 the second-largest module. service.py alone is 3,859 lines, the largest file in the backend; router.py is 1,983.",
+    "cond": [
+      [
+        "measured",
+        "4 files, 5,923 lines. service.py is 3,859 lines."
+      ],
+      [
+        "note",
+        "router.py constructs EventStore(client) inline rather than using the DI provider, and is one of only two places outside commands/ that dispatches webhooks."
+      ]
+    ],
+    "claimed": {
+      "loc": 5923,
+      "files": 4
+    }
+  },
+  {
+    "id": "Q",
+    "key": "Q",
+    "short": "VALIDATE",
+    "name": "Validation queue",
+    "group": "after",
+    "layer": "engine",
+    "tier": 4,
+    "survey": {
+      "x": 20.8,
+      "y": 8.7,
+      "w": 2,
+      "d": 2
+    },
+    "sub": "background SHACL conformance",
+    "does": "Writes are never blocked by validation. After a commit the affected IRIs are queued, an asyncio worker checks them against the shapes, and the results surface in the lint panel \u2014 provided the write path remembered to enqueue them.",
+    "built": "564 lines: an in-process queue, a worker started in the lifespan, and a report model. The queue is memory-resident, so a restart drops pending work.",
+    "cond": [
+      [
+        "measured",
+        "4 files, 564 lines. Enqueued from 5 modules: browser, commands, views, task_templates, inference."
+      ],
+      [
+        "note",
+        "The importers, VFS and federation commit without enqueueing, so bulk-imported data is not conformance-checked until something else touches it."
+      ],
+      [
+        "note",
+        "Queue state is in-process; nothing survives a container restart by design."
+      ]
+    ],
+    "claimed": {
+      "loc": 564,
+      "files": 4
+    }
+  },
+  {
+    "id": "W",
+    "key": "W",
+    "short": "WEBHOOKS",
+    "name": "Webhooks",
+    "group": "after",
+    "layer": "utility",
+    "tier": 4,
+    "survey": {
+      "x": 20.8,
+      "y": 4.5,
+      "w": 1.9,
+      "d": 1.9
+    },
+    "sub": "fire-and-forget outbound",
+    "does": "Tells the outside world that something changed, without letting the outside world slow a write down.",
+    "built": "384 lines. Dispatch happens after the transaction commits and failures are logged, never raised \u2014 a dead endpoint cannot fail a user's save. Dispatch is wired at two routers, not inside the event store.",
+    "cond": [
+      [
+        "measured",
+        "384 lines. dispatch() is called from commands/router.py and views/router.py only."
+      ],
+      [
+        "ok",
+        "Failures are caught and logged rather than propagated to the writer."
+      ],
+      [
+        "note",
+        "26 of the 28 commit sites do not dispatch, so most writes notify nobody."
+      ]
+    ],
+    "claimed": {
+      "loc": 384,
+      "files": 1
+    }
+  },
+  {
+    "id": "F",
+    "key": "F",
+    "short": "FEDERATE",
+    "name": "Federation",
+    "group": "after",
+    "layer": "manager",
+    "tier": 3,
+    "survey": {
+      "x": 20.8,
+      "y": 12.8,
+      "w": 2.2,
+      "d": 2.2
+    },
+    "sub": "WebFinger, signatures, inbox, patches",
+    "does": "Lets two instances share part of a graph. Changes travel as signed patches into the other instance's inbox, where they are committed as ordinary events carrying a note about where they came from.",
+    "built": "2,995 lines across 9 files: WebFinger discovery, HTTP signatures, an inbox router, namespace filtering and patch export. Foreign events are tagged with syncSource and excluded from export back to their origin.",
+    "cond": [
+      [
+        "measured",
+        "9 files, 2,995 lines, 2 e2e specs, 2 commit sites."
+      ],
+      [
+        "ok",
+        "Loop prevention is structural \u2014 the exporter filters on syncSource rather than relying on timing."
+      ]
+    ],
+    "claimed": {
+      "loc": 2995,
+      "files": 9
+    }
+  },
+  {
+    "id": "LT",
+    "key": "LT",
+    "short": "LINT",
+    "name": "Lint",
+    "group": "after",
+    "layer": "engine",
+    "tier": 4,
+    "survey": {
+      "x": 0.5,
+      "y": 20.9,
+      "w": 2,
+      "d": 2
+    },
+    "sub": "structured results + SSE stream",
+    "does": "Turns raw SHACL reports into something you can work through: paginated, filterable results that stream into the panel as validation finishes.",
+    "built": "1,714 lines across 7 files including a broadcast module pushing server-sent events to open panels, plus a filter service.",
+    "cond": [
+      [
+        "measured",
+        "7 files, 1,714 lines. Lint dashboard has its own e2e spec."
+      ]
+    ],
+    "claimed": {
+      "loc": 1714,
+      "files": 7
+    }
+  },
+  {
+    "id": "G",
+    "key": "G",
+    "short": "AUTH",
+    "name": "Auth & sessions",
+    "group": "id",
+    "layer": "utility",
+    "tier": 1,
+    "survey": {
+      "x": 0.5,
+      "y": 4.5,
+      "w": 2.1,
+      "d": 2.1
+    },
+    "sub": "passwordless magic link",
+    "does": "There are no passwords. You ask for a link, the link carries a single-use token, and the session that results is either owner or member.",
+    "built": "1,810 lines across 9 files: token minting, session storage in SQLite, role dependencies and rate limiting on the request endpoint.",
+    "cond": [
+      [
+        "measured",
+        "9 files, 1,810 lines. 3 e2e specs plus a rate-limiting spec."
+      ],
+      [
+        "ok",
+        "Both concerns flagged in the planning notes are resolved: delivery runs through aiosmtplib in services/email.py, and the session cookie reads settings.cookie_secure, secure by default."
+      ]
+    ],
+    "claimed": {
+      "loc": 1810,
+      "files": 9
+    }
+  },
+  {
+    "id": "Y",
+    "key": "Y",
+    "short": "INDIEAUTH",
+    "name": "IndieAuth / WebID",
+    "group": "id",
+    "layer": "utility",
+    "tier": 1,
+    "survey": {
+      "x": 16.7,
+      "y": 0.4,
+      "w": 2.1,
+      "d": 2.1
+    },
+    "sub": "OAuth2 provider + WebID profile",
+    "does": "Makes the instance an identity provider as well as a store: other sites can sign you in with it, and your profile is a public WebID document other instances can read.",
+    "built": "IndieAuth is 858 lines implementing authorization-code flow with PKCE and scopes; WebID adds 502 lines managing the username, RSA key pair, links and the public profile page.",
+    "cond": [
+      [
+        "measured",
+        "10 files, 1,360 lines. 2 e2e specs."
+      ]
+    ],
+    "claimed": {
+      "loc": 1360,
+      "files": 10
+    }
+  },
+  {
+    "id": "DB",
+    "key": "DB",
+    "short": "SQLITE",
+    "name": "SQLite",
+    "group": "id",
+    "layer": "resource",
+    "tier": 6,
+    "survey": {
+      "x": 20.8,
+      "y": 16.8,
+      "w": 1.9,
+      "d": 1.9
+    },
+    "sub": "sessions, tokens, app state",
+    "does": "The small relational store beside the graph. Anything that is operational rather than knowledge \u2014 sessions, magic-link tokens, app credentials, scheduler bookkeeping \u2014 lives here.",
+    "built": "61 lines of engine and session wiring over SQLAlchemy async. 26 Alembic migrations track the schema.",
+    "cond": [
+      [
+        "measured",
+        "26 migration files under backend/migrations/versions/."
+      ],
+      [
+        "ok",
+        "Alembic is wired in; the create_all-only startup described in the planning notes no longer matches the code."
+      ]
+    ],
+    "claimed": {
+      "loc": 61,
+      "files": 4
+    }
+  },
+  {
+    "id": "K",
+    "key": "K",
+    "short": "SEARCH",
+    "name": "Search",
+    "group": "surf",
+    "layer": "engine",
+    "tier": 4,
+    "survey": {
+      "x": 0.5,
+      "y": 12.8,
+      "w": 1.9,
+      "d": 1.9
+    },
+    "sub": "LuceneSail full-text",
+    "does": "Free-text search over everything in the graph, with a fuzzy toggle for near misses.",
+    "built": "143 lines issuing the search:matches magic predicate against RDF4J's LuceneSail index, which is maintained by the triplestore itself rather than a separate service.",
+    "cond": [
+      [
+        "measured",
+        "143 lines. 2 e2e specs cover exact and fuzzy modes."
+      ]
+    ],
+    "claimed": {
+      "loc": 143,
+      "files": 1
+    }
+  },
+  {
+    "id": "CV",
+    "key": "CV",
+    "short": "CANVAS",
+    "name": "Spatial canvas",
+    "group": "surf",
+    "layer": "client",
+    "tier": 0,
+    "survey": {
+      "x": 12.6,
+      "y": 20.9,
+      "w": 2,
+      "d": 2
+    },
+    "sub": "free-placement graph workspace",
+    "does": "A canvas where objects are placed by hand and their RDF neighbours can be pulled in one hop at a time \u2014 for thinking spatially rather than in trees.",
+    "built": "924 lines of backend for session save/load and neighbour queries, with ~940 lines of Cytoscape-driven front-end.",
+    "cond": [
+      [
+        "measured",
+        "4 files, 924 lines. 2 e2e specs covering UI and API."
+      ]
+    ],
+    "claimed": {
+      "loc": 924,
+      "files": 4
+    }
+  },
+  {
+    "id": "DS",
+    "key": "DS",
+    "short": "DASHBOARD",
+    "name": "Dashboard",
+    "group": "surf",
+    "layer": "client",
+    "tier": 0,
+    "survey": {
+      "x": 16.7,
+      "y": 20.9,
+      "w": 2,
+      "d": 2
+    },
+    "sub": "widgets over saved queries",
+    "does": "Composable panels built from saved queries, so a working view of the graph can be kept rather than rebuilt each time.",
+    "built": "1,457 lines across 7 files, served both as pages and as htmx fragments.",
+    "cond": [
+      [
+        "measured",
+        "7 files, 1,457 lines."
+      ]
+    ],
+    "claimed": {
+      "loc": 1457,
+      "files": 7
+    }
+  },
+  {
+    "id": "CX",
+    "key": "CX",
+    "short": "CONTEXT",
+    "name": "Context & rules",
+    "group": "surf",
+    "layer": "manager",
+    "tier": 3,
+    "survey": {
+      "x": 4.6,
+      "y": 20.9,
+      "w": 2.3,
+      "d": 2.3
+    },
+    "sub": "zones, rules engine, notifications",
+    "does": "Makes the workspace react to where you are and what you are doing \u2014 zones group what is relevant, rules fire on changes, notifications surface the result.",
+    "built": "1,878 lines across 14 files: a rules engine, zone service, notification service and a broadcast channel, each with its own router.",
+    "cond": [
+      [
+        "measured",
+        "14 files, 1,878 lines \u2014 the most files of any module."
+      ]
+    ],
+    "claimed": {
+      "loc": 1878,
+      "files": 14
+    }
+  },
+  {
+    "id": "VF",
+    "key": "VF",
+    "short": "VFS",
+    "name": "VFS / WebDAV",
+    "group": "surf",
+    "layer": "client",
+    "tier": 0,
+    "survey": {
+      "x": 16.7,
+      "y": 16.8,
+      "w": 2.4,
+      "d": 2.4
+    },
+    "sub": "the graph as a filesystem",
+    "does": "Presents objects as files and folders over WebDAV, so the knowledge base can be mounted and edited with ordinary tools. Saving a file writes an event.",
+    "built": "4,864 lines across 14 files: a provider, collection mapping, a write path and a cache, plus the in-browser file panel. write.py imports command handlers directly and commits to the event store.",
+    "cond": [
+      [
+        "measured",
+        "14 files, 4,864 lines \u2014 third-largest module. 4 e2e specs plus a WebDAV spec. 2 commit sites."
+      ],
+      [
+        "note",
+        "A filesystem surface writing straight to the event store is the same layering shortcut the browser module takes."
+      ]
+    ],
+    "claimed": {
+      "loc": 4864,
+      "files": 14
+    }
+  },
+  {
+    "id": "AI",
+    "key": "AI",
+    "short": "COPILOT",
+    "name": "Copilot",
+    "group": "surf",
+    "layer": "manager",
+    "tier": 2,
+    "survey": {
+      "x": 8.7,
+      "y": 20.9,
+      "w": 2.1,
+      "d": 2.1
+    },
+    "sub": "natural language to SPARQL",
+    "does": "Turns a plain question into a SPARQL query against your actual schema, checks it before running it, and shows the query rather than hiding it.",
+    "built": "1,586 lines across 7 files. build_schema_context() feeds the live ontology to the model, validate_query() checks predicates exist before execution, and execute_and_format() runs it. Personas shape the prompting.",
+    "cond": [
+      [
+        "measured",
+        "7 files, 1,586 lines."
+      ],
+      [
+        "ok",
+        "Generated queries are validated against real predicates before execution rather than run blind."
+      ]
+    ],
+    "claimed": {
+      "loc": 1586,
+      "files": 7
+    }
+  },
+  {
+    "id": "ET",
+    "key": "ET",
+    "short": "E2E",
+    "name": "E2E suite",
+    "group": "surf",
+    "layer": "client",
+    "tier": 0,
+    "survey": {
+      "x": 20.8,
+      "y": 20.9,
+      "w": 2.2,
+      "d": 2.2
+    },
+    "sub": "126 Playwright specs",
+    "does": "The check that the whole assembly still works. Runs the real stack in a browser rather than mocking the parts.",
+    "built": "24,511 lines across 126 spec files in 55 directories, run sequentially against Chromium with a single worker. Shared fixtures handle auth and seed data.",
+    "cond": [
+      [
+        "measured",
+        "126 specs across 55 directories, ~24.5k lines."
+      ],
+      [
+        "note",
+        "CODEBASE.md records 82 specs in 28 directories."
+      ]
+    ],
+    "claimed": {
+      "loc": 24511,
+      "files": 126
+    }
+  }
+]

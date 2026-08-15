@@ -1,0 +1,422 @@
+[
+  {
+    "from": "U",
+    "to": "N",
+    "flow": "write",
+    "label": "POST /api/commands",
+    "pk": "HTTP request",
+    "body": "POST /api/commands HTTP/1.1\nHost: localhost:4000\nContent-Type: application/json\nCookie: sempkm_session=8a1e…\n\n{\n  \"commands\": [{\n    \"command\": \"object.create\",\n    \"params\": {\n      \"type\": \"Note\",\n      \"slug\": \"isometric-drawing\",\n      \"properties\": {\n        \"dcterms:title\": \"Isometric drawing\",\n        \"sempkm:body\": \"Axonometric, not perspective.\"\n      }\n    },\n    \"slot\": \"n1\"\n  }]\n}",
+    "note": "One batch, one transaction. The slot name lets a later command in the same batch reference the IRI this one mints."
+  },
+  {
+    "from": "N",
+    "to": "A",
+    "flow": "write",
+    "label": "proxy_pass → api:8000",
+    "pk": "Proxied request",
+    "body": "POST /api/commands HTTP/1.1\nHost: api:8000\nX-Forwarded-For: 172.18.0.1\nX-Forwarded-Proto: http\nContent-Type: application/json\n\n… body unchanged …",
+    "note": "nginx adds forwarding headers and nothing else. No auth decision is made at the edge."
+  },
+  {
+    "from": "A",
+    "to": "C",
+    "flow": "write",
+    "label": "routed + session resolved",
+    "pk": "Resolved request",
+    "body": "CommandBatch(\n  commands=[\n    ObjectCreateCommand(\n      command=\"object.create\",\n      params=ObjectCreateParams(\n        type=\"Note\",\n        slug=\"isometric-drawing\",\n        properties={…},\n      ),\n      slot=\"n1\",\n    )\n  ]\n)\n\nsession  = Session(user=\"urn:sempkm:user:8a1e…\", role=\"owner\")\nsettings = Settings(base_namespace=\"urn:sempkm:\")",
+    "note": "Pydantic has validated the batch against a discriminated union of six command types. An unknown command never reaches a handler."
+  },
+  {
+    "from": "C",
+    "to": "E",
+    "flow": "write",
+    "label": "Operation",
+    "pk": "Operation",
+    "body": "Operation(\n  operation_type    = \"object.create\",\n  description       = \"Created Note 'Isometric drawing'\",\n  affected_iris     = [\"urn:sempkm:obj:isometric-drawing\"],\n  data_triples      = [\n    (obj, rdf:type,       model:Note),\n    (obj, dcterms:title,  \"Isometric drawing\"),\n    (obj, sempkm:body,    \"Axonometric, not perspective.\"),\n  ],\n  materialize_inserts = [ … same three … ],\n  materialize_deletes = [],\n)",
+    "note": "The handler decides what changes; it does not decide how it is stored. Separating the two is what makes every write auditable."
+  },
+  {
+    "from": "E",
+    "to": "T",
+    "flow": "write",
+    "label": "one transaction, two graphs",
+    "pk": "SPARQL UPDATE",
+    "body": "BEGIN                              -- RDF4J transaction\n\nINSERT DATA {\n  GRAPH <urn:sempkm:event:0f3c9a71> {\n    <urn:sempkm:event:0f3c9a71>\n      a                       sempkm:Event ;\n      sempkm:timestamp        \"2026-08-14T20:41:07+00:00\"^^xsd:dateTime ;\n      sempkm:operation        \"object.create\" ;\n      sempkm:affected         <urn:sempkm:obj:isometric-drawing> ;\n      sempkm:description      \"Created Note 'Isometric drawing'\" ;\n      sempkm:performedBy      <urn:sempkm:user:8a1e…> ;\n      sempkm:performedByRole  \"owner\" .\n\n    <urn:sempkm:obj:isometric-drawing>\n      a               model:Note ;\n      dcterms:title   \"Isometric drawing\" .\n  }\n} ;\n\nINSERT DATA {\n  GRAPH <urn:sempkm:current> {\n    <urn:sempkm:obj:isometric-drawing>\n      a               model:Note ;\n      dcterms:title   \"Isometric drawing\" .\n  }\n} ;\n\nCOMMIT",
+    "note": "History and state are written together or not at all. This is the single most important guarantee in the system."
+  },
+  {
+    "from": "E",
+    "to": "Q",
+    "flow": "after",
+    "label": "enqueue affected IRIs",
+    "pk": "Queue message",
+    "body": "ValidationQueue.enqueue(\n  iris = [\"urn:sempkm:obj:isometric-drawing\"],\n  reason = \"object.create\",\n)\n\n# non-blocking — commit has already returned to the caller\n# NOTE: called by the router, not by the store, so only\n#       browser, commands, views, task_templates and\n#       inference actually reach this line.",
+    "note": "Validation runs after the fact. A shape violation produces a lint result, never a failed save — when the write path remembers to enqueue."
+  },
+  {
+    "from": "E",
+    "to": "W",
+    "flow": "after",
+    "label": "dispatch webhook",
+    "pk": "Webhook payload",
+    "body": "POST https://example.org/hooks/sempkm\nX-SemPKM-Event: object.create\n\n{\n  \"event\":     \"urn:sempkm:event:0f3c9a71\",\n  \"operation\": \"object.create\",\n  \"affected\":  [\"urn:sempkm:obj:isometric-drawing\"],\n  \"timestamp\": \"2026-08-14T20:41:07+00:00\",\n  \"actor\":     \"urn:sempkm:user:8a1e…\"\n}\n\n# reached from commands/router.py and views/router.py only",
+    "note": "Fire-and-forget. Exceptions are logged and swallowed so a broken subscriber cannot break a write — but 26 of 28 commit sites never get here."
+  },
+  {
+    "from": "E",
+    "to": "F",
+    "flow": "after",
+    "label": "patch export",
+    "pk": "Signed patch",
+    "body": "POST https://peer.example/inbox\nSignature: keyId=\"https://me.example/webid#key\",\n           algorithm=\"rsa-sha256\", signature=\"pQr…\"\n\n{\n  \"patch\": {\n    \"insert\": [\n      [\"urn:sempkm:obj:isometric-drawing\",\n       \"http://purl.org/dc/terms/title\",\n       \"Isometric drawing\"]\n    ],\n    \"delete\": []\n  },\n  \"graph\":  \"urn:sempkm:shared:4c2a…\",\n  \"origin\": \"https://me.example\"\n}",
+    "note": "Only events without a syncSource are exported, so a patch never travels back to the instance it came from."
+  },
+  {
+    "from": "Q",
+    "to": "T",
+    "flow": "after",
+    "label": "conformance report",
+    "pk": "SHACL report",
+    "body": "[] a sh:ValidationReport ;\n   sh:conforms false ;\n   sh:result [\n     a                        sh:ValidationResult ;\n     sh:focusNode             <urn:sempkm:obj:isometric-drawing> ;\n     sh:resultPath            model:project ;\n     sh:sourceConstraintComponent sh:MinCountConstraintComponent ;\n     sh:resultSeverity        sh:Warning ;\n     sh:resultMessage         \"A Note should belong to a Project.\"\n   ] .",
+    "note": "Severity decides whether this shows as a warning in the lint panel or merely as information."
+  },
+  {
+    "from": "T",
+    "to": "S",
+    "flow": "read",
+    "label": "result rows",
+    "pk": "Scoped query + rows",
+    "body": "SELECT ?p ?o WHERE {\n  GRAPH <urn:sempkm:current> {          # ← scope_to_current_graph()\n    <urn:sempkm:obj:isometric-drawing> ?p ?o .\n  }\n}\n\n─── 3 rows ───────────────────────────────────────\nrdf:type        model:Note\ndcterms:title   \"Isometric drawing\"\nsempkm:body     \"Axonometric, not perspective.\"",
+    "note": "The GRAPH clause is injected centrally. Without it, event history would leak into ordinary reads."
+  },
+  {
+    "from": "S",
+    "to": "L",
+    "flow": "read",
+    "label": "IRIs needing names",
+    "pk": "Label batch",
+    "body": "LabelService.resolve_batch([\n  \"urn:sempkm:obj:isometric-drawing\",\n  \"urn:sempkm:model:basic-pkm:Note\",\n  \"urn:sempkm:user:8a1e…\",\n])\n\n# cache: 2 hits, 1 miss → one query for the miss\n# precedence: dcterms:title > rdfs:label > skos:prefLabel\n#           > schema:name > foaf:name > QName",
+    "note": "Batching is why a page of forty relations costs one query rather than forty."
+  },
+  {
+    "from": "L",
+    "to": "B",
+    "flow": "read",
+    "label": "resolved names",
+    "pk": "Label map",
+    "body": "{\n  \"urn:sempkm:obj:isometric-drawing\": \"Isometric drawing\",\n  \"urn:sempkm:model:basic-pkm:Note\":   \"Note\",\n  \"urn:sempkm:user:8a1e…\":             \"james\"\n}",
+    "note": "Cached for 300 seconds and invalidated explicitly by every write path."
+  },
+  {
+    "from": "B",
+    "to": "J",
+    "flow": "read",
+    "label": "template context",
+    "pk": "Render context",
+    "body": "render_block(\n  \"browser/object_tab.html\",\n  block = \"tab_body\",              # ← htmx asked for a fragment\n  obj   = {\n    \"iri\":    \"urn:sempkm:obj:isometric-drawing\",\n    \"label\":  \"Isometric drawing\",\n    \"type\":   {\"iri\": \"…:Note\", \"label\": \"Note\"},\n    \"fields\": [ … from the SHACL NodeShape … ],\n  },\n)",
+    "note": "The same route returns a whole page when the browser asks for one, and just this block when htmx does."
+  },
+  {
+    "from": "J",
+    "to": "U",
+    "flow": "read",
+    "label": "HTML fragment",
+    "pk": "HTML fragment",
+    "body": "<section class=\"object-tab\" id=\"tab-isometric-drawing\">\n  <header class=\"object-head\">\n    <span class=\"type-pill\">Note</span>\n    <h1>Isometric drawing</h1>\n  </header>\n\n  <form hx-post=\"/browser/object/save\"\n        hx-target=\"#tab-isometric-drawing\"\n        hx-swap=\"outerHTML\">\n    <label>Title</label>\n    <input name=\"dcterms:title\" value=\"Isometric drawing\" />\n    …\n  </form>\n</section>",
+    "note": "HTML on the wire, not JSON. The swap target and strategy travel with the markup."
+  },
+  {
+    "from": "X",
+    "to": "C",
+    "flow": "feed",
+    "label": "vault → commands",
+    "wp": [
+      [
+        7,
+        3.3
+      ],
+      [
+        17.2,
+        3.3
+      ]
+    ],
+    "pk": "Bulk command batch",
+    "body": "{\n  \"commands\": [\n    {\"command\":\"object.create\",\n     \"params\":{\"type\":\"Note\",\"slug\":\"daily-2026-08-14\",\n               \"properties\":{\"dcterms:title\":\"2026-08-14\"}},\n     \"slot\":\"n1\"},\n\n    {\"command\":\"edge.create\",\n     \"params\":{\"subject\":\"@n1\",\"predicate\":\"model:mentions\",\n               \"object\":\"urn:sempkm:obj:isometric-drawing\"}}\n  ]\n}",
+    "note": "A wiki-link becomes an edge. @n1 is the slot reference resolved to the IRI minted moments earlier in the same batch."
+  },
+  {
+    "from": "Z",
+    "to": "C",
+    "flow": "feed",
+    "label": "pages → commands",
+    "wp": [
+      [
+        11,
+        3.3
+      ],
+      [
+        17.2,
+        3.3
+      ]
+    ],
+    "pk": "Mapped page",
+    "body": "{\n  \"command\": \"object.create\",\n  \"params\": {\n    \"type\": \"Project\",\n    \"slug\": \"q3-planning\",\n    \"properties\": {\n      \"dcterms:title\": \"Q3 Planning\",\n      \"model:status\":  \"In progress\",\n      \"model:due\":     \"2026-09-30\"\n    }\n  }\n}\n\n# Notion select → model:status\n# Notion date   → xsd:date literal",
+    "note": "Notion property types are mapped onto the installed model's predicates rather than invented per import."
+  },
+  {
+    "from": "R",
+    "to": "C",
+    "flow": "feed",
+    "label": "turtle → commands",
+    "wp": [
+      [
+        15,
+        3.3
+      ],
+      [
+        17.4,
+        3.6
+      ]
+    ],
+    "pk": "Parsed triples",
+    "body": "@prefix dcterms: <http://purl.org/dc/terms/> .\n@prefix model:   <urn:sempkm:model:basic-pkm:> .\n\n<urn:sempkm:obj:axonometry>\n    a              model:Concept ;\n    dcterms:title  \"Axonometry\" ;\n    model:relates  <urn:sempkm:obj:isometric-drawing> .\n\n# → 3 triples → 1 Operation → 1 event",
+    "note": "Existing RDF still becomes Operations, so imported data carries the same provenance as hand-entered data."
+  },
+  {
+    "from": "P",
+    "to": "C",
+    "flow": "feed",
+    "label": "scheduled sync",
+    "wp": [
+      [
+        3,
+        3.3
+      ],
+      [
+        17,
+        3.3
+      ]
+    ],
+    "pk": "Scheduler tick",
+    "body": "AppScheduler._tick()\n  → task \"github-sync.pull_issues\" is due (interval 15m)\n  → app returns 3 changed issues\n  → 3 × object.patch queued\n\n{\"command\":\"object.patch\",\n \"params\":{\"iri\":\"urn:sempkm:obj:issue-412\",\n           \"properties\":{\"model:state\":\"closed\"}}}",
+    "note": "Apps have no privileged write path. A sync is indistinguishable, downstream, from a person editing the field."
+  },
+  {
+    "from": "M",
+    "to": "H",
+    "flow": "mean",
+    "label": "shapes graph",
+    "pk": "NodeShape",
+    "body": "{\n  \"@id\": \"model:NoteShape\",\n  \"@type\": \"sh:NodeShape\",\n  \"sh:targetClass\": {\"@id\": \"model:Note\"},\n  \"sh:property\": [\n    {\"sh:path\":     {\"@id\": \"dcterms:title\"},\n     \"sh:datatype\": {\"@id\": \"xsd:string\"},\n     \"sh:minCount\": 1,\n     \"sh:name\":     \"Title\",\n     \"sh:order\":    1},\n\n    {\"sh:path\":     {\"@id\": \"model:project\"},\n     \"sh:class\":    {\"@id\": \"model:Project\"},\n     \"sh:name\":     \"Project\",\n     \"sh:order\":    2}\n  ]\n}",
+    "note": "This is the form. There is no separate form definition anywhere in the codebase."
+  },
+  {
+    "from": "H",
+    "to": "B",
+    "flow": "mean",
+    "label": "generated fields",
+    "pk": "Field descriptors",
+    "body": "[\n  Field(path=\"dcterms:title\", label=\"Title\",\n        widget=\"text\",   required=True,  order=1),\n\n  Field(path=\"model:project\", label=\"Project\",\n        widget=\"object-picker\", target=\"model:Project\",\n        required=False, order=2),\n]",
+    "note": "Add a property to the shape and the field appears — no template edit, no migration."
+  },
+  {
+    "from": "M",
+    "to": "V",
+    "flow": "mean",
+    "label": "view specs",
+    "pk": "ViewSpec",
+    "body": "{\n  \"@id\": \"model:NoteTable\",\n  \"@type\": \"sempkm:ViewSpec\",\n  \"sempkm:targetClass\": {\"@id\": \"model:Note\"},\n  \"sempkm:renderer\": \"table\",\n  \"sempkm:column\": [\n    {\"sempkm:path\":\"dcterms:title\", \"sempkm:label\":\"Title\"},\n    {\"sempkm:path\":\"model:project\", \"sempkm:label\":\"Project\"},\n    {\"sempkm:path\":\"dcterms:modified\",\"sempkm:label\":\"Updated\"}\n  ]\n}",
+    "note": "A model ships its own tables and card layouts. Installing it adds views without touching application code."
+  },
+  {
+    "from": "V",
+    "to": "B",
+    "flow": "mean",
+    "label": "rendered rows",
+    "pk": "Paged result",
+    "body": "{\n  \"renderer\": \"table\",\n  \"page\": 1, \"per_page\": 50, \"total\": 182,\n  \"columns\": [\"Title\", \"Project\", \"Updated\"],\n  \"rows\": [\n    [\"Isometric drawing\", \"Diagramming\", \"2026-08-14\"],\n    [\"Axonometry\",        \"Diagramming\", \"2026-08-12\"]\n  ]\n}",
+    "note": "Pagination happens in SPARQL, not in Python — the whole result set is never materialised."
+  },
+  {
+    "from": "O",
+    "to": "T",
+    "flow": "mean",
+    "label": "class hierarchy",
+    "pk": "TBox query",
+    "body": "SELECT ?class ?parent ?label WHERE {\n  GRAPH <urn:sempkm:model:basic-pkm:ontology> {\n    ?class a owl:Class .\n    OPTIONAL { ?class rdfs:subClassOf ?parent }\n    OPTIONAL { ?class rdfs:label      ?label  }\n  }\n}\n\n─── 4 rows ───────────────────────────────\nmodel:Note     owl:Thing   \"Note\"\nmodel:Project  owl:Thing   \"Project\"\nmodel:Concept  owl:Thing   \"Concept\"\nmodel:Person   owl:Thing   \"Person\"",
+    "note": "The ontology is queried like any other data, because it is stored like any other data."
+  },
+  {
+    "from": "I",
+    "to": "T",
+    "flow": "mean",
+    "label": "entailments",
+    "pk": "Inferred triples",
+    "body": "INSERT DATA {\n  GRAPH <urn:sempkm:inferred> {\n    <urn:sempkm:obj:isometric-drawing> a model:Thing .\n    <urn:sempkm:obj:diagramming>\n        model:contains <urn:sempkm:obj:isometric-drawing> .\n  }\n}\n\n# rule: rdfs:subClassOf  → type propagation\n# rule: owl:inverseOf    → model:project ⁻¹ = model:contains",
+    "note": "Derived triples live in their own graph, so what you asserted stays distinguishable from what follows."
+  },
+  {
+    "from": "K",
+    "to": "T",
+    "flow": "mean",
+    "label": "lucene lookup",
+    "pk": "Search query",
+    "body": "PREFIX search: <http://www.openrdf.org/contrib/lucenesail#>\n\nSELECT ?subject ?score WHERE {\n  ?subject search:matches [\n    search:query  \"axonometric~\" ;\n    search:score  ?score\n  ] .\n}\nORDER BY DESC(?score)\nLIMIT 20",
+    "note": "The tilde is the fuzzy toggle. The index is maintained inside RDF4J rather than by a separate service."
+  },
+  {
+    "from": "AI",
+    "to": "S",
+    "flow": "mean",
+    "label": "generated query",
+    "pk": "Generated SPARQL",
+    "body": "-- \"notes about drawing that have no project\"\n\nSELECT ?note ?title WHERE {\n  GRAPH <urn:sempkm:current> {\n    ?note a model:Note ;\n          dcterms:title ?title .\n    FILTER(CONTAINS(LCASE(?title), \"drawing\"))\n    FILTER NOT EXISTS { ?note model:project ?p }\n  }\n}\n\n-- validate_query(): model:Note ✓  dcterms:title ✓  model:project ✓",
+    "note": "Every predicate is checked against the live schema before the query is allowed to run."
+  },
+  {
+    "from": "G",
+    "to": "A",
+    "flow": "read",
+    "label": "session check",
+    "pk": "Session",
+    "body": "Session(\n  user  = \"urn:sempkm:user:8a1e…\",\n  role  = \"owner\",          # owner | member\n  token = \"sempkm_session=…\",\n  expires_at = \"2026-09-13T20:41:07+00:00\",\n)\n\n# cookie: HttpOnly, SameSite=Lax,\n#         secure=settings.cookie_secure",
+    "note": "The role travels into the event record, so provenance survives long after the session does."
+  },
+  {
+    "from": "Y",
+    "to": "G",
+    "flow": "read",
+    "label": "external sign-in",
+    "pk": "Authorization code",
+    "body": "GET /indieauth/authorize\n  ?client_id=https://reader.example\n  &redirect_uri=https://reader.example/cb\n  &response_type=code\n  &scope=read\n  &code_challenge=E9Me…\n  &code_challenge_method=S256\n\n→ 302 https://reader.example/cb?code=9fa2…",
+    "note": "PKCE throughout — the code alone is not enough to complete the exchange."
+  },
+  {
+    "from": "G",
+    "to": "DB",
+    "flow": "read",
+    "label": "session row",
+    "wp": [
+      [
+        2.2,
+        3
+      ],
+      [
+        22.4,
+        3
+      ],
+      [
+        22.4,
+        17
+      ]
+    ],
+    "pk": "SQL insert",
+    "body": "INSERT INTO sessions (id, user_iri, role, expires_at)\nVALUES ('8a1e…', 'urn:sempkm:user:8a1e…', 'owner',\n        '2026-09-13T20:41:07+00:00');\n\n-- schema tracked by 26 Alembic migrations",
+    "note": "Operational data stays relational. The graph holds knowledge, not bookkeeping."
+  },
+  {
+    "from": "VF",
+    "to": "S",
+    "flow": "read",
+    "label": "path → query",
+    "pk": "WebDAV PROPFIND",
+    "body": "PROPFIND /dav/Notes/ HTTP/1.1\nDepth: 1\n\n→ <D:multistatus>\n    <D:response>\n      <D:href>/dav/Notes/Isometric drawing.md</D:href>\n      <D:propstat><D:prop>\n        <D:getlastmodified>Thu, 14 Aug 2026 20:41:07 GMT</D:getlastmodified>\n        <D:getcontentlength>184</D:getcontentlength>\n      </D:prop></D:propstat>\n    </D:response>\n  </D:multistatus>",
+    "note": "A folder is a query result. Saving a file from any editor becomes a body.set operation."
+  },
+  {
+    "from": "CV",
+    "to": "B",
+    "flow": "read",
+    "label": "neighbour hop",
+    "pk": "Subgraph request",
+    "body": "GET /canvas/neighbours?iri=urn:sempkm:obj:isometric-drawing&hops=1\n\n{\n  \"nodes\": [\n    {\"iri\":\"…:isometric-drawing\", \"label\":\"Isometric drawing\", \"type\":\"Note\"},\n    {\"iri\":\"…:diagramming\",       \"label\":\"Diagramming\",       \"type\":\"Project\"},\n    {\"iri\":\"…:axonometry\",        \"label\":\"Axonometry\",        \"type\":\"Concept\"}\n  ],\n  \"edges\": [\n    {\"s\":\"…:isometric-drawing\",\"p\":\"model:project\",\"o\":\"…:diagramming\"},\n    {\"s\":\"…:axonometry\",\"p\":\"model:relates\",\"o\":\"…:isometric-drawing\"}\n  ]\n}",
+    "note": "One hop at a time, by choice — pulling the whole graph in would defeat the point of a spatial canvas."
+  },
+  {
+    "from": "DS",
+    "to": "B",
+    "flow": "read",
+    "label": "widget refresh",
+    "pk": "Widget payload",
+    "body": "{\n  \"widget\": \"count\",\n  \"title\":  \"Notes without a project\",\n  \"query\":  \"urn:sempkm:query:orphan-notes\",\n  \"value\":  7,\n  \"delta\":  -2,\n  \"refreshed\": \"2026-08-14T20:41:07+00:00\"\n}",
+    "note": "A widget is a saved query plus a renderer — the same shape as a view spec."
+  },
+  {
+    "from": "CX",
+    "to": "B",
+    "flow": "read",
+    "label": "rule fired",
+    "pk": "Rule evaluation",
+    "body": "Rule(\n  id      = \"notify-on-orphan\",\n  when    = \"object.create\",\n  filter  = \"?obj a model:Note . FILTER NOT EXISTS { ?obj model:project ?p }\",\n  then    = \"notify\",\n)\n\n→ Notification(\n    zone    = \"Diagramming\",\n    message = \"Isometric drawing has no project\",\n    iri     = \"urn:sempkm:obj:isometric-drawing\",\n  )",
+    "note": "Rules read committed state, so they see exactly what the interface sees."
+  },
+  {
+    "from": "LT",
+    "to": "Q",
+    "flow": "after",
+    "label": "stream results",
+    "wp": [
+      [
+        2.4,
+        19.6
+      ],
+      [
+        22,
+        19.6
+      ]
+    ],
+    "pk": "SSE frame",
+    "body": "event: lint\ndata: {\"iri\":\"urn:sempkm:obj:isometric-drawing\",\n       \"severity\":\"Warning\",\n       \"path\":\"model:project\",\n       \"message\":\"A Note should belong to a Project.\",\n       \"conforms\":false}\n\nevent: lint-done\ndata: {\"checked\":1,\"violations\":1,\"elapsed_ms\":38}",
+    "note": "Results stream into the open panel as they finish rather than arriving as one batch at the end."
+  },
+  {
+    "from": "ET",
+    "to": "U",
+    "flow": "after",
+    "label": "drives the real stack",
+    "wp": [
+      [
+        23,
+        19.4
+      ],
+      [
+        6,
+        19.4
+      ],
+      [
+        6,
+        8
+      ]
+    ],
+    "pk": "Spec excerpt",
+    "body": "test(\"creating a note writes exactly one event\", async ({ page }) => {\n  await page.goto(\"/browser\");\n  await page.click(\"[data-new-object='Note']\");\n  await page.fill(\"[name='dcterms:title']\", \"Isometric drawing\");\n  await page.click(\"[data-save]\");\n\n  await expect(page.locator(\".object-head h1\"))\n    .toHaveText(\"Isometric drawing\");\n\n  const events = await api.get(\"/browser/events?limit=1\");\n  expect(events[0].operation).toBe(\"object.create\");\n});",
+    "note": "126 specs run sequentially against the real stack — no mocked triplestore."
+  },
+  {
+    "from": "B",
+    "to": "E",
+    "flow": "viol",
+    "label": "8 commit sites",
+    "pk": "Client → ResourceAccess",
+    "body": "# backend/app/browser/objects.py\n\nfrom app.commands.handlers.body_diff import handle_body_diff\nfrom app.commands.schemas import BodyDiffParams\nfrom app.events.store import EventStore, Operation\n\n@router.post(\"/object/save\")\nasync def save_object(\n    …,\n    event_store: EventStore = Depends(get_event_store),\n):\n    operation = await handle_body_diff(params, base_ns)\n\n    event_result = await event_store.commit(\n        [operation],\n        performed_by      = user_iri,\n        performed_by_role = user.role,\n    )\n    label_service.invalidate(event_result.affected_iris)\n\n# → never reaches commands/router.py, so no webhook dispatch",
+    "note": "A presentation-layer module holds 8 of the 28 commit sites. The event-sourcing invariant survives; the post-commit concerns wired at the router do not."
+  },
+  {
+    "from": "VF",
+    "to": "E",
+    "flow": "viol",
+    "label": "2 commit sites",
+    "pk": "Filesystem → ResourceAccess",
+    "body": "# backend/app/vfs/write.py\n\nfrom app.commands.handlers.body_set import handle_body_set\nfrom app.events.store import EventStore\n\nasync def write_resource(path, content, …):\n    \"\"\"A WebDAV PUT becomes a body.set operation.\"\"\"\n    operation = await handle_body_set(params, base_ns)\n    await event_store.commit([operation], performed_by=user_iri)\n\n# saving Isometric drawing.md from any text editor\n# writes an event — and notifies no webhook subscriber",
+    "note": "The same shortcut as the browser module, from a different surface. Mounting the vault and saving a file is a first-class write that skips the documented door."
+  },
+  {
+    "from": "V",
+    "to": "E",
+    "flow": "viol",
+    "label": "ad-hoc construction",
+    "pk": "Bypassing the DI provider",
+    "body": "# backend/app/dependencies.py — the provider exists\nasync def get_event_store(request: Request) -> EventStore:\n    return request.app.state.event_store\n\n# backend/app/views/router.py:1530 — and is not used\n        event_store = EventStore(client)\n\n# same in task_templates/router.py:205\n#         and sparql/router.py:175",
+    "note": "Three modules build their own EventStore rather than taking the singleton. Harmless today; it means any future state on the store — a pool, a metric, a cache — silently will not apply to them."
+  }
+]

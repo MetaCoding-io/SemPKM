@@ -1,0 +1,232 @@
+# repolens — what to measure in this repository, and what to assert about it.
+#
+# Everything here is declarative. Adding a signal, an edge provider or a check
+# is an edit to this file; adding a *kind* of thing is a new stage module.
+
+out_dir: .repolens
+overlay_dir: .repolens/overlay
+module_root: backend/app
+facts_include_files: false      # flip on to diff per-file line counts in CI
+
+exclude:
+  - ".git/**"
+  - "**/node_modules/**"
+  - "**/__pycache__/**"
+  - ".repolens/**"
+  - ".gsd/backups/**"
+  - ".gsd/archive/**"
+  - ".gsd/reports/**"        # generated milestone reports, 33k lines each
+  - "playwright-report/**"
+  - "test-results/**"
+  - ".playwright-mcp/**"
+  - "**/*.png"
+  - "**/*.jpg"
+  - "**/*.lock"
+
+# ---------------------------------------------------------------- node sets
+# Two definitions of "node" over the same facts. `modules` is the generic
+# default that works on any repo; `survey` is the authored set the drawing uses.
+loc:
+  # Counting generated JSON and an append-only decision log as "lines of code"
+  # makes the total meaningless. Source languages only.
+  langs: [python, javascript, typescript, html, css, sql, shell, rdf, config]
+  max_bytes: 2000000
+
+nodesets:
+  modules:
+    from: dirs("backend/app/*")
+    # "(root)" is the bucket for loose top-level files, not a module
+    exclude: [templates, __pycache__, "(root)"]
+  survey:
+    from: declared            # member globs live in .repolens/overlay/members.yml
+
+# ------------------------------------------------------------- call sites
+# Each query is a regex plus a scope. Hits are attributed to modules, which is
+# what makes coverage checks possible.
+callsites:
+  commit_sites:
+    pattern: 'event_store\.commit'
+    scope: ["backend/app/**/*.py"]
+  webhook_dispatch:
+    pattern: 'webhook_service\.dispatch'
+    scope: ["backend/app/**/*.py"]
+  validation_enqueue:
+    pattern: '\.enqueue\('
+    scope: ["backend/app/**/*.py"]
+  handler_imports:
+    pattern: 'from app\.commands\.handlers'
+    scope: ["backend/app/**/*.py"]
+  eventstore_adhoc:
+    pattern: 'EventStore\(client\)'
+    scope: ["backend/app/**/*.py"]
+    # main.py is the composition root — building the singleton there is correct
+    exclude: ["backend/app/main.py"]
+
+routes:
+  pattern: '@router\.(get|post|put|patch|delete)'
+  scope: ["backend/app/**/*.py"]
+  registration_pattern: 'include_router'
+  registration_file: backend/app/main.py
+
+signals:
+  broad_except:
+    pattern: 'except Exception|except:'
+    scope: ["backend/app/**/*.py"]
+  todo_markers:
+    pattern: 'TODO|FIXME|HACK|XXX'
+    scope: ["backend/app/**/*.py"]
+
+largest_files:
+  count: 12
+  scope: ["backend/app/**/*.py"]
+
+imports:
+  pattern: 'from app\.([a-z_]+)'
+  scope: ["backend/app/**/*.py"]
+
+tests:
+  scope: ["e2e/tests/**/*.spec.ts"]
+
+# ------------------------------------------------------------- conventions
+# gsd stores decisions and rules in fixed-column markdown tables, so they parse
+# directly. No model involved.
+conventions:
+  sources:
+    - adapter: gsd
+      decisions: .gsd/DECISIONS.md
+      rules: .gsd/KNOWLEDGE.md
+      columns:
+        decisions: { id: "#", scope: "Scope", statement: "Decision", rationale: "Rationale" }
+        rules:     { id: "#", scope: "Scope", statement: "Rule",     rationale: "Why" }
+
+# ------------------------------------------------------------------ checks
+checks:
+  - id: webhook-coverage
+    kind: coverage
+    of: commit_sites
+    covered_by: webhook_dispatch
+    severity: high
+    node: W
+    title: "Most writes notify nobody"
+    body: >-
+      Webhook dispatch is wired at the router, not at the event store, so only
+      {covered} of {total} commit sites reach it. {missing_count} of
+      {module_count} modules that write never notify a subscriber: {missing}.
+    evidence: "modules with commits but no dispatch: {missing}"
+
+  - id: validation-coverage
+    kind: coverage
+    of: commit_sites
+    covered_by: validation_enqueue
+    severity: high
+    node: Q
+    title: "Imported data is never SHACL-checked"
+    body: >-
+      Validation is enqueued by the caller rather than by the store.
+      {missing_count} of {module_count} writing modules commit without
+      enqueueing, so their data is not conformance-checked until something else
+      touches it: {missing}.
+    evidence: "modules with commits but no enqueue: {missing}"
+
+  - id: single-write-door
+    kind: metric
+    metric: callsites.commit_sites.modules
+    op: "<="
+    value: 1
+    severity: medium
+    node: C
+    title: "The single-write-door convention is aspirational"
+    body: >-
+      The documented convention is that every mutation goes through
+      POST /api/commands. {actual} different modules call EventStore.commit()
+      directly. The deeper invariant still holds — nothing writes raw SPARQL
+      UPDATE — but the endpoint framing does not.
+    evidence: "modules calling event_store.commit: {actual} (expected {expected})"
+
+  - id: di-provider-skipped
+    kind: metric
+    metric: callsites.eventstore_adhoc.total
+    op: "=="
+    value: 0
+    severity: medium
+    node: E
+    title: "A dependency provider exists and is skipped"
+    body: >-
+      dependencies.py exposes get_event_store(), yet {actual} sites construct
+      EventStore(client) inline instead. Harmless while the store is stateless,
+      and precisely the thing that stops being harmless when it is not.
+    evidence: "ad-hoc EventStore(client) constructions: {actual}"
+
+  - id: broad-except
+    kind: metric
+    metric: signals.broad_except
+    op: "<="
+    value: 100
+    severity: low
+    node: A
+    title: "Broad exception handlers"
+    body: >-
+      except Exception or bare except appears {actual} times. Some are
+      deliberate; at this volume the deliberate ones are indistinguishable from
+      the defensive ones.
+    evidence: "broad handlers: {actual} (threshold {expected})"
+
+  # A gsd rule that already carried its own command (KNOWLEDGE.md R08).
+  - id: gsd-R08-no-env
+    kind: shell
+    run: "git ls-files .env"
+    expect_empty: true
+    severity: high
+    title: "R08 — .env must never be tracked"
+    body: "git ls-files .env returned a tracked path."
+    evidence: "from .gsd/KNOWLEDGE.md R08"
+
+# ------------------------------------------------------------------- model
+model:
+  name: sempkm
+  tagline: "· event-sourced rdf"
+  nodeset: survey
+  stats:
+    - { k: "Backend modules", v: "${nodeset.modules.count}" }
+    - { k: "Endpoints",       v: "${routes.total} · ${routes.registrations} routers" }
+    - { k: "Commit sites",    v: "${callsites.commit_sites.total} · ${callsites.commit_sites.modules} modules", flag: bad }
+    - { k: "Decisions",       v: "${conventions.decisions} logged" }
+    - { k: "E2E specs",       v: "${tests.specs} · ${tests.dirs} dirs" }
+    - { k: "Lines",           v: "${loc.total}" }
+
+  groups:
+    - { id: loop,   label: "The commit loop" }
+    - { id: feed,   label: "Feeding the loop" }
+    - { id: schema, label: "Meaning & schema" }
+    - { id: after,  label: "After the commit" }
+    - { id: id,     label: "Identity" }
+    - { id: surf,   label: "Surfaces" }
+
+  flows:
+    # NB: the key is `enabled`, not `on` — YAML 1.1 parses a bare `on:` key as
+    # the boolean true, which silently turns every flow off.
+    - { id: write, label: "Write",    enabled: true }
+    - { id: read,  label: "Read",     enabled: true }
+    - { id: after, label: "After",    enabled: true }
+    - { id: feed,  label: "Ingest",   enabled: true }
+    - { id: mean,  label: "Schema",   enabled: false }
+    - { id: viol,  label: "Bypasses", enabled: false }
+
+  tiers:
+    ["Surfaces", "Edge & identity", "Routers", "Write & orchestration",
+     "Domain services", "Access", "Resources"]
+
+  layers:
+    - { id: client,   label: "Clients" }
+    - { id: manager,  label: "Managers" }
+    - { id: engine,   label: "Engines" }
+    - { id: access,   label: "Resource access" }
+    - { id: resource, label: "Resources" }
+    - { id: utility,  label: "Utilities · any band may call", side: true }
+
+# ---------------------------------------------------------------- pipelines
+# Named stage orders. Add a stage module, name it here, and it runs.
+pipelines:
+  scan:  [discover, loc, overlay, nodesets, callsites, routes, signals, imports, tests, conventions, checks]
+  build: [discover, loc, overlay, nodesets, callsites, routes, signals, imports, tests, conventions, checks, assemble, verify, emit]
+  check: [discover, loc, overlay, nodesets, callsites, signals, conventions, checks]

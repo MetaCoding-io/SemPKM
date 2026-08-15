@@ -1,0 +1,34 @@
+{
+  "checks": {
+    "broad-except": {
+      "actual": 330,
+      "passed": false,
+      "severity": "low"
+    },
+    "di-provider-skipped": {
+      "actual": 5,
+      "passed": false,
+      "severity": "medium"
+    },
+    "gsd-R08-no-env": {
+      "actual": "exit 0",
+      "passed": true,
+      "severity": "high"
+    },
+    "single-write-door": {
+      "actual": 11,
+      "passed": false,
+      "severity": "medium"
+    },
+    "validation-coverage": {
+      "actual": 6,
+      "passed": false,
+      "severity": "high"
+    },
+    "webhook-coverage": {
+      "actual": 9,
+      "passed": false,
+      "severity": "high"
+    }
+  }
+}

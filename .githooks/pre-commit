@@ -23,3 +23,28 @@ if [ -n "$CONFLICT_FILES" ]; then
   echo ""
   exit 1
 fi
+
+# ---------------------------------------------------------------------------
+# repolens: architectural conventions.
+#
+# Runs only when source that could change the answer is staged, and only the
+# stages needed for checks — a pre-commit hook that costs more than a second
+# gets disabled, and a disabled hook checks nothing.
+# Bypass with SKIP_REPOLENS=1 or git commit --no-verify.
+# ---------------------------------------------------------------------------
+
+if [ -z "$SKIP_REPOLENS" ] && [ -f .repolens.yml ]; then
+  STAGED_SRC=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '^(backend/|frontend/|e2e/)' || true)
+  if [ -n "$STAGED_SRC" ]; then
+    if ! python3 -m tools.repolens check --fail-on high >/tmp/repolens-hook.log 2>&1; then
+      echo ""
+      echo "ERROR: repolens found a high-severity architectural regression:"
+      echo ""
+      sed -n '/\[HIGH/,$p' /tmp/repolens-hook.log | head -20
+      echo ""
+      echo "To bypass: SKIP_REPOLENS=1 git commit ..."
+      echo ""
+      exit 1
+    fi
+  fi
+fi

@@ -1,0 +1,54 @@
+name: repolens
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  architecture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0        # git history, for future co-change providers
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: pip install pyyaml
+
+      # Same command the pre-commit hook runs. One implementation of
+      # "is this repo still what it claims to be".
+      - name: Check architectural conventions
+        run: python -m tools.repolens check --fail-on high
+
+      - name: Build the drawing
+        if: always()
+        run: python -m tools.repolens build
+
+      - name: Report drift between authored claims and the tree
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, pathlib
+          f = json.loads(pathlib.Path('.repolens/facts.json').read_text())
+          drift = f.get('verify', {}).get('drift', [])
+          if not drift:
+              print('No drift: every authored number matches the tree.')
+          else:
+              print(f'{len(drift)} authored claim(s) no longer match the tree:')
+              for d in drift:
+                  print(f"  {d['node']}.{d['field']}: claimed {d['claimed']}, measured {d['measured']}")
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: repolens-drawing
+          path: |
+            .repolens/index.html
+            .repolens/model.json
+            .repolens/facts.json
+          retention-days: 30
