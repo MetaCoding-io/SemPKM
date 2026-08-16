@@ -143,9 +143,17 @@ body {
   border-bottom: 1px solid var(--rule);
   background: var(--paper);
   min-height: 46px;
-  overflow-x: auto;
-  scrollbar-width: none;
+  overflow: hidden;               /* the stat strip scrolls, the bar does not */
 }
+/* Stats are the part that grows with the config, so they are the part that
+   scrolls. Without this the action buttons were pushed off the right edge on
+   any window under ~1730px, which is most of them. */
+#statstrip {
+  display: flex; align-items: stretch;
+  flex: 1 1 auto; min-width: 0;
+  overflow-x: auto; scrollbar-width: none;
+}
+#statstrip::-webkit-scrollbar { height: 0; }
 #topbar::-webkit-scrollbar { display: none; }
 
 .repo-cell {
@@ -611,6 +619,18 @@ ul.bul li { margin-bottom: 6px; max-width: 60ch; }
 .pv-row[aria-current="true"] .pv-id,
 .pv-row[aria-current="true"] .pv-tags { color: var(--invert-fg); opacity: 0.72; }
 .pv-id { font-size: 10px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+/* severity, or whatever else an item tags itself with */
+.pv-tag {
+  font-size: 8.5px; letter-spacing: 0.11em; text-transform: uppercase;
+  color: var(--on-accent); background: var(--sev-note); padding: 2px 5px;
+  justify-self: start; white-space: nowrap;
+}
+.pv-tag.high { background: var(--sev-high); }
+.pv-tag.medium { background: var(--sev-med); }
+.pv-tag.low { background: var(--sev-low); }
+.pv-tag.good { background: var(--sev-low); }
+.pv-row[aria-current="true"] .pv-tag { outline: 1px solid var(--invert-fg); }
+h2 .pv-tag { margin-left: 8px; vertical-align: middle; }
 .pv-t { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pv-tags { font-size: 9.5px; letter-spacing: 0.07em; color: var(--ink-3); white-space: nowrap; }
 .pv-tags .none { opacity: 0.5; }
@@ -688,6 +708,7 @@ ul.bul li { margin-bottom: 6px; max-width: 60ch; }
 
   <header id="topbar">
     <div class="repo-cell" id="repo-cell"></div>
+    <div id="statstrip"></div>
     <div id="topbar-actions">
       <button class="btn" id="btn-theme">Theme: auto</button>
       <button class="btn accent" id="btn-play" aria-pressed="true">&#9654;&nbsp; Pause</button>
@@ -745,6 +766,7 @@ ul.bul li { margin-bottom: 6px; max-width: 60ch; }
       <div class="pv-search">
         <input id="pv-q" type="search" autocomplete="off" spellcheck="false"
                placeholder="Search…" aria-label="Search this list" />
+        <div class="pk-kinds" id="pv-facets" role="group" aria-label="Filter"></div>
       </div>
       <div class="pv-list" id="pv-list" role="list"></div>
     </section>
@@ -1044,7 +1066,6 @@ var VIEW = { mode: "system", node: null, path: null, prev: null };
 function inDrill() { return VIEW.mode !== "system"; }
 var selectedNode = null, hoveredNode = null, selectedPacket = null;
 var activeTab = "what";
-var sevFilter = null;
 
 function el(name, attrs) {
   var e = document.createElementNS(SVG_NS, name);
@@ -1747,8 +1768,8 @@ function paintTopbar() {
   var s = document.createElement("span"); s.textContent = " " + (MODEL.repo.tagline || "");
   cell.appendChild(b); cell.appendChild(s);
 
-  var bar = document.getElementById("topbar");
-  var anchor = document.getElementById("topbar-actions");
+  var bar = document.getElementById("statstrip");
+  bar.textContent = "";
   statButtons = {};
   (MODEL.repo.stats || []).forEach(function (st) {
     /* a stat that has a page behind it is a button into that page */
@@ -1767,7 +1788,7 @@ function paintTopbar() {
       d.addEventListener("click", function () { openStatPage(st.page); });
       statButtons[st.page] = d;
     }
-    bar.insertBefore(d, anchor);
+    bar.appendChild(d);
   });
 }
 
@@ -1902,27 +1923,13 @@ function scaleBars(n) {
   return html;
 }
 
+/* Only ever the findings of one part now — the whole list lives on its own
+   page, reached from the topbar count. */
 function findingsHTML(forNode) {
-  var list = FINDINGS.filter(function (f) { return !forNode || f.node === forNode; });
+  var list = FINDINGS.filter(function (f) { return f.node === forNode; });
   list = list.slice().sort(function (a, b) { return SEV_ORDER[a.sev] - SEV_ORDER[b.sev]; });
-  var counts = {};
-  FINDINGS.forEach(function (f) { counts[f.sev] = (counts[f.sev] || 0) + 1; });
 
   var html = "";
-  if (!forNode) {
-    html += '<div class="eyebrow">Ranked by severity</div><h2>Findings</h2>';
-    html += '<div class="dek">' + FINDINGS.length + ' items, every one grepped from the working tree</div>';
-    html += '<div class="chiprow">';
-    ["high","medium","low","note","good"].forEach(function (s) {
-      if (!counts[s]) return;
-      html += '<button class="chip" data-sev="' + s + '" aria-pressed="' + (sevFilter === s) + '">' +
-              s + ' · ' + counts[s] + '</button>';
-    });
-    html += '<button class="chip" data-sev="" aria-pressed="' + (sevFilter === null) + '">all</button>';
-    html += '</div>';
-    if (sevFilter) list = list.filter(function (f) { return f.sev === sevFilter; });
-  }
-
   list.forEach(function (f) {
     var i = FINDINGS.indexOf(f);
     html += '<button class="find ' + f.sev + '" data-find="' + i + '">' +
@@ -1955,11 +1962,6 @@ function endpointCard(n, dir) {
 function renderPanel() {
   buildTabs();                       /* the tab set follows the selection */
   var html = "";
-
-  if (activeTab === "find") {
-    panel.innerHTML = findingsHTML(null);
-    wirePanelChips(); panel.scrollTop = 0; return;
-  }
 
   if (selectedItem) {
     panel.innerHTML = itemPanelHTML();
@@ -2150,7 +2152,6 @@ function openPacket(p) {
 function wirePanelChips() {
   panel.querySelectorAll("[data-goto]").forEach(function (b) {
     b.addEventListener("click", function () {
-      if (activeTab === "find") activeTab = "what";
       selectNode(b.getAttribute("data-goto"));
     });
   });
@@ -2180,13 +2181,6 @@ function wirePanelChips() {
     b.addEventListener("click", function () {
       FLOWS.viol.on = true; paintFlowBar();
       relayout("lowy");
-      renderPanel();
-    });
-  });
-  panel.querySelectorAll("[data-sev]").forEach(function (b) {
-    b.addEventListener("click", function () {
-      var v = b.getAttribute("data-sev");
-      sevFilter = v === "" ? null : v;
       renderPanel();
     });
   });
@@ -2225,18 +2219,16 @@ function selectNode(id) {
 
 /* An edge and a part are different kinds of thing, so they get different tabs.
    Selecting an edge used to leave 'How it's built' and 'Condition' rendering
-   nothing at all. */
+   nothing at all. Findings used to be a fourth tab in every set; it is a list
+   of its own now, behind the topbar count, so the tab is gone from all three. */
 var TABSETS = {
   main: [{ id: "what",  label: "What it does" },
          { id: "built", label: "How it's built" },
-         { id: "cond",  label: "Condition" },
-         { id: "find",  label: "Findings", badge: true }],
+         { id: "cond",  label: "Condition" }],
   edge: [{ id: "payload", label: "Payload" },
          { id: "route",   label: "Route" },
-         { id: "ends",    label: "Endpoints" },
-         { id: "find",    label: "Findings", badge: true }],
-  item: [{ id: "item", label: "Detail" },
-         { id: "find", label: "Findings", badge: true }]
+         { id: "ends",    label: "Endpoints" }],
+  item: [{ id: "item", label: "Detail" }]
 };
 
 function currentTabSet() {
@@ -2255,14 +2247,6 @@ function buildTabs() {
     b.setAttribute("role", "tab");
     b.setAttribute("aria-selected", activeTab === t.id ? "true" : "false");
     b.textContent = t.label;
-    if (t.badge) {
-      var hi = FINDINGS.filter(function (f) { return f.sev === "high"; }).length;
-      if (hi) {
-        var s = document.createElement("span");
-        s.className = "badge"; s.textContent = hi;
-        b.appendChild(s);
-      }
-    }
     b.addEventListener("click", function () { setTab(t.id); });
     bar.appendChild(b);
   });
@@ -2282,6 +2266,7 @@ function setTab(t) { activeTab = t; buildTabs(); renderPanel(); }
 var PAGES = MODEL.pages || {};
 var openPage = null;         /* page id while the list is showing */
 var selectedItem = null;     /* { page: id, id: itemId } */
+var pvTag = "";              /* active facet, e.g. a severity */
 
 var pvRoot  = document.getElementById("pageview");
 var pvList  = document.getElementById("pv-list");
@@ -2410,10 +2395,48 @@ function searchItems(page, q) {
 
 var PV_CAP = 250;
 
+/* Chips for whatever the items tag themselves with — severity, today. Same
+   shape as the picker's type filter, and derived from the data rather than a
+   list, so a page that tags itself with something else gets chips for free. */
+function paintFacets(page, matched) {
+  var box = document.getElementById("pv-facets");
+  box.textContent = "";
+  if (!page.tagged) { box.hidden = true; return; }
+  box.hidden = false;
+  var counts = {}, order = [], total = matched.length;
+  matched.forEach(function (it) {
+    if (!it.tag) return;
+    if (!(it.tag in counts)) { counts[it.tag] = 0; }
+    counts[it.tag]++;
+  });
+  page.items.forEach(function (it) {          /* page order = severity order */
+    if (it.tag && order.indexOf(it.tag) < 0) order.push(it.tag);
+  });
+  var mk = function (tag, label, n) {
+    var b = document.createElement("button");
+    b.className = "chip"; b.type = "button";
+    b.setAttribute("aria-pressed", pvTag === tag ? "true" : "false");
+    b.textContent = label;
+    var s = document.createElement("span");
+    s.className = "n"; s.textContent = n.toLocaleString();
+    b.appendChild(s);
+    if (!n && tag && pvTag !== tag) b.disabled = true;
+    b.addEventListener("click", function () {
+      pvTag = pvTag === tag ? "" : tag;
+      renderPageList(); pvQ.focus();
+    });
+    box.appendChild(b);
+  };
+  mk("", "All", total);
+  order.forEach(function (t) { mk(t, t, counts[t] || 0); });
+}
+
 function renderPageList() {
   var page = PAGES[openPage];
   if (!page) return;
-  var hits = searchItems(page, pvQ.value);
+  var matched = searchItems(page, pvQ.value);
+  paintFacets(page, matched);
+  var hits = pvTag ? matched.filter(function (it) { return it.tag === pvTag; }) : matched;
   document.getElementById("pv-count").textContent =
     hits.length === page.items.length
       ? page.items.length + " items"
@@ -2436,7 +2459,13 @@ function renderPageList() {
       selectedItem && selectedItem.page === openPage && selectedItem.id === it.id
         ? "true" : "false");
     var id = document.createElement("span");
-    id.className = "pv-id"; id.textContent = it.id.length > 9 ? "" : it.id;
+    if (it.tag) {
+      id.className = "pv-tag " + it.tag;
+      id.textContent = it.tag;
+    } else {
+      id.className = "pv-id";
+      id.textContent = it.id.length > 9 ? "" : it.id;
+    }
     var t = document.createElement("span");
     t.className = "pv-t"; t.textContent = it.title;
     var g = document.createElement("span");
@@ -2468,7 +2497,7 @@ function openStatPage(id) {
   var note = document.getElementById("pv-note");
   note.textContent = page.note || "";
   note.hidden = !page.note;
-  pvQ.value = "";
+  pvQ.value = ""; pvTag = "";
   pvRoot.hidden = false; pvRoot.classList.add("open");
   paintSaveButton(); renderPageList(); paintStatBar(); renderPanel();
   pvQ.focus();
@@ -2543,7 +2572,9 @@ function itemPanelHTML() {
   /* a decision id belongs in the eyebrow; a 60-character path does not */
   var html = '<div class="eyebrow">' + esc(page.label) +
              (item.id.length <= 24 ? ' · ' + esc(item.id) : '') + '</div>';
-  html += '<h2>' + esc(item.title) + '</h2>';
+  html += '<h2>' + esc(item.title) +
+          (item.tag ? '<span class="pv-tag ' + esc(item.tag) + '">' +
+                      esc(item.tag) + '</span>' : '') + '</h2>';
   if (item.body && item.body !== item.title) {
     html += (item.body.indexOf("\n") >= 0 || item.body.length < 60
       ? '<pre>' + esc(item.body) + '</pre>'
@@ -2791,7 +2822,7 @@ document.getElementById("btn-step").addEventListener("click", function () {
   running = false; syncPlayButton(); stepBudget = 46;
 });
 document.getElementById("btn-reset").addEventListener("click", function () {
-  resetView(); selectedNode = null; selectedPacket = null; sevFilter = null;
+  resetView(); selectedNode = null; selectedPacket = null; selectedItem = null;
   groupFocus = null; paintLegend();
   document.getElementById("q").value = "";
   renderPanel(); paintState(); paintRail();
@@ -2982,7 +3013,6 @@ document.addEventListener("keydown", function (ev) {
     });
     var i = order.indexOf(selectedNode);
     i = ev.key === "ArrowDown" ? (i + 1) % order.length : (i <= 0 ? order.length - 1 : i - 1);
-    if (activeTab === "find") activeTab = "what";
     selectNode(order[i]);
   } else if (ev.key === " ") {
     ev.preventDefault(); running = !running; syncPlayButton();

@@ -204,12 +204,21 @@ model:
     - { k: "Commit sites",    v: "${callsites.commit_sites.total} · ${callsites.commit_sites.modules} modules", flag: bad, page: commit_sites }
     - { k: "Decisions",       v: "${decisions.linked} placed · ${conventions.decisions} logged", page: decisions }
     - { k: "E2E specs",       v: "${tests.specs} · ${tests.dirs} dirs", page: specs }
+    # "open" would be wrong — two of them are the good news
+    - { k: "Findings",        v: "${findings.total} · ${findings.high} high", flag: bad, page: findings }
     - { k: "Lines",           v: "${loc.total}" }
 
   # A stat with a `page` becomes a button. The page lists what the number
   # counts, searchable, and each item can be linked to a part. `editable` pages
   # write those links back to .repolens/overlay/links.yml.
   pages:
+    findings:
+      label: "Findings"
+      from: findings
+      note: >-
+        Ranked by severity. Computed entries are re-derived by a failing check
+        on every build, so their numbers are current; authored ones are prose
+        that no check covers yet.
     decisions:
       label: "Decisions"
       from: conventions.decisions

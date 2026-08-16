@@ -242,8 +242,11 @@ def path_owner(members: dict, path: str) -> str | None:
     return None
 
 
-def build_pages(ctx: Context, nodes: list[dict],
-                prelinked: dict[str, dict]) -> dict:
+_SEV_ORDER = {"high": 0, "medium": 1, "low": 2, "note": 3, "good": 4}
+
+
+def build_pages(ctx: Context, nodes: list[dict], prelinked: dict[str, dict],
+                findings: list[dict] | None = None) -> dict:
     """Datasets behind the topbar numbers.
 
     A number in the topbar is a dead end; the thing it counts is not. Each
@@ -292,6 +295,23 @@ def build_pages(ctx: Context, nodes: list[dict],
                 })
                 base[item_id] = owned_by(h["path"], h.get("module"))
 
+        elif src == "findings":
+            ranked = sorted(findings or [],
+                            key=lambda f: _SEV_ORDER.get(f.get("sev"), 9))
+            for i, f in enumerate(ranked):
+                item_id = f.get("id") or f"F{i + 1:02d}"
+                items.append({
+                    "id": item_id, "title": f.get("title", item_id),
+                    "body": f.get("body", ""), "tag": f.get("sev", "note"),
+                    "meta": [["Severity", f.get("sev", "")],
+                             ["Evidence", f.get("ev", "")],
+                             ["Provenance",
+                              "computed by a check" if f.get("computed") else "authored"]],
+                })
+                base[item_id] = ([{"to": f["node"], "kind": "part", "why": [],
+                                   "src": "computed" if f.get("computed") else "authored"}]
+                                 if f.get("node") in known else [])
+
         elif src.startswith("tests."):
             for t in (ctx.facts.get("tests") or {}).get("list", []):
                 items.append({
@@ -317,6 +337,8 @@ def build_pages(ctx: Context, nodes: list[dict],
             "id": page_id, "label": ps.get("label", page_id),
             "note": _fmt(ctx, ps.get("note", "")),
             "source": src, "items": items,
+            # a page whose items carry a tag gets filter chips for those tags
+            "tagged": any(it.get("tag") for it in items),
         }
         ctx.log(f"page '{page_id}': {len(items)} items from {src}")
     return pages
@@ -501,6 +523,9 @@ def assemble(ctx: Context) -> None:
     findings += computed
     if dropped:
         ctx.log(f"{dropped} authored finding(s) superseded by live checks")
+    ctx.metric("findings.total", len(findings))
+    for sev in ("high", "medium", "low"):
+        ctx.metric(f"findings.{sev}", sum(1 for f in findings if f.get("sev") == sev))
 
     ctx.model = {
         "repo": {
@@ -525,7 +550,7 @@ def assemble(ctx: Context) -> None:
         "symbols": compact_symbols(ctx),
         "findings": findings,
         # what the topbar numbers count, one searchable list each
-        "pages": build_pages(ctx, nodes, {"decisions": dec_links}),
+        "pages": build_pages(ctx, nodes, {"decisions": dec_links}, findings),
         "system": {k: _fmt(ctx, v) for k, v in (ov["system"] or {}).items()},
         "meta": {
             "tool": "repolens",
