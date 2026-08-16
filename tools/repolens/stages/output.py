@@ -182,7 +182,9 @@ def assemble(ctx: Context) -> None:
             "metrics": ctx.facts.get("metrics", {}),
         },
     }
-    ctx.log(f"{len(nodes)} nodes, {len(ov['edges'])} edges, {len(findings)} findings")
+    ctx.log(f"{len(nodes)} nodes, {len(edges)} edges "
+            f"({len(ov['edges'])} authored + {import_edges} measured), "
+            f"{len(findings)} findings")
 
 
 @stage("verify", requires=["model"], provides=["verify"])

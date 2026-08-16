@@ -80,7 +80,7 @@ def loc(ctx: Context) -> None:
     ctx.log(f"{total:,} lines across {len(by_lang)} languages")
 
 
-@stage("nodesets", requires=["files", "loc"], provides=["nodesets"])
+@stage("nodesets", requires=["files", "loc", "overlay"], provides=["nodesets"])
 def nodesets(ctx: Context) -> None:
     """Group files into nodes and roll up their metrics.
 

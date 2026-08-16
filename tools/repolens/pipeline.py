@@ -1,8 +1,10 @@
 """Stage registry and runner.
 
 A pipeline is an ordered list of stages. Each stage reads and writes a shared
-Context. Stages declare what they `provides` and what they `requires`, so the
-runner can order them itself and refuse to run one whose inputs are missing.
+Context. Stages declare what they `provides` and what they `requires`. The
+order comes from the `pipeline:` list in config; the runner validates it and
+refuses to run a stage whose inputs no earlier stage produced. It does not
+reorder for you — silently rearranging a bad order would hide the mistake.
 
 Adding a stage is the extension point: write a function, decorate it with
 @stage(...), import its module from stages/__init__.py, and name it in the
@@ -137,10 +139,10 @@ class PipelineError(RuntimeError):
 
 
 def resolve_order(requested: list[str]) -> list[str]:
-    """Order stages so every `requires` is produced before it is needed.
+    """Validate that the configured order satisfies every `requires`.
 
-    The config's order is respected where it already satisfies dependencies;
-    this only catches mistakes rather than silently reordering everything.
+    Deliberately does not reorder: the config's order is the source of truth,
+    and silently rearranging it would hide a mistake rather than report it.
     """
     unknown = [s for s in requested if s not in REGISTRY]
     if unknown:
