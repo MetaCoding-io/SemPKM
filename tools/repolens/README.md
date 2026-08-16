@@ -116,6 +116,19 @@ button appears the moment a layout is registered, including at runtime.
 Overridable per layout: `run` (required), `route`, `height`, `box`, `maxPitch`.
 Anything not overridden falls back to `LAYOUT_DEFAULTS`.
 
+## Turning it
+
+Two rotations, and they are different things. **Pitch** raises the eye — 90° is
+a plan view and height collapses. **Turn** spins the model on the spot, about
+the drawing's own centroid rather than the ground origin, so a side that was
+hidden comes round to the front. Which two walls of a box are drawn follows the
+turn; keep drawing the same two and past 45° you are looking at the inside of
+the box.
+
+Everything else reads through `proj()`, so the grid, wires, band labels and
+packets all follow for nothing. The painter's-algorithm sort uses the turned
+depth, not the raw one.
+
 ## Three levels
 
 Double-click to go down; Escape or the breadcrumb to come back up.
@@ -174,6 +187,12 @@ decisions:
     add: ["part:U", "sym:backend/app/events/store.py#commit"]
     remove: ["part:N"]
 ```
+
+Linking works from both ends. From a decision you pick the thing it is about;
+from a part, file or symbol, the **Decisions** section on *How it's built* is
+always there — empty or not — with a picker over the decisions not yet linked
+to it. Both write the same record, so it does not matter which way round you
+approach it.
 
 That file is authored content like any other overlay: it survives rebuilds,
 diffs in review, and can be hand-edited. Authored beats measured in both

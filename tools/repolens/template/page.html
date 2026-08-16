@@ -158,14 +158,14 @@ body {
 
 .repo-cell {
   display: flex; align-items: center;
-  padding: 0 18px; font-size: 15px; letter-spacing: 0.02em;
+  padding: 0 14px; font-size: 15px; letter-spacing: 0.02em;
   border-right: 1px solid var(--rule); white-space: nowrap; flex-shrink: 0;
 }
 .repo-cell b { font-weight: 600; }
 .repo-cell span { color: var(--ink-3); }
 
 .stat {
-  padding: 5px 15px; border-right: 1px solid var(--rule-soft);
+  padding: 5px 12px; border-right: 1px solid var(--rule-soft);
   white-space: nowrap; flex-shrink: 0;
   display: flex; flex-direction: column; justify-content: center;
 }
@@ -438,6 +438,12 @@ ul.bul li { margin-bottom: 6px; max-width: 60ch; }
   font-size: 9.5px; letter-spacing: 0.1em; color: var(--ink-3);
   margin-right: 7px; white-space: nowrap;
 }
+.dec .dec-x {
+  float: right; font: inherit; font-size: 12px; line-height: 1; border: 0;
+  background: transparent; color: var(--ink-3); cursor: pointer;
+  padding: 0 0 0 8px; margin-left: 4px;
+}
+.dec .dec-x:hover { color: var(--sev-high); }
 .dec .dec-why {
   font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--on-accent); background: var(--ink-3); padding: 0 4px; margin-left: 6px;
@@ -536,9 +542,12 @@ ul.bul li { margin-bottom: 6px; max-width: 60ch; }
 /* ---------- bundled edges ---------- */
 
 .wire-hit { stroke: transparent; stroke-width: 14; fill: none; cursor: pointer; }
+/* 8px digits sitting on the wires: --ink-3 was too quiet to read against
+   either ground, and had lines running through it. */
 .bundle-count {
-  fill: var(--ink-3); font-family: inherit; font-size: 8px;
+  fill: var(--ink); font-family: inherit; font-size: 8.5px; font-weight: 600;
   text-anchor: middle; dominant-baseline: middle; pointer-events: none; user-select: none;
+  paint-order: stroke; stroke: var(--paper); stroke-width: 3px; stroke-linejoin: round;
 }
 
 #edge-pop {
@@ -739,9 +748,15 @@ h2 .pv-tag { margin-left: 8px; vertical-align: middle; }
       <button class="btn" id="btn-out" aria-label="Zoom out">&minus;</button>
     </div>
     <div id="dials">
-      <label for="angle">Angle</label>
-      <input id="angle" type="range" min="14" max="90" value="35" />
+      <label for="angle">Pitch</label>
+      <input id="angle" type="range" min="14" max="90" value="35"
+             title="How far above the ground you stand. 90° is a plan view." />
       <span class="readout" id="angle-out">35°</span>
+      <span class="sep"></span>
+      <label for="yaw">Turn</label>
+      <input id="yaw" type="range" min="-180" max="180" value="0"
+             title="Spin the model on the spot to bring a hidden side to the front." />
+      <span class="readout" id="yaw-out">0°</span>
       <span class="sep"></span>
       <label for="speed">Speed</label>
       <input id="speed" type="range" min="10" max="220" value="80" />
@@ -848,13 +863,45 @@ var FINDINGS = MODEL.findings;
 var UNIT = 27, ZH = 20;
 var RAD = Math.PI / 180;
 var ISO_PITCH = 35.264;                 /* true isometric */
-var pitchDeg = 35;
+var pitchDeg = 35;                      /* how far above the ground you stand */
+var yawDeg = 0;                         /* which way round the model is turned */
 var ISO_COS = Math.cos(ISO_PITCH * RAD);
 
+/* Two rotations, and they are different things. Pitch raises the eye: at 90°
+   you are directly overhead and height collapses to a plan. Yaw spins the
+   model on the spot, so you can bring a face that was hidden round to the
+   front. Yaw happens first, in ground coordinates; the rest of the drawing
+   reads through proj(), so it follows for free. */
+/* Spin about the middle of the drawing, not about the ground origin — a
+   layout whose centroid sits well away from (0,0) would otherwise swing off
+   the canvas as soon as you touched the control. */
+var spinOrigin = [0, 0];
+
+function updateSpinOrigin() {
+  if (!NODES.length) { spinOrigin = [0, 0]; return; }
+  var sx = 0, sy = 0;
+  NODES.forEach(function (n) { sx += n._x + n._w / 2; sy += n._y + n._d / 2; });
+  spinOrigin = [sx / NODES.length, sy / NODES.length];
+}
+
+function spin(x, y) {
+  if (!yawDeg) return [x, y];
+  var t = yawDeg * RAD, c = Math.cos(t), s = Math.sin(t);
+  var dx = x - spinOrigin[0], dy = y - spinOrigin[1];
+  return [spinOrigin[0] + dx * c - dy * s, spinOrigin[1] + dx * s + dy * c];
+}
+
 function proj(x, y, z) {
-  var p = pitchDeg * RAD;
-  return [ (x - y) * 0.866 * UNIT,
-           (x + y) * 0.866 * Math.sin(p) * UNIT - z * ZH * (Math.cos(p) / ISO_COS) ];
+  var p = pitchDeg * RAD, g = spin(x, y);
+  return [ (g[0] - g[1]) * 0.866 * UNIT,
+           (g[0] + g[1]) * 0.866 * Math.sin(p) * UNIT - z * ZH * (Math.cos(p) / ISO_COS) ];
+}
+
+/* Distance from the eye, after the spin — the painter's-algorithm sort key
+   and the test for which side of a box is facing you. */
+function depthOf(x, y, z) {
+  var g = spin(x, y);
+  return g[0] + g[1] + z;
 }
 function pt(p) { return p[0].toFixed(2) + "," + p[1].toFixed(2); }
 
@@ -873,10 +920,18 @@ function boxFaces(n) {
   var h = nodeHeight(n);
   var x0 = n._x, y0 = n._y, x1 = n._x + n._w, y1 = n._y + n._d;
   var zb = n._z, zt = n._z + h;
+  /* Which two sides face you depends on the yaw. Turn the model far enough
+     and the x1 wall swings to the back; keep drawing it and you are looking
+     at the inside of the box. Pick the near plane on each axis instead. */
+  var t = yawDeg * RAD, c = Math.cos(t), s = Math.sin(t);
+  var xf = (c + s) >= 0 ? x1 : x0;      /* the x wall nearer the eye */
+  var yf = (c - s) >= 0 ? y1 : y0;      /* the y wall nearer the eye */
+  var xb = xf === x1 ? x0 : x1;
+  var yb = yf === y1 ? y0 : y1;
   return {
     top:   [proj(x0,y0,zt), proj(x1,y0,zt), proj(x1,y1,zt), proj(x0,y1,zt)],
-    right: [proj(x1,y0,zb), proj(x1,y1,zb), proj(x1,y1,zt), proj(x1,y0,zt)],
-    left:  [proj(x0,y1,zb), proj(x1,y1,zb), proj(x1,y1,zt), proj(x0,y1,zt)],
+    right: [proj(xf,yb,zb), proj(xf,yf,zb), proj(xf,yf,zt), proj(xf,yb,zt)],
+    left:  [proj(xb,yf,zb), proj(xf,yf,zb), proj(xf,yf,zt), proj(xb,yf,zt)],
     apex:  proj(x0 + n._w/2, y0 + n._d/2, zt),
     ctr:   [x0 + n._w/2, y0 + n._d/2, zb]
   };
@@ -1376,15 +1431,33 @@ function shade(css, amount) {
   return "rgb(" + c(r) + "," + c(g) + "," + c(b) + ")";
 }
 
+/* A label sits on the face, not on the page. The group hues are the same in
+   both themes, so in dark mode a light --ink label landed on a light face and
+   vanished. Pick the ink from the face's own luminance instead. */
+function inkOn(css) {
+  var rgb = css.match(/\d+/g);
+  if (!rgb) return "";
+  var lin = function (v) {
+    v /= 255;
+    return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  };
+  var L = 0.2126 * lin(+rgb[0]) + 0.7152 * lin(+rgb[1]) + 0.0722 * lin(+rgb[2]);
+  return L > 0.34 ? "#17160e" : "#ede7c6";
+}
+
 function paintNodeColour(n, selected) {
   var refs = nodeRefs[n.id];
   if (!refs) return;
   var col = (!selected && colourMode === "group") ? groupColour(n.grp) : null;
   /* top face lightest, then right, then left — the same reading as the
      monochrome faces, so the drawing keeps its light source */
-  refs.polys[4].style.fill = col ? shade(col, 1.42) : "";
+  var top = col ? shade(col, 1.42) : "";
+  refs.polys[4].style.fill = top;
   refs.polys[2].style.fill = col ? shade(col, 1.10) : "";
   refs.polys[0].style.fill = col ? shade(col, 0.88) : "";
+  /* uncoloured faces use --face-top, which does flip with the theme, so there
+     the stylesheet already has it right — leave it alone */
+  refs.label.style.fill = col ? inkOn(top) : "";
 }
 
 /* ---- boxes ---- */
@@ -1452,7 +1525,8 @@ function applyNodes() {
 
 function sortNodesByDepth() {
   var order = NODES.slice().sort(function (a, b) {
-    return (a._x + a._w/2 + a._y + a._d/2 + a._z) - (b._x + b._w/2 + b._y + b._d/2 + b._z);
+    return depthOf(a._x + a._w/2, a._y + a._d/2, a._z) -
+           depthOf(b._x + b._w/2, b._y + b._d/2, b._z);
   });
   order.forEach(function (n) { gNodes.appendChild(nodeRefs[n.id].g); });
 }
@@ -1514,6 +1588,7 @@ function buildScene() {
 /* One call re-projects everything; nothing is recreated, so the angle
    slider and the layout switch are both cheap. */
 function applyGeometry() {
+  updateSpinOrigin();
   applyGround();
   applyBands();
   applyWires();
@@ -1886,26 +1961,67 @@ function connectionsBlock(n) {
   return html;
 }
 
-function decisionsBlock(n) {
-  var list = n.decisions || [];
-  if (!list.length) {
-    return '<div class="sec">Decisions</div>' +
-      '<p style="color:var(--ink-3);font-size:11px;">No logged decision mentions this part.</p>';
+/* What this thing is, as a link target: a part, one of its files, or one of
+   that file's symbols, depending on how far in you have gone. */
+function targetKeyOf(n) {
+  if (VIEW.mode === "file") return "sym:" + VIEW.path + "#" + n.name;
+  if (VIEW.mode === "part") return n.path ? "file:" + n.path : null;
+  return "part:" + n.id;
+}
+
+/* The decisions page read backwards: not "what is this decision about" but
+   "what was decided about this". Shown whether or not there are any, because
+   an empty section with a way to fill it is the point. */
+function decisionsFor(targetKey) {
+  var page = PAGES.decisions;
+  if (!page || !targetKey) return [];
+  var out = [];
+  page.items.forEach(function (it) {
+    var hit = itemLinks("decisions", it).filter(function (l) {
+      return tkey(l) === targetKey;
+    })[0];
+    if (hit) out.push({ it: it, link: hit });
+  });
+  return out;
+}
+
+var DEC_SHOWN = 24;
+
+function decisionsBlock(targetKey) {
+  var page = PAGES.decisions;
+  if (!page) return "";
+  var mine = decisionsFor(targetKey);
+  var html = '<div class="sec">Decisions · ' + mine.length + '</div>';
+  if (!mine.length) {
+    html += '<p style="color:var(--ink-3);font-size:11px;">' +
+            'Nothing logged is linked here yet.</p>';
   }
-  var html = '<div class="sec">Decisions · ' + list.length +
-             (n.decision_count > list.length ? ' of ' + n.decision_count : '') + '</div>';
-  list.forEach(function (d) {
+  mine.slice(0, DEC_SHOWN).forEach(function (m) {
+    var d = m.it, why = (m.link.why || []).join(" ");
     html += '<details class="dec"><summary>' +
-      '<span class="dec-id">' + esc(d.id) + '</span>' + esc(d.statement) +
-      '<span class="dec-why">' + esc(d.why.join(" ")) + '</span></summary>' +
-      (d.rationale ? '<div class="dec-body">' + esc(d.rationale) + '</div>' : '') +
+      '<span class="dec-id">' + esc(d.id) + '</span>' + esc(d.title) +
+      '<span class="dec-why">' + esc(why || m.link.src) + '</span>' +
+      '<button class="x dec-x" title="Unlink this decision" data-undec="' + esc(d.id) +
+        '" data-target="' + esc(targetKey) + '">&times;</button>' +
+      '</summary>' +
+      (d.body ? '<div class="dec-body">' + esc(d.body) + '</div>' : '') +
       '<div class="dec-body" style="color:var(--ink-3)">' +
-        esc(d.scope || "") + (d.when ? ' · ' + esc(d.when) : '') + '</div>' +
+        (d.meta || []).filter(function (kv) { return kv[1]; })
+          .map(function (kv) { return esc(kv[1]); }).join(" · ") + '</div>' +
       '</details>';
   });
-  html += '<p style="color:var(--ink-3);font-size:11px;">Matched by the ' +
-          'highlighted word appearing in the decision text — a text match, not a ' +
-          'declared link. The word is shown so a wrong one is visible.</p>';
+  if (mine.length > DEC_SHOWN) {
+    html += '<p style="color:var(--ink-3);font-size:11px;">' +
+            (mine.length - DEC_SHOWN) + ' more — open the Decisions list to see them all.</p>';
+  }
+  html += '<div class="lk"><button class="lk-add" data-adddec="1" data-target="' +
+          esc(targetKey) + '">+ Link a decision…</button></div>';
+  if (mine.some(function (m) { return m.link.src === "matched"; })) {
+    html += '<p style="color:var(--ink-3);font-size:11px;margin-top:8px;">' +
+            'The word after each line is why it was matched — a text match, not a ' +
+            'declared link. Unlink the wrong ones; the correction survives the ' +
+            'next build.</p>';
+  }
   return html;
 }
 
@@ -2129,7 +2245,7 @@ function renderPanel() {
     html += connectionsBlock(n);
   } else if (activeTab === "built") {
     html += '<p>' + esc(n.built) + '</p>' + nodeMetrics(n) +
-            decisionsBlock(n) + scaleBars(n);
+            decisionsBlock(targetKeyOf(n)) + scaleBars(n);
   } else {
     n.cond.forEach(function (c) {
       var cls = c[0] === "ok" ? "ok" : c[0] === "note" ? "warn" : "";
@@ -2193,6 +2309,18 @@ function wirePanelChips() {
   panel.querySelectorAll("[data-link]").forEach(function (b) {
     b.addEventListener("click", function () {
       if (selectedItem) openPicker(selectedItem.page, selectedItem.id);
+    });
+  });
+  panel.querySelectorAll("[data-adddec]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      openItemPicker("decisions", b.getAttribute("data-target"));
+    });
+  });
+  panel.querySelectorAll("[data-undec]").forEach(function (b) {
+    b.addEventListener("click", function (ev) {
+      /* the button lives inside a <summary>; without this the details toggles */
+      ev.preventDefault(); ev.stopPropagation();
+      linkRemove("decisions", b.getAttribute("data-undec"), b.getAttribute("data-target"));
     });
   });
   panel.querySelectorAll("[data-backlist]").forEach(function (b) {
@@ -2634,14 +2762,48 @@ function pickIndex() {
 }
 var PICK_KINDS = [];
 
-function openPicker(pageId, itemId) {
-  pickFor = { page: pageId, id: itemId };
-  pickHot = 0;
-  document.getElementById("pk-sub").textContent =
-    pickIndex().length.toLocaleString() + " objects";
+/* The same modal, run over a different index, because linking is symmetric:
+   from a decision you pick the thing it is about, and from a thing you pick
+   the decision. Both write the same record. */
+var pickRows = [], pickChoose = null;
+
+function showPicker(title, sub, placeholder) {
+  document.getElementById("pk-title").textContent = title;
+  document.getElementById("pk-sub").textContent = sub;
+  pkQ.placeholder = placeholder;
+  pickKind = ""; pickHot = 0;
+  PICK_KINDS = [];
+  pickRows.forEach(function (r) {
+    if (PICK_KINDS.indexOf(r.kind) < 0) PICK_KINDS.push(r.kind);
+  });
   pkQ.value = "";
   pkRoot.hidden = false; pkRoot.classList.add("open");
   renderPicker(); pkQ.focus();
+}
+
+function openPicker(pageId, itemId) {
+  pickRows = pickIndex();
+  pickChoose = function (key) { linkAdd(pageId, itemId, key); };
+  showPicker("Link to…", pickRows.length.toLocaleString() + " objects",
+             "Part, file or symbol…");
+}
+
+function openItemPicker(pageId, targetKey) {
+  var page = PAGES[pageId];
+  if (!page || !targetKey) return;
+  var taken = {};
+  decisionsFor(targetKey).forEach(function (m) { taken[m.it.id] = 1; });
+  pickRows = page.items.filter(function (it) { return !taken[it.id]; })
+    .map(function (it) {
+      return { kind: it.tag || pageId, key: it.id, name: it.title,
+               sub: it.id + (it.meta && it.meta[0] && it.meta[0][1]
+                             ? " · " + it.meta[0][1] : ""),
+               hay: (it.id + " " + it.title + " " + (it.body || "")).toLowerCase() };
+    });
+  pickChoose = function (itemId) { linkAdd(pageId, itemId, targetKey); };
+  showPicker("Link a " + page.label.toLowerCase().replace(/s$/, "") + "…",
+             pickRows.length.toLocaleString() + " not yet linked here",
+             "Search " + page.label.toLowerCase() + "…");
 }
 function closePicker() {
   pkRoot.classList.remove("open"); pkRoot.hidden = true; pickFor = null;
@@ -2651,6 +2813,9 @@ function closePicker() {
    the chips answer "how much of this is a file?" for the query in hand. */
 function paintKindChips(counts, total) {
   pkKinds.textContent = "";
+  /* one kind is not a filter */
+  if (PICK_KINDS.length < 2) { pkKinds.hidden = true; return; }
+  pkKinds.hidden = false;
   var mk = function (kind, label, n) {
     var b = document.createElement("button");
     b.className = "chip";
@@ -2678,7 +2843,7 @@ function paintKindChips(counts, total) {
 function renderPicker() {
   var toks = tokens(pkQ.value);
   var rows = [], counts = {}, total = 0;
-  pickIndex().forEach(function (r) {
+  pickRows.forEach(function (r) {
     var s = score(r.hay, r.name.toLowerCase(), toks);
     if (s < 0) return;
     counts[r.kind] = (counts[r.kind] || 0) + 1;
@@ -2727,7 +2892,7 @@ function renderPicker() {
 }
 
 function choosePick(key) {
-  if (pickFor) linkAdd(pickFor.page, pickFor.id, key);
+  if (pickChoose) pickChoose(key);
   closePicker();
 }
 
@@ -2824,6 +2989,10 @@ document.getElementById("btn-step").addEventListener("click", function () {
 document.getElementById("btn-reset").addEventListener("click", function () {
   resetView(); selectedNode = null; selectedPacket = null; selectedItem = null;
   groupFocus = null; paintLegend();
+  if (yawDeg) {                       /* a turned model is not a reset view */
+    yawDeg = 0; yawInput.value = 0; yawOut.textContent = "0°";
+    applyGeometry();
+  }
   document.getElementById("q").value = "";
   renderPanel(); paintState(); paintRail();
 });
@@ -2838,6 +3007,15 @@ var angleOut = document.getElementById("angle-out");
 document.getElementById("angle").addEventListener("input", function (ev) {
   pitchDeg = parseInt(ev.target.value, 10);
   angleOut.textContent = pitchDeg >= 89 ? "plan" : pitchDeg + "°";
+  applyGeometry();
+  paintState();
+});
+
+var yawInput = document.getElementById("yaw");
+var yawOut = document.getElementById("yaw-out");
+yawInput.addEventListener("input", function (ev) {
+  yawDeg = parseInt(ev.target.value, 10);
+  yawOut.textContent = yawDeg + "°";
   applyGeometry();
   paintState();
 });

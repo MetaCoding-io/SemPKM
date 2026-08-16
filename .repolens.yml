@@ -201,11 +201,13 @@ model:
   stats:
     - { k: "Backend modules", v: "${nodeset.modules.count}" }
     - { k: "Endpoints",       v: "${routes.total} · ${routes.registrations} routers" }
+    # Order matters: the strip scrolls on a narrow window, so the stats worth
+    # clicking come before the ones that are only a number.
+    # "open" would be wrong on Findings — two of them are the good news.
+    - { k: "Findings",        v: "${findings.total} · ${findings.high} high", flag: bad, page: findings }
     - { k: "Commit sites",    v: "${callsites.commit_sites.total} · ${callsites.commit_sites.modules} modules", flag: bad, page: commit_sites }
     - { k: "Decisions",       v: "${decisions.linked} placed · ${conventions.decisions} logged", page: decisions }
     - { k: "E2E specs",       v: "${tests.specs} · ${tests.dirs} dirs", page: specs }
-    # "open" would be wrong — two of them are the good news
-    - { k: "Findings",        v: "${findings.total} · ${findings.high} high", flag: bad, page: findings }
     - { k: "Lines",           v: "${loc.total}" }
 
   # A stat with a `page` becomes a button. The page lists what the number
