@@ -658,6 +658,10 @@ ul.bul li { margin-bottom: 6px; max-width: 60ch; }
 .pk-head h3 { margin: 0; font-size: 13px; font-weight: 600; }
 .pk-head .sub { font-size: 10.5px; color: var(--ink-3); }
 .pk-search { padding: 9px 14px; border-bottom: 1px solid var(--rule-soft); }
+.pk-kinds { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.pk-kinds .chip { font-size: 9.5px; padding: 2px 7px; }
+.pk-kinds .chip .n { opacity: 0.6; margin-left: 4px; font-variant-numeric: tabular-nums; }
+.pk-kinds .chip[disabled] { opacity: 0.38; cursor: default; }
 .pk-list { flex: 1 1 auto; overflow-y: auto; }
 .pk-row {
   display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 9px; align-items: baseline;
@@ -777,6 +781,7 @@ ul.bul li { margin-bottom: 6px; max-width: 60ch; }
     <div class="pk-search">
       <input id="pk-q" type="search" autocomplete="off" spellcheck="false"
              placeholder="Part, file or symbol…" aria-label="Search objects" />
+      <div class="pk-kinds" id="pk-kinds" role="group" aria-label="Filter by type"></div>
     </div>
     <div class="pk-list" id="pk-list" role="listbox" aria-label="Objects"></div>
   </div>
@@ -2539,10 +2544,15 @@ function itemPanelHTML() {
 
 /* ---- the object picker ---- */
 
-var PICK = null, pickFor = null, pickHot = 0;
+var PICK = null, pickFor = null, pickHot = 0, pickKind = "";
 var pkRoot = document.getElementById("picker");
 var pkQ = document.getElementById("pk-q");
 var pkList = document.getElementById("pk-list");
+var pkKinds = document.getElementById("pk-kinds");
+
+/* Plural names for the kinds the index happens to hold. Anything not named
+   here still gets a filter chip, under its own id. */
+var KIND_LABEL = { part: "Parts", file: "Files", sym: "Symbols" };
 
 function pickIndex() {
   if (PICK) return PICK;
@@ -2564,8 +2574,13 @@ function pickIndex() {
     });
   });
   PICK.forEach(function (r) { r.hay = (r.name + " " + r.sub).toLowerCase(); });
+  PICK_KINDS = [];
+  PICK.forEach(function (r) {
+    if (PICK_KINDS.indexOf(r.kind) < 0) PICK_KINDS.push(r.kind);
+  });
   return PICK;
 }
+var PICK_KINDS = [];
 
 function openPicker(pageId, itemId) {
   pickFor = { page: pageId, id: itemId };
@@ -2580,14 +2595,47 @@ function closePicker() {
   pkRoot.classList.remove("open"); pkRoot.hidden = true; pickFor = null;
 }
 
+/* Counts are of what the current search matches, not of the whole index, so
+   the chips answer "how much of this is a file?" for the query in hand. */
+function paintKindChips(counts, total) {
+  pkKinds.textContent = "";
+  var mk = function (kind, label, n) {
+    var b = document.createElement("button");
+    b.className = "chip";
+    b.type = "button";
+    b.setAttribute("aria-pressed", pickKind === kind ? "true" : "false");
+    b.textContent = label;
+    var s = document.createElement("span");
+    s.className = "n"; s.textContent = n.toLocaleString();
+    b.appendChild(s);
+    /* never disable the active chip — that would trap the filter on a kind
+       the current query has none of, with no way to click back out */
+    if (!n && kind && pickKind !== kind) b.disabled = true;
+    b.addEventListener("click", function () {
+      pickKind = pickKind === kind ? "" : kind;
+      pickHot = 0; renderPicker(); pkQ.focus();
+    });
+    pkKinds.appendChild(b);
+  };
+  mk("", "All", total);
+  PICK_KINDS.forEach(function (k) {
+    mk(k, KIND_LABEL[k] || k, counts[k] || 0);
+  });
+}
+
 function renderPicker() {
   var toks = tokens(pkQ.value);
-  var rows = [];
+  var rows = [], counts = {}, total = 0;
   pickIndex().forEach(function (r) {
     var s = score(r.hay, r.name.toLowerCase(), toks);
-    if (s >= 0) rows.push({ r: r, s: s });
+    if (s < 0) return;
+    counts[r.kind] = (counts[r.kind] || 0) + 1;
+    total++;
+    if (!pickKind || r.kind === pickKind) rows.push({ r: r, s: s });
   });
   if (toks.length) rows.sort(function (a, b) { return a.s - b.s; });
+  paintKindChips(counts, total);
+  var shown = rows.length;
   rows = rows.slice(0, 60);
   if (pickHot >= rows.length) pickHot = 0;
 
@@ -2611,8 +2659,17 @@ function renderPicker() {
   });
   if (!rows.length) {
     var e = document.createElement("p");
-    e.className = "pv-empty"; e.textContent = "No object matches.";
+    e.className = "pv-empty";
+    e.textContent = pickKind && total
+      ? "No " + (KIND_LABEL[pickKind] || pickKind).toLowerCase() +
+        " match, but " + total + " other object" + (total === 1 ? "" : "s") + " do."
+      : "No object matches.";
     pkList.appendChild(e);
+  } else if (shown > rows.length) {
+    var m = document.createElement("p");
+    m.className = "pv-more";
+    m.textContent = "Showing " + rows.length + " of " + shown + " matches.";
+    pkList.appendChild(m);
   }
   pkList._rows = rows;
 }
