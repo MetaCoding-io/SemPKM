@@ -223,6 +223,13 @@ body {
 .rpane[data-open="false"] .rpane-body { display: none; }
 
 /* ---- connections panel ---- */
+.egrp {
+  display: flex; align-items: baseline; gap: 6px;
+  font-size: 9.5px; letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--ink-2); padding: 13px 10px 4px;
+}
+.egrp .n { color: var(--ink-3); letter-spacing: 0; }
+.egrp.dim { display: none; }
 .eitem {
   display: grid; grid-template-columns: 9px minmax(0, 1fr) auto; gap: 7px;
   align-items: baseline; width: 100%; text-align: left; font: inherit;
@@ -1979,6 +1986,7 @@ function buildRail() {
 
 var edgeBody = document.getElementById("edgebody");
 var edgeItems = [];
+var edgeGroups = [];
 var railHoverEdge = null;   /* hovering a row lights its wire in the drawing */
 
 function buildEdgeRail() {
@@ -1993,9 +2001,33 @@ function buildEdgeRail() {
     edgeBody.appendChild(e);
     return;
   }
-  EDGES.forEach(function (ed, i) {
+  /* Grouped under their source, in the same order the Parts panel above uses,
+     so the two lists read as one index rather than two orderings of it. */
+  var pos = {};
+  NODES.forEach(function (n, i) { pos[n.id] = i; });
+  var ordered = EDGES.map(function (ed, i) { return { ed: ed, i: i }; })
+    .filter(function (r) { return byId[r.ed.from] && byId[r.ed.to]; })
+    .sort(function (a, b) {
+      return (pos[a.ed.from] - pos[b.ed.from]) || (pos[a.ed.to] - pos[b.ed.to]);
+    });
+
+  edgeGroups = [];
+  var current = null;
+  ordered.forEach(function (r) {
+    var ed = r.ed, i = r.i;
     var from = byId[ed.from], to = byId[ed.to];
-    if (!from || !to) return;
+    if (!current || current.from !== ed.from) {
+      var h = document.createElement("div");
+      h.className = "egrp";
+      var nm = document.createElement("span");
+      nm.textContent = from.name;
+      var ct = document.createElement("span");
+      ct.className = "n";
+      h.appendChild(nm); h.appendChild(ct);
+      edgeBody.appendChild(h);
+      current = { from: ed.from, el: h, count: ct, items: [] };
+      edgeGroups.push(current);
+    }
     var b = document.createElement("button");
     b.className = "eitem";
     b.setAttribute("aria-selected", "false");
@@ -2003,15 +2035,14 @@ function buildEdgeRail() {
     dot.className = "dot";
     var flow = FLOWS[ed.flow];
     if (flow) dot.style.background = flowColour(ed.flow);
-    var r = document.createElement("span");
-    r.className = "er";
-    r.innerHTML = "<b></b> &rarr; <b></b>";
-    r.querySelectorAll("b")[0].textContent = from.short || from.name;
-    r.querySelectorAll("b")[1].textContent = to.short || to.name;
+    var rr = document.createElement("span");
+    rr.className = "er";
+    rr.innerHTML = "&rarr; <b></b>";
+    rr.querySelector("b").textContent = to.short || to.name;
     var c = document.createElement("span");
     c.className = "ec";
     c.textContent = ed.pk || (flow ? flow.label : "");
-    b.appendChild(dot); b.appendChild(r); b.appendChild(c);
+    b.appendChild(dot); b.appendChild(rr); b.appendChild(c);
     b.title = from.name + " → " + to.name + (ed.pk ? " · " + ed.pk : "");
     b.addEventListener("click", function () {
       if (packets[i]) openPacket(packets[i]);
@@ -2020,10 +2051,13 @@ function buildEdgeRail() {
     b.addEventListener("mouseenter", function () { railHoverEdge = i; paintState(); });
     b.addEventListener("mouseleave", function () { railHoverEdge = null; paintState(); });
     edgeBody.appendChild(b);
-    edgeItems.push({ el: b, edge: ed, i: i,
-                     hay: (from.name + " " + to.name + " " + (ed.pk || "") + " " +
-                           (ed.label || "") + " " + ed.flow).toLowerCase() });
+    var rec = { el: b, edge: ed, i: i,
+                hay: (from.name + " " + to.name + " " + (ed.pk || "") + " " +
+                      (ed.label || "") + " " + ed.flow).toLowerCase() };
+    edgeItems.push(rec);
+    current.items.push(rec);
   });
+  edgeGroups.forEach(function (g) { g.count.textContent = g.items.length; });
 }
 
 function flowColour(id) {
@@ -2055,6 +2089,12 @@ function paintRail() {
     it.el.classList.toggle("dim", !hit);
     it.el.setAttribute("aria-selected",
       selectedPacket && selectedPacket.edge === it.edge ? "true" : "false");
+  });
+  /* a source heading with nothing left under it is noise, so it goes */
+  edgeGroups.forEach(function (g) {
+    g.el.classList.toggle("dim", !g.items.some(function (it) {
+      return !it.el.classList.contains("dim");
+    }));
   });
   countPane("edges", eshown, edgeItems.length);
 }

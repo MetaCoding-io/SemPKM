@@ -119,9 +119,12 @@ Anything not overridden falls back to `LAYOUT_DEFAULTS`.
 ## The explorer
 
 The left rail is a stack of independently collapsible panels, each with its own
-scroll. **Parts** is the node list; **Connections** lists every edge as
-`from → to · what it carries`, with a dot in its flow's colour. Hovering a row
-lights that wire in the drawing; clicking one opens its payload. Collapsing a
+scroll. **Parts** is the node list; **Connections** lists every edge
+grouped under its source, in the same order the Parts panel uses, so the two
+read as one index rather than two orderings of it. Each heading carries that
+part's out-degree; each row is `→ target · what it carries` with a dot in its
+flow's colour. Hovering a row lights that wire in the drawing; clicking one
+opens its payload. Collapsing a
 panel gives its height to the others rather than just shortening the page, and
 the state is remembered.
 
