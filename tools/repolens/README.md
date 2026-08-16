@@ -306,6 +306,19 @@ CodeOntology, SEON and SARIF is recorded with `rdfs:seeAlso` rather than
 asserted as equivalence — their term IRIs could not be verified from this
 environment, and a wrong `owl:equivalentClass` is worse than an honest note.
 
+End to end, on this repository:
+
+```bash
+python3 -m tools.repolens graph            # .repolens/repo.ttl
+docker compose restart api                 # installs both models from models/
+# then import .repolens/repo.ttl through the RDF import screen
+```
+
+Both models live under `models/`, so SemPKM installs them on startup. The
+graph is ordinary RDF, so importing it goes through the normal path and every
+triple lands as an event — which is the point: from then on the links are
+edited in the browser with history, not in a YAML file.
+
 `tools/repolens/verify_graph.py` runs the three against each other: every
 predicate the exporter emits must be declared in the ontology, and every view
 must return rows against a real graph. It needs rdflib, which the CLI does not

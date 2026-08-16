@@ -98,3 +98,30 @@ because it survives the move to RDF unchanged.
   Turtle instead of JSON.
 - **The existing page** stays useful as the zero-install view — point it at a
   repo, get a file. It stops being the place where editing happens.
+
+## Where this got to
+
+Built and verified:
+
+- `models/repolens` and `models/repolens-gsd` — ontology, SHACL shapes, and
+  sixteen view specs between them, plus four `sempkm:LayoutAlgorithm` entries.
+  Both load through SemPKM's own `load_archive()`, remote-context check
+  included.
+- `tools/repolens/rdf/` and the `graph` stage — 35,871 triples from this
+  repository, 128 from a two-file synthetic one with no `.gsd`.
+- `tools/repolens/verify_graph.py` — every predicate emitted is declared in the
+  ontology, and all sixteen views return rows against the real graph.
+
+Not done, and honestly so:
+
+- **The model has never been installed into a running SemPKM.** There is no
+  Docker daemon in this environment, so the archives were validated with the
+  loader rather than by starting the stack. Restarting the API is the next
+  step, and the first thing likely to need a fix.
+- **No custom renderer.** The four layouts are declared as data; the
+  axonometric renderer — height as a measure, real occlusion, pitch and turn —
+  is not written. Declaring a `sempkm:customRenderer` pointing at a template
+  that does not exist would have made the model look finished and load broken,
+  so it was left out.
+- **Nothing imports the graph automatically.** The `.ttl` goes through the
+  normal RDF import screen today.
