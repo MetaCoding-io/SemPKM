@@ -1,0 +1,93 @@
+{
+  "@context": {
+    "sh": "http://www.w3.org/ns/shacl#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "sempkm": "urn:sempkm:vocab:",
+    "rl": "urn:sempkm:model:repolens:",
+    "rlg": "urn:sempkm:model:repolens-gsd:"
+  },
+  "@graph": [
+    { "@id": "rlg:DecisionGroup", "@type": "sh:PropertyGroup", "rdfs:label": "Decision", "sh:order": 1 },
+    { "@id": "rlg:ReasoningGroup", "@type": "sh:PropertyGroup", "rdfs:label": "Reasoning", "sh:order": 2 },
+    { "@id": "rlg:PlacementGroup", "@type": "sh:PropertyGroup", "rdfs:label": "What it governs", "sh:order": 3 },
+
+    {
+      "@id": "rlg:DecisionShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "rlg:Decision" },
+      "rdfs:label": "Decision Shape",
+      "sempkm:editHelpText": "One recorded decision. Decisions are append-only: to change your mind, record a new one and point the old one at it with 'Superseded by' rather than editing what was decided.",
+      "sh:property": [
+        { "sh:path": { "@id": "dcterms:identifier" }, "sh:name": "Code", "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 1, "sh:group": { "@id": "rlg:DecisionGroup" },
+          "sh:description": "The gsd code, e.g. D283." },
+        { "sh:path": { "@id": "dcterms:title" }, "sh:name": "Decision", "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 2, "sh:group": { "@id": "rlg:DecisionGroup" },
+          "sh:description": "What was decided, in one line." },
+        { "sh:path": { "@id": "rlg:scope" }, "sh:name": "Scope", "sh:class": { "@id": "rlg:Scope" },
+          "sh:maxCount": 1, "sh:order": 3, "sh:group": { "@id": "rlg:DecisionGroup" } },
+        { "sh:path": { "@id": "rlg:decidedDuring" }, "sh:name": "Milestone", "sh:class": { "@id": "rlg:Milestone" },
+          "sh:maxCount": 1, "sh:order": 4, "sh:group": { "@id": "rlg:DecisionGroup" } },
+        { "sh:path": { "@id": "rlg:sourceDocument" }, "sh:name": "Source", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 5, "sh:group": { "@id": "rlg:DecisionGroup" },
+          "sh:description": "The markdown file this row was parsed from." },
+
+        { "sh:path": { "@id": "rlg:rationale" }, "sh:name": "Rationale", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 1, "sh:group": { "@id": "rlg:ReasoningGroup" },
+          "sempkm:editHelpText": "Why. This is the part that ages, and the part people search when they are about to undo something." },
+        { "sh:path": { "@id": "rlg:supersededBy" }, "sh:name": "Superseded by", "sh:class": { "@id": "rlg:Decision" },
+          "sh:maxCount": 1, "sh:order": 2, "sh:group": { "@id": "rlg:ReasoningGroup" } },
+
+        { "sh:path": { "@id": "rlg:governs" }, "sh:name": "Governs", "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 1, "sh:group": { "@id": "rlg:PlacementGroup" },
+          "sh:description": "The part, file or symbol this decision is about.",
+          "sempkm:editHelpText": "Where a link was guessed from a word in the decision text rather than declared, the guess is recorded as a Decision link with the word that caused it, so a wrong one is visible. Correcting it here is what makes the guess an assertion." }
+      ]
+    },
+
+    {
+      "@id": "rlg:RuleShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "rlg:Rule" },
+      "rdfs:label": "Rule Shape",
+      "sempkm:editHelpText": "A standing constraint. A rule with a runnable command can be enforced; the rest are advisory, and saying so is better than implying enforcement that does not exist.",
+      "sh:property": [
+        { "sh:path": { "@id": "dcterms:identifier" }, "sh:name": "Code", "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 1, "sh:group": { "@id": "rlg:DecisionGroup" } },
+        { "sh:path": { "@id": "dcterms:title" }, "sh:name": "Rule", "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 2, "sh:group": { "@id": "rlg:DecisionGroup" } },
+        { "sh:path": { "@id": "rlg:checkable" }, "sh:name": "Checkable", "sh:datatype": { "@id": "xsd:boolean" },
+          "sh:maxCount": 1, "sh:order": 3, "sh:group": { "@id": "rlg:DecisionGroup" } },
+        { "sh:path": { "@id": "rlg:command" }, "sh:name": "Command", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 4, "sh:group": { "@id": "rlg:DecisionGroup" } },
+        { "sh:path": { "@id": "rlg:rationale" }, "sh:name": "Why", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 1, "sh:group": { "@id": "rlg:ReasoningGroup" } },
+        { "sh:path": { "@id": "rlg:constrains" }, "sh:name": "Constrains", "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 1, "sh:group": { "@id": "rlg:PlacementGroup" } }
+      ]
+    },
+
+    {
+      "@id": "rlg:DecisionLinkShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "rlg:DecisionLink" },
+      "rdfs:label": "Decision link Shape",
+      "sempkm:editHelpText": "A decision attached to something, with how the attachment came about. Guessed links carry the word that caused the match; a link a person made carries no word and is marked authored.",
+      "sh:property": [
+        { "sh:path": { "@id": "rl:source" }, "sh:name": "Decision", "sh:class": { "@id": "rlg:Decision" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 1, "sh:group": { "@id": "rlg:DecisionGroup" } },
+        { "sh:path": { "@id": "rl:target" }, "sh:name": "Governs", "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 2, "sh:group": { "@id": "rlg:DecisionGroup" } },
+        { "sh:path": { "@id": "rl:provenance" }, "sh:name": "Provenance", "sh:class": { "@id": "rl:Provenance" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 3, "sh:group": { "@id": "rlg:DecisionGroup" } },
+        { "sh:path": { "@id": "rlg:matchedWord" }, "sh:name": "Matched word", "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 1, "sh:group": { "@id": "rlg:ReasoningGroup" },
+          "sh:description": "Empty on a link a person made." }
+      ]
+    }
+  ]
+}

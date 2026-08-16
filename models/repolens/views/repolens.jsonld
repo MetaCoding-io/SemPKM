@@ -1,0 +1,144 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "schema": "https://schema.org/",
+    "sempkm": "urn:sempkm:vocab:",
+    "rl": "urn:sempkm:model:repolens:"
+  },
+  "@graph": [
+    {
+      "@id": "rl:view-part-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Parts",
+      "sempkm:targetClass": { "@id": "rl:Part" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?short ?key ?group ?layer WHERE { ?s a <urn:sempkm:model:repolens:Part> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:repolens:shortName> ?short } . OPTIONAL { ?s <urn:sempkm:model:repolens:key> ?key } . OPTIONAL { ?s <urn:sempkm:model:repolens:inGroup> ?g . ?g <http://www.w3.org/2000/01/rdf-schema#label> ?group } . OPTIONAL { ?s <urn:sempkm:model:repolens:inLayer> ?l . ?l <http://www.w3.org/2000/01/rdf-schema#label> ?layer } }",
+      "sempkm:columns": "title,short,key,group,layer",
+      "sempkm:sortDefault": "title"
+    },
+    {
+      "@id": "rl:view-part-card",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Parts as cards",
+      "sempkm:targetClass": { "@id": "rl:Part" },
+      "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?description WHERE { ?s a <urn:sempkm:model:repolens:Part> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <http://purl.org/dc/terms/description> ?description } }",
+      "sempkm:cardTitle": "http://purl.org/dc/terms/title",
+      "sempkm:cardSubtitle": "http://purl.org/dc/terms/description"
+    },
+    {
+      "@id": "rl:view-part-graph",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Parts and what they import",
+      "sempkm:targetClass": { "@id": "rl:Part" },
+      "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?s a <urn:sempkm:model:repolens:Part> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:repolens:imports> ?t . ?t <http://purl.org/dc/terms/title> ?ttitle } WHERE { ?s a <urn:sempkm:model:repolens:Part> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:repolens:imports> ?t . ?t <http://purl.org/dc/terms/title> ?ttitle } }"
+    },
+
+    {
+      "@id": "rl:view-file-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Files",
+      "sempkm:targetClass": { "@id": "rl:File" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?path ?language ?part WHERE { ?s a <urn:sempkm:model:repolens:File> ; <urn:sempkm:model:repolens:path> ?path . OPTIONAL { ?s <urn:sempkm:model:repolens:language> ?language } . OPTIONAL { ?s <urn:sempkm:model:repolens:fileOf> ?p . ?p <http://purl.org/dc/terms/title> ?part } }",
+      "sempkm:columns": "path,language,part",
+      "sempkm:sortDefault": "path"
+    },
+
+    {
+      "@id": "rl:view-symbol-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Symbols",
+      "sempkm:targetClass": { "@id": "rl:Symbol" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?kind ?path ?startLine WHERE { ?s a <urn:sempkm:model:repolens:Symbol> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:repolens:symbolKind> ?kind } . OPTIONAL { ?s <urn:sempkm:model:repolens:definedIn> ?f . ?f <urn:sempkm:model:repolens:path> ?path } . OPTIONAL { ?s <urn:sempkm:model:repolens:startLine> ?startLine } }",
+      "sempkm:columns": "title,kind,path,startLine",
+      "sempkm:sortDefault": "path"
+    },
+    {
+      "@id": "rl:view-symbol-graph",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Call graph",
+      "sempkm:targetClass": { "@id": "rl:Symbol" },
+      "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?s a <urn:sempkm:model:repolens:Symbol> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:repolens:calls> ?t . ?t <http://purl.org/dc/terms/title> ?ttitle } WHERE { ?s a <urn:sempkm:model:repolens:Symbol> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:repolens:calls> ?t . ?t <http://purl.org/dc/terms/title> ?ttitle }"
+    },
+
+    {
+      "@id": "rl:view-finding-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Findings by severity",
+      "sempkm:targetClass": { "@id": "rl:Finding" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?rank ?severity ?title ?about ?provenance WHERE { ?s a <urn:sempkm:model:repolens:Finding> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:repolens:severity> ?sev . ?sev <http://www.w3.org/2000/01/rdf-schema#label> ?severity ; <https://schema.org/position> ?rank . OPTIONAL { ?s <urn:sempkm:model:repolens:about> ?a . ?a <http://purl.org/dc/terms/title> ?about } . OPTIONAL { ?s <urn:sempkm:model:repolens:provenance> ?pv . ?pv <http://www.w3.org/2000/01/rdf-schema#label> ?provenance } } ORDER BY ?rank",
+      "sempkm:columns": "rank,severity,title,about,provenance",
+      "sempkm:sortDefault": "rank"
+    },
+    {
+      "@id": "rl:view-check-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Checks",
+      "sempkm:targetClass": { "@id": "rl:Check" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?kind ?passed ?expected ?actual WHERE { ?s a <urn:sempkm:model:repolens:Check> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:repolens:checkKind> ?kind } . OPTIONAL { ?s <urn:sempkm:model:repolens:passed> ?passed } . OPTIONAL { ?s <urn:sempkm:model:repolens:expected> ?expected } . OPTIONAL { ?s <urn:sempkm:model:repolens:actual> ?actual } }",
+      "sempkm:columns": "title,kind,passed,expected,actual",
+      "sempkm:sortDefault": "title"
+    },
+
+    {
+      "@id": "rl:view-connection-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Connections by source",
+      "sempkm:targetClass": { "@id": "rl:Connection" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?from ?to ?carries ?flow WHERE { ?s a <urn:sempkm:model:repolens:Connection> ; <urn:sempkm:model:repolens:source> ?src ; <urn:sempkm:model:repolens:target> ?tgt . OPTIONAL { ?src <http://purl.org/dc/terms/title> ?from } . OPTIONAL { ?tgt <http://purl.org/dc/terms/title> ?to } . OPTIONAL { ?s <http://purl.org/dc/terms/title> ?carries } . OPTIONAL { ?s <urn:sempkm:model:repolens:flow> ?fl . ?fl <http://www.w3.org/2000/01/rdf-schema#label> ?flow } } ORDER BY ?from ?to",
+      "sempkm:columns": "from,to,carries,flow",
+      "sempkm:sortDefault": "from"
+    },
+
+    {
+      "@id": "rl:view-occurrence-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Occurrences",
+      "sempkm:targetClass": { "@id": "rl:Occurrence" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?query ?path ?line ?snippet WHERE { ?s a <urn:sempkm:model:repolens:Occurrence> . OPTIONAL { ?s <urn:sempkm:model:repolens:matches> ?q . ?q <http://www.w3.org/2000/01/rdf-schema#label> ?query } . OPTIONAL { ?s <urn:sempkm:model:repolens:occursIn> ?f . ?f <urn:sempkm:model:repolens:path> ?path } . OPTIONAL { ?s <urn:sempkm:model:repolens:lineNumber> ?line } . OPTIONAL { ?s <urn:sempkm:model:repolens:snippet> ?snippet } } ORDER BY ?path ?line",
+      "sempkm:columns": "query,path,line,snippet",
+      "sempkm:sortDefault": "path"
+    },
+
+    {
+      "@id": "rl:layout-survey",
+      "@type": "sempkm:LayoutAlgorithm",
+      "rdfs:label": "Survey",
+      "sempkm:layoutName": "repolens-survey",
+      "sempkm:layoutConfig": "{\"base\":\"fcose\",\"groupBy\":\"urn:sempkm:model:repolens:inGroup\",\"sizeBy\":\"lines\",\"note\":\"Parts laid out as a plot of ground, sized by lines of code.\"}"
+    },
+    {
+      "@id": "rl:layout-tiers",
+      "@type": "sempkm:LayoutAlgorithm",
+      "rdfs:label": "Tiers",
+      "sempkm:layoutName": "repolens-tiers",
+      "sempkm:layoutConfig": "{\"base\":\"dagre\",\"rankBy\":\"urn:sempkm:model:repolens:inTier\",\"note\":\"One band per tier, stacked in request order.\"}"
+    },
+    {
+      "@id": "rl:layout-volatility",
+      "@type": "sempkm:LayoutAlgorithm",
+      "rdfs:label": "Volatility",
+      "sempkm:layoutName": "repolens-volatility",
+      "sempkm:layoutConfig": "{\"base\":\"dagre\",\"rankBy\":\"urn:sempkm:model:repolens:inLayer\",\"note\":\"Lowy layering: clients, managers, engines, resource access, resources.\"}"
+    },
+    {
+      "@id": "rl:layout-rings",
+      "@type": "sempkm:LayoutAlgorithm",
+      "rdfs:label": "Rings",
+      "sempkm:layoutName": "repolens-rings",
+      "sempkm:layoutConfig": "{\"base\":\"concentric\",\"rankBy\":\"degree\",\"note\":\"Most connected in the middle.\"}"
+    }
+  ]
+}

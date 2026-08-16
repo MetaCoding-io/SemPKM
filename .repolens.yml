@@ -270,7 +270,16 @@ model:
 
 # ---------------------------------------------------------------- pipelines
 # Named stage orders. Add a stage module, name it here, and it runs.
+# ------------------------------------------------------------------- graph
+# The Turtle emitted for SemPKM. Contributors are registered in rdf/, and each
+# one is skipped when the facts it needs are absent — a repo without .gsd just
+# produces a graph with no decisions in it.
+graph:
+  base: "urn:repolens:sempkm:"
+  file: repo.ttl
+
 pipelines:
   scan:  [discover, loc, overlay, nodesets, callsites, routes, signals, imports, tests, conventions, checks]
   build: [discover, loc, overlay, nodesets, drilldown, symbols, callsites, routes, signals, imports, tests, conventions, checks, assemble, verify, emit]
+  graph: [discover, loc, overlay, nodesets, drilldown, symbols, callsites, routes, signals, imports, tests, conventions, checks, assemble, verify, graph]
   check: [discover, loc, overlay, nodesets, callsites, signals, conventions, checks]

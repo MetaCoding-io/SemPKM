@@ -4,6 +4,7 @@ Turns a repository into an inspectable drawing, and keeps that drawing honest.
 
 ```bash
 python3 -m tools.repolens build      # facts + model + a self-contained page
+python3 -m tools.repolens graph      # the same facts as Turtle, for a triplestore
 python3 -m tools.repolens serve      # the page, with its edits writable
 python3 -m tools.repolens check      # conventions; exit 1 on regression
 python3 -m tools.repolens baseline   # accept today's findings as known
@@ -263,6 +264,52 @@ pipelines:
 
 Nothing in `tools/repolens/` mentions SemPKM. The page title, headline, tagline
 and stat tiles all come from config; the template carries no repo name.
+
+## As a graph
+
+`repolens graph` writes `.repolens/repo.ttl` in the RepoLens vocabulary. It
+re-measures nothing — it runs after `assemble` and serialises the same facts
+the drawing uses. On this repository that is **35,871 triples**: 33 parts, 545
+files, 2,128 symbols, 194 connections, 616 measurements, 12 findings, 408
+decisions and 455 decision links.
+
+Emission is a registry, the same way stages and resolvers are. Each contributor
+declares which facts it needs and is skipped when they are absent, so a
+repository with no `.gsd` directory produces a graph with no decisions in it
+rather than an error:
+
+```
+# contributors: repository, parts, files, symbols, connections, claims
+# skipped (no facts): occurrences, findings, gsd-decisions, gsd-rules, gsd-links
+```
+
+`rdf/core.py` knows nothing about gsd and `rdf/gsd.py` knows nothing about how
+files are counted. Adding a contributor is a module, a `@contributor`
+decorator and an import.
+
+Turtle is written by hand rather than through rdflib, because the CLI has no
+dependency beyond PyYAML and what we emit has no blank nodes and no
+collections. What does need care is literal escaping, and that is done in one
+place in `rdf/writer.py`.
+
+Two mental models consume it, under `models/`:
+
+| | |
+|---|---|
+| `repolens` | The core vocabulary — repository, part, file, symbol, connection, measurement, claim, check, finding — with SHACL shapes and ten view specs. |
+| `repolens-gsd` | Decisions, rules and milestones, and the link from a decision to what it governs. Install it only for a repository that keeps a `.gsd` directory. |
+
+Both subclass **gist**, which ships with SemPKM: a part is a `gist:Component`,
+a finding is a `gist:Determination`, a measurement is a `gist:Magnitude`, a
+connection is a `gist:NetworkLink`. Provenance follows PROV-O. Alignment to
+CodeOntology, SEON and SARIF is recorded with `rdfs:seeAlso` rather than
+asserted as equivalence — their term IRIs could not be verified from this
+environment, and a wrong `owl:equivalentClass` is worse than an honest note.
+
+`tools/repolens/verify_graph.py` runs the three against each other: every
+predicate the exporter emits must be declared in the ontology, and every view
+must return rows against a real graph. It needs rdflib, which the CLI does not
+— it is a development check, not part of producing a graph.
 
 ## Known edges
 

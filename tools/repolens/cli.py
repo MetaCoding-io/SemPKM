@@ -181,7 +181,8 @@ def cmd_stages(args) -> int:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="repolens")
     ap.add_argument("command",
-                    choices=["scan", "build", "check", "baseline", "serve", "stages"])
+                    choices=["scan", "build", "graph", "check", "baseline", "serve",
+                             "stages"])
     ap.add_argument("--root", default=".")
     ap.add_argument("--config", default=None)
     ap.add_argument("--only", nargs="*", help="run only these stages")

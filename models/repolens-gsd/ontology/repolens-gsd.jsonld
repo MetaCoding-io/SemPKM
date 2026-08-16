@@ -1,0 +1,83 @@
+{
+  "@context": {
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "schema": "https://schema.org/",
+    "dcterms": "http://purl.org/dc/terms/",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "prov": "http://www.w3.org/ns/prov#",
+    "gist": "https://w3id.org/semanticarts/ns/ontology/gist/",
+    "rl": "urn:sempkm:model:repolens:",
+    "rlg": "urn:sempkm:model:repolens-gsd:"
+  },
+  "@graph": [
+    {
+      "@id": "rlg:ontology",
+      "@type": "owl:Ontology",
+      "rdfs:label": "RepoLens · gsd Ontology",
+      "dcterms:description": "The decisions and rules a gsd-managed repository records about itself, and the link from a decision to the part of the code it governs. Separate from the core vocabulary because none of it is about code: a repository without gsd should install the core model and stop there.",
+      "owl:imports": { "@id": "rl:ontology" },
+      "rdfs:comment": "There is no widely adopted RDF vocabulary for architecture decision records — the ADR community standardised on a markdown template, not a schema. These terms are therefore defined here rather than imported, and aligned to gist: a decision is a determination, a rule is a requirement."
+    },
+
+    { "@id": "rlg:Decision", "@type": "owl:Class", "rdfs:label": "Decision",
+      "rdfs:comment": "One recorded architectural decision: what was decided, why, and when. The statement goes in dcterms:title because it is the thing you read in a list.",
+      "rdfs:subClassOf": { "@id": "gist:Determination" } },
+
+    { "@id": "rlg:Rule", "@type": "owl:Class", "rdfs:label": "Rule",
+      "rdfs:comment": "A standing constraint the repository holds itself to. A rule that carries a runnable command is checkable; the rest are advisory, and are marked so rather than being presented as if they were enforced.",
+      "rdfs:subClassOf": { "@id": "gist:Requirement" } },
+
+    { "@id": "rlg:Milestone", "@type": "owl:Class", "rdfs:label": "Milestone",
+      "rdfs:comment": "The unit of work a decision was taken during, e.g. M030/S03/T04.",
+      "rdfs:subClassOf": { "@id": "gist:Task" } },
+
+    { "@id": "rlg:Scope", "@type": "owl:Class", "rdfs:label": "Scope",
+      "rdfs:comment": "The gsd scope label on a decision — arch, tech, UX, scope.",
+      "rdfs:subClassOf": { "@id": "gist:Category" } },
+
+    { "@id": "rlg:DecisionLink", "@type": "owl:Class", "rdfs:label": "Decision link",
+      "rdfs:comment": "A decision attached to a part, file or symbol, as a resource rather than a bare triple, because how the attachment came about matters. A guessed link carries the word that caused the match; a hand-made one carries who made it. Use rlg:governs directly where that does not matter.",
+      "rdfs:subClassOf": { "@id": "rl:Connection" } },
+
+    { "@id": "rlg:governs", "@type": "owl:ObjectProperty", "rdfs:label": "governs",
+      "rdfs:comment": "The direct form: this decision is about that thing.",
+      "rdfs:domain": { "@id": "rlg:Decision" },
+      "rdfs:subPropertyOf": { "@id": "rl:about" } },
+
+    { "@id": "rlg:constrains", "@type": "owl:ObjectProperty", "rdfs:label": "constrains",
+      "rdfs:domain": { "@id": "rlg:Rule" },
+      "rdfs:subPropertyOf": { "@id": "rl:about" } },
+
+    { "@id": "rlg:decidedDuring", "@type": "owl:ObjectProperty", "rdfs:label": "decided during",
+      "rdfs:domain": { "@id": "rlg:Decision" }, "rdfs:range": { "@id": "rlg:Milestone" } },
+
+    { "@id": "rlg:scope", "@type": "owl:ObjectProperty", "rdfs:label": "scope",
+      "rdfs:domain": { "@id": "rlg:Decision" }, "rdfs:range": { "@id": "rlg:Scope" } },
+
+    { "@id": "rlg:supersededBy", "@type": "owl:ObjectProperty", "rdfs:label": "superseded by",
+      "rdfs:comment": "Decisions are append-only; a later one replaces an earlier one rather than editing it.",
+      "rdfs:domain": { "@id": "rlg:Decision" }, "rdfs:range": { "@id": "rlg:Decision" } },
+
+    { "@id": "rlg:matchedWord", "@type": "owl:DatatypeProperty", "rdfs:label": "matched word",
+      "rdfs:comment": "The distinctive word whose appearance in the decision text caused a guessed link. Recorded so a wrong guess is visible instead of mysterious.",
+      "rdfs:domain": { "@id": "rlg:DecisionLink" }, "rdfs:range": { "@id": "xsd:string" } },
+
+    { "@id": "rlg:rationale", "@type": "owl:DatatypeProperty", "rdfs:label": "rationale",
+      "rdfs:comment": "Why. Kept apart from dcterms:description because the reasoning is the part that ages, and it is the part people search.",
+      "rdfs:range": { "@id": "xsd:string" } },
+
+    { "@id": "rlg:checkable", "@type": "owl:DatatypeProperty", "rdfs:label": "checkable",
+      "rdfs:domain": { "@id": "rlg:Rule" }, "rdfs:range": { "@id": "xsd:boolean" } },
+
+    { "@id": "rlg:command", "@type": "owl:DatatypeProperty", "rdfs:label": "command",
+      "rdfs:comment": "The shell command that decides whether the rule holds.",
+      "rdfs:domain": { "@id": "rlg:Rule" }, "rdfs:range": { "@id": "xsd:string" } },
+
+    { "@id": "rlg:sourceDocument", "@type": "owl:DatatypeProperty", "rdfs:label": "source document",
+      "rdfs:comment": "The markdown table the row was parsed from, so the graph can be traced back to the file a person edits.",
+      "rdfs:range": { "@id": "xsd:string" } }
+  ]
+}

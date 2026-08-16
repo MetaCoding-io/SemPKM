@@ -1,0 +1,71 @@
+{
+  "@context": {
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "sempkm": "urn:sempkm:vocab:",
+    "rl": "urn:sempkm:model:repolens:",
+    "rlg": "urn:sempkm:model:repolens-gsd:"
+  },
+  "@graph": [
+    {
+      "@id": "rlg:view-decision-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Decisions",
+      "sempkm:targetClass": { "@id": "rlg:Decision" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?code ?title ?scope ?milestone WHERE { ?s a <urn:sempkm:model:repolens-gsd:Decision> ; <http://purl.org/dc/terms/identifier> ?code ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:repolens-gsd:scope> ?sc . ?sc <http://www.w3.org/2000/01/rdf-schema#label> ?scope } . OPTIONAL { ?s <urn:sempkm:model:repolens-gsd:decidedDuring> ?m . ?m <http://www.w3.org/2000/01/rdf-schema#label> ?milestone } } ORDER BY ?code",
+      "sempkm:columns": "code,title,scope,milestone",
+      "sempkm:sortDefault": "code"
+    },
+    {
+      "@id": "rlg:view-decision-card",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Decisions as cards",
+      "sempkm:targetClass": { "@id": "rlg:Decision" },
+      "sempkm:rendererType": "card",
+      "sempkm:sparqlQuery": "SELECT ?s ?title ?rationale WHERE { ?s a <urn:sempkm:model:repolens-gsd:Decision> ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:repolens-gsd:rationale> ?rationale } }",
+      "sempkm:cardTitle": "http://purl.org/dc/terms/title",
+      "sempkm:cardSubtitle": "urn:sempkm:model:repolens-gsd:rationale"
+    },
+    {
+      "@id": "rlg:view-decision-unplaced",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Decisions nothing is linked to",
+      "sempkm:targetClass": { "@id": "rlg:Decision" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?code ?title ?scope WHERE { ?s a <urn:sempkm:model:repolens-gsd:Decision> ; <http://purl.org/dc/terms/identifier> ?code ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:repolens-gsd:scope> ?sc . ?sc <http://www.w3.org/2000/01/rdf-schema#label> ?scope } . FILTER NOT EXISTS { ?s <urn:sempkm:model:repolens-gsd:governs> ?any } } ORDER BY ?code",
+      "sempkm:columns": "code,title,scope",
+      "sempkm:sortDefault": "code"
+    },
+    {
+      "@id": "rlg:view-decision-graph",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Decisions over the code",
+      "sempkm:targetClass": { "@id": "rlg:Decision" },
+      "sempkm:rendererType": "graph",
+      "sempkm:sparqlQuery": "CONSTRUCT { ?s a <urn:sempkm:model:repolens-gsd:Decision> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:repolens-gsd:governs> ?t . ?t <http://purl.org/dc/terms/title> ?ttitle } WHERE { ?s a <urn:sempkm:model:repolens-gsd:Decision> ; <http://purl.org/dc/terms/title> ?title ; <urn:sempkm:model:repolens-gsd:governs> ?t . ?t <http://purl.org/dc/terms/title> ?ttitle }"
+    },
+    {
+      "@id": "rlg:view-guessed-links",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Links that were guessed",
+      "sempkm:targetClass": { "@id": "rlg:DecisionLink" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?code ?decision ?governs (GROUP_CONCAT(?wd; separator=\", \") AS ?word) WHERE { ?s a <urn:sempkm:model:repolens-gsd:DecisionLink> ; <urn:sempkm:model:repolens:source> ?d ; <urn:sempkm:model:repolens:target> ?t ; <urn:sempkm:model:repolens:provenance> <urn:sempkm:model:repolens:measured> . ?d <http://purl.org/dc/terms/identifier> ?code ; <http://purl.org/dc/terms/title> ?decision . OPTIONAL { ?t <http://purl.org/dc/terms/title> ?governs } . OPTIONAL { ?s <urn:sempkm:model:repolens-gsd:matchedWord> ?wd } } GROUP BY ?s ?code ?decision ?governs ORDER BY ?code",
+      "sempkm:columns": "code,decision,governs,word",
+      "sempkm:sortDefault": "code"
+    },
+    {
+      "@id": "rlg:view-rule-table",
+      "@type": "sempkm:ViewSpec",
+      "rdfs:label": "Rules",
+      "sempkm:targetClass": { "@id": "rlg:Rule" },
+      "sempkm:rendererType": "table",
+      "sempkm:sparqlQuery": "SELECT ?s ?code ?title ?checkable (GROUP_CONCAT(?c; separator=\" ; \") AS ?command) WHERE { ?s a <urn:sempkm:model:repolens-gsd:Rule> ; <http://purl.org/dc/terms/identifier> ?code ; <http://purl.org/dc/terms/title> ?title . OPTIONAL { ?s <urn:sempkm:model:repolens-gsd:checkable> ?checkable } . OPTIONAL { ?s <urn:sempkm:model:repolens-gsd:command> ?c } } GROUP BY ?s ?code ?title ?checkable ORDER BY ?code",
+      "sempkm:columns": "code,title,checkable,command",
+      "sempkm:sortDefault": "code"
+    }
+  ]
+}

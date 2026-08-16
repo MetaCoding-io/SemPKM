@@ -1,0 +1,72 @@
+modelId: repolens
+version: "0.1.0"
+name: "RepoLens"
+description: "A repository as a knowledge graph: parts, files and symbols, the connections between them, what was measured, and what was concluded. Load a .ttl produced by the repolens exporter and browse it with the normal explorer, views and edge tools."
+namespace: "urn:sempkm:model:repolens:"
+prefixes:
+  rl: "urn:sempkm:model:repolens:"
+entrypoints:
+  ontology: "ontology/repolens.jsonld"
+  shapes: "shapes/repolens.jsonld"
+  views: "views/repolens.jsonld"
+  seed: null
+entailment_defaults:
+  owl_inverseOf: true
+  rdfs_subClassOf: false
+  rdfs_subPropertyOf: false
+  owl_TransitiveProperty: false
+  rdfs_domain_range: false
+  shacl_rules: false
+icons:
+  - type: "rl:Repository"
+    icon: "package"
+    color: "#8d2c0e"
+    tree: { icon: "package", color: "#8d2c0e", size: 16 }
+    tab: { icon: "package", color: "#8d2c0e", size: 14 }
+    graph: { icon: "package", color: "#8d2c0e" }
+  - type: "rl:Part"
+    icon: "box"
+    color: "#a8703f"
+    tree: { icon: "box", color: "#a8703f", size: 16 }
+    tab: { icon: "box", color: "#a8703f", size: 14 }
+    graph: { icon: "box", color: "#a8703f" }
+  - type: "rl:File"
+    icon: "file-code"
+    color: "#5b6f92"
+    tree: { icon: "file-code", color: "#5b6f92", size: 16 }
+    tab: { icon: "file-code", color: "#5b6f92", size: 14 }
+    graph: { icon: "file-code", color: "#5b6f92" }
+  - type: "rl:Symbol"
+    icon: "function-square"
+    color: "#3f7d7a"
+    tree: { icon: "function-square", color: "#3f7d7a", size: 16 }
+    tab: { icon: "function-square", color: "#3f7d7a", size: 14 }
+    graph: { icon: "function-square", color: "#3f7d7a" }
+  - type: "rl:Finding"
+    icon: "alert-triangle"
+    color: "#9c4b3c"
+    tree: { icon: "alert-triangle", color: "#9c4b3c", size: 16 }
+    tab: { icon: "alert-triangle", color: "#9c4b3c", size: 14 }
+    graph: { icon: "alert-triangle", color: "#9c4b3c" }
+  - type: "rl:Check"
+    icon: "shield-check"
+    color: "#5f7f4e"
+    tree: { icon: "shield-check", color: "#5f7f4e", size: 16 }
+    tab: { icon: "shield-check", color: "#5f7f4e", size: 14 }
+    graph: { icon: "shield-check", color: "#5f7f4e" }
+  - type: "rl:Connection"
+    icon: "git-branch"
+    color: "#6d6851"
+    tree: { icon: "git-branch", color: "#6d6851", size: 16 }
+    tab: { icon: "git-branch", color: "#6d6851", size: 14 }
+    graph: { icon: "git-branch", color: "#6d6851" }
+  # Measurements and occurrences are numerous and are read through their
+  # subject, not browsed directly.
+  - type: "rl:Measurement"
+    icon: "ruler"
+    color: "#8a7a3c"
+    browserVisible: false
+  - type: "rl:Occurrence"
+    icon: "crosshair"
+    color: "#8a7a3c"
+    browserVisible: false

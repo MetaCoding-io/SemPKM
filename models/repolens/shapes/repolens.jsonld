@@ -1,0 +1,212 @@
+{
+  "@context": {
+    "sh": "http://www.w3.org/ns/shacl#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "schema": "https://schema.org/",
+    "sempkm": "urn:sempkm:vocab:",
+    "rl": "urn:sempkm:model:repolens:"
+  },
+  "@graph": [
+    { "@id": "rl:IdentityGroup", "@type": "sh:PropertyGroup", "rdfs:label": "Identity", "sh:order": 1 },
+    { "@id": "rl:MeasuredGroup", "@type": "sh:PropertyGroup", "rdfs:label": "Measured", "sh:order": 2 },
+    { "@id": "rl:ProseGroup", "@type": "sh:PropertyGroup", "rdfs:label": "Prose", "sh:order": 3 },
+    { "@id": "rl:PlacementGroup", "@type": "sh:PropertyGroup", "rdfs:label": "Placement", "sh:order": 4 },
+
+    {
+      "@id": "rl:RepositoryShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "rl:Repository" },
+      "rdfs:label": "Repository Shape",
+      "sempkm:editHelpText": "One repository at one revision. Everything else in the graph hangs off this, so there is normally exactly one per named graph.",
+      "sh:property": [
+        { "sh:path": { "@id": "dcterms:title" }, "sh:name": "Name", "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 1, "sh:group": { "@id": "rl:IdentityGroup" },
+          "sh:description": "What the repository is called." },
+        { "sh:path": { "@id": "rl:revision" }, "sh:name": "Revision", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 2, "sh:group": { "@id": "rl:IdentityGroup" },
+          "sh:description": "The commit this scan read.",
+          "sempkm:editHelpText": "A graph without a revision cannot be compared with a later one, which is most of the value." },
+        { "sh:path": { "@id": "schema:codeRepository" }, "sh:name": "Repository URL", "sh:datatype": { "@id": "xsd:anyURI" },
+          "sh:maxCount": 1, "sh:order": 3, "sh:group": { "@id": "rl:IdentityGroup" } },
+        { "sh:path": { "@id": "dcterms:description" }, "sh:name": "Description", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 4, "sh:group": { "@id": "rl:ProseGroup" } }
+      ]
+    },
+
+    {
+      "@id": "rl:PartShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "rl:Part" },
+      "rdfs:label": "Part Shape",
+      "sempkm:editHelpText": "A named area of the repository. Which files belong to it is declared by glob rather than derived, because what counts as a part is an editorial judgement — the tool should not pretend to have made it.",
+      "sh:property": [
+        { "sh:path": { "@id": "dcterms:title" }, "sh:name": "Name", "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 1, "sh:group": { "@id": "rl:IdentityGroup" } },
+        { "sh:path": { "@id": "rl:shortName" }, "sh:name": "Short name", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 2, "sh:group": { "@id": "rl:IdentityGroup" },
+          "sh:description": "What fits on the box when the drawing is small." },
+        { "sh:path": { "@id": "rl:key" }, "sh:name": "Key", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 3, "sh:group": { "@id": "rl:IdentityGroup" } },
+        { "sh:path": { "@id": "rl:memberGlob" }, "sh:name": "Member globs", "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 4, "sh:group": { "@id": "rl:IdentityGroup" },
+          "sh:description": "One or more path patterns. Every file matching any of them belongs to this part." },
+        { "sh:path": { "@id": "rl:partOf" }, "sh:name": "Repository", "sh:class": { "@id": "rl:Repository" },
+          "sh:maxCount": 1, "sh:order": 5, "sh:group": { "@id": "rl:IdentityGroup" } },
+
+        { "sh:path": { "@id": "dcterms:description" }, "sh:name": "What it does", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 1, "sh:group": { "@id": "rl:ProseGroup" },
+          "sempkm:editHelpText": "One paragraph a newcomer could read. Authored — a scanner cannot write this and should not try." },
+        { "sh:path": { "@id": "skos:note" }, "sh:name": "How it's built", "sh:datatype": { "@id": "xsd:string" },
+          "sh:order": 2, "sh:group": { "@id": "rl:ProseGroup" } },
+
+        { "sh:path": { "@id": "rl:inGroup" }, "sh:name": "Group", "sh:class": { "@id": "rl:Group" },
+          "sh:maxCount": 1, "sh:order": 1, "sh:group": { "@id": "rl:PlacementGroup" },
+          "sh:description": "Colours the part, independently of tier and layer." },
+        { "sh:path": { "@id": "rl:inTier" }, "sh:name": "Tier", "sh:class": { "@id": "rl:Tier" },
+          "sh:maxCount": 1, "sh:order": 2, "sh:group": { "@id": "rl:PlacementGroup" } },
+        { "sh:path": { "@id": "rl:inLayer" }, "sh:name": "Löwy layer", "sh:class": { "@id": "rl:Layer" },
+          "sh:maxCount": 1, "sh:order": 3, "sh:group": { "@id": "rl:PlacementGroup" } }
+      ]
+    },
+
+    {
+      "@id": "rl:FileShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "rl:File" },
+      "rdfs:label": "File Shape",
+      "sh:property": [
+        { "sh:path": { "@id": "rl:path" }, "sh:name": "Path", "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 1, "sh:group": { "@id": "rl:IdentityGroup" },
+          "sh:description": "Repository-relative, and the file's identity." },
+        { "sh:path": { "@id": "dcterms:title" }, "sh:name": "Name", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 2, "sh:group": { "@id": "rl:IdentityGroup" } },
+        { "sh:path": { "@id": "rl:language" }, "sh:name": "Language", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 3, "sh:group": { "@id": "rl:IdentityGroup" } },
+        { "sh:path": { "@id": "rl:fileOf" }, "sh:name": "Part", "sh:class": { "@id": "rl:Part" },
+          "sh:maxCount": 1, "sh:order": 4, "sh:group": { "@id": "rl:IdentityGroup" } }
+      ]
+    },
+
+    {
+      "@id": "rl:SymbolShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "rl:Symbol" },
+      "rdfs:label": "Symbol Shape",
+      "sempkm:editHelpText": "A function, class or method. Where the language has no parser here, the line span comes from brace counting and the symbol says so.",
+      "sh:property": [
+        { "sh:path": { "@id": "dcterms:title" }, "sh:name": "Name", "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 1, "sh:group": { "@id": "rl:IdentityGroup" } },
+        { "sh:path": { "@id": "rl:symbolKind" }, "sh:name": "Kind", "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["function", "class", "method"] },
+          "sh:maxCount": 1, "sh:order": 2, "sh:group": { "@id": "rl:IdentityGroup" } },
+        { "sh:path": { "@id": "rl:definedIn" }, "sh:name": "File", "sh:class": { "@id": "rl:File" },
+          "sh:maxCount": 1, "sh:order": 3, "sh:group": { "@id": "rl:IdentityGroup" } },
+        { "sh:path": { "@id": "rl:enclosedBy" }, "sh:name": "Enclosing class", "sh:class": { "@id": "rl:Symbol" },
+          "sh:maxCount": 1, "sh:order": 4, "sh:group": { "@id": "rl:IdentityGroup" } },
+        { "sh:path": { "@id": "rl:startLine" }, "sh:name": "Start line", "sh:datatype": { "@id": "xsd:integer" },
+          "sh:maxCount": 1, "sh:order": 1, "sh:group": { "@id": "rl:MeasuredGroup" } },
+        { "sh:path": { "@id": "rl:endLine" }, "sh:name": "End line", "sh:datatype": { "@id": "xsd:integer" },
+          "sh:maxCount": 1, "sh:order": 2, "sh:group": { "@id": "rl:MeasuredGroup" } },
+        { "sh:path": { "@id": "rl:approximate" }, "sh:name": "Approximate span", "sh:datatype": { "@id": "xsd:boolean" },
+          "sh:maxCount": 1, "sh:order": 3, "sh:group": { "@id": "rl:MeasuredGroup" },
+          "sh:description": "True where the span was counted, not parsed." },
+        { "sh:path": { "@id": "dcterms:description" }, "sh:name": "Docstring", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 1, "sh:group": { "@id": "rl:ProseGroup" } }
+      ]
+    },
+
+    {
+      "@id": "rl:FindingShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "rl:Finding" },
+      "rdfs:label": "Finding Shape",
+      "sempkm:editHelpText": "Something concluded about the repository. A finding whose provenance is 'computed' is re-derived by a failing check on every scan, so its numbers are current; an 'authored' one is prose no check covers yet.",
+      "sh:property": [
+        { "sh:path": { "@id": "dcterms:title" }, "sh:name": "Title", "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 1, "sh:group": { "@id": "rl:IdentityGroup" } },
+        { "sh:path": { "@id": "rl:severity" }, "sh:name": "Severity", "sh:class": { "@id": "rl:Severity" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 2, "sh:group": { "@id": "rl:IdentityGroup" } },
+        { "sh:path": { "@id": "rl:about" }, "sh:name": "About", "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:order": 3, "sh:group": { "@id": "rl:IdentityGroup" },
+          "sh:description": "The part, file or symbol this is about." },
+        { "sh:path": { "@id": "rl:provenance" }, "sh:name": "Provenance", "sh:class": { "@id": "rl:Provenance" },
+          "sh:maxCount": 1, "sh:order": 4, "sh:group": { "@id": "rl:IdentityGroup" } },
+        { "sh:path": { "@id": "rl:producedBy" }, "sh:name": "Produced by", "sh:class": { "@id": "rl:Check" },
+          "sh:maxCount": 1, "sh:order": 5, "sh:group": { "@id": "rl:IdentityGroup" } },
+        { "sh:path": { "@id": "dcterms:description" }, "sh:name": "Body", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 1, "sh:group": { "@id": "rl:ProseGroup" } },
+        { "sh:path": { "@id": "rl:evidence" }, "sh:name": "Evidence", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 2, "sh:group": { "@id": "rl:ProseGroup" },
+          "sh:description": "The line a reader can check by hand." }
+      ]
+    },
+
+    {
+      "@id": "rl:CheckShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "rl:Check" },
+      "rdfs:label": "Check Shape",
+      "sh:property": [
+        { "sh:path": { "@id": "dcterms:title" }, "sh:name": "Title", "sh:datatype": { "@id": "xsd:string" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 1, "sh:group": { "@id": "rl:IdentityGroup" } },
+        { "sh:path": { "@id": "rl:checkKind" }, "sh:name": "Kind", "sh:datatype": { "@id": "xsd:string" },
+          "sh:in": { "@list": ["metric", "coverage", "shell"] },
+          "sh:maxCount": 1, "sh:order": 2, "sh:group": { "@id": "rl:IdentityGroup" } },
+        { "sh:path": { "@id": "rl:severity" }, "sh:name": "Severity", "sh:class": { "@id": "rl:Severity" },
+          "sh:maxCount": 1, "sh:order": 3, "sh:group": { "@id": "rl:IdentityGroup" } },
+        { "sh:path": { "@id": "rl:passed" }, "sh:name": "Passed", "sh:datatype": { "@id": "xsd:boolean" },
+          "sh:maxCount": 1, "sh:order": 1, "sh:group": { "@id": "rl:MeasuredGroup" } },
+        { "sh:path": { "@id": "rl:expected" }, "sh:name": "Expected", "sh:maxCount": 1,
+          "sh:order": 2, "sh:group": { "@id": "rl:MeasuredGroup" } },
+        { "sh:path": { "@id": "rl:actual" }, "sh:name": "Actual", "sh:maxCount": 1,
+          "sh:order": 3, "sh:group": { "@id": "rl:MeasuredGroup" } }
+      ]
+    },
+
+    {
+      "@id": "rl:ConnectionShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "rl:Connection" },
+      "rdfs:label": "Connection Shape",
+      "sempkm:editHelpText": "A connection as a resource. Use one where the connection needs to carry something — a flow layer, an example payload, a provenance. A plain rl:imports triple is enough when it does not.",
+      "sh:property": [
+        { "sh:path": { "@id": "dcterms:title" }, "sh:name": "Carries", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 1, "sh:group": { "@id": "rl:IdentityGroup" } },
+        { "sh:path": { "@id": "rl:source" }, "sh:name": "Source", "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 2, "sh:group": { "@id": "rl:IdentityGroup" } },
+        { "sh:path": { "@id": "rl:target" }, "sh:name": "Target", "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 3, "sh:group": { "@id": "rl:IdentityGroup" } },
+        { "sh:path": { "@id": "rl:flow" }, "sh:name": "Flow", "sh:class": { "@id": "rl:Flow" },
+          "sh:maxCount": 1, "sh:order": 4, "sh:group": { "@id": "rl:IdentityGroup" } },
+        { "sh:path": { "@id": "rl:provenance" }, "sh:name": "Provenance", "sh:class": { "@id": "rl:Provenance" },
+          "sh:maxCount": 1, "sh:order": 5, "sh:group": { "@id": "rl:IdentityGroup" } },
+        { "sh:path": { "@id": "rl:payloadExample" }, "sh:name": "Example payload", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 1, "sh:group": { "@id": "rl:ProseGroup" } },
+        { "sh:path": { "@id": "skos:note" }, "sh:name": "Note", "sh:datatype": { "@id": "xsd:string" },
+          "sh:maxCount": 1, "sh:order": 2, "sh:group": { "@id": "rl:ProseGroup" } }
+      ]
+    },
+
+    {
+      "@id": "rl:MeasurementShape",
+      "@type": "sh:NodeShape",
+      "sh:targetClass": { "@id": "rl:Measurement" },
+      "rdfs:label": "Measurement Shape",
+      "sempkm:editHelpText": "A number with the aspect it counts and where it came from. A claim is the same shape with an authored provenance, which is what makes the two comparable.",
+      "sh:property": [
+        { "sh:path": { "@id": "rl:measures" }, "sh:name": "Subject", "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 1, "sh:group": { "@id": "rl:IdentityGroup" } },
+        { "sh:path": { "@id": "rl:aspect" }, "sh:name": "Aspect", "sh:nodeKind": { "@id": "sh:IRI" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 2, "sh:group": { "@id": "rl:IdentityGroup" } },
+        { "sh:path": { "@id": "rl:value" }, "sh:name": "Value", "sh:datatype": { "@id": "xsd:decimal" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 3, "sh:group": { "@id": "rl:MeasuredGroup" } },
+        { "sh:path": { "@id": "rl:provenance" }, "sh:name": "Provenance", "sh:class": { "@id": "rl:Provenance" },
+          "sh:minCount": 1, "sh:maxCount": 1, "sh:order": 4, "sh:group": { "@id": "rl:MeasuredGroup" } }
+      ]
+    }
+  ]
+}

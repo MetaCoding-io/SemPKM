@@ -499,6 +499,10 @@ def assemble(ctx: Context) -> None:
         ctx.log(f"{import_edges} import edges between parts")
 
     dec_links = apply_link_overlay(ctx, "decisions", link_decisions(ctx, nodes))
+    # Published whole. attach_decisions caps what each node carries so the
+    # inspector stays readable; anything reading the links as data — the RDF
+    # emitter, for one — must not inherit a display limit.
+    ctx.facts["decision_links"] = dec_links
     attach_decisions(ctx, nodes, dec_links)
 
     # A finding computed from a live check supersedes the authored copy of the
