@@ -37,7 +37,7 @@ import ast
 import re
 from bisect import bisect_right
 
-from ..pipeline import Context, stage
+from ..pipeline import Context, stage, _glob_match
 from .code import _read          # shared text cache — read each file once
 
 
@@ -48,10 +48,33 @@ DEFAULT_MAX_FILES = 400
 DEFAULT_MAX_BYTES = 250_000       # above this it is generated or minified
 DEFAULT_DOC_CHARS = 120
 
+# Test specs are the worst value in the default scope: on this repo the 126
+# Playwright specs are a third of the stage's cost and yield 83 symbols,
+# because a spec body is `test('...', async () => {})` — anonymous callbacks
+# with nothing to name. Excluded by default, overridable via `symbols.exclude`.
+DEFAULT_EXCLUDE = ["**/*.spec.ts", "**/*.spec.js", "**/*.test.ts", "**/*.test.js"]
+
 
 # --------------------------------------------------------------------------
 # shared helpers
 # --------------------------------------------------------------------------
+
+def _uniquify(sid: str, line: int, seen: set[str]) -> str:
+    """A file-unique form of `sid`, claimed in `seen`.
+
+    An id is a key: edges point at it. Two same-named symbols can legitimately
+    share a name in one file — a `closePopover` inside each of two anonymous
+    setup closures, or a pair of `@overload` stubs — and the enclosing scope
+    does not always have a name to qualify them with. Suffix the later ones
+    with their line rather than let one silently overwrite the other. Ids are
+    claimed outermost-first so a child is always qualified by its parent's
+    final id.
+    """
+    if sid in seen:
+        sid = f"{sid}@{line}"
+    seen.add(sid)
+    return sid
+
 
 def _first_doc_line(doc: str | None, limit: int) -> str:
     """First meaningful line of a docstring, collapsed and truncated."""
@@ -82,36 +105,30 @@ def _py_symbols(tree: ast.Module, doc_chars: int) -> list[dict]:
     which is the level anyone drilling in actually asked about.
     """
     out: list[dict] = []
+    seen: set[str] = set()
+
+    def record(node, kind: str, parent_id: str | None) -> str:
+        end = node.end_lineno or node.lineno
+        sid = _uniquify(f"{parent_id}.{node.name}" if parent_id else node.name,
+                        node.lineno, seen)
+        out.append({
+            "id": sid,
+            "name": node.name,
+            "kind": kind,
+            "line": node.lineno,
+            "end_line": end,
+            "lines": end - node.lineno + 1,
+            "parent": parent_id,
+            "doc": _first_doc_line(ast.get_docstring(node), doc_chars),
+        })
+        return sid
 
     def visit(body, parent_id: str | None) -> None:
         for node in body:
             if isinstance(node, _FUNC):
-                name = node.name
-                sid = f"{parent_id}.{name}" if parent_id else name
-                out.append({
-                    "id": sid,
-                    "name": name,
-                    "kind": "method" if parent_id else "function",
-                    "line": node.lineno,
-                    "end_line": node.end_lineno or node.lineno,
-                    "lines": (node.end_lineno or node.lineno) - node.lineno + 1,
-                    "parent": parent_id,
-                    "doc": _first_doc_line(ast.get_docstring(node), doc_chars),
-                })
+                record(node, "method" if parent_id else "function", parent_id)
             elif isinstance(node, ast.ClassDef):
-                name = node.name
-                sid = f"{parent_id}.{name}" if parent_id else name
-                out.append({
-                    "id": sid,
-                    "name": name,
-                    "kind": "class",
-                    "line": node.lineno,
-                    "end_line": node.end_lineno or node.lineno,
-                    "lines": (node.end_lineno or node.lineno) - node.lineno + 1,
-                    "parent": parent_id,
-                    "doc": _first_doc_line(ast.get_docstring(node), doc_chars),
-                })
-                visit(node.body, sid)
+                visit(node.body, record(node, "class", parent_id))
 
     visit(tree.body, None)
     out.sort(key=lambda s: (s["line"], s["id"]))
@@ -201,21 +218,45 @@ def _py_edges(symbols: list[dict], calls: list[ast.Call]) -> list[dict]:
     return edges
 
 
-def _extract_python(text: str, path: str, doc_chars: int) -> dict:
-    tree = ast.parse(text, filename=path)          # SyntaxError handled by caller
-    symbols = _py_symbols(tree, doc_chars)
+def _calls_and_imports(tree: ast.Module) -> tuple[list[ast.Call], set[str]]:
+    """One traversal for every call site and every imported name.
 
-    # One traversal for both imports and call sites. Two separate ast.walk
-    # passes over every module was the second-largest cost in this stage.
-    imported: set[str] = set()
+    Deliberately not `ast.walk`. This stage visits ~200k nodes on this repo,
+    and `ast.walk`'s deque-plus-generator machinery costs about 2.5x an
+    explicit stack for the identical result — which is the difference between
+    this stage being comparable to `drilldown` and being twice its price.
+    """
     calls: list[ast.Call] = []
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Call):
+    imported: set[str] = set()
+    Call, Imp, ImpFrom, AST = ast.Call, ast.Import, ast.ImportFrom, ast.AST
+
+    stack = [tree]
+    push, pop = stack.append, stack.pop
+    while stack:
+        node = pop()
+        cls = node.__class__
+        if cls is Call:
             calls.append(node)
-        elif isinstance(node, (ast.Import, ast.ImportFrom)):
+        elif cls is Imp or cls is ImpFrom:
             for alias in node.names:
                 if alias.name != "*":
                     imported.add(alias.asname or alias.name.split(".")[0])
+        fields = node.__dict__
+        for name in node._fields:
+            v = fields.get(name)
+            if v.__class__ is list:
+                for x in v:
+                    if isinstance(x, AST):
+                        push(x)
+            elif isinstance(v, AST):
+                push(v)
+    return calls, imported
+
+
+def _extract_python(text: str, path: str, doc_chars: int) -> dict:
+    tree = ast.parse(text, filename=path)          # SyntaxError handled by caller
+    symbols = _py_symbols(tree, doc_chars)
+    calls, imported = _calls_and_imports(tree)
 
     return {
         "symbols": symbols,
@@ -385,15 +426,15 @@ def _extract_js(text: str, doc_chars: int) -> dict:
     symbols: list[dict] = []
     claimed: set[int] = set()          # line indexes already inside a class body
 
-    def add(name: str, kind: str, i: int, end: int, parent: str | None) -> None:
+    def add(name: str, kind: str, i: int, end: int) -> None:
         symbols.append({
-            "id": f"{parent}.{name}" if parent else name,
+            "id": name,                # qualified by _js_nest once all are in
             "name": name,
             "kind": kind,
             "line": i + 1,
             "end_line": end,
             "lines": max(1, end - i),
-            "parent": parent,
+            "parent": None,
             "doc": _jsdoc(raw_lines, i, doc_chars),
             "approx": True,
         })
@@ -408,8 +449,7 @@ def _extract_js(text: str, doc_chars: int) -> dict:
         if not m:
             continue
         end = _close_at(after, i, before[i])
-        add(m.group(1), "class", i, end, None)
-        cls = m.group(1)
+        add(m.group(1), "class", i, end)
         body_depth = before[i] + 1
         claimed.update(range(i + 1, min(end, len(lines))))
         for k in cand:
@@ -418,7 +458,7 @@ def _extract_js(text: str, doc_chars: int) -> dict:
             mm = _JS_METHOD.match(lines[k])
             if not mm or mm.group(1) in _JS_KEYWORDS:
                 continue
-            add(mm.group(1), "method", k, _close_at(after, k, before[k]), cls)
+            add(mm.group(1), "method", k, _close_at(after, k, before[k]))
 
     for i in cand:
         if i in claimed:
@@ -428,15 +468,39 @@ def _extract_js(text: str, doc_chars: int) -> dict:
         if not m or m.group(1) in _JS_KEYWORDS:
             continue
         end = i + 1 if after[i] <= before[i] else _close_at(after, i, before[i])
-        add(m.group(1), "function", i, end, None)
+        add(m.group(1), "function", i, end)
 
-    symbols.sort(key=lambda s: (s["line"], s["id"]))
+    symbols.sort(key=lambda s: (s["line"], -s["end_line"], s["name"]))
+    _js_nest(symbols)
     return {
         "symbols": symbols,
         "edges": _js_edges(lines, symbols),
         "imported": _js_imported(clean, text),
         "approx": True,
     }
+
+
+def _js_nest(symbols: list[dict]) -> None:
+    """Assign `parent` and a dotted `id` from the spans, in place.
+
+    JS is not flat the way a Python module is: a named helper inside another
+    function is ordinary, and a whole file wrapped in an IIFE would otherwise
+    produce nothing at all. Recording those and qualifying them by their
+    enclosing symbol is what keeps ids unique inside a file — two different
+    `cleanup` helpers in `workspace.js` are `openTab.cleanup` and
+    `closeTab.cleanup`, not one id declared twice.
+    """
+    stack: list[dict] = []
+    seen: set[str] = set()
+    for s in symbols:                       # already sorted outermost-first
+        while stack and stack[-1]["end_line"] < s["line"]:
+            stack.pop()
+        sid = s["name"]
+        if stack:
+            s["parent"] = stack[-1]["id"]
+            sid = f"{stack[-1]['id']}.{sid}"
+        s["id"] = _uniquify(sid, s["line"], seen)
+        stack.append(s)
 
 
 def _jsdoc(raw_lines: list[str], i: int, limit: int) -> str:
@@ -461,13 +525,16 @@ _JS_DECL_KW = re.compile(r"\b(?:function|class|const|let|var)\b")
 def _js_edges(lines: list[str], symbols: list[dict]) -> list[dict]:
     """Same-file calls, by name, attributed to the innermost enclosing symbol.
 
-    Only names declared at the top level of this file are targets, and only
-    bare `name(` call sites count — `obj.name()` is left alone because nothing
-    here knows what `obj` is. One pass over the lines, with the same
-    innermost-span rule the Python side uses, so a call inside a method is not
-    also credited to the class that contains it.
+    Only names that are unambiguous within the file are targets, and only bare
+    `name(` call sites count — `obj.name()` is left alone because nothing here
+    knows what `obj` is. One pass over the lines, with the same innermost-span
+    rule the Python side uses, so a call inside a method is not also credited
+    to the class that contains it.
     """
-    top = {s["name"]: s["id"] for s in symbols if s["parent"] is None}
+    seen_names: dict[str, int] = {}
+    for s in symbols:
+        seen_names[s["name"]] = seen_names.get(s["name"], 0) + 1
+    top = {s["name"]: s["id"] for s in symbols if seen_names[s["name"]] == 1}
     if not top:
         return []
     rx = re.compile(r"(?<![\w$.])(" + "|".join(re.escape(n) for n in top) + r")\s*\(")
@@ -545,7 +612,16 @@ def _candidates(ctx: Context, spec: dict) -> list[dict]:
         ctx.log(f"scope: nodeset '{ns_id}', {len(picked)} member file(s)")
 
     exts = tuple(PY_EXT) + tuple(JS_EXT)
-    return [f for f in picked if f["path"].endswith(exts)]
+    picked = [f for f in picked if f["path"].endswith(exts)]
+
+    skip = spec.get("exclude", DEFAULT_EXCLUDE)
+    if skip:
+        kept = [f for f in picked
+                if not any(_glob_match(f["path"], p) for p in skip)]
+        if len(kept) != len(picked):
+            ctx.log(f"{len(picked) - len(kept)} file(s) dropped by symbols.exclude")
+        picked = kept
+    return picked
 
 
 # --------------------------------------------------------------------------

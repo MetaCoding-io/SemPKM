@@ -223,6 +223,9 @@ class _State:
             return self.memo[key]
         hit = None
         for cand in _candidates(spec.lstrip("/")):
+            if cand in self.paths:          # the web root is the repo root
+                hit = cand
+                break
             tail = "/" + cand
             found = [p for p in self.paths if p.endswith(tail)]
             if len(found) == 1:
@@ -239,8 +242,11 @@ def prepare(ctx: Context, paths: set[str]) -> _State:
 
 
 def resolve(state: _State, path: str, text: str) -> Resolution:
-    if "import" not in text and "require" not in text:
-        return Resolution()                 # cheap out before masking
+    # Cheap out before masking a megabyte of source that cannot contain an
+    # import. `export` is in the list because a re-export barrel — `export *
+    # from "./y"` — names no `import` at all.
+    if not ("import" in text or "require" in text or "export" in text):
+        return Resolution()
     base_dir = path.rsplit("/", 1)[0] if "/" in path else ""
     targets: list[str] = []
     packages: list[str] = []

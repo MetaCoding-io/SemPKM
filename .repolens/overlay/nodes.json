@@ -24,6 +24,10 @@
       [
         "note",
         "workspace.js is the heaviest single module and carries the object-tab flip-card logic that CLAUDE.md documents as historically fragile."
+      ],
+      [
+        "note",
+        "No module graph to draw: 0 import statements and 0 require() calls across the 33 JS files. One template tag is type=module. The front end is script tags over a window.SemPKM namespace, referenced 486 times \u2014 so drilling in shows files with no edges because there are none, not because the resolver missed them."
       ]
     ],
     "claimed": {
@@ -1013,13 +1017,13 @@
       "w": 2.2,
       "d": 2.2
     },
-    "sub": "126 Playwright specs",
+    "sub": "126 Playwright specs + fixtures and helpers",
     "does": "The check that the whole assembly still works. Runs the real stack in a browser rather than mocking the parts.",
-    "built": "24,511 lines across 126 spec files in 55 directories, run sequentially against Chromium with a single worker. Shared fixtures handle auth and seed data.",
+    "built": "24,511 lines across 126 spec files in 55 directories, run sequentially against Chromium with a single worker. The node also holds the fixtures and helpers the specs import, which is where its shape comes from: 326 imports inside the suite, hub-and-spoke around fixtures/auth.ts (119 of them).",
     "cond": [
       [
         "measured",
-        "126 specs across 55 directories, ~24.5k lines."
+        "136 files: 126 specs plus 10 fixtures and helpers. 326 imports between them."
       ],
       [
         "note",
@@ -1027,8 +1031,8 @@
       ]
     ],
     "claimed": {
-      "loc": 24511,
-      "files": 126
+      "loc": 26237,
+      "files": 136
     }
   }
 ]
