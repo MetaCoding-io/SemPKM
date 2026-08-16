@@ -32,6 +32,11 @@ ASPECTS = {
 }
 
 
+def revision_of(ctx) -> str:
+    """The id everything time-varying is scoped by."""
+    return (ctx.facts.get("revision") or {}).get("id") or "working"
+
+
 def _label_of(node: dict) -> str:
     return node.get("name") or node.get("short") or node["id"]
 
@@ -57,11 +62,21 @@ def repository(ctx, w) -> None:
     w.add(repo, "a", "rl:Repository")
     w.add_text(repo, "dcterms:title", model["repo"].get("name", ctx.root.name))
     w.add_text(repo, "dcterms:description", model["repo"].get("headline", ""))
-    w.add_text(repo, "rl:revision", (ctx.facts.get("meta") or {}).get("revision", ""))
 
-    scan = w.iri("scan")
+    rev = ctx.facts.get("revision") or {}
+    w.add_text(repo, "rl:revision", rev.get("sha"))
+
+    # Entities keep one IRI for all time — part/U is part/U at every commit,
+    # which is what makes two snapshots comparable. Everything that varies is
+    # scoped by revision instead, or loading two of them together would have
+    # each measurement contradicting the other.
+    scan = w.iri("scan", revision_of(ctx))
     w.add(scan, "a", "rl:Scan")
-    w.add_text(scan, "rdfs:label", "repolens scan")
+    w.add_text(scan, "rdfs:label", "scan of " + revision_of(ctx))
+    w.add_text(scan, "dcterms:identifier", revision_of(ctx))
+    if rev.get("date"):
+        w.add(scan, "prov:startedAtTime", w.datetime(rev["date"]))
+    w.add_text(scan, "dcterms:description", rev.get("subject"))
     generated = (model.get("meta") or {}).get("generated")
     if generated:
         w.add(scan, "prov:endedAtTime", w.datetime(generated))
@@ -107,27 +122,28 @@ def parts(ctx, w) -> None:
         if n.get("tier") is not None:
             w.add(s, "rl:inTier", w.iri("tier", f"t{n['tier']}"))
         key = "part-" + n["id"]
-        _measure(w, s, key, "lines", n.get("loc"))
-        _measure(w, s, key, "files", n.get("files"))
+        _measure(ctx, w, s, key, "lines", n.get("loc"))
+        _measure(ctx, w, s, key, "files", n.get("files"))
 
 
-def measure_iri(w, key: str, aspect: str) -> str:
-    return w.iri("measure", key, aspect)
+def measure_iri(w, rev: str, key: str, aspect: str) -> str:
+    return w.iri("measure", rev, key, aspect)
 
 
-def _measure(w, subject: str, key: str, aspect: str, value,
+def _measure(ctx, w, subject: str, key: str, aspect: str, value,
              provenance: str = "rl:measured") -> None:
     """One measurement. `key` names the subject stably — deriving it from the
     subject IRI by string surgery was how the claim link broke the first time."""
     if value is None:
         return
-    m = measure_iri(w, key, aspect)
+    rev = revision_of(ctx)
+    m = measure_iri(w, rev, key, aspect)
     w.add(m, "a", "rl:Measurement")
     w.add(m, "rl:measures", subject)
     w.add(m, "rl:aspect", w.iri("aspect", aspect))
     w.add(m, "rl:value", w.decimal(value))
     w.add(m, "rl:provenance", provenance)
-    w.add(m, "rl:fromScan", w.iri("scan"))
+    w.add(m, "rl:fromScan", w.iri("scan", rev))
 
 
 @contributor("files", requires=["drilldown"])
@@ -143,7 +159,7 @@ def files(ctx, w) -> None:
             w.add_text(s, "rl:language", f.get("lang"))
             w.add(s, "rl:fileOf", part)
             w.add(part, "rl:hasFile", s)
-            _measure(w, s, "file-" + f["path"], "lines", f.get("lines"))
+            _measure(ctx, w, s, "file-" + f["path"], "lines", f.get("lines"))
         for e in d.get("edges", []):
             src, dst = e.get("from"), e.get("to")
             if src and dst:
@@ -216,7 +232,7 @@ def occurrences(ctx, w) -> None:
             w.add(s, "rl:lineNumber", w.integer(hit["line"]))
             w.add_text(s, "rl:snippet", (hit.get("text") or "").strip())
             w.add(s, "rl:provenance", "rl:measured")
-        _measure(w, q, "query-" + name, "occurrences", rec.get("total"))
+        _measure(ctx, w, q, "query-" + name, "occurrences", rec.get("total"))
 
 
 @contributor("findings", requires=["checks"])
@@ -263,10 +279,11 @@ def claims(ctx, w) -> None:
     for node in (ctx.facts.get("overlay") or {}).get("nodes") or []:
         for field, value in (node.get("claimed") or {}).items():
             aspect = aspect_of.get(field, field)
-            c = w.iri("claim", node["id"], aspect)
+            c = w.iri("claim", revision_of(ctx), node["id"], aspect)
             w.add(c, "a", "rl:Claim")
             w.add(c, "rl:measures", part_iri(w, node["id"]))
             w.add(c, "rl:aspect", w.iri("aspect", aspect))
             w.add(c, "rl:value", w.decimal(value))
             w.add(c, "rl:provenance", "rl:authored")
-            w.add(c, "rl:verifies", measure_iri(w, "part-" + node["id"], aspect))
+            w.add(c, "rl:verifies",
+                  measure_iri(w, revision_of(ctx), "part-" + node["id"], aspect))

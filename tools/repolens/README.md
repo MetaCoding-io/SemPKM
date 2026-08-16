@@ -292,6 +292,32 @@ dependency beyond PyYAML and what we emit has no blank nodes and no
 collections. What does need care is literal escaping, and that is done in one
 place in `rdf/writer.py`.
 
+### Snapshots
+
+Every run on a clean tree keeps its graph as `.repolens/snapshots/<rev>.ttl`
+and appends to `snapshots/index.json`. A dirty tree takes no snapshot, because
+one taken over uncommitted work does not describe the commit it names.
+
+What makes the series comparable is which IRIs are stable and which are not.
+An entity keeps one IRI for all time — `part/U` is `part/U` at every commit —
+while the scan, every measurement and every claim are scoped by revision. Load
+two snapshots into one graph and the parts line up while their line counts sit
+side by side instead of contradicting each other:
+
+```sparql
+SELECT ?rev ?lines WHERE {
+  ?m rl:measures <urn:repolens:sempkm:part/U> ;
+     rl:aspect <urn:repolens:sempkm:aspect/lines> ;
+     rl:value ?lines ; rl:fromScan ?scan .
+  ?scan dcterms:identifier ?rev .
+} ORDER BY ?rev
+```
+
+Stored as plain Turtle, not compressed: two consecutive snapshots are ~99% the
+same text, which git deltifies to almost nothing, while gzip output changes
+wholesale for any input change and would cost full size every time. Plain also
+stays greppable.
+
 Two mental models consume it, under `models/`:
 
 | | |

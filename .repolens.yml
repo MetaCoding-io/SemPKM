@@ -277,6 +277,11 @@ model:
 graph:
   base: "urn:repolens:sempkm:"
   file: repo.ttl
+  # One graph kept per commit, so the series can be replayed later. Entity IRIs
+  # are stable across revisions and only the time-varying facts are scoped by
+  # one, which is what lets two snapshots be loaded together and compared.
+  snapshots: true
+  snapshot_dir: .repolens/snapshots
 
 pipelines:
   scan:  [discover, loc, overlay, nodesets, callsites, routes, signals, imports, tests, conventions, checks]
