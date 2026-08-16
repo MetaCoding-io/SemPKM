@@ -1,0 +1,15 @@
+{
+  "snapshots": [
+    {
+      "branch": "claude/tweet-photo-retrieval-d28uqw",
+      "date": "2026-08-16T21:29:46+00:00",
+      "file": "ae092c87b81e.ttl",
+      "id": "ae092c87b81e",
+      "scanned": "2026-08-16T21:29:48+00:00",
+      "sha": "ae092c87b81e",
+      "subject": "Make the graph a pure function of the tree",
+      "subjects": 4764,
+      "triples": 35874
+    }
+  ]
+}
