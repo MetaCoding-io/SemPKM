@@ -202,7 +202,7 @@ model:
     - { k: "Backend modules", v: "${nodeset.modules.count}" }
     - { k: "Endpoints",       v: "${routes.total} · ${routes.registrations} routers" }
     - { k: "Commit sites",    v: "${callsites.commit_sites.total} · ${callsites.commit_sites.modules} modules", flag: bad }
-    - { k: "Decisions",       v: "${conventions.decisions} logged" }
+    - { k: "Decisions",       v: "${decisions.linked} placed · ${conventions.decisions} logged" }
     - { k: "E2E specs",       v: "${tests.specs} · ${tests.dirs} dirs" }
     - { k: "Lines",           v: "${loc.total}" }
 

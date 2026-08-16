@@ -416,6 +416,29 @@ ul.bul li { margin-bottom: 6px; max-width: 60ch; }
 }
 .flag .txt { font-size: 11.5px; }
 
+/* decisions attached to a part */
+.dec {
+  border: 1px solid var(--rule-soft); border-left: 3px solid var(--ink-3);
+  padding: 8px 11px; margin-bottom: 7px;
+}
+.dec summary {
+  cursor: pointer; list-style: none; font-size: 11.5px; line-height: 1.45;
+}
+.dec summary::-webkit-details-marker { display: none; }
+.dec summary:hover { color: var(--accent); }
+.dec .dec-id {
+  font-size: 9.5px; letter-spacing: 0.1em; color: var(--ink-3);
+  margin-right: 7px; white-space: nowrap;
+}
+.dec .dec-why {
+  font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--on-accent); background: var(--ink-3); padding: 0 4px; margin-left: 6px;
+}
+.dec .dec-body {
+  font-size: 11px; color: var(--ink-2); margin-top: 7px;
+  border-top: 1px solid var(--rule-faint); padding-top: 6px;
+}
+
 /* findings list */
 .find {
   width: 100%; text-align: left; font: inherit;
@@ -1675,6 +1698,29 @@ function connectionsBlock(n) {
   return html;
 }
 
+function decisionsBlock(n) {
+  var list = n.decisions || [];
+  if (!list.length) {
+    return '<div class="sec">Decisions</div>' +
+      '<p style="color:var(--ink-3);font-size:11px;">No logged decision mentions this part.</p>';
+  }
+  var html = '<div class="sec">Decisions · ' + list.length +
+             (n.decision_count > list.length ? ' of ' + n.decision_count : '') + '</div>';
+  list.forEach(function (d) {
+    html += '<details class="dec"><summary>' +
+      '<span class="dec-id">' + esc(d.id) + '</span>' + esc(d.statement) +
+      '<span class="dec-why">' + esc(d.why.join(" ")) + '</span></summary>' +
+      (d.rationale ? '<div class="dec-body">' + esc(d.rationale) + '</div>' : '') +
+      '<div class="dec-body" style="color:var(--ink-3)">' +
+        esc(d.scope || "") + (d.when ? ' · ' + esc(d.when) : '') + '</div>' +
+      '</details>';
+  });
+  html += '<p style="color:var(--ink-3);font-size:11px;">Matched by the ' +
+          'highlighted word appearing in the decision text — a text match, not a ' +
+          'declared link. The word is shown so a wrong one is visible.</p>';
+  return html;
+}
+
 function scaleBars(n) {
   var top = NODES.slice().sort(function (a,b) { return b.loc - a.loc; }).slice(0, 8);
   if (top.indexOf(n) < 0) top[7] = n;
@@ -1894,7 +1940,8 @@ function renderPanel() {
     }
     html += connectionsBlock(n);
   } else if (activeTab === "built") {
-    html += '<p>' + esc(n.built) + '</p>' + nodeMetrics(n) + scaleBars(n);
+    html += '<p>' + esc(n.built) + '</p>' + nodeMetrics(n) +
+            decisionsBlock(n) + scaleBars(n);
   } else {
     n.cond.forEach(function (c) {
       var cls = c[0] === "ok" ? "ok" : c[0] === "note" ? "warn" : "";

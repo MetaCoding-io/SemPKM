@@ -84,6 +84,96 @@ def derive_nodes(ctx: Context, ns_id: str, measured: dict) -> tuple[list[dict], 
     return nodes, [{"id": g, "label": g} for g in sorted(groups)]
 
 
+_WORD = re.compile(r"[a-z0-9_]+")
+
+# words too common in prose to identify a part
+_STOPWORDS = {
+    "the", "and", "for", "with", "from", "into", "app", "api", "use", "used",
+    "new", "not", "all", "one", "two", "per", "via", "its", "this", "that",
+    "service", "services", "model", "models", "data", "page", "pages", "test",
+    "tests", "code", "file", "files", "type", "types", "name", "names",
+}
+
+
+def node_keywords(node: dict, members: dict) -> set[str]:
+    """Distinctive words that mean 'this part' in prose.
+
+    Taken from the member globs — a node whose files live in backend/app/
+    federation/ is identified by the word 'federation' — plus the words of its
+    own name. Short and common words are dropped, because a decision
+    mentioning 'data' is not a decision about the Views module.
+    """
+    words: set[str] = set()
+    for pattern in members.get(node["id"], []):
+        for part in pattern.split("/"):
+            if "*" in part or "." in part:
+                continue
+            for w in _WORD.findall(part.lower()):
+                if len(w) > 3 and w not in _STOPWORDS:
+                    words.add(w)
+    for w in _WORD.findall((node.get("name", "") + " " + node.get("short", "")).lower()):
+        if len(w) > 3 and w not in _STOPWORDS:
+            words.add(w)
+    return words
+
+
+def link_decisions(ctx: Context, nodes: list[dict], limit: int = 12) -> list[dict]:
+    """Attach architectural decisions to the parts they are about.
+
+    408 decisions is unreadable in bulk but perfectly readable by location.
+    Matching is on distinctive words, and every match records which word hit,
+    so a wrong one is visible rather than mysterious.
+    """
+    conv = ctx.facts.get("conventions") or {}
+    decisions = conv.get("decisions") or []
+    if not decisions or not nodes:
+        return []
+
+    members = ctx.facts.get("declared_members") or {}
+    keywords = {n["id"]: node_keywords(n, members) for n in nodes}
+
+    # A word shared by more than one part identifies neither. Every node's globs
+    # start "backend/app/", so without this Federation matched any decision
+    # saying "backend"; and "frontend" is shared by nginx and the workspace, so
+    # 40 front-end decisions landed on the nginx config file.
+    freq: dict[str, int] = {}
+    for kws in keywords.values():
+        for w in kws:
+            freq[w] = freq.get(w, 0) + 1
+    common = {w for w, c in freq.items() if c > 1}
+    keywords = {nid: (kws - common) for nid, kws in keywords.items()}
+    if common:
+        ctx.log("ignoring non-distinctive words: " + ", ".join(sorted(common)))
+
+    matched_any = set()
+    for n in nodes:
+        hits = []
+        kws = keywords[n["id"]]
+        if not kws:
+            n["decisions"] = []
+            continue
+        for d in decisions:
+            hay = (d.get("statement", "") + " " + d.get("rationale", "") + " " +
+                   d.get("scope", "")).lower()
+            words = set(_WORD.findall(hay))
+            hit = kws & words
+            if hit:
+                hits.append({"id": d["id"], "when": d.get("when", ""),
+                             "scope": d.get("scope", ""),
+                             "statement": d.get("statement", "")[:400],
+                             "rationale": d.get("rationale", "")[:400],
+                             "why": sorted(hit)[:3]})
+                matched_any.add(d["id"])
+        hits.sort(key=lambda h: h["id"], reverse=True)
+        n["decisions"] = hits[:limit]
+        n["decision_count"] = len(hits)
+
+    ctx.metric("decisions.linked", len(matched_any))
+    ctx.metric("decisions.unlinked", len(decisions) - len(matched_any))
+    ctx.log(f"{len(matched_any)} of {len(decisions)} decisions linked to a part")
+    return decisions
+
+
 def compact_symbols(ctx: Context) -> dict:
     """Project the symbol facts down to what the page actually reads.
 
@@ -223,6 +313,8 @@ def assemble(ctx: Context) -> None:
     ctx.metric("edges.import_between_parts", import_edges)
     if import_edges:
         ctx.log(f"{import_edges} import edges between parts")
+
+    link_decisions(ctx, nodes)
 
     # A finding computed from a live check supersedes the authored copy of the
     # same finding — same words, but the numbers in it are current. Match on
