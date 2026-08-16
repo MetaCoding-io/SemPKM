@@ -210,7 +210,8 @@ model:
     - { id: after, label: "After",    enabled: true }
     - { id: feed,  label: "Ingest",   enabled: true }
     - { id: mean,  label: "Schema",   enabled: false }
-    - { id: viol,  label: "Bypasses", enabled: false }
+    - { id: viol,   label: "Bypasses", enabled: false }
+    - { id: import, label: "Imports",  enabled: false }
 
   tiers:
     ["Surfaces", "Edge & identity", "Routers", "Write & orchestration",
@@ -228,5 +229,5 @@ model:
 # Named stage orders. Add a stage module, name it here, and it runs.
 pipelines:
   scan:  [discover, loc, overlay, nodesets, callsites, routes, signals, imports, tests, conventions, checks]
-  build: [discover, loc, overlay, nodesets, callsites, routes, signals, imports, tests, conventions, checks, assemble, verify, emit]
+  build: [discover, loc, overlay, nodesets, drilldown, callsites, routes, signals, imports, tests, conventions, checks, assemble, verify, emit]
   check: [discover, loc, overlay, nodesets, callsites, signals, conventions, checks]

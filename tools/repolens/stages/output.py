@@ -18,6 +18,22 @@ from ..pipeline import Context, stage
 _METRIC_REF = re.compile(r"\$\{([a-zA-Z0-9_.]+)\}")
 
 
+def byid_name(nodes: list[dict], node_id: str) -> str:
+    for n in nodes:
+        if n["id"] == node_id:
+            return n["name"]
+    return node_id
+
+
+def target_module(drill: dict, node_id: str) -> str:
+    """A representative module path for the target, for the payload text."""
+    files = (drill.get(node_id) or {}).get("files") or []
+    if not files:
+        return node_id.lower()
+    parts = files[0].get("path", "").split("/")
+    return parts[2] if len(parts) > 2 else node_id.lower()
+
+
 def _load_json(p: Path, default):
     if not p.exists():
         return default
@@ -86,6 +102,38 @@ def assemble(ctx: Context) -> None:
             "cond": [[c[0], _fmt(ctx, c[1])] for c in a.get("cond", [])],
         })
 
+    # Import edges between parts, derived from the drill-down's external counts.
+    # These deliberately land on the same node pairs as the authored data-flow
+    # edges, which is what makes edge bundling in the UI mean anything.
+    edges = list(ov["edges"])
+    drill = ctx.facts.get("drilldown", {})
+    known = {n["id"] for n in nodes}
+    import_edges = 0
+    for node_id, d in sorted(drill.items()):
+        for ext in d.get("external", []):
+            target = ext.get("to_node")
+            if target not in known or target == node_id:
+                continue
+            n_from, n_to = byid_name(nodes, node_id), byid_name(nodes, target)
+            edges.append({
+                "from": node_id, "to": target, "flow": "import",
+                "label": f"{ext['count']} imports",
+                "pk": "Python imports",
+                "body": (f"# {n_from} → {n_to}\n"
+                         f"# {ext['count']} import statement"
+                         f"{'' if ext['count'] == 1 else 's'} resolved by AST\n\n"
+                         f"from app.{target_module(drill, target)} import ...\n\n"
+                         "# counted from the drilldown stage: every import that\n"
+                         "# resolves to a file belonging to the other part."),
+                "note": ("Static import structure, not runtime data flow. Where this "
+                         "sits on the same route as a data-flow edge, the two share "
+                         "one line in the drawing and the line thickens."),
+            })
+            import_edges += 1
+    ctx.metric("edges.import_between_parts", import_edges)
+    if import_edges:
+        ctx.log(f"{import_edges} import edges between parts")
+
     # A finding computed from a live check supersedes the authored copy of the
     # same finding — same words, but the numbers in it are current. Match on
     # the title, because authored entries predate check ids and have none.
@@ -122,7 +170,9 @@ def assemble(ctx: Context) -> None:
         "tiers": cfg.get("tiers", []),
         "layers": cfg.get("layers", []),
         "nodes": nodes,
-        "edges": ov["edges"],
+        "edges": edges,
+        # optional: empty when the drilldown stage is not in this pipeline
+        "drill": ctx.facts.get("drilldown", {}),
         "findings": findings,
         "system": {k: _fmt(ctx, v) for k, v in (ov["system"] or {}).items()},
         "meta": {

@@ -79,6 +79,9 @@
   --face-left:  #191710;
 }
 
+/* pane widths live in variables so collapsing is one class on #shell */
+:root { --rail-w: 236px; --insp-w: 396px; --pane-strip: 26px; }
+
 * { box-sizing: border-box; }
 
 body {
@@ -95,7 +98,7 @@ body {
 
 #shell {
   display: grid;
-  grid-template-columns: 236px minmax(0, 1fr) 396px;
+  grid-template-columns: var(--rail-w) minmax(0, 1fr) var(--insp-w);
   grid-template-rows: auto minmax(0, 1fr) auto;
   height: 100vh;
   height: 100dvh;
@@ -162,8 +165,9 @@ body {
 
 #railsearch {
   position: sticky; top: 0; z-index: 3; background: var(--paper);
-  border-bottom: 1px solid var(--rule-soft); padding: 7px 8px;
+  border-bottom: 1px solid var(--rule-soft); padding: 7px 30px 7px 8px;
 }
+#tabs { padding-left: 25px; }
 #q {
   width: 100%; font: inherit; font-size: 11px; padding: 5px 7px;
   color: var(--ink); background: var(--paper-3); border: 1px solid var(--rule-soft);
@@ -257,11 +261,12 @@ input[type="range"]:focus-visible { outline: 2px solid var(--accent); outline-of
 .grid-line  { stroke: var(--rule-faint); stroke-width: 1; vector-effect: non-scaling-stroke; fill: none; }
 .plot-line  { stroke: var(--rule); stroke-width: 1; stroke-dasharray: 5 4; fill: none; vector-effect: non-scaling-stroke; }
 
-.wire { stroke: var(--ink-2); stroke-width: 1.25; fill: none; vector-effect: non-scaling-stroke; opacity: 0.8; }
-.wire.spine { stroke: var(--ink); stroke-width: 2; opacity: 1; }
-.wire.viol  { stroke: var(--sev-high); stroke-width: 1.8; stroke-dasharray: 6 4; opacity: 1; }
-.wire.muted { opacity: 0.09; stroke-width: 1.25; }
-.wire.lit   { stroke: var(--accent); opacity: 1; stroke-width: 2.4; }
+/* stroke-width is set in JS: it carries how many edges a bundle holds */
+.wire { stroke: var(--ink-2); fill: none; vector-effect: non-scaling-stroke; opacity: 0.8; }
+.wire.spine { stroke: var(--ink); opacity: 1; }
+.wire.viol  { stroke: var(--sev-high); stroke-dasharray: 6 4; opacity: 1; }
+.wire.muted { opacity: 0.09; }
+.wire.lit   { stroke: var(--accent); opacity: 1; }
 .wire-node  { fill: var(--ink-2); opacity: 0.7; }
 .wire-node.muted { opacity: 0.09; }
 
@@ -306,9 +311,10 @@ input[type="range"]:focus-visible { outline: 2px solid var(--accent); outline-of
 }
 #tabs { display: flex; border-bottom: 1px solid var(--rule); flex-shrink: 0; }
 .tab {
-  flex: 1; font: inherit; font-size: 9px; letter-spacing: 0.09em; text-transform: uppercase;
-  padding: 11px 3px; background: transparent; color: var(--ink-3);
+  flex: 1; font: inherit; font-size: 8.5px; letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 11px 2px; background: transparent; color: var(--ink-3);
   border: 0; border-right: 1px solid var(--rule-soft); cursor: pointer;
+  white-space: nowrap;
 }
 .tab:last-child { border-right: 0; }
 .tab:hover { color: var(--ink); }
@@ -416,7 +422,69 @@ ul.bul li { margin-bottom: 6px; max-width: 60ch; }
   color: var(--ink-3); display: flex; flex-wrap: wrap; gap: 4px 16px; background: var(--paper);
 }
 
-@media (max-width: 1240px) { #shell { grid-template-columns: 196px minmax(0, 1fr) 340px; } }
+/* ---------- collapsible panes ---------- */
+
+#shell.rail-collapsed { --rail-w: var(--pane-strip); }
+#shell.insp-collapsed { --insp-w: var(--pane-strip); }
+#shell.rail-collapsed #railsearch,
+#shell.rail-collapsed #railbody,
+#shell.insp-collapsed #tabs,
+#shell.insp-collapsed #panel { display: none; }
+
+.pane-toggle {
+  position: absolute; top: 0; z-index: 6;
+  width: 25px; height: 25px; padding: 0;
+  font: inherit; font-size: 12px; line-height: 1;
+  color: var(--ink-3); background: var(--paper);
+  border: 0; border-bottom: 1px solid var(--rule-soft);
+  cursor: pointer;
+}
+.pane-toggle:hover { color: var(--ink); background: var(--paper-3); }
+.pane-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+#rail { position: relative; }
+#rail .pane-toggle { right: 0; border-left: 1px solid var(--rule-soft); }
+#inspector { position: relative; }
+#inspector .pane-toggle { left: 0; border-right: 1px solid var(--rule-soft); }
+
+.pane-stub {
+  display: none; position: absolute; top: 34px; left: 0; right: 0;
+  font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--ink-3); writing-mode: vertical-rl; text-orientation: mixed;
+  margin: 0 auto; pointer-events: none;
+}
+#shell.rail-collapsed #rail .pane-stub,
+#shell.insp-collapsed #inspector .pane-stub { display: block; }
+
+/* ---------- bundled edges ---------- */
+
+.wire-hit { stroke: transparent; stroke-width: 14; fill: none; cursor: pointer; }
+.bundle-count {
+  fill: var(--ink-3); font-family: inherit; font-size: 8px;
+  text-anchor: middle; dominant-baseline: middle; pointer-events: none; user-select: none;
+}
+
+#edge-pop {
+  position: absolute; z-index: 7; display: none;
+  min-width: 210px; max-width: 320px;
+  background: var(--paper); border: 1px solid var(--ink);
+  box-shadow: 0 3px 0 var(--rule-soft);
+  padding: 0; font-size: 11px;
+}
+#edge-pop .pop-head {
+  font-size: 9px; letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--ink-3); padding: 6px 9px; border-bottom: 1px solid var(--rule-soft);
+}
+#edge-pop button {
+  display: block; width: 100%; text-align: left; font: inherit; font-size: 11px;
+  background: transparent; color: var(--ink); border: 0;
+  border-bottom: 1px solid var(--rule-soft); padding: 6px 9px; cursor: pointer;
+}
+#edge-pop button:last-child { border-bottom: 0; }
+#edge-pop button:hover { background: var(--invert-bg); color: var(--invert-fg); }
+#edge-pop button .pop-dir { color: var(--ink-3); font-size: 9.5px; display: block; }
+#edge-pop button:hover .pop-dir { color: var(--invert-fg); opacity: 0.7; }
+
+@media (max-width: 1240px) { :root { --rail-w: 196px; --insp-w: 340px; } }
 @media (max-width: 980px) {
   body { overflow: auto; }
   #shell { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 64vh auto auto; height: auto; }
@@ -441,6 +509,9 @@ ul.bul li { margin-bottom: 6px; max-width: 60ch; }
   </header>
 
   <nav id="rail" aria-label="Repository index">
+    <button class="pane-toggle" id="rail-toggle" aria-expanded="true"
+            aria-controls="railbody" title="Collapse parts index  [">&#9666;</button>
+    <span class="pane-stub">Parts</span>
     <div id="railsearch">
       <input id="q" type="search" placeholder="Filter parts…" autocomplete="off" spellcheck="false" aria-label="Filter parts" />
     </div>
@@ -468,15 +539,15 @@ ul.bul li { margin-bottom: 6px; max-width: 60ch; }
       <button class="btn" id="hmode" style="font-size:9.5px;padding:3px 8px;">Lines of code</button>
     </div>
     <svg id="svg" role="img" aria-label="Axonometric drawing of the SemPKM repository"></svg>
+    <div id="edge-pop" role="menu" aria-label="Edges on this route"></div>
   </main>
 
   <aside id="inspector">
-    <div id="tabs" role="tablist">
-      <button class="tab" role="tab" id="tab-what" aria-selected="true">What it does</button>
-      <button class="tab" role="tab" id="tab-built" aria-selected="false">How it's built</button>
-      <button class="tab" role="tab" id="tab-cond" aria-selected="false">Condition</button>
-      <button class="tab" role="tab" id="tab-find" aria-selected="false">Findings<span class="badge" id="find-badge">2</span></button>
-    </div>
+    <button class="pane-toggle" id="insp-toggle" aria-expanded="true"
+            aria-controls="panel" title="Collapse inspector  ]">&#9656;</button>
+    <span class="pane-stub">Inspector</span>
+    <!-- tabs are built in JS: the set changes with what is selected -->
+    <div id="tabs" role="tablist"></div>
     <div id="panel" role="tabpanel"></div>
   </aside>
 
@@ -737,22 +808,81 @@ function edgeGridPath(e) {
   return pts;
 }
 
+/* Edges that join the same two parts share one line. Without this, several
+   edges between a pair draw exactly on top of each other and read as one. */
+var BUNDLES = [];
+
+function buildBundles() {
+  var byKey = {};
+  BUNDLES = [];
+  EDGES.forEach(function (e, i) {
+    var key = [e.from, e.to].slice().sort().join(" ");
+    var b = byKey[key];
+    if (!b) {
+      b = byKey[key] = { key: key, from: e.from, to: e.to, edges: [], idx: BUNDLES.length };
+      BUNDLES.push(b);
+    }
+    b.edges.push(i);
+  });
+  BUNDLES.forEach(function (b) {
+    b._viol  = b.edges.every(function (i) { return EDGES[i].flow === "viol"; });
+    b._spine = byId[b.from].grp === "loop" && byId[b.to].grp === "loop" && !b._viol;
+    b.edges.forEach(function (ei, k) {
+      EDGES[ei]._bundle = b;
+      EDGES[ei]._lane = k;        /* which lane this edge's packet rides in */
+    });
+  });
+}
+
+function wireWidth(b, visibleCount, lit) {
+  var base = lit ? 2.4 : (b._viol ? 1.8 : (b._spine ? 2 : 1.25));
+  return (base + Math.max(0, visibleCount - 1) * 1.3).toFixed(2);
+}
+
 function buildWires() {
   var g = el("g");
   wireRefs = {};
-  EDGES.forEach(function (e, i) {
+  BUNDLES.forEach(function (b) {
     var pl = el("polyline");
-    e._spine = byId[e.from].grp === "loop" && byId[e.to].grp === "loop" && e.flow !== "viol";
-    pl.setAttribute("class", e.flow === "viol" ? "wire viol" : (e._spine ? "wire spine" : "wire"));
+    pl.setAttribute("class", b._viol ? "wire viol" : (b._spine ? "wire spine" : "wire"));
     g.appendChild(pl);
+
     var marks = [];
     for (var j = 0; j < 4; j++) {
       var m = el("polygon"); m.setAttribute("class", "wire-node");
       g.appendChild(m); marks.push(m);
     }
-    wireRefs[i] = { line: pl, marks: marks };
+
+    var count = null;
+    if (b.edges.length > 1) {
+      count = el("text");
+      count.setAttribute("class", "bundle-count");
+      count.textContent = b.edges.length;
+      g.appendChild(count);
+    }
+
+    /* a fat transparent line, so a 1px wire is actually hoverable */
+    var hit = el("polyline");
+    hit.setAttribute("class", "wire-hit");
+    hit.addEventListener("mouseenter", function (ev) { showEdgePop(b, ev); });
+    hit.addEventListener("mousemove", moveEdgePop);
+    hit.addEventListener("mouseleave", scheduleHideEdgePop);
+    hit.addEventListener("click", function (ev) {
+      if (didDrag) return;
+      ev.stopPropagation();
+      var vis = visibleEdgesOf(b);
+      if (vis.length === 1) openPacket(packets[vis[0]]);
+      else if (vis.length) showEdgePop(b, ev);
+    });
+    g.appendChild(hit);
+
+    wireRefs[b.idx] = { line: pl, hit: hit, marks: marks, count: count, bundle: b };
   });
   return g;
+}
+
+function visibleEdgesOf(b) {
+  return b.edges.filter(function (i) { return FLOWS[EDGES[i].flow].on; });
 }
 
 function polylineMeta(pts) {
@@ -778,24 +908,106 @@ function pointAt(pts, meta, dist) {
   return pts[pts.length - 1];
 }
 
+/* Offset a point sideways from the path, so packets sharing a bundle ride in
+   their own lane instead of overlapping. */
+function pointAtOffset(pts, meta, dist, off) {
+  var p = pointAt(pts, meta, dist);
+  if (!off) return p;
+  var q = pointAt(pts, meta, Math.min(meta.total, dist + 2));
+  var dx = q[0] - p[0], dy = q[1] - p[1];
+  var L = Math.sqrt(dx * dx + dy * dy) || 1;
+  return [p[0] - dy / L * off, p[1] + dx / L * off];
+}
+
+function laneOffset(e) {
+  var n = e._bundle ? e._bundle.edges.length : 1;
+  if (n < 2) return 0;
+  return (e._lane - (n - 1) / 2) * 5.5;
+}
+
 function applyWires() {
-  EDGES.forEach(function (e, i) {
-    var grid = edgeGridPath(e);
+  BUNDLES.forEach(function (b) {
+    var first = EDGES[b.edges[0]];
+    var grid = edgeGridPath(first);
     var pts = grid.map(function (g3) { return proj(g3[0], g3[1], g3[2]); });
-    e._pts = pts;
-    e._meta = polylineMeta(pts);
-    var w = wireRefs[i];
-    w.line.setAttribute("points", pts.map(pt).join(" "));
-    /* markers: bends first, then the midpoint, unused ones parked */
+    b._pts = pts;
+    b._meta = polylineMeta(pts);
+
+    /* every edge rides the bundle; ones pointing the other way ride it backwards */
+    b.edges.forEach(function (ei) {
+      var e = EDGES[ei];
+      if (e.from === first.from) { e._pts = pts; e._meta = b._meta; }
+      else { e._pts = pts.slice().reverse(); e._meta = polylineMeta(e._pts); }
+    });
+
+    var w = wireRefs[b.idx];
+    var d = pts.map(pt).join(" ");
+    w.line.setAttribute("points", d);
+    w.hit.setAttribute("points", d);
+
     var spots = [];
     for (var j = 1; j < pts.length - 1; j++) spots.push(pts[j]);
-    spots.push(pointAt(pts, e._meta, e._meta.total / 2));
+    var mid = pointAt(pts, b._meta, b._meta.total / 2);
+    spots.push(mid);
     w.marks.forEach(function (m, mi) {
       if (mi >= spots.length) { m.setAttribute("points", ""); return; }
       var s = spots[mi], r = 3.2;
       m.setAttribute("points", [[s[0],s[1]-r],[s[0]+r,s[1]],[s[0],s[1]+r],[s[0]-r,s[1]]].map(pt).join(" "));
     });
+    if (w.count) {
+      w.count.setAttribute("x", (mid[0] + 10).toFixed(1));
+      w.count.setAttribute("y", (mid[1] - 10).toFixed(1));
+    }
   });
+}
+
+/* ---- the popover listing what runs along a bundle ---- */
+var edgePop, popTimer = null;
+
+function showEdgePop(b, ev) {
+  clearTimeout(popTimer);
+  var vis = visibleEdgesOf(b);
+  if (!vis.length) return;
+  var html = '<div class="pop-head">' + esc(byId[b.from].short) + ' &harr; ' +
+             esc(byId[b.to].short) + ' · ' + vis.length +
+             (vis.length === 1 ? ' edge' : ' edges') + '</div>';
+  vis.forEach(function (i) {
+    var e = EDGES[i];
+    html += '<button data-edge="' + i + '">' + esc(e.pk) +
+            '<span class="pop-dir">' + esc(byId[e.from].short) + ' &rarr; ' +
+            esc(byId[e.to].short) + ' · ' + esc(FLOWS[e.flow].label.toLowerCase()) +
+            '</span></button>';
+  });
+  edgePop.innerHTML = html;
+  edgePop.style.display = "block";
+  edgePop.querySelectorAll("[data-edge]").forEach(function (btn) {
+    btn.addEventListener("click", function (ev2) {
+      ev2.stopPropagation();
+      hideEdgePop();
+      openPacket(packets[parseInt(btn.getAttribute("data-edge"), 10)]);
+    });
+  });
+  moveEdgePop(ev);
+}
+
+function moveEdgePop(ev) {
+  if (edgePop.style.display !== "block") return;
+  var r = stage.getBoundingClientRect();
+  var x = ev.clientX - r.left + 14, y = ev.clientY - r.top + 14;
+  var w = edgePop.offsetWidth, h = edgePop.offsetHeight;
+  if (x + w > r.width - 8) x = r.width - w - 8;
+  if (y + h > r.height - 8) y = ev.clientY - r.top - h - 14;
+  edgePop.style.left = Math.max(4, x) + "px";
+  edgePop.style.top = Math.max(4, y) + "px";
+}
+
+function scheduleHideEdgePop() { popTimer = setTimeout(hideEdgePop, 280); }
+function hideEdgePop() { if (edgePop) edgePop.style.display = "none"; }
+
+/* moving the pointer into the popover must not dismiss it */
+function wireEdgePopHover() {
+  edgePop.addEventListener("mouseenter", function () { clearTimeout(popTimer); });
+  edgePop.addEventListener("mouseleave", hideEdgePop);
 }
 
 /* ---- boxes ---- */
@@ -899,6 +1111,9 @@ function buildScene() {
   svg.appendChild(defs);
 
   scene = el("g", { id: "scene" });
+  edgePop = document.getElementById("edge-pop");
+  wireEdgePopHover();
+  buildBundles();
   gGrid = buildGround();
   gBands = buildBands();
   gWires = buildWires();
@@ -1059,7 +1274,8 @@ function tick(ts) {
       p.ratio += advance * p.jitter / p.edge._meta.total;
       if (p.ratio > 1) p.ratio -= 1;
     }
-    var xy = pointAt(p.edge._pts, p.edge._meta, p.ratio * p.edge._meta.total);
+    var xy = pointAtOffset(p.edge._pts, p.edge._meta,
+                           p.ratio * p.edge._meta.total, laneOffset(p.edge));
     p.g.setAttribute("transform", "translate(" + xy[0].toFixed(2) + "," + xy[1].toFixed(2) + ")");
   });
 
@@ -1112,14 +1328,19 @@ function paintState() {
     g.classList.toggle("flagged", FLAGGED[n.id] === "high");
   });
 
-  EDGES.forEach(function (e, i) {
-    var w = wireRefs[i];
-    var visible = FLOWS[e.flow].on;
-    var isLit = litSet[i];
-    var muted = !visible || (!!focus && !isLit);
+  BUNDLES.forEach(function (b) {
+    var w = wireRefs[b.idx];
+    var vis = visibleEdgesOf(b);
+    var isLit = vis.some(function (i) { return litSet[i]; });
+    var muted = !vis.length || (!!focus && !isLit);
     w.line.classList.toggle("muted", muted);
-    w.line.classList.toggle("lit", !!isLit && visible);
+    w.line.classList.toggle("lit", isLit);
+    w.line.style.strokeWidth = wireWidth(b, vis.length, isLit);
     w.marks.forEach(function (m) { m.classList.toggle("muted", muted); });
+    if (w.count) {
+      w.count.textContent = vis.length;
+      w.count.style.display = vis.length > 1 && !muted ? "" : "none";
+    }
   });
 
   packets.forEach(function (p) {
@@ -1296,7 +1517,20 @@ function findingsHTML(forNode) {
   return html;
 }
 
+function endpointCard(n, dir) {
+  return '<div class="sec">' + dir + ' &middot; ' + esc(n.name) + '</div>' +
+    '<p>' + esc(n.does) + '</p>' +
+    '<dl class="kv">' +
+      '<dt>Lines</dt><dd>' + n.loc.toLocaleString() + '</dd>' +
+      '<dt>Files</dt><dd>' + n.files + '</dd>' +
+      '<dt>Löwy layer</dt><dd>' + esc(n.layer) + '</dd>' +
+    '</dl>' +
+    '<div class="chiprow"><button class="chip" data-goto="' + n.id + '">Open ' +
+      esc(n.name) + '</button></div>';
+}
+
 function renderPanel() {
+  buildTabs();                       /* the tab set follows the selection */
   var html = "";
 
   if (activeTab === "find") {
@@ -1306,15 +1540,41 @@ function renderPanel() {
 
   if (selectedPacket) {
     var e = selectedPacket.edge;
+    var b = e._bundle;
+    var sibs = b ? b.edges.filter(function (i) { return EDGES[i] !== e; }) : [];
+
     html += '<div class="eyebrow">' + esc(byId[e.from].name) + ' &rarr; ' + esc(byId[e.to].name) + '</div>';
     html += '<h2>' + esc(e.pk) + '</h2>';
-    html += '<div class="dek">' + esc(e.label) + ' &middot; ' + esc(FLOWS[e.flow].label.toLowerCase()) + ' path</div>';
-    html += '<pre>' + esc(e.body) + '</pre>';
-    html += '<div class="sec">Why it looks like this</div><p>' + esc(e.note) + '</p>';
-    html += '<div class="chiprow">' +
-            '<button class="chip" data-goto="' + e.from + '">Open ' + esc(byId[e.from].name) + '</button>' +
-            '<button class="chip" data-goto="' + e.to + '">Open ' + esc(byId[e.to].name) + '</button>' +
-            '<button class="chip" data-clear="1">Back to the system</button></div>';
+    html += '<div class="dek">' + esc(e.label) + ' &middot; ' +
+            esc(FLOWS[e.flow].label.toLowerCase()) + ' path</div>';
+
+    if (activeTab === "payload") {
+      html += '<pre>' + esc(e.body) + '</pre>';
+      html += '<div class="sec">Why it looks like this</div><p>' + esc(e.note) + '</p>';
+    } else if (activeTab === "route") {
+      html += '<dl class="kv">' +
+        '<dt>From</dt><dd>' + esc(byId[e.from].name) + '</dd>' +
+        '<dt>To</dt><dd>' + esc(byId[e.to].name) + '</dd>' +
+        '<dt>Flow layer</dt><dd>' + esc(FLOWS[e.flow].label) + '</dd>' +
+        '<dt>Carries</dt><dd>' + esc(e.pk) + '</dd>' +
+        '<dt>Shares a line</dt><dd>' + (sibs.length ? 'with ' + sibs.length + ' other' +
+          (sibs.length === 1 ? '' : 's') : 'no — sole edge on this route') + '</dd>' +
+        '<dt>Segments</dt><dd>' + ((e._pts ? e._pts.length : 1) - 1) + '</dd>' +
+        '</dl>';
+      if (sibs.length) {
+        html += '<div class="sec">Also on this line</div><div class="chiprow">';
+        sibs.forEach(function (i) {
+          html += '<button class="chip" data-pkt="' + i + '">&#9679; ' + esc(EDGES[i].pk) + '</button>';
+        });
+        html += '</div>';
+      }
+      html += '<p style="color:var(--ink-3);font-size:11px;">Line thickness counts the edges on a route. Hover one in the drawing to list them.</p>';
+    } else {
+      html += endpointCard(byId[e.from], "Source");
+      html += endpointCard(byId[e.to], "Target");
+    }
+
+    html += '<div class="chiprow"><button class="chip" data-clear="1">Back to the system</button></div>';
     panel.innerHTML = html; wirePanelChips(); panel.scrollTop = 0; return;
   }
 
@@ -1362,7 +1622,7 @@ function renderPanel() {
 
 function openPacket(p) {
   selectedPacket = p; selectedNode = null;
-  if (activeTab === "find") setTab("what");
+  if (!TABSETS.edge.some(function (t) { return t.id === activeTab; })) activeTab = "payload";
   running = false; syncPlayButton();
   FLOWS[p.edge.flow].on = true; paintFlowBar();
   renderPanel(); paintState(); paintRail();
@@ -1371,7 +1631,7 @@ function openPacket(p) {
 function wirePanelChips() {
   panel.querySelectorAll("[data-goto]").forEach(function (b) {
     b.addEventListener("click", function () {
-      if (activeTab === "find") setTab("what");
+      if (activeTab === "find") activeTab = "what";
       selectNode(b.getAttribute("data-goto"));
     });
   });
@@ -1414,16 +1674,47 @@ function selectNode(id) {
   if (b) b.scrollIntoView({ block: "nearest" });
 }
 
-function setTab(t) {
-  activeTab = t;
-  ["what","built","cond","find"].forEach(function (o) {
-    document.getElementById("tab-" + o).setAttribute("aria-selected", o === t ? "true" : "false");
+/* An edge and a part are different kinds of thing, so they get different tabs.
+   Selecting an edge used to leave 'How it's built' and 'Condition' rendering
+   nothing at all. */
+var TABSETS = {
+  main: [{ id: "what",  label: "What it does" },
+         { id: "built", label: "How it's built" },
+         { id: "cond",  label: "Condition" },
+         { id: "find",  label: "Findings", badge: true }],
+  edge: [{ id: "payload", label: "Payload" },
+         { id: "route",   label: "Route" },
+         { id: "ends",    label: "Endpoints" },
+         { id: "find",    label: "Findings", badge: true }]
+};
+
+function currentTabSet() { return selectedPacket ? TABSETS.edge : TABSETS.main; }
+
+function buildTabs() {
+  var set = currentTabSet();
+  if (!set.some(function (t) { return t.id === activeTab; })) activeTab = set[0].id;
+  var bar = document.getElementById("tabs");
+  bar.textContent = "";
+  set.forEach(function (t) {
+    var b = document.createElement("button");
+    b.className = "tab";
+    b.setAttribute("role", "tab");
+    b.setAttribute("aria-selected", activeTab === t.id ? "true" : "false");
+    b.textContent = t.label;
+    if (t.badge) {
+      var hi = FINDINGS.filter(function (f) { return f.sev === "high"; }).length;
+      if (hi) {
+        var s = document.createElement("span");
+        s.className = "badge"; s.textContent = hi;
+        b.appendChild(s);
+      }
+    }
+    b.addEventListener("click", function () { setTab(t.id); });
+    bar.appendChild(b);
   });
-  renderPanel();
 }
-["what","built","cond","find"].forEach(function (t) {
-  document.getElementById("tab-" + t).addEventListener("click", function () { setTab(t); });
-});
+
+function setTab(t) { activeTab = t; buildTabs(); renderPanel(); }
 
 /* ============================================================
    11. CONTROLS
@@ -1518,8 +1809,48 @@ function paintFlowBar() {
   });
 }
 
+/* ---- collapsible panes ---- */
+var shellEl = document.getElementById("shell");
+var PANES = {
+  rail: { cls: "rail-collapsed", btn: "rail-toggle", open: "◂", shut: "▸" },
+  insp: { cls: "insp-collapsed", btn: "insp-toggle", open: "▸", shut: "◂" }
+};
+
+function setPane(which, collapsed, skipStore) {
+  var p = PANES[which];
+  shellEl.classList.toggle(p.cls, collapsed);
+  var btn = document.getElementById(p.btn);
+  btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+  btn.textContent = collapsed ? p.shut : p.open;
+  btn.title = (collapsed ? "Expand" : "Collapse") +
+              (which === "rail" ? " parts index  [" : " inspector  ]");
+  if (!skipStore) {
+    try { localStorage.setItem("repolens.pane." + which, collapsed ? "1" : "0"); } catch (e) {}
+  }
+  /* the canvas just changed width — reframe it */
+  clearTimeout(window.__rt);
+  window.__rt = setTimeout(resetView, 170);
+}
+
+function togglePane(which) {
+  setPane(which, !shellEl.classList.contains(PANES[which].cls));
+}
+
+Object.keys(PANES).forEach(function (which) {
+  document.getElementById(PANES[which].btn)
+    .addEventListener("click", function () { togglePane(which); });
+  var saved = null;
+  try { saved = localStorage.getItem("repolens.pane." + which); } catch (e) {}
+  setPane(which, saved === "1", true);
+});
+
 /* keyboard */
 document.addEventListener("keydown", function (ev) {
+  if (ev.target.tagName !== "INPUT" && (ev.key === "[" || ev.key === "]")) {
+    ev.preventDefault();
+    togglePane(ev.key === "[" ? "rail" : "insp");
+    return;
+  }
   if (ev.target.tagName === "INPUT") {
     if (ev.key === "Escape") { ev.target.value = ""; paintRail(); ev.target.blur(); }
     return;
@@ -1535,7 +1866,7 @@ document.addEventListener("keydown", function (ev) {
     });
     var i = order.indexOf(selectedNode);
     i = ev.key === "ArrowDown" ? (i + 1) % order.length : (i <= 0 ? order.length - 1 : i - 1);
-    if (activeTab === "find") setTab("what");
+    if (activeTab === "find") activeTab = "what";
     selectNode(order[i]);
   } else if (ev.key === " ") {
     ev.preventDefault(); running = !running; syncPlayButton();
@@ -1545,9 +1876,6 @@ document.addEventListener("keydown", function (ev) {
 /* ============================================================
    12. BOOT
    ============================================================ */
-
-document.getElementById("find-badge").textContent =
-  FINDINGS.filter(function (f) { return f.sev === "high"; }).length;
 
 LAYOUTS.survey.build();
 buildScene();
