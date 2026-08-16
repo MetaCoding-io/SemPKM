@@ -84,6 +84,31 @@ def derive_nodes(ctx: Context, ns_id: str, measured: dict) -> tuple[list[dict], 
     return nodes, [{"id": g, "label": g} for g in sorted(groups)]
 
 
+def compact_symbols(ctx: Context) -> dict:
+    """Project the symbol facts down to what the page actually reads.
+
+    The whole model is inlined into the page, so anything carried here is
+    downloaded by every viewer. `imported` is context the UI never shows, and
+    docs are truncated. Set `symbols.in_model: false` to leave them out
+    entirely on a repo where the weight is not worth it.
+    """
+    spec = ctx.config.get("symbols") or {}
+    if not spec.get("in_model", True):
+        return {}
+    cap = int(spec.get("model_doc_chars", 90))
+    out = {}
+    for path, rec in (ctx.facts.get("symbols") or {}).items():
+        syms = []
+        for s in rec.get("symbols", []):
+            t = {k: v for k, v in s.items() if k != "doc"}
+            if s.get("doc"):
+                t["doc"] = s["doc"][:cap]
+            syms.append(t)
+        out[path] = {"symbols": syms, "edges": rec.get("edges", []),
+                     "approx": rec.get("approx", False)}
+    return out
+
+
 def _derived_tiers(nodes: list[dict]) -> list[str]:
     """Tier labels for a derived model: import depth, named plainly."""
     depths = sorted({n.get("tier") or 0 for n in nodes})
@@ -240,6 +265,8 @@ def assemble(ctx: Context) -> None:
         "edges": edges,
         # optional: empty when the drilldown stage is not in this pipeline
         "drill": ctx.facts.get("drilldown", {}),
+        # the third level; empty when the symbols stage is not in this pipeline
+        "symbols": compact_symbols(ctx),
         "findings": findings,
         "system": {k: _fmt(ctx, v) for k, v in (ov["system"] or {}).items()},
         "meta": {

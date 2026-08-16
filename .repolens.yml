@@ -87,6 +87,16 @@ imports:
 tests:
   scope: ["e2e/tests/**/*.spec.ts"]
 
+# ------------------------------------------------------------------ symbols
+# The third level: what is inside a file. Defaults to the members of the model
+# nodeset. Playwright specs are excluded because a spec body is one anonymous
+# callback — 126 files cost 183ms for 83 symbols. Set exclude: [] to keep them.
+symbols:
+  exclude: ["**/*.spec.ts", "**/*.spec.js", "**/*.test.ts", "**/*.test.js"]
+  max_files: 400
+  max_bytes: 250000
+  doc_chars: 120
+
 # ------------------------------------------------------------- conventions
 # gsd stores decisions and rules in fixed-column markdown tables, so they parse
 # directly. No model involved.
@@ -231,5 +241,5 @@ model:
 # Named stage orders. Add a stage module, name it here, and it runs.
 pipelines:
   scan:  [discover, loc, overlay, nodesets, callsites, routes, signals, imports, tests, conventions, checks]
-  build: [discover, loc, overlay, nodesets, drilldown, callsites, routes, signals, imports, tests, conventions, checks, assemble, verify, emit]
+  build: [discover, loc, overlay, nodesets, drilldown, symbols, callsites, routes, signals, imports, tests, conventions, checks, assemble, verify, emit]
   check: [discover, loc, overlay, nodesets, callsites, signals, conventions, checks]

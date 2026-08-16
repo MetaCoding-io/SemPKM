@@ -701,7 +701,7 @@ var LAYOUT_DEFAULTS = {
   label: "Untitled",
   blurb: "",
   maxPitch: 90,            /* a plan view flattens stacked tiers onto each other */
-  scope: "system",         /* "system" | "drill" — which dataset it can lay out */
+  scope: "system",         /* "system" | "part" | "file" */
   box: { w: 2.1, d: 2.1 },
   heightCap: 5.0, heightDiv: 22, heightPer: 0.52,
 
@@ -865,7 +865,10 @@ var stage = document.getElementById("stage");
 var scene, gGrid, gWires, gNodes, gPackets, gBands, hoverLabel;
 var view = { k: 1, tx: 0, ty: 0 };
 /* system | drill — declared here because buildRail reads it during boot */
-var VIEW = { mode: "system", node: null, prev: null };
+/* system → part → file. Each level swaps the dataset; the stack remembers the
+   way back. */
+var VIEW = { mode: "system", node: null, path: null, prev: null };
+function inDrill() { return VIEW.mode !== "system"; }
 var selectedNode = null, hoveredNode = null, selectedPacket = null;
 var activeTab = "what";
 var sevFilter = null;
@@ -1219,7 +1222,8 @@ function buildNodes() {
     grp.addEventListener("dblclick", function (ev) {
       if (didDrag) return;
       ev.stopPropagation();
-      if (VIEW.mode === "system") enterDrill(n.id);
+      if (VIEW.mode === "system") enterPart(n.id);
+      else if (VIEW.mode === "part") enterFile(n);
     });
     grp.addEventListener("keydown", function (ev) {
       if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); selectNode(n.id); }
@@ -1608,7 +1612,7 @@ function buildRail() {
       b.querySelector(".k").textContent = n.key;
       b.querySelector(".n").textContent = n.name;
       b.querySelector(".c").textContent =
-        VIEW.mode === "drill" ? n.loc.toLocaleString() : n.files;
+        inDrill() ? n.loc.toLocaleString() : n.files;
       b.addEventListener("click", function () { selectNode(n.id); });
       b.addEventListener("mouseenter", function () { hoveredNode = n.id; paintState(); });
       b.addEventListener("mouseleave", function () { hoveredNode = null; paintState(); });
@@ -1784,7 +1788,43 @@ function renderPanel() {
     panel.innerHTML = html; wirePanelChips(); panel.scrollTop = 0; return;
   }
 
-  if (!selectedNode && VIEW.mode === "drill") {
+  if (!selectedNode && VIEW.mode === "file") {
+    var rec = (MODEL.symbols || {})[VIEW.path] || {};
+    var byDeg = NODES.slice().sort(function (a, b) { return b.degree - a.degree; });
+    var bySize = NODES.slice().sort(function (a, b) { return b.loc - a.loc; });
+    var kinds = {};
+    NODES.forEach(function (n) { kinds[n.kind] = (kinds[n.kind] || 0) + 1; });
+
+    html += '<div class="eyebrow">Inside a file</div>';
+    html += '<h2>' + esc(VIEW.fileName) + '</h2>';
+    html += '<div class="dek">' + esc(VIEW.path) + '</div>';
+    html += '<p>' + esc(LAYOUTS[layout].blurb) + '</p>';
+    html += '<dl class="kv">' +
+      '<dt>Symbols</dt><dd>' + NODES.length + '</dd>' +
+      '<dt>Calls within</dt><dd>' + EDGES.length + '</dd>' +
+      '<dt>Kinds</dt><dd>' + Object.keys(kinds).sort().map(function (k) {
+          return k + " " + kinds[k]; }).join(" · ") + '</dd>' +
+      (byDeg[0] ? '<dt>Most connected</dt><dd>' + esc(byDeg[0].name) + ' · ' + byDeg[0].degree + '</dd>' : '') +
+      (bySize[0] ? '<dt>Largest</dt><dd>' + esc(bySize[0].name) + ' · ' + bySize[0].loc + ' lines</dd>' : '') +
+      '</dl>';
+    if (rec.approx) {
+      html += '<div class="flag warn"><span class="lab">Approx</span><span class="txt">' +
+              'This file is JavaScript or TypeScript, so its symbols came from a regex and ' +
+              'its line spans from brace counting. Python files are parsed properly.' +
+              '</span></div>';
+    }
+    if (!EDGES.length) {
+      html += '<div class="flag"><span class="lab">Note</span><span class="txt">' +
+              'No calls between these symbols. They may only be called from elsewhere — ' +
+              'calls that leave the file are not drawn here.</span></div>';
+    }
+    html += '<div class="chiprow">' +
+            '<button class="chip" data-up="1">&#9666; Back to the part</button>' +
+            '<button class="chip" data-exit="1">Back to the system</button></div>';
+    panel.innerHTML = html; wirePanelChips(); panel.scrollTop = 0; return;
+  }
+
+  if (!selectedNode && inDrill()) {
     var parent = SYSTEM_DATA.nodes.filter(function (n) { return n.id === VIEW.node; })[0] || {};
     var rec = (MODEL.drill || {})[VIEW.node] || {};
     var byDeg = NODES.slice().sort(function (a, b) { return b.degree - a.degree; });
@@ -1882,6 +1922,9 @@ function wirePanelChips() {
   });
   panel.querySelectorAll("[data-pkt]").forEach(function (b) {
     b.addEventListener("click", function () { openPacket(packets[parseInt(b.getAttribute("data-pkt"), 10)]); });
+  });
+  panel.querySelectorAll("[data-up]").forEach(function (b) {
+    b.addEventListener("click", goUp);
   });
   panel.querySelectorAll("[data-exit]").forEach(function (b) {
     b.addEventListener("click", exitDrill);
@@ -2042,7 +2085,7 @@ function paintLayoutBar() {
   layoutbar.appendChild(lab);
   Object.keys(LAYOUTS).forEach(function (id) {
     var scope = LAYOUTS[id].scope || "system";
-    var want = (typeof VIEW !== "undefined" && VIEW.mode === "drill") ? "drill" : "system";
+    var want = (typeof VIEW !== "undefined") ? VIEW.mode : "system";
     if (scope !== want) return;
     var b = document.createElement("button");
     b.className = "btn";
@@ -2156,7 +2199,7 @@ document.addEventListener("keydown", function (ev) {
     return;
   }
   if (ev.key === "Escape") {
-    if (VIEW.mode === "drill" && !selectedNode && !selectedPacket) { exitDrill(); return; }
+    if (inDrill() && !selectedNode && !selectedPacket) { goUp(); return; }
     selectedNode = null; selectedPacket = null;
     renderPanel(); paintState(); paintRail();
   } else if (ev.key === "ArrowDown" || ev.key === "ArrowUp") {
@@ -2231,7 +2274,8 @@ function buildDrillData(nodeId) {
     var inbound = (rec.edges || []).filter(function (e) { return e.to === f.id; }).length;
     var outbound = (rec.edges || []).filter(function (e) { return e.from === f.id; }).length;
     return {
-      id: f.id, key: "", short: f.name.replace(/\.[a-z]+$/, ""), name: f.name,
+      id: f.id, key: "", path: f.path,
+      short: f.name.replace(/\.[a-z]+$/, ""), name: f.name,
       grp: dir, layer: parent.layer, tier: parent.tier,
       loc: f.lines || 0, files: 1,
       degree: degree[f.id] || 0,
@@ -2311,8 +2355,8 @@ function zoomInto(nodeId, done) {
   requestAnimationFrame(step);
 }
 
-function enterDrill(nodeId) {
-  if (VIEW.mode === "drill") return;
+function enterPart(nodeId) {
+  if (inDrill()) return;
   var data = buildDrillData(nodeId);
   if (!data) return;
 
@@ -2326,7 +2370,7 @@ function enterDrill(nodeId) {
       VIEW.prev.flows[f] = FLOWS[f].on;
       FLOWS[f].on = (f === "import");
     });
-    VIEW.mode = "drill";
+    VIEW.mode = "part";
     VIEW.node = nodeId;
     NODES = data.nodes; EDGES = data.edges; GROUPS = data.groups;
     rebuildForDataset("inside");
@@ -2339,8 +2383,96 @@ function enterDrill(nodeId) {
   });
 }
 
+function buildSymbolData(path) {
+  var rec = (MODEL.symbols || {})[path];
+  if (!rec || !rec.symbols || !rec.symbols.length) return null;
+
+  var degree = {};
+  (rec.edges || []).forEach(function (e) {
+    degree[e.from] = (degree[e.from] || 0) + 1;
+    degree[e.to] = (degree[e.to] || 0) + 1;
+  });
+
+  var groups = {};
+  var nodes = rec.symbols.map(function (sym) {
+    /* methods gather under their class; everything else under its kind */
+    var grp = sym.parent || sym.kind;
+    groups[grp] = true;
+    var calls = (rec.edges || []).filter(function (e) { return e.from === sym.id; }).length;
+    var called = (rec.edges || []).filter(function (e) { return e.to === sym.id; }).length;
+    return {
+      id: sym.id, key: "", short: sym.name, name: sym.name,
+      grp: grp, layer: null, tier: 0,
+      loc: sym.lines || 1, files: 1, degree: degree[sym.id] || 0,
+      line: sym.line, endLine: sym.end_line, kind: sym.kind,
+      x: 0, y: 0, w: 2, d: 2,
+      sub: sym.kind + " · lines " + sym.line + "–" + sym.end_line,
+      does: (sym.doc ? sym.doc + " " : "") +
+            (sym.lines || 0) + " lines. " +
+            (calls ? "Calls " + calls + " " : "Calls nothing ") +
+            (called ? "· called by " + called + " here." : "· called by nothing here."),
+      built: "A " + sym.kind + (sym.parent ? " of " + sym.parent : "") +
+             ", lines " + sym.line + " to " + sym.end_line + " of " + path + ".",
+      cond: rec.approx
+        ? [["note", "Regex-derived. JS and TS symbols are approximate — the line " +
+                    "span comes from brace counting, not a parser."]]
+        : [["measured", "From the file's syntax tree, not a text match."]]
+    };
+  });
+
+  var edges = (rec.edges || []).map(function (e) {
+    return {
+      from: e.from, to: e.to, flow: "import",
+      label: "calls", pk: e.from + " → " + e.to,
+      body: "# " + path + "\n\n" + e.from + " calls " + e.to +
+            "\n\n# a call to a name defined in this same file;\n" +
+            "# calls that leave the file are not drawn here.",
+      note: "Same-file calls only. An attribute call resolves when the name is " +
+            "unambiguous in the file, and is dropped rather than guessed when it is not."
+    };
+  });
+
+  return {
+    nodes: nodes, edges: edges,
+    groups: Object.keys(groups).sort().map(function (g) { return { id: g, label: g }; })
+  };
+}
+
+function enterFile(fileNode) {
+  var path = fileNode.path;
+  var data = path && buildSymbolData(path);
+  if (!data) return;
+  zoomInto(fileNode.id, function () {
+    VIEW.parentPart = VIEW.node;
+    VIEW.mode = "file";
+    VIEW.path = path;
+    VIEW.fileName = fileNode.name;
+    NODES = data.nodes; EDGES = data.edges; GROUPS = data.groups;
+    rebuildForDataset("callgraph");
+    svg.style.opacity = "0";
+    requestAnimationFrame(function () {
+      svg.style.transition = "opacity 180ms linear";
+      svg.style.opacity = "1";
+      setTimeout(function () { svg.style.transition = ""; }, 220);
+    });
+  });
+}
+
+/* Escape and the breadcrumb both climb one level. */
+function goUp() {
+  if (VIEW.mode === "file") {
+    var back = VIEW.parentPart;
+    VIEW.mode = "system"; VIEW.node = null; VIEW.path = null;
+    NODES = SYSTEM_DATA.nodes; EDGES = SYSTEM_DATA.edges; GROUPS = SYSTEM_DATA.groups;
+    byId = {}; NODES.forEach(function (n) { byId[n.id] = n; });
+    enterPart(back);
+    return;
+  }
+  exitDrill();
+}
+
 function exitDrill() {
-  if (VIEW.mode !== "drill") return;
+  if (!inDrill()) return;
   var prev = VIEW.prev || {};
   Object.keys(FLOWS).forEach(function (f) {
     if (prev.flows && f in prev.flows) FLOWS[f].on = prev.flows[f];
@@ -2354,18 +2486,30 @@ var crumbs = document.getElementById("crumbs");
 
 function paintCrumbs() {
   crumbs.textContent = "";
-  if (VIEW.mode !== "drill") { crumbs.style.display = "none"; return; }
+  if (!inDrill()) { crumbs.style.display = "none"; return; }
   crumbs.style.display = "flex";
   var back = document.createElement("button");
   back.className = "btn";
   back.innerHTML = "&#9666;&nbsp; " + esc(MODEL.repo.name);
   back.addEventListener("click", exitDrill);
   crumbs.appendChild(back);
+  var partId = VIEW.mode === "file" ? VIEW.parentPart : VIEW.node;
+  var parent = SYSTEM_DATA.nodes.filter(function (n) { return n.id === partId; })[0];
+
+  if (VIEW.mode === "file") {
+    var up = document.createElement("button");
+    up.className = "btn";
+    up.textContent = parent ? parent.name : partId;
+    up.addEventListener("click", goUp);
+    crumbs.appendChild(up);
+  }
+
   var here = document.createElement("span");
   here.className = "crumb-here";
-  var parent = SYSTEM_DATA.nodes.filter(function (n) { return n.id === VIEW.node; })[0];
-  here.textContent = "inside " + (parent ? parent.name : VIEW.node) +
-                     " · " + NODES.length + " files · " + EDGES.length + " imports";
+  here.textContent = VIEW.mode === "file"
+    ? VIEW.fileName + " · " + NODES.length + " symbols · " + EDGES.length + " calls"
+    : "inside " + (parent ? parent.name : VIEW.node) +
+      " · " + NODES.length + " files · " + EDGES.length + " imports";
   crumbs.appendChild(here);
 }
 
@@ -2430,33 +2574,48 @@ repolens.registerLayout({
    most-imported at the centre — for an import graph that is the thing you want
    to see first. Registered for drill scope, so it never appears at system
    level and the system layouts never appear here. */
+function ringLayout(api) {
+  var ordered = api.nodes.slice().sort(function (a, b) {
+    return (b.degree - a.degree) || (b.loc - a.loc);
+  });
+  var i = 0, ring = 0;
+  while (i < ordered.length) {
+    var capacity = ring === 0 ? 1 : Math.max(5, ring * 6);
+    var count = Math.min(capacity, ordered.length - i);
+    var R = ring === 0 ? 0 : 4.8 + (ring - 1) * 4.4;
+    for (var k = 0; k < count; k++) {
+      var a = (k / count) * Math.PI * 2 + ring * 0.6;
+      api.setPos(ordered[i + k], {
+        x: Math.cos(a) * R, y: Math.sin(a) * R, z: 0, w: 1.9, d: 1.9
+      });
+    }
+    i += count;
+    ring++;
+  }
+}
+
+var chordRoute = function (e, api) {
+  return [api.centre(api.byId[e.from]), api.centre(api.byId[e.to])];
+};
+
+/* The third level: what is inside one file. */
+repolens.registerLayout({
+  id: "callgraph",
+  label: "Call graph",
+  scope: "file",
+  blurb: "Functions, classes and methods of one file, ringed by how many of their neighbours they touch. Only calls that stay inside the file are drawn.",
+  heightCap: 4.0, heightDiv: 5, heightPer: 1.2,
+  route: chordRoute,
+  run: ringLayout
+});
+
 repolens.registerLayout({
   id: "inside",
   label: "Inside",
-  scope: "drill",
+  scope: "part",
   blurb: "Files of one part, ringed by how many of their siblings they touch. The most connected sits in the middle.",
   heightCap: 4.0, heightDiv: 9, heightPer: 1.2,
-  route: function (e, api) {
-    return [api.centre(api.byId[e.from]), api.centre(api.byId[e.to])];
-  },
-  run: function (api) {
-    var ordered = api.nodes.slice().sort(function (a, b) {
-      return (b.degree - a.degree) || (b.loc - a.loc);
-    });
-    var i = 0, ring = 0;
-    while (i < ordered.length) {
-      var capacity = ring === 0 ? 1 : Math.max(5, ring * 6);
-      var count = Math.min(capacity, ordered.length - i);
-      var R = ring === 0 ? 0 : 4.8 + (ring - 1) * 4.4;
-      for (var k = 0; k < count; k++) {
-        var a = (k / count) * Math.PI * 2 + ring * 0.6;
-        api.setPos(ordered[i + k], {
-          x: Math.cos(a) * R, y: Math.sin(a) * R, z: 0, w: 1.9, d: 1.9
-        });
-      }
-      i += count;
-      ring++;
-    }
-  }
+  route: chordRoute,
+  run: ringLayout
 });
 </script>

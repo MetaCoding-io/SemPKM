@@ -115,6 +115,27 @@ button appears the moment a layout is registered, including at runtime.
 Overridable per layout: `run` (required), `route`, `height`, `box`, `maxPitch`.
 Anything not overridden falls back to `LAYOUT_DEFAULTS`.
 
+## Three levels
+
+Double-click to go down; Escape or the breadcrumb to come back up.
+
+| Level | Nodes are | Edges are | Layout |
+|---|---|---|---|
+| system | parts of the repo | data flow + imports between parts | survey / layers / volatility / rings |
+| part | files of one part | imports between those files | inside |
+| file | classes, functions, methods | calls within that file | call graph |
+
+Each level is just a different dataset handed to the same renderer, and each
+layout declares which level it can lay out via `scope`. Levels two and three
+need the `drilldown` and `symbols` stages in the pipeline; without them the
+double-click does nothing rather than breaking.
+
+Language support is a registry: `resolvers/` holds one module per language,
+each exposing `prepare` and `resolve` plus a `register()` line. Python resolves
+by AST; JS/TS by a scanner that masks comments and template literals first.
+Symbols are exact for Python and marked `approx` for JS/TS, where line spans
+come from brace counting — the UI says so on the file rather than pretending.
+
 ## Baselines
 
 `check` blocks on **regressions**, not on history. A checker introduced to a
