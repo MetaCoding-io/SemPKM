@@ -201,10 +201,30 @@ model:
   stats:
     - { k: "Backend modules", v: "${nodeset.modules.count}" }
     - { k: "Endpoints",       v: "${routes.total} · ${routes.registrations} routers" }
-    - { k: "Commit sites",    v: "${callsites.commit_sites.total} · ${callsites.commit_sites.modules} modules", flag: bad }
-    - { k: "Decisions",       v: "${decisions.linked} placed · ${conventions.decisions} logged" }
-    - { k: "E2E specs",       v: "${tests.specs} · ${tests.dirs} dirs" }
+    - { k: "Commit sites",    v: "${callsites.commit_sites.total} · ${callsites.commit_sites.modules} modules", flag: bad, page: commit_sites }
+    - { k: "Decisions",       v: "${decisions.linked} placed · ${conventions.decisions} logged", page: decisions }
+    - { k: "E2E specs",       v: "${tests.specs} · ${tests.dirs} dirs", page: specs }
     - { k: "Lines",           v: "${loc.total}" }
+
+  # A stat with a `page` becomes a button. The page lists what the number
+  # counts, searchable, and each item can be linked to a part. `editable` pages
+  # write those links back to .repolens/overlay/links.yml.
+  pages:
+    decisions:
+      label: "Decisions"
+      from: conventions.decisions
+      note: >-
+        Placement is guessed from distinctive words in the decision text, so
+        some of it is wrong. Correct it here — edits are saved to
+        overlay/links.yml and survive the next build.
+    commit_sites:
+      label: "Commit sites"
+      from: callsites.commit_sites
+      note: "Every call to event_store.commit(), with the part that owns the file."
+    specs:
+      label: "E2E specs"
+      from: tests.list
+      note: "Playwright specs, titled by their first describe() block."
 
   groups:
     - { id: loop,   label: "The commit loop" }

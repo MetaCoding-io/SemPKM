@@ -23,6 +23,27 @@ def _read(ctx: Context, path: str) -> str:
     return _CACHE[path]
 
 
+_SPEC_TITLE = re.compile(
+    r"""(?:describe|suite|test\.describe)\s*\(\s*['"`]([^'"`]{2,120})['"`]""")
+
+
+def _spec_title(ctx: Context, path: str) -> str:
+    """The name a test file gives itself, falling back to its filename.
+
+    Reading the first describe() is worth the file open: 'Command bar keyboard
+    navigation' is findable by search, 'nav-2.spec.ts' is not.
+    """
+    m = _SPEC_TITLE.search(_read(ctx, path))
+    if m:
+        return m.group(1).strip()
+    stem = path.rsplit("/", 1)[-1]
+    for suffix in (".spec.ts", ".spec.js", ".test.ts", ".test.js"):
+        if stem.endswith(suffix):
+            stem = stem[: -len(suffix)]
+            break
+    return stem.replace("-", " ").replace("_", " ")
+
+
 def _module_of(ctx: Context, path: str) -> str:
     """Attribute a file to a module by the first segment under module_root."""
     base = ctx.config.get("module_root", "").rstrip("/")
@@ -161,6 +182,9 @@ def tests(ctx: Context) -> None:
         "specs": len(specs),
         "dirs": len(dirs),
         "lines": sum(f.get("lines", 0) for f in specs),
+        "list": [{"path": f["path"], "dir": f["path"].rsplit("/", 1)[0],
+                  "lines": f.get("lines", 0), "title": _spec_title(ctx, f["path"])}
+                 for f in sorted(specs, key=lambda f: f["path"])],
     }
     ctx.metric("tests.specs", len(specs))
     ctx.metric("tests.dirs", len(dirs))

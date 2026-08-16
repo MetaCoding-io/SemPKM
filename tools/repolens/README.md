@@ -4,6 +4,7 @@ Turns a repository into an inspectable drawing, and keeps that drawing honest.
 
 ```bash
 python3 -m tools.repolens build      # facts + model + a self-contained page
+python3 -m tools.repolens serve      # the page, with its edits writable
 python3 -m tools.repolens check      # conventions; exit 1 on regression
 python3 -m tools.repolens baseline   # accept today's findings as known
 python3 -m tools.repolens stages     # what runs, and in what order
@@ -135,6 +136,55 @@ each exposing `prepare` and `resolve` plus a `register()` line. Python resolves
 by AST; JS/TS by a scanner that masks comments and template literals first.
 Symbols are exact for Python and marked `approx` for JS/TS, where line spans
 come from brace counting — the UI says so on the file rather than pretending.
+
+## The numbers in the topbar are lists
+
+A count is a dead end. Declare a page against one and the stat becomes a
+button into what it counts — searchable, and openable in the inspector:
+
+```yaml
+model:
+  stats:
+    - { k: "Decisions", v: "${decisions.linked} placed", page: decisions }
+  pages:
+    decisions:   { label: "Decisions",   from: conventions.decisions }
+    commit_sites:{ label: "Commit sites", from: callsites.commit_sites }
+    specs:       { label: "E2E specs",   from: tests.list }
+```
+
+Three sources ship — `conventions.*`, `callsites.<name>`, `tests.list` — and
+all three reduce to the same item shape, so the page has one renderer rather
+than three. A fourth is a dozen lines in `build_pages`.
+
+## Links, and correcting them
+
+Every item can link to a **part**, a **file** or a **symbol**. Where those
+links come from depends on the source: a commit site knows its file, so its
+part is measured; a decision is matched by distinctive words, so its part is a
+*guess*, and roughly a fifth of them are wrong.
+
+Guesses need correcting, so the page edits them. Remove a link with its `×`,
+add one through a picker that searches every object in the model (2,706 here:
+33 parts, 545 files, 2,128 symbols). Edits accumulate in the browser and
+**Save** writes them to `.repolens/overlay/links.yml`:
+
+```yaml
+decisions:
+  "D268":
+    add: ["part:U", "sym:backend/app/events/store.py#commit"]
+    remove: ["part:N"]
+```
+
+That file is authored content like any other overlay: it survives rebuilds,
+diffs in review, and can be hand-edited. Authored beats measured in both
+directions — an `add` appears even when nothing matched, a `remove` suppresses
+a match that was wrong, and the page marks which links a person put there.
+
+Saving needs somewhere to write, which a static file has not got. `serve`
+provides it: a stdlib server on 127.0.0.1 that serves `.repolens/` and accepts
+exactly one POST, writing exactly one file. Opened as a file — or published as
+an artifact, where the CSP blocks the request outright — the page falls back to
+putting the same YAML on the clipboard rather than losing the edit.
 
 ## Baselines
 

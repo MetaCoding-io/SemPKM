@@ -564,6 +564,120 @@ ul.bul li { margin-bottom: 6px; max-width: 60ch; }
   #panel { overflow: visible; }
 }
 @media (prefers-reduced-motion: reduce) { .pkt-halo { display: none; } }
+
+/* ---------- stat pages: what a topbar number actually counts ---------- */
+
+.stat.linked { cursor: pointer; border: 0; border-right: 1px solid var(--rule-soft);
+  background: transparent; font: inherit; text-align: left; color: inherit; }
+.stat.linked:hover { background: var(--paper-3); }
+.stat.linked:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.stat.linked .stat-k::after { content: " ▸"; opacity: 0.55; }
+.stat.linked[aria-expanded="true"] { background: var(--invert-bg); }
+.stat.linked[aria-expanded="true"] .stat-k,
+.stat.linked[aria-expanded="true"] .stat-v { color: var(--invert-fg); }
+
+#pageview {
+  position: absolute; inset: 0; z-index: 40; background: var(--paper);
+  display: none; flex-direction: column;
+}
+#pageview.open { display: flex; }
+.pv-head {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 11px 16px 9px; border-bottom: 1px solid var(--rule);
+}
+.pv-head h2 { font-size: 15px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+.pv-head .pv-count { font-size: 11px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.pv-head .pv-sp { margin-left: auto; }
+.pv-note { padding: 9px 16px; font-size: 11px; color: var(--ink-3);
+  border-bottom: 1px solid var(--rule-faint); line-height: 1.55; }
+.pv-search { padding: 9px 16px; border-bottom: 1px solid var(--rule-soft); }
+.pv-search input, .pk-search input {
+  font: inherit; font-size: 12px; width: 100%; box-sizing: border-box;
+  background: var(--paper-sunk); color: var(--ink);
+  border: 1px solid var(--rule-soft); padding: 6px 9px;
+}
+.pv-search input:focus-visible, .pk-search input:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: -1px;
+}
+.pv-list { flex: 1 1 auto; overflow-y: auto; }
+.pv-row {
+  display: grid; grid-template-columns: 62px minmax(0, 1fr) auto; gap: 11px;
+  align-items: baseline; width: 100%; text-align: left; font: inherit;
+  padding: 7px 16px; border: 0; border-bottom: 1px solid var(--rule-faint);
+  background: transparent; color: var(--ink); cursor: pointer;
+}
+.pv-row:hover { background: var(--paper-3); }
+.pv-row[aria-current="true"] { background: var(--invert-bg); color: var(--invert-fg); }
+.pv-row[aria-current="true"] .pv-id,
+.pv-row[aria-current="true"] .pv-tags { color: var(--invert-fg); opacity: 0.72; }
+.pv-id { font-size: 10px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.pv-t { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pv-tags { font-size: 9.5px; letter-spacing: 0.07em; color: var(--ink-3); white-space: nowrap; }
+.pv-tags .none { opacity: 0.5; }
+.pv-empty, .pv-more { padding: 14px 16px; font-size: 11px; color: var(--ink-3); }
+
+/* a link chip, in the inspector and in the picker */
+.lk { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0 0; }
+.lk-chip {
+  display: inline-flex; align-items: center; gap: 5px; font-size: 10px;
+  letter-spacing: 0.06em; border: 1px solid var(--rule); padding: 2px 4px 2px 7px;
+  background: transparent; color: var(--ink); max-width: 100%;
+}
+.lk-chip.authored { border-color: var(--sev-med); }
+.lk-chip .k { font-size: 8.5px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-3); }
+.lk-nav {
+  font: inherit; font-size: 10px; letter-spacing: 0.06em; border: 0; padding: 0;
+  background: transparent; color: inherit; cursor: pointer;
+  max-width: 20ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.lk-nav:hover { color: var(--accent); }
+.lk-nav.as-text { cursor: default; }
+.lk-chip .x {
+  font: inherit; font-size: 11px; line-height: 1; border: 0; background: transparent;
+  color: var(--ink-3); cursor: pointer; padding: 1px 3px;
+}
+.lk-chip .x:hover { color: var(--sev-high); }
+.lk-add { font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase;
+  border: 1px dashed var(--rule); background: transparent; color: var(--ink-3);
+  padding: 3px 8px; cursor: pointer; }
+.lk-add:hover { color: var(--ink); border-color: var(--ink-3); }
+
+/* ---------- object picker ---------- */
+
+#picker { position: fixed; inset: 0; z-index: 90; display: none;
+  align-items: flex-start; justify-content: center; background: rgba(14, 13, 8, 0.42); }
+#picker.open { display: flex; }
+.pk-box {
+  margin-top: 11vh; width: min(560px, 92vw); max-height: 72vh; display: flex;
+  flex-direction: column; background: var(--paper); border: 1px solid var(--ink);
+  box-shadow: 0 18px 44px rgba(14, 13, 8, 0.35);
+}
+.pk-head { display: flex; align-items: baseline; gap: 9px; padding: 11px 14px 8px;
+  border-bottom: 1px solid var(--rule); }
+.pk-head h3 { margin: 0; font-size: 13px; font-weight: 600; }
+.pk-head .sub { font-size: 10.5px; color: var(--ink-3); }
+.pk-search { padding: 9px 14px; border-bottom: 1px solid var(--rule-soft); }
+.pk-list { flex: 1 1 auto; overflow-y: auto; }
+.pk-row {
+  display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 9px; align-items: baseline;
+  width: 100%; text-align: left; font: inherit; padding: 6px 14px; border: 0;
+  border-bottom: 1px solid var(--rule-faint); background: transparent;
+  color: var(--ink); cursor: pointer;
+}
+.pk-row:hover, .pk-row.hot { background: var(--paper-3); }
+.pk-row .kind { font-size: 8.5px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-3); }
+.pk-row .nm { font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pk-row .nm small { color: var(--ink-3); }
+
+#toast {
+  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+  z-index: 95; background: var(--invert-bg); color: var(--invert-fg);
+  font-size: 11px; letter-spacing: 0.06em; padding: 8px 14px; max-width: 70vw;
+  opacity: 0; pointer-events: none; transition: opacity 140ms linear;
+}
+#toast.show { opacity: 1; }
 </style>
 
 <div id="shell">
@@ -615,6 +729,21 @@ ul.bul li { margin-bottom: 6px; max-width: 60ch; }
     </div>
     <svg id="svg" role="img" aria-label="Axonometric drawing of the repository"></svg>
     <div id="edge-pop" role="menu" aria-label="Edges on this route"></div>
+    <section id="pageview" aria-label="What this number counts" hidden>
+      <div class="pv-head">
+        <h2 id="pv-title"></h2>
+        <span class="pv-count" id="pv-count"></span>
+        <span class="pv-sp"></span>
+        <button class="btn" id="pv-save" hidden>Save edits</button>
+        <button class="btn" id="pv-close" title="Close  Esc">Close</button>
+      </div>
+      <p class="pv-note" id="pv-note"></p>
+      <div class="pv-search">
+        <input id="pv-q" type="search" autocomplete="off" spellcheck="false"
+               placeholder="Search…" aria-label="Search this list" />
+      </div>
+      <div class="pv-list" id="pv-list" role="list"></div>
+    </section>
   </main>
 
   <aside id="inspector">
@@ -638,6 +767,22 @@ ul.bul li { margin-bottom: 6px; max-width: 60ch; }
   </footer>
 
 </div>
+
+<div id="picker" role="dialog" aria-modal="true" aria-labelledby="pk-title" hidden>
+  <div class="pk-box">
+    <div class="pk-head">
+      <h3 id="pk-title">Link to…</h3>
+      <span class="sub" id="pk-sub"></span>
+    </div>
+    <div class="pk-search">
+      <input id="pk-q" type="search" autocomplete="off" spellcheck="false"
+             placeholder="Part, file or symbol…" aria-label="Search objects" />
+    </div>
+    <div class="pk-list" id="pk-list" role="listbox" aria-label="Objects"></div>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
 
 <script>
 "use strict";
@@ -1599,15 +1744,32 @@ function paintTopbar() {
 
   var bar = document.getElementById("topbar");
   var anchor = document.getElementById("topbar-actions");
+  statButtons = {};
   (MODEL.repo.stats || []).forEach(function (st) {
-    var d = document.createElement("div");
-    d.className = "stat";
+    /* a stat that has a page behind it is a button into that page */
+    var live = st.page && (MODEL.pages || {})[st.page];
+    var d = document.createElement(live ? "button" : "div");
+    d.className = "stat" + (live ? " linked" : "");
     var k = document.createElement("span"); k.className = "stat-k"; k.textContent = st.k;
     var v = document.createElement("span");
     v.className = "stat-v" + (st.flag === "bad" ? " bad" : "");
     v.textContent = st.v;
     d.appendChild(k); d.appendChild(v);
+    if (live) {
+      d.type = "button";
+      d.setAttribute("aria-expanded", "false");
+      d.title = "Open the " + MODEL.pages[st.page].label.toLowerCase();
+      d.addEventListener("click", function () { openStatPage(st.page); });
+      statButtons[st.page] = d;
+    }
     bar.insertBefore(d, anchor);
+  });
+}
+
+var statButtons = {};
+function paintStatBar() {
+  Object.keys(statButtons).forEach(function (p) {
+    statButtons[p].setAttribute("aria-expanded", openPage === p ? "true" : "false");
   });
 }
 
@@ -1794,6 +1956,11 @@ function renderPanel() {
     wirePanelChips(); panel.scrollTop = 0; return;
   }
 
+  if (selectedItem) {
+    panel.innerHTML = itemPanelHTML();
+    wirePanelChips(); panel.scrollTop = 0; return;
+  }
+
   if (selectedPacket) {
     var e = selectedPacket.edge;
     var b = e._bundle;
@@ -1953,7 +2120,8 @@ function renderPanel() {
 }
 
 function openPacket(p) {
-  selectedPacket = p; selectedNode = null;
+  selectedPacket = p; selectedNode = null; selectedItem = null;
+  if (openPage) closeStatPage();
   if (!TABSETS.edge.some(function (t) { return t.id === activeTab; })) activeTab = "payload";
   running = false; syncPlayButton();
   FLOWS[p.edge.flow].on = true; paintFlowBar();
@@ -2003,6 +2171,22 @@ function wirePanelChips() {
       renderPanel();
     });
   });
+  panel.querySelectorAll("[data-unlink]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      if (selectedItem) linkRemove(selectedItem.page, selectedItem.id,
+                                   b.getAttribute("data-unlink"));
+    });
+  });
+  panel.querySelectorAll("[data-link]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      if (selectedItem) openPicker(selectedItem.page, selectedItem.id);
+    });
+  });
+  panel.querySelectorAll("[data-backlist]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      if (selectedItem) openStatPage(selectedItem.page);
+    });
+  });
   panel.querySelectorAll("[data-find]").forEach(function (b) {
     b.addEventListener("click", function () {
       var f = FINDINGS[parseInt(b.getAttribute("data-find"), 10)];
@@ -2013,7 +2197,8 @@ function wirePanelChips() {
 }
 
 function selectNode(id) {
-  selectedNode = id; selectedPacket = null;
+  selectedNode = id; selectedPacket = null; selectedItem = null;
+  if (openPage) closeStatPage();
   renderPanel(); paintState(); paintRail();
   var b = railItems[id];
   if (b) b.scrollIntoView({ block: "nearest" });
@@ -2030,10 +2215,15 @@ var TABSETS = {
   edge: [{ id: "payload", label: "Payload" },
          { id: "route",   label: "Route" },
          { id: "ends",    label: "Endpoints" },
-         { id: "find",    label: "Findings", badge: true }]
+         { id: "find",    label: "Findings", badge: true }],
+  item: [{ id: "item", label: "Detail" },
+         { id: "find", label: "Findings", badge: true }]
 };
 
-function currentTabSet() { return selectedPacket ? TABSETS.edge : TABSETS.main; }
+function currentTabSet() {
+  if (selectedItem) return TABSETS.item;
+  return selectedPacket ? TABSETS.edge : TABSETS.main;
+}
 
 function buildTabs() {
   var set = currentTabSet();
@@ -2060,6 +2250,454 @@ function buildTabs() {
 }
 
 function setTab(t) { activeTab = t; buildTabs(); renderPanel(); }
+
+/* ============================================================
+   10b. STAT PAGES — what a topbar number actually counts
+
+   A number in the topbar is a dead end. Each declared page turns one into a
+   searchable list; opening an item shows it in the inspector, where its links
+   to parts, files and symbols can be corrected. Corrections are held here and
+   written back to overlay/links.yml, so the next build keeps them.
+   ============================================================ */
+
+var PAGES = MODEL.pages || {};
+var openPage = null;         /* page id while the list is showing */
+var selectedItem = null;     /* { page: id, id: itemId } */
+
+var pvRoot  = document.getElementById("pageview");
+var pvList  = document.getElementById("pv-list");
+var pvQ     = document.getElementById("pv-q");
+var pvSave  = document.getElementById("pv-save");
+
+var EDIT_KEY = "repolens:" + MODEL.repo.name + ":links";
+var EDITS = readEdits();
+
+function readEdits() {
+  try { return JSON.parse(localStorage.getItem(EDIT_KEY)) || {}; }
+  catch (e) { return {}; }
+}
+function writeEdits() {
+  try { localStorage.setItem(EDIT_KEY, JSON.stringify(EDITS)); } catch (e) {}
+  paintSaveButton();
+}
+function editCount() {
+  var n = 0;
+  Object.keys(EDITS).forEach(function (p) {
+    Object.keys(EDITS[p]).forEach(function (i) {
+      n += (EDITS[p][i].add || []).length + (EDITS[p][i].remove || []).length;
+    });
+  });
+  return n;
+}
+
+/* ---- link targets: 'part:C', 'file:path', 'sym:path#name' ---- */
+
+function tkey(l) { return (l.kind || "part") + ":" + l.to; }
+function parseTarget(s) {
+  var i = s.indexOf(":");
+  return i < 0 ? { kind: "part", to: s } : { kind: s.slice(0, i), to: s.slice(i + 1) };
+}
+function targetName(t) {
+  if (t.kind === "part") {
+    var n = MODEL.nodes.filter(function (x) { return x.id === t.to; })[0];
+    return n ? n.name : t.to;
+  }
+  if (t.kind === "sym") {
+    var h = t.to.split("#");
+    return (h[1] || t.to) + " ()";
+  }
+  return t.to.split("/").pop();
+}
+
+/* The model's links with this session's uncommitted edits laid over them —
+   the same merge the build does, so what you see now is what the next build
+   produces. */
+function itemLinks(pageId, item) {
+  var e = (EDITS[pageId] || {})[item.id] || {};
+  var rm = e.remove || [];
+  var out = (item.links || []).filter(function (l) { return rm.indexOf(tkey(l)) < 0; });
+  (e.add || []).forEach(function (k) {
+    if (out.some(function (l) { return tkey(l) === k; })) return;
+    var t = parseTarget(k);
+    out.push({ to: t.to, kind: t.kind, why: [], src: "authored", pending: true });
+  });
+  return out;
+}
+
+function editSlot(pageId, itemId) {
+  if (!EDITS[pageId]) EDITS[pageId] = {};
+  if (!EDITS[pageId][itemId]) EDITS[pageId][itemId] = { add: [], remove: [] };
+  return EDITS[pageId][itemId];
+}
+function dropIfEmpty(pageId, itemId) {
+  var s = EDITS[pageId] && EDITS[pageId][itemId];
+  if (!s) return;
+  if (!(s.add || []).length && !(s.remove || []).length) delete EDITS[pageId][itemId];
+  if (EDITS[pageId] && !Object.keys(EDITS[pageId]).length) delete EDITS[pageId];
+}
+
+function linkAdd(pageId, itemId, key) {
+  var s = editSlot(pageId, itemId);
+  s.remove = (s.remove || []).filter(function (k) { return k !== key; });
+  if ((s.add || []).indexOf(key) < 0) s.add.push(key);
+  dropIfEmpty(pageId, itemId); writeEdits(); afterEdit();
+}
+function linkRemove(pageId, itemId, key) {
+  var s = editSlot(pageId, itemId);
+  var wasPending = (s.add || []).indexOf(key) >= 0;
+  s.add = (s.add || []).filter(function (k) { return k !== key; });
+  /* removing a link this session added is an undo, not a suppression */
+  if (!wasPending && (s.remove || []).indexOf(key) < 0) s.remove.push(key);
+  dropIfEmpty(pageId, itemId); writeEdits(); afterEdit();
+}
+function afterEdit() { renderPanel(); if (openPage) renderPageList(); }
+
+/* ---- search: every token must appear; earlier hits rank higher ---- */
+
+function tokens(q) {
+  return q.toLowerCase().split(/\s+/).filter(function (t) { return t; });
+}
+function score(hay, title, toks) {
+  if (!toks.length) return 0;
+  var s = 0;
+  for (var i = 0; i < toks.length; i++) {
+    var at = hay.indexOf(toks[i]);
+    if (at < 0) return -1;
+    s += title.indexOf(toks[i]) >= 0 ? at : at + 400;
+  }
+  return s;
+}
+
+function itemHay(it) {
+  if (it._hay) return it._hay;
+  var meta = (it.meta || []).map(function (m) { return m[1]; }).join(" ");
+  it._hay = (it.id + " " + it.title + " " + (it.body || "") + " " + meta).toLowerCase();
+  it._t = (it.id + " " + it.title).toLowerCase();
+  return it._hay;
+}
+
+function searchItems(page, q) {
+  var toks = tokens(q);
+  var out = [];
+  page.items.forEach(function (it) {
+    var s = score(itemHay(it), it._t, toks);
+    if (s >= 0) out.push({ it: it, s: s });
+  });
+  if (toks.length) out.sort(function (a, b) { return a.s - b.s; });
+  return out.map(function (r) { return r.it; });
+}
+
+/* ---- the list ---- */
+
+var PV_CAP = 250;
+
+function renderPageList() {
+  var page = PAGES[openPage];
+  if (!page) return;
+  var hits = searchItems(page, pvQ.value);
+  document.getElementById("pv-count").textContent =
+    hits.length === page.items.length
+      ? page.items.length + " items"
+      : hits.length + " of " + page.items.length;
+
+  pvList.textContent = "";
+  if (!hits.length) {
+    var e = document.createElement("p");
+    e.className = "pv-empty";
+    e.textContent = "Nothing matches “" + pvQ.value + "”.";
+    pvList.appendChild(e);
+    return;
+  }
+  hits.slice(0, PV_CAP).forEach(function (it) {
+    var links = itemLinks(openPage, it);
+    var b = document.createElement("button");
+    b.className = "pv-row";
+    b.setAttribute("role", "listitem");
+    b.setAttribute("aria-current",
+      selectedItem && selectedItem.page === openPage && selectedItem.id === it.id
+        ? "true" : "false");
+    var id = document.createElement("span");
+    id.className = "pv-id"; id.textContent = it.id.length > 9 ? "" : it.id;
+    var t = document.createElement("span");
+    t.className = "pv-t"; t.textContent = it.title;
+    var g = document.createElement("span");
+    g.className = "pv-tags";
+    if (links.length) {
+      g.textContent = links.map(function (l) { return targetName(l); }).join(" · ");
+    } else {
+      g.innerHTML = '<span class="none">unlinked</span>';
+    }
+    b.appendChild(id); b.appendChild(t); b.appendChild(g);
+    b.addEventListener("click", function () { selectItem(openPage, it.id); });
+    pvList.appendChild(b);
+  });
+  if (hits.length > PV_CAP) {
+    var m = document.createElement("p");
+    m.className = "pv-more";
+    m.textContent = "Showing the first " + PV_CAP + " of " + hits.length +
+                    ". Narrow the search to see the rest.";
+    pvList.appendChild(m);
+  }
+}
+
+function openStatPage(id) {
+  if (!PAGES[id]) return;
+  if (openPage === id) { closeStatPage(); return; }
+  openPage = id;
+  var page = PAGES[id];
+  document.getElementById("pv-title").textContent = page.label;
+  var note = document.getElementById("pv-note");
+  note.textContent = page.note || "";
+  note.hidden = !page.note;
+  pvQ.value = "";
+  pvRoot.hidden = false; pvRoot.classList.add("open");
+  paintSaveButton(); renderPageList(); paintStatBar();
+  pvQ.focus();
+}
+
+function closeStatPage() {
+  openPage = null;
+  pvRoot.classList.remove("open"); pvRoot.hidden = true;
+  paintStatBar();
+}
+
+function selectItem(pageId, itemId) {
+  selectedItem = { page: pageId, id: itemId };
+  selectedNode = null; selectedPacket = null;
+  renderPanel(); renderPageList(); paintState(); paintRail();
+}
+
+function currentItem() {
+  if (!selectedItem) return null;
+  var page = PAGES[selectedItem.page];
+  if (!page) return null;
+  return page.items.filter(function (i) { return i.id === selectedItem.id; })[0] || null;
+}
+
+/* ---- the inspector view of one item ---- */
+
+function linksBlock(pageId, item) {
+  var links = itemLinks(pageId, item);
+  var html = '<div class="sec">Linked to</div>';
+  if (!links.length) {
+    html += '<p style="color:var(--ink-3);font-size:11px;">Nothing yet.</p>';
+  }
+  html += '<div class="lk">';
+  links.forEach(function (l) {
+    var t = { kind: l.kind || "part", to: l.to };
+    html += '<span class="lk-chip' + (l.src === "authored" ? " authored" : "") + '">' +
+      '<span class="k">' + esc(t.kind) + '</span>' +
+      (t.kind === "part"
+        ? '<button class="lk-nav" data-goto="' + esc(t.to) + '" title="Open this part">' +
+            esc(targetName(t)) + '</button>'
+        : '<span class="lk-nav as-text">' + esc(targetName(t)) + '</span>') +
+      '<button class="x" title="Remove this link" data-unlink="' + esc(tkey(l)) +
+        '">&times;</button></span>';
+  });
+  html += '<button class="lk-add" data-link="1">+ Link…</button>';
+  html += '</div>';
+
+  var matched = links.filter(function (l) { return l.src === "matched"; });
+  if (matched.length) {
+    html += '<p style="color:var(--ink-3);font-size:11px;margin-top:9px;">' +
+      'Guessed, each from a word in the text: ' +
+      matched.map(function (l) {
+        return esc(targetName({ kind: "part", to: l.to })) + ' &larr; <b>' +
+               esc((l.why || []).join(", ")) + '</b>';
+      }).join("; ") +
+      '. A text match, not a declared link — correct it here and the correction ' +
+      'survives the next build.</p>';
+  }
+  return html;
+}
+
+function itemPanelHTML() {
+  var page = PAGES[selectedItem.page], item = currentItem();
+  if (!item) return "<h2>Gone</h2>";
+  /* a decision id belongs in the eyebrow; a 60-character path does not */
+  var html = '<div class="eyebrow">' + esc(page.label) +
+             (item.id.length <= 24 ? ' · ' + esc(item.id) : '') + '</div>';
+  html += '<h2>' + esc(item.title) + '</h2>';
+  if (item.body && item.body !== item.title) {
+    html += (item.body.indexOf("\n") >= 0 || item.body.length < 60
+      ? '<pre>' + esc(item.body) + '</pre>'
+      : '<p>' + esc(item.body) + '</p>');
+  }
+  html += linksBlock(selectedItem.page, item);
+  if ((item.meta || []).length) {
+    html += '<div class="sec">Detail</div><dl class="kv">';
+    item.meta.forEach(function (m) {
+      if (m[1]) html += '<dt>' + esc(m[0]) + '</dt><dd>' + esc(m[1]) + '</dd>';
+    });
+    html += '</dl>';
+  }
+  html += '<div class="chiprow" style="margin-top:14px;">' +
+          '<button class="chip" data-backlist="1">&#9666; Back to ' +
+          esc(page.label.toLowerCase()) + '</button></div>';
+  return html;
+}
+
+/* ---- the object picker ---- */
+
+var PICK = null, pickFor = null, pickHot = 0;
+var pkRoot = document.getElementById("picker");
+var pkQ = document.getElementById("pk-q");
+var pkList = document.getElementById("pk-list");
+
+function pickIndex() {
+  if (PICK) return PICK;
+  PICK = [];
+  MODEL.nodes.forEach(function (n) {
+    PICK.push({ kind: "part", key: "part:" + n.id, name: n.name, sub: n.sub || n.id });
+  });
+  var drill = MODEL.drill || {};
+  Object.keys(drill).forEach(function (nid) {
+    (drill[nid].files || []).forEach(function (f) {
+      PICK.push({ kind: "file", key: "file:" + f.path, name: f.name, sub: f.path });
+    });
+  });
+  var syms = MODEL.symbols || {};
+  Object.keys(syms).forEach(function (p) {
+    (syms[p].symbols || []).forEach(function (s) {
+      PICK.push({ kind: "sym", key: "sym:" + p + "#" + s.name,
+                  name: s.name, sub: s.kind + " · " + p });
+    });
+  });
+  PICK.forEach(function (r) { r.hay = (r.name + " " + r.sub).toLowerCase(); });
+  return PICK;
+}
+
+function openPicker(pageId, itemId) {
+  pickFor = { page: pageId, id: itemId };
+  pickHot = 0;
+  document.getElementById("pk-sub").textContent =
+    pickIndex().length.toLocaleString() + " objects";
+  pkQ.value = "";
+  pkRoot.hidden = false; pkRoot.classList.add("open");
+  renderPicker(); pkQ.focus();
+}
+function closePicker() {
+  pkRoot.classList.remove("open"); pkRoot.hidden = true; pickFor = null;
+}
+
+function renderPicker() {
+  var toks = tokens(pkQ.value);
+  var rows = [];
+  pickIndex().forEach(function (r) {
+    var s = score(r.hay, r.name.toLowerCase(), toks);
+    if (s >= 0) rows.push({ r: r, s: s });
+  });
+  if (toks.length) rows.sort(function (a, b) { return a.s - b.s; });
+  rows = rows.slice(0, 60);
+  if (pickHot >= rows.length) pickHot = 0;
+
+  pkList.textContent = "";
+  rows.forEach(function (row, i) {
+    var b = document.createElement("button");
+    b.className = "pk-row" + (i === pickHot ? " hot" : "");
+    b.setAttribute("role", "option");
+    b.setAttribute("aria-selected", i === pickHot ? "true" : "false");
+    var k = document.createElement("span");
+    k.className = "kind"; k.textContent = row.r.kind;
+    var n = document.createElement("span");
+    n.className = "nm";
+    n.textContent = row.r.name + " ";
+    var sm = document.createElement("small");
+    sm.textContent = row.r.sub;
+    n.appendChild(sm);
+    b.appendChild(k); b.appendChild(n);
+    b.addEventListener("click", function () { choosePick(row.r.key); });
+    pkList.appendChild(b);
+  });
+  if (!rows.length) {
+    var e = document.createElement("p");
+    e.className = "pv-empty"; e.textContent = "No object matches.";
+    pkList.appendChild(e);
+  }
+  pkList._rows = rows;
+}
+
+function choosePick(key) {
+  if (pickFor) linkAdd(pickFor.page, pickFor.id, key);
+  closePicker();
+}
+
+/* ---- writing the edits back ---- */
+
+function paintSaveButton() {
+  var n = editCount();
+  pvSave.hidden = !n;
+  pvSave.textContent = n === 1 ? "Save 1 edit" : "Save " + n + " edits";
+}
+
+function editsToYaml() {
+  var out = ["# repolens link overrides — written from the page.",
+             "# Targets: part:ID, file:PATH, sym:PATH#NAME. A bare id means a part."];
+  Object.keys(EDITS).sort().forEach(function (p) {
+    out.push(p + ":");
+    Object.keys(EDITS[p]).sort().forEach(function (i) {
+      var s = EDITS[p][i];
+      out.push("  " + JSON.stringify(i) + ":");
+      ["add", "remove"].forEach(function (f) {
+        if ((s[f] || []).length) {
+          out.push("    " + f + ": [" +
+            s[f].map(function (k) { return JSON.stringify(k); }).join(", ") + "]");
+        }
+      });
+    });
+  });
+  return out.join("\n") + "\n";
+}
+
+var toastEl = document.getElementById("toast"), toastT = 0;
+function toast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add("show");
+  clearTimeout(toastT);
+  toastT = setTimeout(function () { toastEl.classList.remove("show"); }, 3200);
+}
+
+/* Served by `repolens serve` → write the file. Opened as a file, or published
+   as an artifact where fetch is blocked outright → put the patch on the
+   clipboard instead, so the edits still have somewhere to go. */
+function saveEdits() {
+  var yaml = editsToYaml();
+  var done = function () {
+    toast("Saved to overlay/links.yml — rebuild to see it in the drawing.");
+  };
+  var fallback = function () {
+    var copy = navigator.clipboard && navigator.clipboard.writeText(yaml);
+    if (copy && copy.then) {
+      copy.then(function () {
+        toast("No server here — links.yml copied to the clipboard. " +
+              "Paste it into .repolens/overlay/links.yml.");
+      }, function () { toast("Could not copy. Run `repolens serve` to save directly."); });
+    } else {
+      toast("No server here. Run `repolens serve` to save edits to the file.");
+    }
+  };
+  try {
+    fetch("_repolens/links", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(EDITS)
+    }).then(function (r) { r.ok ? done() : fallback(); }, fallback);
+  } catch (e) { fallback(); }
+}
+
+/* ---- wiring ---- */
+
+pvQ.addEventListener("input", renderPageList);
+pvSave.addEventListener("click", saveEdits);
+document.getElementById("pv-close").addEventListener("click", closeStatPage);
+pkQ.addEventListener("input", function () { pickHot = 0; renderPicker(); });
+pkRoot.addEventListener("click", function (e) { if (e.target === pkRoot) closePicker(); });
+pkQ.addEventListener("keydown", function (e) {
+  var rows = pkList._rows || [];
+  if (e.key === "ArrowDown") { pickHot = Math.min(pickHot + 1, rows.length - 1); renderPicker(); e.preventDefault(); }
+  else if (e.key === "ArrowUp") { pickHot = Math.max(pickHot - 1, 0); renderPicker(); e.preventDefault(); }
+  else if (e.key === "Enter" && rows[pickHot]) { choosePick(rows[pickHot].r.key); e.preventDefault(); }
+  else if (e.key === "Escape") { closePicker(); e.stopPropagation(); }
+});
 
 /* ============================================================
    11. CONTROLS
@@ -2242,10 +2880,19 @@ document.addEventListener("keydown", function (ev) {
     return;
   }
   if (ev.target.tagName === "INPUT") {
-    if (ev.key === "Escape") { ev.target.value = ""; paintRail(); ev.target.blur(); }
+    if (ev.key === "Escape") {
+      var wasEmpty = !ev.target.value;
+      ev.target.value = "";
+      if (ev.target === pvQ) { renderPageList(); if (wasEmpty) closeStatPage(); }
+      else { paintRail(); }
+      ev.target.blur();
+    }
     return;
   }
   if (ev.key === "Escape") {
+    if (!pkRoot.hidden) { closePicker(); return; }
+    if (openPage) { closeStatPage(); return; }
+    if (selectedItem) { selectedItem = null; renderPanel(); return; }
     if (inDrill() && !selectedNode && !selectedPacket) { goUp(); return; }
     selectedNode = null; selectedPacket = null;
     renderPanel(); paintState(); paintRail();

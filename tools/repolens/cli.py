@@ -3,6 +3,7 @@
     python -m tools.repolens scan     # facts only, no model
     python -m tools.repolens build    # facts + model + page
     python -m tools.repolens check    # run checks, exit 1 on failure  (hooks/CI)
+    python -m tools.repolens serve    # the page, with its edits writable
     python -m tools.repolens stages   # list registered stages
 
 `check` is what a pre-commit hook and CI both call, so there is one
@@ -156,6 +157,18 @@ def cmd_baseline(args) -> int:
     return 0
 
 
+def cmd_serve(args) -> int:
+    from .serve import serve
+    root = Path(args.root).resolve()
+    cfg = load_config(root, args.config)
+    return serve(
+        out_dir=root / cfg.get("out_dir", ".repolens"),
+        overlay_dir=root / cfg.get("overlay_dir", ".repolens/overlay"),
+        port=args.port,
+        open_browser=not args.no_open,
+    )
+
+
 def cmd_stages(args) -> int:
     print(f"{len(REGISTRY)} registered stages\n")
     for sid, st in REGISTRY.items():
@@ -167,7 +180,8 @@ def cmd_stages(args) -> int:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="repolens")
-    ap.add_argument("command", choices=["scan", "build", "check", "baseline", "stages"])
+    ap.add_argument("command",
+                    choices=["scan", "build", "check", "baseline", "serve", "stages"])
     ap.add_argument("--root", default=".")
     ap.add_argument("--config", default=None)
     ap.add_argument("--only", nargs="*", help="run only these stages")
@@ -177,6 +191,9 @@ def main(argv=None) -> int:
                     help="severities that make `check` exit non-zero")
     ap.add_argument("--strict", action="store_true",
                     help="fail on every finding, not just regressions")
+    ap.add_argument("--port", type=int, default=7171, help="port for `serve`")
+    ap.add_argument("--no-open", action="store_true",
+                    help="do not open a browser on `serve`")
     ap.add_argument("-v", "--verbose", action="store_true")
     args = ap.parse_args(argv)
 
@@ -184,6 +201,8 @@ def main(argv=None) -> int:
         return cmd_stages(args)
     if args.command == "baseline":
         return cmd_baseline(args)
+    if args.command == "serve":
+        return cmd_serve(args)
     return cmd_run(args, args.command)
 
 
