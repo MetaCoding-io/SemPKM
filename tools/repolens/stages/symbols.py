@@ -347,6 +347,15 @@ _JS_KEYWORDS = {
     "class", "try", "finally", "with", "case", "typeof", "await", "new", "delete",
 }
 
+# Cheap gate: a declaration always contains one of these. Running four full
+# patterns against 45k lines is most of the JS cost; a substring test throws
+# out the ~70% that cannot possibly declare anything.
+_JS_HINT = ("(", "=>", "class ")
+
+
+def _may_declare(line: str) -> bool:
+    return any(h in line for h in _JS_HINT)
+
 
 def _depths(lines: list[str]) -> tuple[list[int], list[int]]:
     """Brace depth before and after each line of already-blanked text."""
@@ -389,27 +398,32 @@ def _extract_js(text: str, doc_chars: int) -> dict:
             "approx": True,
         })
 
+    # Candidate lines only — everything below runs over this shortlist rather
+    # than over the file.
+    cand = [i for i, line in enumerate(lines) if line and _may_declare(line)]
+
     # classes first, so their bodies can claim their methods
-    for i, line in enumerate(lines):
-        m = _JS_CLASS.match(line)
+    for i in cand:
+        m = _JS_CLASS.match(lines[i])
         if not m:
             continue
         end = _close_at(after, i, before[i])
         add(m.group(1), "class", i, end, None)
         cls = m.group(1)
         body_depth = before[i] + 1
-        for k in range(i + 1, min(end, len(lines))):
-            claimed.add(k)
-            if before[k] != body_depth:
+        claimed.update(range(i + 1, min(end, len(lines))))
+        for k in cand:
+            if k <= i or k >= end or before[k] != body_depth:
                 continue
             mm = _JS_METHOD.match(lines[k])
             if not mm or mm.group(1) in _JS_KEYWORDS:
                 continue
             add(mm.group(1), "method", k, _close_at(after, k, before[k]), cls)
 
-    for i, line in enumerate(lines):
+    for i in cand:
         if i in claimed:
             continue
+        line = lines[i]
         m = _JS_FUNC.match(line) or _JS_FUNCEXPR.match(line) or _JS_ARROW.match(line)
         if not m or m.group(1) in _JS_KEYWORDS:
             continue
@@ -441,35 +455,46 @@ def _jsdoc(raw_lines: list[str], i: int, limit: int) -> str:
     return ""
 
 
-def _js_edges(lines: list[str], symbols: list[dict]) -> list[dict]:
-    """Same-file calls, by name, inside each symbol's line span.
+_JS_DECL_KW = re.compile(r"\b(?:function|class|const|let|var)\b")
 
-    Only names declared at the top of this file are considered targets, and
-    only bare `name(` call sites count — `obj.name()` is left alone because
-    nothing here knows what `obj` is.
+
+def _js_edges(lines: list[str], symbols: list[dict]) -> list[dict]:
+    """Same-file calls, by name, attributed to the innermost enclosing symbol.
+
+    Only names declared at the top level of this file are targets, and only
+    bare `name(` call sites count — `obj.name()` is left alone because nothing
+    here knows what `obj` is. One pass over the lines, with the same
+    innermost-span rule the Python side uses, so a call inside a method is not
+    also credited to the class that contains it.
     """
     top = {s["name"]: s["id"] for s in symbols if s["parent"] is None}
     if not top:
         return []
     rx = re.compile(r"(?<![\w$.])(" + "|".join(re.escape(n) for n in top) + r")\s*\(")
-    decl = re.compile(r"\b(?:function|class|const|let|var)\b")
+    starts = [s["line"] for s in symbols]
 
     seen: set[tuple[str, str]] = set()
     edges: list[dict] = []
-    for sym in symbols:
-        for k in range(sym["line"] - 1, min(sym["end_line"], len(lines))):
-            line = lines[k]
-            if k == sym["line"] - 1 and decl.search(line):
-                continue                          # the declaration itself
-            for name in rx.findall(line):
-                target = top[name]
-                if target == sym["id"]:
-                    continue
-                key = (sym["id"], target)
-                if key in seen:
-                    continue
-                seen.add(key)
-                edges.append({"from": sym["id"], "to": target, "kind": "call"})
+    for k, line in enumerate(lines):
+        if "(" not in line:
+            continue
+        names = rx.findall(line)
+        if not names:
+            continue
+        sym = _enclosing(symbols, starts, k + 1)
+        if sym is None:
+            continue
+        if k == sym["line"] - 1 and _JS_DECL_KW.search(line):
+            continue                              # the declaration itself
+        for name in names:
+            target = top[name]
+            if target == sym["id"]:
+                continue
+            key = (sym["id"], target)
+            if key in seen:
+                continue
+            seen.add(key)
+            edges.append({"from": sym["id"], "to": target, "kind": "call"})
     return edges
 
 

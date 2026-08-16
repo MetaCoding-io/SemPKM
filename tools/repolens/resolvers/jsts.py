@@ -78,26 +78,57 @@ def _mask(text: str) -> str:
 
 _Q = r"(['\"])([^'\"\n]+)\1"
 
+# A quoted `'import'` used as a value — `st === 'import' && ...` really occurs
+# in this repo — otherwise reads as a side-effect import whose specifier is the
+# rest of the expression. Requiring that the keyword is not glued to a quote or
+# an identifier throws those out.
+_KW = r"(?<!['\"\w$.])"
+
 # The clause between `import`/`export` and `from` may span lines but never
 # contains a quote, a semicolon or a paren — which both keeps the match tight
 # and stops `export function f(` from running away looking for a `from`. The
 # length bound is belt and braces against a pathological file.
-_RX_FROM = re.compile(r"\b(?:import|export)\b[^;'\"`()]{0,400}?\bfrom\s*" + _Q)
-_RX_SIDE_EFFECT = re.compile(r"\bimport\s*" + _Q)          # import "./y"
-_RX_DYNAMIC = re.compile(r"\bimport\s*\(\s*" + _Q)         # await import("./y")
-_RX_REQUIRE = re.compile(r"\brequire\s*\(\s*" + _Q)        # const x = require("./y")
+# One scan finds the ~400 keyword occurrences in a megabyte of source; the four
+# shape patterns are then matched *anchored* at those positions. Running each
+# shape across the whole text instead costs four full scans and measured 3.5x
+# slower on this repo for identical output.
+_RX_KEYWORD = re.compile(_KW + r"(?:import|export|require)\b")
 
-_PATTERNS = (_RX_FROM, _RX_SIDE_EFFECT, _RX_DYNAMIC, _RX_REQUIRE)
+_AT_FROM = re.compile(r"(?:import|export)\b[^;'\"`()]{0,400}?\bfrom\s*" + _Q)
+_AT_SIDE_EFFECT = re.compile(r"import\s+" + _Q)          # import "./y"
+_AT_DYNAMIC = re.compile(r"import\s*\(\s*" + _Q)         # await import("./y")
+_AT_REQUIRE = re.compile(r"require\s*\(\s*" + _Q)        # const x = require("./y")
 
-# The four forms cannot overlap: `from` needs a bare word after the keyword,
-# the side-effect form needs a quote, the dynamic form needs a paren.
+# Masking cannot tell a specifier from any other string without a real
+# tokeniser, so specifiers are also required to *look* like one: no spaces, no
+# operators. A relative specifier still has to hit a real file on top of this;
+# a bare one does not, which is exactly where the shape check earns its keep.
+_LOOKS_LIKE_SPEC = re.compile(r"^[\w@./~-][\w@./:+-]*$")
 
 
 def _specifiers(masked: str) -> Iterable[str]:
-    """Every import specifier in the file, with multiplicity."""
-    for rx in _PATTERNS:
-        for m in rx.finditer(masked):
-            yield m.group(2)
+    """Every import specifier in the file, with multiplicity.
+
+    `guard` keeps matches non-overlapping. An `export const x = 1` two lines
+    above a real import can reach forward to that import's `from`; without the
+    guard the specifier would then be yielded twice, once for each keyword.
+    """
+    guard = 0
+    for kw in _RX_KEYWORD.finditer(masked):
+        pos = kw.start()
+        if pos < guard:
+            continue
+        if kw.group(0) == "require":
+            hit = _AT_REQUIRE.match(masked, pos)
+        else:
+            hit = (_AT_FROM.match(masked, pos)
+                   or (kw.group(0) == "import"
+                       and (_AT_DYNAMIC.match(masked, pos)
+                            or _AT_SIDE_EFFECT.match(masked, pos)))
+                   or None)
+        if hit:
+            guard = hit.end()
+            yield hit.group(2)
 
 
 # --------------------------------------------------------------------------
@@ -215,7 +246,7 @@ def resolve(state: _State, path: str, text: str) -> Resolution:
     packages: list[str] = []
     for raw in _specifiers(_mask(text)):
         spec = _clean(raw)
-        if not spec:
+        if not spec or not _LOOKS_LIKE_SPEC.match(spec):
             continue
         if spec.startswith("."):
             hit = state.resolve_relative(base_dir, spec)
