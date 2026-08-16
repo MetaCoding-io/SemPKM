@@ -86,17 +86,28 @@ def assemble(ctx: Context) -> None:
             "cond": [[c[0], _fmt(ctx, c[1])] for c in a.get("cond", [])],
         })
 
-    findings = [dict(f) for f in ov["findings"]]
+    # A finding computed from a live check supersedes the authored copy of the
+    # same finding — same words, but the numbers in it are current. Match on
+    # the title, because authored entries predate check ids and have none.
+    def norm(t: str) -> str:
+        return "".join(ch for ch in (t or "").lower() if ch.isalnum())
+
+    computed = []
     for r in ctx.facts.get("checks", []):
         if r["passed"] or not r.get("body"):
             continue
-        if any(f.get("id") == r["id"] for f in findings):
-            continue
-        findings.append({
+        computed.append({
             "sev": r["severity"], "node": r.get("node"), "title": r["title"],
             "body": r["body"], "ev": r.get("evidence", ""), "id": r["id"],
-            "generated": True,
+            "computed": True,
         })
+
+    superseded = {norm(c["title"]) for c in computed}
+    findings = [dict(f) for f in ov["findings"] if norm(f.get("title")) not in superseded]
+    dropped = len(ov["findings"]) - len(findings)
+    findings += computed
+    if dropped:
+        ctx.log(f"{dropped} authored finding(s) superseded by live checks")
 
     ctx.model = {
         "repo": {

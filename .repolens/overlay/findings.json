@@ -4,56 +4,49 @@
     "node": "W",
     "title": "Most writes notify nobody",
     "body": "Webhook dispatch is wired at the router, not at the event store. Only commands/router.py and views/router.py call it, so a webhook subscriber sees objects created through the public API but misses every edit made in the workspace, every Obsidian or Notion import, every WebDAV save and every federated patch.",
-    "ev": "rg 'webhook_service.dispatch' → commands/router.py ×2, views/router.py ×1, main.py ×1 (registration). 28 event_store.commit() sites in total."
+    "ev": "rg 'webhook_service.dispatch' \u2192 commands/router.py \u00d72, views/router.py \u00d71, main.py \u00d71 (registration). 28 event_store.commit() sites in total."
   },
   {
     "sev": "high",
     "node": "Q",
     "title": "Imported data is never SHACL-checked",
     "body": "Validation is enqueued by the caller rather than by the store. browser, commands, views, task_templates and inference enqueue; obsidian, notion, rdf_import, vfs and federation do not. A vault import can land thousands of objects that the lint panel will never mention until something else touches them.",
-    "ev": "rg '.enqueue(' by module → browser 3, commands 2, views 1, task_templates 1, inference 1. No hits in obsidian/, notion/, rdf_import/, vfs/, federation/."
+    "ev": "rg '.enqueue(' by module \u2192 browser 3, commands 2, views 1, task_templates 1, inference 1. No hits in obsidian/, notion/, rdf_import/, vfs/, federation/."
   },
   {
     "sev": "medium",
     "node": "C",
     "title": "The single-write-door convention is aspirational",
-    "body": "CLAUDE.md and CODEBASE.md both state that all mutations go through POST /api/commands. In practice 26 of the 28 event_store.commit() call sites are outside the commands module, and six modules import the command handlers directly to build Operations themselves. The invariant that does hold is the deeper one — nothing writes raw SPARQL UPDATE, everything goes through the event store.",
-    "ev": "event_store.commit by module → browser 8, notion 4, obsidian 3, vfs 2, rdf_import 2, inference 2, federation 2, commands 2, views 1, task_templates 1, services 1."
+    "body": "CLAUDE.md and CODEBASE.md both state that all mutations go through POST /api/commands. In practice 26 of the 28 event_store.commit() call sites are outside the commands module, and six modules import the command handlers directly to build Operations themselves. The invariant that does hold is the deeper one \u2014 nothing writes raw SPARQL UPDATE, everything goes through the event store.",
+    "ev": "event_store.commit by module \u2192 browser 8, notion 4, obsidian 3, vfs 2, rdf_import 2, inference 2, federation 2, commands 2, views 1, task_templates 1, services 1."
   },
   {
     "sev": "medium",
     "node": null,
     "title": "The documentation is five months behind the code",
-    "body": "CODEBASE.md is dated 12 March and describes 24 modules, 2 mental models and 82 specs in 28 directories. The tree holds 39 modules, 8 models and 126 specs in 55 directories. Federation, apps, copilot, context, ontology, notion, dashboard and persona do not appear in it at all, and it still describes browser/router.py as a 1,570-line monolith — that file is now a 38-line aggregator.",
-    "ev": "CODEBASE.md header 'Last updated: 2026-03-12'; ls backend/app → 39 dirs; ls models → 8; find e2e/tests -name '*.spec.ts' → 126; wc -l backend/app/browser/router.py → 38."
+    "body": "CODEBASE.md is dated 12 March and describes 24 modules, 2 mental models and 82 specs in 28 directories. The tree holds 39 modules, 8 models and 126 specs in 55 directories. Federation, apps, copilot, context, ontology, notion, dashboard and persona do not appear in it at all, and it still describes browser/router.py as a 1,570-line monolith \u2014 that file is now a 38-line aggregator.",
+    "ev": "CODEBASE.md header 'Last updated: 2026-03-12'; ls backend/app \u2192 39 dirs; ls models \u2192 8; find e2e/tests -name '*.spec.ts' \u2192 126; wc -l backend/app/browser/router.py \u2192 38."
   },
   {
     "sev": "medium",
     "node": "B",
     "title": "Presentation modules hold the most write sites",
     "body": "In a volatility-based reading, browser/ and vfs/ are client-tier: they render pages and serve files. Between them they hold 10 of the 28 commit sites, reaching past the managers tier straight into resource access. Nothing is broken by it, but the write surface is now spread across the layer that changes most often.",
-    "ev": "browser/{objects,comments,events}.py → 8 commit sites; vfs/write.py → 2. Both import from app.commands.handlers directly."
+    "ev": "browser/{objects,comments,events}.py \u2192 8 commit sites; vfs/write.py \u2192 2. Both import from app.commands.handlers directly."
   },
   {
     "sev": "medium",
     "node": "E",
     "title": "A dependency provider exists and is skipped",
-    "body": "dependencies.py exposes get_event_store(), which hands out the singleton built during lifespan startup. Three routers construct EventStore(client) inline instead. It is harmless while the store is stateless — and precisely the kind of thing that stops being harmless the day it is not.",
+    "body": "dependencies.py exposes get_event_store(), which hands out the singleton built during lifespan startup. Three routers construct EventStore(client) inline instead. It is harmless while the store is stateless \u2014 and precisely the kind of thing that stops being harmless the day it is not.",
     "ev": "views/router.py:1530, task_templates/router.py:205, sparql/router.py:175 vs dependencies.py:116."
   },
   {
     "sev": "low",
     "node": "V",
     "title": "Two files carry outsized responsibility",
-    "body": "views/service.py is 3,859 lines — the largest file in the backend — inside a module of only four files totalling 5,923 lines. ontology/service.py is 2,277. Both are candidates for the split that browser/ already received, which turned a 1,570-line router into 17 focused files.",
+    "body": "views/service.py is 3,859 lines \u2014 the largest file in the backend \u2014 inside a module of only four files totalling 5,923 lines. ontology/service.py is 2,277. Both are candidates for the split that browser/ already received, which turned a 1,570-line router into 17 focused files.",
     "ev": "wc -l: views/service.py 3859, ontology/service.py 2277, views/router.py 1983, admin/router.py 1906."
-  },
-  {
-    "sev": "low",
-    "node": "A",
-    "title": "330 broad exception handlers",
-    "body": "except Exception or bare except appears 330 times across the backend package. Some are deliberate — webhook dispatch and scheduler ticks should swallow failures — but at that volume the deliberate ones are indistinguishable from the defensive ones.",
-    "ev": "rg -c 'except Exception|except:' backend/app → 330 total."
   },
   {
     "sev": "note",
@@ -67,13 +60,13 @@
     "node": "Q",
     "title": "The validation queue is in-process",
     "body": "An asyncio queue held in memory and started in the lifespan. A container restart drops whatever was pending; validation is re-triggered by the next write rather than resumed.",
-    "ev": "validation/queue.py — AsyncValidationQueue, started in main.py lifespan, no persistence."
+    "ev": "validation/queue.py \u2014 AsyncValidationQueue, started in main.py lifespan, no persistence."
   },
   {
     "sev": "good",
     "node": "G",
     "title": "Every previously recorded concern is fixed",
-    "body": "The February planning notes listed SMTP delivery as a stub, the session cookie as hardcoded insecure, the label cache as never invalidated and Alembic as wired up but unused. All four are resolved in the current tree — and the notes were never updated to say so.",
+    "body": "The February planning notes listed SMTP delivery as a stub, the session cookie as hardcoded insecure, the label cache as never invalidated and Alembic as wired up but unused. All four are resolved in the current tree \u2014 and the notes were never updated to say so.",
     "ev": "services/email.py uses aiosmtplib; auth/router.py:54 reads settings.cookie_secure; label invalidate() called from 6 sites; 26 files in backend/migrations/versions/."
   },
   {
@@ -81,6 +74,6 @@
     "node": null,
     "title": "No TODO, FIXME or HACK markers anywhere in the backend",
     "body": "Zero occurrences across 169,932 lines of Python. Unusual at this size, and it means the findings above had to come from reading structure rather than from the trail of notes a codebase usually leaves about itself.",
-    "ev": "rg -c 'TODO|FIXME|HACK|XXX' backend/app → 0."
+    "ev": "rg -c 'TODO|FIXME|HACK|XXX' backend/app \u2192 0."
   }
 ]
