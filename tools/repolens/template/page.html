@@ -82,6 +82,36 @@
 /* pane widths live in variables so collapsing is one class on #shell */
 :root { --rail-w: 236px; --insp-w: 396px; --pane-strip: 26px; }
 
+/* Group hues — coloured drafting inks, kept low in saturation so the drawing
+   still reads as a print. A node takes its group's hue whatever layout it is
+   standing in, so grouping survives a change of level. */
+:root {
+  --g-loop:   #a8703f;
+  --g-feed:   #5f7f4e;
+  --g-schema: #5b6f92;
+  --g-after:  #9c4b3c;
+  --g-id:     #8a7a3c;
+  --g-surf:   #3f7d7a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --g-loop:   #b8814f;
+    --g-feed:   #7d9c68;
+    --g-schema: #7e91b4;
+    --g-after:  #bb6553;
+    --g-id:     #a89651;
+    --g-surf:   #549b97;
+  }
+}
+:root[data-theme="dark"] {
+  --g-loop:   #b8814f;
+  --g-feed:   #7d9c68;
+  --g-schema: #7e91b4;
+  --g-after:  #bb6553;
+  --g-id:     #a89651;
+  --g-surf:   #549b97;
+}
+
 * { box-sizing: border-box; }
 
 body {
@@ -191,7 +221,7 @@ body {
 .item:hover { background: var(--paper-3); }
 .item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .item .k { color: var(--ink-3); font-size: 10px; }
-.item .n { line-height: 1.35; }
+.item .n { line-height: 1.35; overflow-wrap: anywhere; }
 .item .c { color: var(--ink-3); font-size: 10px; font-variant-numeric: tabular-nums; }
 .item[aria-selected="true"] { background: var(--invert-bg); color: var(--invert-fg); border-color: var(--invert-bg); }
 .item[aria-selected="true"] .k, .item[aria-selected="true"] .c { color: var(--invert-fg); opacity: 0.65; }
@@ -227,6 +257,13 @@ body {
   vertical-align: baseline; border: 1px solid currentColor;
 }
 .btn[aria-pressed="true"] .swatch { background: currentColor; }
+
+#crumbs { display: none; }
+#crumbs .btn { background: var(--invert-bg); color: var(--invert-fg); border-color: var(--invert-bg); }
+.crumb-here {
+  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--accent); align-self: center; padding-left: 2px;
+}
 
 #dials {
   position: absolute; left: 10px; bottom: 10px; z-index: 2;
@@ -285,12 +322,15 @@ input[type="range"]:focus-visible { outline: 2px solid var(--accent); outline-of
   letter-spacing: 0.04em; text-anchor: middle; dominant-baseline: middle;
   pointer-events: none; user-select: none;
 }
+/* Level names were the same weight and colour as the grid and disappeared
+   into it. They name the whole band, so they get to be loud. */
 .band-label {
-  fill: var(--ink-3); font-family: inherit; font-size: 9px;
-  letter-spacing: 0.18em; text-anchor: end; dominant-baseline: middle;
+  fill: var(--accent); font-family: inherit; font-size: 13px; font-weight: 700;
+  letter-spacing: 0.15em; text-anchor: end; dominant-baseline: middle;
   pointer-events: none; user-select: none; text-transform: uppercase;
+  paint-order: stroke; stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round;
 }
-.band-rule { stroke: var(--rule-soft); stroke-width: 1; stroke-dasharray: 3 4; vector-effect: non-scaling-stroke; }
+.band-rule { stroke: var(--accent); stroke-width: 1.4; stroke-dasharray: 2 5; opacity: 0.5; vector-effect: non-scaling-stroke; }
 .name-label {
   fill: var(--ink); font-family: inherit; font-size: 9.5px; letter-spacing: 0.09em;
   text-anchor: middle; pointer-events: none; user-select: none;
@@ -520,6 +560,7 @@ ul.bul li { margin-bottom: 6px; max-width: 60ch; }
 
   <main id="stage">
     <div id="topleft">
+      <div class="ctlrow" id="crumbs" role="group" aria-label="Location"></div>
       <div class="ctlrow" id="layoutbar" role="group" aria-label="Layout"></div>
       <div class="ctlrow" id="flowbar" role="group" aria-label="Flow layers"></div>
     </div>
@@ -537,6 +578,9 @@ ul.bul li { margin-bottom: 6px; max-width: 60ch; }
       <span class="sep"></span>
       <span class="dlab">Height</span>
       <button class="btn" id="hmode" style="font-size:9.5px;padding:3px 8px;">Lines of code</button>
+      <span class="sep"></span>
+      <span class="dlab">Colour</span>
+      <button class="btn" id="cmode" style="font-size:9.5px;padding:3px 8px;">By group</button>
     </div>
     <svg id="svg" role="img" aria-label="Axonometric drawing of the SemPKM repository"></svg>
     <div id="edge-pop" role="menu" aria-label="Edges on this route"></div>
@@ -553,6 +597,7 @@ ul.bul li { margin-bottom: 6px; max-width: 60ch; }
 
   <footer id="hints">
     <span>Click a part to open it</span>
+    <span>Double-click a part to go inside</span>
     <span>Click a moving dot to read the data</span>
     <span>Drag to pan</span>
     <span>Scroll to zoom</span>
@@ -648,6 +693,7 @@ var LAYOUT_DEFAULTS = {
   label: "Untitled",
   blurb: "",
   maxPitch: 90,            /* a plan view flattens stacked tiers onto each other */
+  scope: "system",         /* "system" | "drill" — which dataset it can lay out */
   box: { w: 2.1, d: 2.1 },
   heightCap: 5.0, heightDiv: 22, heightPer: 0.52,
 
@@ -793,6 +839,8 @@ var stage = document.getElementById("stage");
 
 var scene, gGrid, gWires, gNodes, gPackets, gBands, hoverLabel;
 var view = { k: 1, tx: 0, ty: 0 };
+/* system | drill — declared here because buildRail reads it during boot */
+var VIEW = { mode: "system", node: null, prev: null };
 var selectedNode = null, hoveredNode = null, selectedPacket = null;
 var activeTab = "what";
 var sevFilter = null;
@@ -1056,9 +1104,65 @@ function scheduleHideEdgePop() { popTimer = setTimeout(hideEdgePop, 280); }
 function hideEdgePop() { if (edgePop) edgePop.style.display = "none"; }
 
 /* moving the pointer into the popover must not dismiss it */
+var edgePopWired = false;
 function wireEdgePopHover() {
+  if (edgePopWired) return;
+  edgePopWired = true;
   edgePop.addEventListener("mouseenter", function () { clearTimeout(popTimer); });
   edgePop.addEventListener("mouseleave", hideEdgePop);
+}
+
+/* ---- group colour ------------------------------------------------------
+   A node is coloured by its group, not by the level it happens to be drawn
+   at, so the same neighbourhood is recognisable in every layout. Applied in
+   paintState rather than applyNodes, so selection still overrides it. */
+
+var colourMode = "group";        /* group | none */
+var colourCache = {};
+
+function groupColour(gid) {
+  if (!gid) return null;
+  if (colourCache[gid]) return colourCache[gid];
+  var v = getComputedStyle(document.documentElement)
+            .getPropertyValue("--g-" + gid).trim();
+  if (!v) {
+    /* an unknown group — drill-down subdirectories — gets a stable hue */
+    var h = 0;
+    for (var i = 0; i < gid.length; i++) h = (h * 31 + gid.charCodeAt(i)) % 360;
+    v = "hsl(" + h + ", 24%, 48%)";
+  }
+  colourCache[gid] = v;
+  return v;
+}
+
+function shade(css, amount) {
+  var r, g, b;
+  var m = css.match(/^#([0-9a-f]{6})$/i);
+  if (m) {
+    var n = parseInt(m[1], 16);
+    r = n >> 16; g = (n >> 8) & 255; b = n & 255;
+  } else {
+    var probe = document.createElement("span");
+    probe.style.color = css;
+    document.body.appendChild(probe);
+    var rgb = getComputedStyle(probe).color.match(/\d+/g);
+    document.body.removeChild(probe);
+    if (!rgb) return css;
+    r = +rgb[0]; g = +rgb[1]; b = +rgb[2];
+  }
+  function c(x) { return Math.max(0, Math.min(255, Math.round(x * amount))); }
+  return "rgb(" + c(r) + "," + c(g) + "," + c(b) + ")";
+}
+
+function paintNodeColour(n, selected) {
+  var refs = nodeRefs[n.id];
+  if (!refs) return;
+  var col = (!selected && colourMode === "group") ? groupColour(n.grp) : null;
+  /* top face lightest, then right, then left — the same reading as the
+     monochrome faces, so the drawing keeps its light source */
+  refs.polys[4].style.fill = col ? shade(col, 1.42) : "";
+  refs.polys[2].style.fill = col ? shade(col, 1.10) : "";
+  refs.polys[0].style.fill = col ? shade(col, 0.88) : "";
 }
 
 /* ---- boxes ---- */
@@ -1086,6 +1190,11 @@ function buildNodes() {
     grp.addEventListener("click", function (ev) {
       if (didDrag) return;
       ev.stopPropagation(); selectNode(n.id);
+    });
+    grp.addEventListener("dblclick", function (ev) {
+      if (didDrag) return;
+      ev.stopPropagation();
+      if (VIEW.mode === "system") enterDrill(n.id);
     });
     grp.addEventListener("keydown", function (ev) {
       if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); selectNode(n.id); }
@@ -1338,13 +1447,17 @@ function tick(ts) {
    8. STATE PAINTING
    ============================================================ */
 
-var FLAGGED = {};
-FINDINGS.forEach(function (f) {
-  if (!f.node) return;
-  if (f.sev === "high" || f.sev === "medium") {
-    if (!FLAGGED[f.node] || f.sev === "high") FLAGGED[f.node] = f.sev;
-  }
-});
+function computeFlagged() {
+  var out = {};
+  FINDINGS.forEach(function (f) {
+    if (!f.node) return;
+    if (f.sev === "high" || f.sev === "medium") {
+      if (!out[f.node] || f.sev === "high") out[f.node] = f.sev;
+    }
+  });
+  return out;
+}
+var FLAGGED = computeFlagged();
 
 function relatedEdgeIdx(nodeId) {
   var out = [];
@@ -1374,10 +1487,12 @@ function paintState() {
 
   NODES.forEach(function (n) {
     var g = nodeRefs[n.id].g;
-    g.classList.toggle("selected", selectedNode === n.id);
+    var sel = selectedNode === n.id;
+    g.classList.toggle("selected", sel);
     g.classList.toggle("hovered", hoveredNode === n.id);
     g.classList.toggle("dim", !!focus && !neighbours[n.id]);
     g.classList.toggle("flagged", FLAGGED[n.id] === "high");
+    paintNodeColour(n, sel);
   });
 
   BUNDLES.forEach(function (b) {
@@ -1449,6 +1564,7 @@ function buildRail() {
   GROUPS.forEach(function (grp) {
     var h = document.createElement("div");
     h.className = "grp"; h.textContent = grp.label;
+    if (colourMode === "group") h.style.color = groupColour(grp.id);
     railBody.appendChild(h);
     NODES.filter(function (n) { return n.grp === grp.id; }).forEach(function (n) {
       var b = document.createElement("button");
@@ -1457,7 +1573,8 @@ function buildRail() {
       b.innerHTML = '<span class="k"></span><span class="n"></span><span class="c"></span>';
       b.querySelector(".k").textContent = n.key;
       b.querySelector(".n").textContent = n.name;
-      b.querySelector(".c").textContent = n.files;
+      b.querySelector(".c").textContent =
+        VIEW.mode === "drill" ? n.loc.toLocaleString() : n.files;
       b.addEventListener("click", function () { selectNode(n.id); });
       b.addEventListener("mouseenter", function () { hoveredNode = n.id; paintState(); });
       b.addEventListener("mouseleave", function () { hoveredNode = null; paintState(); });
@@ -1485,6 +1602,9 @@ document.getElementById("q").addEventListener("input", paintRail);
    ============================================================ */
 
 var panel = document.getElementById("panel");
+function byIdSystem(id) {
+  return SYSTEM_DATA.nodes.filter(function (n) { return n.id === id; })[0];
+}
 function esc(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
 var SYSTEM = MODEL.system;
@@ -1630,6 +1750,43 @@ function renderPanel() {
     panel.innerHTML = html; wirePanelChips(); panel.scrollTop = 0; return;
   }
 
+  if (!selectedNode && VIEW.mode === "drill") {
+    var parent = SYSTEM_DATA.nodes.filter(function (n) { return n.id === VIEW.node; })[0] || {};
+    var rec = (MODEL.drill || {})[VIEW.node] || {};
+    var byDeg = NODES.slice().sort(function (a, b) { return b.degree - a.degree; });
+    var bySize = NODES.slice().sort(function (a, b) { return b.loc - a.loc; });
+
+    html += '<div class="eyebrow">Inside a part</div>';
+    html += '<h2>' + esc(parent.name || VIEW.node) + '</h2>';
+    html += '<div class="dek">' + esc(parent.sub || "") + '</div>';
+    html += '<p>' + esc(LAYOUTS[layout].blurb) + '</p>';
+    html += '<dl class="kv">' +
+      '<dt>Files</dt><dd>' + NODES.length + '</dd>' +
+      '<dt>Imports within</dt><dd>' + EDGES.length + '</dd>' +
+      '<dt>Lines</dt><dd>' + NODES.reduce(function (s, n) { return s + n.loc; }, 0).toLocaleString() + '</dd>' +
+      (byDeg[0] ? '<dt>Most connected</dt><dd>' + esc(byDeg[0].name) + ' · ' + byDeg[0].degree + '</dd>' : '') +
+      (bySize[0] ? '<dt>Largest</dt><dd>' + esc(bySize[0].name) + ' · ' + bySize[0].loc.toLocaleString() + ' lines</dd>' : '') +
+      '</dl>';
+
+    var ext = (rec.external || []).filter(function (e) { return byIdSystem(e.to_node); });
+    if (ext.length) {
+      html += '<div class="sec">Imports leaving this part</div><div class="chiprow">';
+      ext.slice(0, 12).forEach(function (e) {
+        html += '<button class="chip" data-out="' + esc(e.to_node) + '">' +
+                esc(byIdSystem(e.to_node).short) + ' · ' + e.count + '</button>';
+      });
+      html += '</div><p style="color:var(--ink-3);font-size:11px;">These are drawn on the system view, not here. Opening one leaves this part.</p>';
+    }
+    if (!EDGES.length) {
+      html += '<div class="flag warn"><span class="lab">Note</span><span class="txt">' +
+              'No imports between these files were resolved. Either they genuinely do not ' +
+              'reference each other, or they are not Python — only Python imports are parsed today.' +
+              '</span></div>';
+    }
+    html += '<div class="chiprow"><button class="chip" data-exit="1">&#9666; Back to the system</button></div>';
+    panel.innerHTML = html; wirePanelChips(); panel.scrollTop = 0; return;
+  }
+
   if (!selectedNode) {
     html += '<div class="eyebrow">SemPKM · ' + esc(LAYOUTS[layout].label) + ' view</div>';
     html += '<h2>The Commit Loop</h2>';
@@ -1649,7 +1806,8 @@ function renderPanel() {
   }
 
   var n = byId[selectedNode];
-  html += '<div class="eyebrow">' + esc(GROUPS.filter(function (g) { return g.id === n.grp; })[0].label) + '</div>';
+  var grpRec = GROUPS.filter(function (g) { return g.id === n.grp; })[0];
+  html += '<div class="eyebrow">' + esc(grpRec ? grpRec.label : (n.grp || "")) + '</div>';
   html += '<h2>' + esc(n.name) + '</h2>';
   html += '<div class="dek">' + esc(n.sub) + '</div>';
 
@@ -1689,6 +1847,16 @@ function wirePanelChips() {
   });
   panel.querySelectorAll("[data-pkt]").forEach(function (b) {
     b.addEventListener("click", function () { openPacket(packets[parseInt(b.getAttribute("data-pkt"), 10)]); });
+  });
+  panel.querySelectorAll("[data-exit]").forEach(function (b) {
+    b.addEventListener("click", exitDrill);
+  });
+  panel.querySelectorAll("[data-out]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var target = b.getAttribute("data-out");
+      exitDrill();
+      selectNode(target);
+    });
   });
   panel.querySelectorAll("[data-clear]").forEach(function (b) {
     b.addEventListener("click", function () {
@@ -1801,6 +1969,14 @@ document.getElementById("angle").addEventListener("input", function (ev) {
   paintState();
 });
 
+var cmodeBtn = document.getElementById("cmode");
+cmodeBtn.addEventListener("click", function () {
+  colourMode = colourMode === "group" ? "none" : "group";
+  cmodeBtn.textContent = colourMode === "group" ? "By group" : "None";
+  paintState();
+  buildRail(); paintRail();
+});
+
 var hmodeBtn = document.getElementById("hmode");
 hmodeBtn.addEventListener("click", function () {
   heightMode = heightMode === "loc" ? "files" : "loc";
@@ -1817,6 +1993,8 @@ themeBtn.addEventListener("click", function () {
   if (m === "auto") document.documentElement.removeAttribute("data-theme");
   else document.documentElement.setAttribute("data-theme", m);
   themeBtn.textContent = "Theme: " + m;
+  colourCache = {};          /* hues are CSS variables; the theme just changed */
+  paintState(); buildRail(); paintRail();
 });
 
 /* layout bar */
@@ -1827,6 +2005,9 @@ function paintLayoutBar() {
   lab.className = "ctl-label"; lab.textContent = "Layout";
   layoutbar.appendChild(lab);
   Object.keys(LAYOUTS).forEach(function (id) {
+    var scope = LAYOUTS[id].scope || "system";
+    var want = (typeof VIEW !== "undefined" && VIEW.mode === "drill") ? "drill" : "system";
+    if (scope !== want) return;
     var b = document.createElement("button");
     b.className = "btn";
     b.setAttribute("aria-pressed", layout === id ? "true" : "false");
@@ -1908,6 +2089,7 @@ document.addEventListener("keydown", function (ev) {
     return;
   }
   if (ev.key === "Escape") {
+    if (VIEW.mode === "drill" && !selectedNode && !selectedPacket) { exitDrill(); return; }
     selectedNode = null; selectedPacket = null;
     renderPanel(); paintState(); paintRail();
   } else if (ev.key === "ArrowDown" || ev.key === "ArrowUp") {
@@ -1948,6 +2130,173 @@ window.addEventListener("resize", function () {
   clearTimeout(window.__rt);
   window.__rt = setTimeout(resetView, 160);
 });
+
+/* ============================================================
+   12b. INSIDE A PART
+
+   Double-clicking a part swaps the whole dataset for its files and the
+   imports between them, and hands it to a layout registered for drill scope.
+   Everything downstream — bundling, packets, the rail, the inspector — is
+   unchanged, because it only ever reads NODES/EDGES/GROUPS.
+   ============================================================ */
+
+var SYSTEM_DATA = { nodes: NODES, edges: EDGES, groups: GROUPS };
+
+function buildDrillData(nodeId) {
+  var rec = (MODEL.drill || {})[nodeId];
+  if (!rec || !rec.files || !rec.files.length) return null;
+  var parent = byId[nodeId];
+
+  var degree = {};
+  (rec.edges || []).forEach(function (e) {
+    degree[e.from] = (degree[e.from] || 0) + 1;
+    degree[e.to] = (degree[e.to] || 0) + 1;
+  });
+
+  var dirs = {};
+  var nodes = rec.files.map(function (f) {
+    var slash = f.id.lastIndexOf("/");
+    var dir = slash >= 0 ? f.id.slice(0, slash) : "(top level)";
+    dirs[dir] = true;
+    var inbound = (rec.edges || []).filter(function (e) { return e.to === f.id; }).length;
+    var outbound = (rec.edges || []).filter(function (e) { return e.from === f.id; }).length;
+    return {
+      id: f.id, key: "", short: f.name.replace(/\.[a-z]+$/, ""), name: f.name,
+      grp: dir, layer: parent.layer, tier: parent.tier,
+      loc: f.lines || 0, files: 1,
+      degree: degree[f.id] || 0,
+      x: 0, y: 0, w: 2, d: 2,
+      sub: f.path,
+      does: (f.lines || 0).toLocaleString() + " lines of " + (f.lang || "source") +
+            ". " + (outbound ? "Imports " + outbound + " sibling" + (outbound === 1 ? "" : "s") : "Imports no siblings") +
+            "; " + (inbound ? "imported by " + inbound : "imported by none") + " inside this part.",
+      built: "Path: " + f.path + ". Its place in " + parent.name +
+             ", which holds " + rec.files.length + " files and " +
+             (rec.edges || []).length + " imports between them.",
+      cond: [["measured", "Imports resolved by parsing the file, not by matching text."]]
+    };
+  });
+
+  var edges = (rec.edges || []).map(function (e) {
+    return {
+      from: e.from, to: e.to, flow: "import",
+      label: "imports", pk: e.from + " → " + e.to,
+      body: "# " + e.from + "\n\nfrom ." + e.to.replace(/\.py$/, "").replace(/\//g, ".") +
+            " import ...\n\n# resolved against this part's own files;\n" +
+            "# an import that left the part is not drawn here.",
+      note: "One edge per import that resolves to a sibling file. Imports that " +
+            "leave this part are counted on the system drawing instead."
+    };
+  });
+
+  return {
+    nodes: nodes, edges: edges,
+    groups: Object.keys(dirs).sort().map(function (d) { return { id: d, label: d }; })
+  };
+}
+
+function rebuildForDataset(layoutId) {
+  byId = {};
+  NODES.forEach(function (n) { byId[n.id] = n; });
+  FLAGGED = computeFlagged();
+  layout = layoutId;
+  hideEdgePop();
+  selectedNode = null; selectedPacket = null; hoveredNode = null;
+  colourCache = {};
+  buildBundles();
+  buildScene();
+  runLayout();
+  syncAngleRange();
+  applyGeometry();
+  buildRail();
+  paintLayoutBar();
+  paintFlowBar();
+  paintCrumbs();
+  resetView();
+  renderPanel(); paintState(); paintRail();
+}
+
+function zoomInto(nodeId, done) {
+  var n = byId[nodeId];
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!n || reduce) { done(); return; }
+  var apex = (n._faces || boxFaces(n)).apex;
+  var r = stage.getBoundingClientRect();
+  var k0 = view.k, tx0 = view.tx, ty0 = view.ty;
+  var k1 = k0 * 3.2;
+  var tx1 = r.width / 2 - apex[0] * k1, ty1 = r.height / 2 - apex[1] * k1;
+  var t0 = null, dur = 360;
+  function step(t) {
+    if (t0 === null) t0 = t;
+    var u = Math.min(1, (t - t0) / dur);
+    var e = u < 0.5 ? 2 * u * u : -1 + (4 - 2 * u) * u;
+    view.k = k0 + (k1 - k0) * e;
+    view.tx = tx0 + (tx1 - tx0) * e;
+    view.ty = ty0 + (ty1 - ty0) * e;
+    applyView();
+    if (u < 1) requestAnimationFrame(step);
+    else done();
+  }
+  requestAnimationFrame(step);
+}
+
+function enterDrill(nodeId) {
+  if (VIEW.mode === "drill") return;
+  var data = buildDrillData(nodeId);
+  if (!data) return;
+
+  zoomInto(nodeId, function () {
+    VIEW.prev = {
+      layout: layout,
+      flows: {},
+      angle: pitchDeg
+    };
+    Object.keys(FLOWS).forEach(function (f) {
+      VIEW.prev.flows[f] = FLOWS[f].on;
+      FLOWS[f].on = (f === "import");
+    });
+    VIEW.mode = "drill";
+    VIEW.node = nodeId;
+    NODES = data.nodes; EDGES = data.edges; GROUPS = data.groups;
+    rebuildForDataset("inside");
+    svg.style.opacity = "0";
+    requestAnimationFrame(function () {
+      svg.style.transition = "opacity 180ms linear";
+      svg.style.opacity = "1";
+      setTimeout(function () { svg.style.transition = ""; }, 220);
+    });
+  });
+}
+
+function exitDrill() {
+  if (VIEW.mode !== "drill") return;
+  var prev = VIEW.prev || {};
+  Object.keys(FLOWS).forEach(function (f) {
+    if (prev.flows && f in prev.flows) FLOWS[f].on = prev.flows[f];
+  });
+  VIEW.mode = "system"; VIEW.node = null;
+  NODES = SYSTEM_DATA.nodes; EDGES = SYSTEM_DATA.edges; GROUPS = SYSTEM_DATA.groups;
+  rebuildForDataset(prev.layout || "survey");
+}
+
+var crumbs = document.getElementById("crumbs");
+
+function paintCrumbs() {
+  crumbs.textContent = "";
+  if (VIEW.mode !== "drill") { crumbs.style.display = "none"; return; }
+  crumbs.style.display = "flex";
+  var back = document.createElement("button");
+  back.className = "btn";
+  back.innerHTML = "&#9666;&nbsp; " + esc(MODEL.repo.name);
+  back.addEventListener("click", exitDrill);
+  crumbs.appendChild(back);
+  var here = document.createElement("span");
+  here.className = "crumb-here";
+  var parent = SYSTEM_DATA.nodes.filter(function (n) { return n.id === VIEW.node; })[0];
+  here.textContent = "inside " + (parent ? parent.name : VIEW.node) +
+                     " · " + NODES.length + " files · " + EDGES.length + " imports";
+  crumbs.appendChild(here);
+}
 
 /* ============================================================
    13. PUBLIC HOOK
@@ -2003,6 +2352,40 @@ repolens.registerLayout({
         api.setPos(n, { x: Math.cos(a) * R, y: Math.sin(a) * R, z: 0, w: 2.0, d: 2.0 });
       });
     });
+  }
+});
+
+/* The layout used inside a part. Files sit on rings by how connected they are,
+   most-imported at the centre — for an import graph that is the thing you want
+   to see first. Registered for drill scope, so it never appears at system
+   level and the system layouts never appear here. */
+repolens.registerLayout({
+  id: "inside",
+  label: "Inside",
+  scope: "drill",
+  blurb: "Files of one part, ringed by how many of their siblings they touch. The most connected sits in the middle.",
+  heightCap: 4.0, heightDiv: 9, heightPer: 1.2,
+  route: function (e, api) {
+    return [api.centre(api.byId[e.from]), api.centre(api.byId[e.to])];
+  },
+  run: function (api) {
+    var ordered = api.nodes.slice().sort(function (a, b) {
+      return (b.degree - a.degree) || (b.loc - a.loc);
+    });
+    var i = 0, ring = 0;
+    while (i < ordered.length) {
+      var capacity = ring === 0 ? 1 : Math.max(5, ring * 6);
+      var count = Math.min(capacity, ordered.length - i);
+      var R = ring === 0 ? 0 : 4.8 + (ring - 1) * 4.4;
+      for (var k = 0; k < count; k++) {
+        var a = (k / count) * Math.PI * 2 + ring * 0.6;
+        api.setPos(ordered[i + k], {
+          x: Math.cos(a) * R, y: Math.sin(a) * R, z: 0, w: 1.9, d: 1.9
+        });
+      }
+      i += count;
+      ring++;
+    }
   }
 });
 </script>
