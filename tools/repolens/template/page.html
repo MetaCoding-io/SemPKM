@@ -1,7 +1,7 @@
-<title>SemPKM Commit Loop</title>
+<title>__TITLE__</title>
 <style>
 /* ============================================================
-   SemPKM Commit Loop — an axonometric survey of the repository
+   repolens — an axonometric survey of a repository
    Drafting print on olive paper; negative print in dark.
    ============================================================ */
 
@@ -257,6 +257,13 @@ body {
   vertical-align: baseline; border: 1px solid currentColor;
 }
 .btn[aria-pressed="true"] .swatch { background: currentColor; }
+
+#legend .btn { background: var(--paper); font-size: 9.5px; padding: 3px 7px; }
+#legend .btn[aria-pressed="true"] { background: var(--invert-bg); color: var(--invert-fg); border-color: var(--invert-bg); }
+#legend .key {
+  display: inline-block; width: 9px; height: 9px; margin-right: 5px;
+  vertical-align: -1px; border: 1px solid var(--ink);
+}
 
 #crumbs { display: none; }
 #crumbs .btn { background: var(--invert-bg); color: var(--invert-fg); border-color: var(--invert-bg); }
@@ -563,6 +570,7 @@ ul.bul li { margin-bottom: 6px; max-width: 60ch; }
       <div class="ctlrow" id="crumbs" role="group" aria-label="Location"></div>
       <div class="ctlrow" id="layoutbar" role="group" aria-label="Layout"></div>
       <div class="ctlrow" id="flowbar" role="group" aria-label="Flow layers"></div>
+      <div class="ctlrow" id="legend" role="group" aria-label="Group colours"></div>
     </div>
     <div id="zoomers">
       <button class="btn" id="btn-in" aria-label="Zoom in">+</button>
@@ -582,7 +590,7 @@ ul.bul li { margin-bottom: 6px; max-width: 60ch; }
       <span class="dlab">Colour</span>
       <button class="btn" id="cmode" style="font-size:9.5px;padding:3px 8px;">By group</button>
     </div>
-    <svg id="svg" role="img" aria-label="Axonometric drawing of the SemPKM repository"></svg>
+    <svg id="svg" role="img" aria-label="Axonometric drawing of the repository"></svg>
     <div id="edge-pop" role="menu" aria-label="Edges on this route"></div>
   </main>
 
@@ -784,8 +792,25 @@ registerLayout({
   label: "Survey",
   blurb: "The system as a plot of ground: one ring, read one way and written the other.",
   run: function (api) {
-    api.nodes.forEach(function (n) {
-      api.setPos(n, { x: n.x, y: n.y, z: 0, w: n.w, d: n.d });
+    /* Hand-placed coordinates are optional. A repo with no overlay has none,
+       so fall back to a grid ordered by size rather than stacking every box
+       on the origin. */
+    var placed = api.nodes.some(function (n) { return n.x || n.y; });
+    if (placed) {
+      api.nodes.forEach(function (n) {
+        api.setPos(n, { x: n.x, y: n.y, z: 0, w: n.w, d: n.d });
+      });
+      return;
+    }
+    var ordered = api.nodes.slice().sort(function (a, b) { return b.loc - a.loc; });
+    var cols = Math.max(1, Math.ceil(Math.sqrt(ordered.length)));
+    var SP = 4.2;
+    ordered.forEach(function (n, i) {
+      api.setPos(n, {
+        x: (i % cols) * SP,
+        y: Math.floor(i / cols) * SP,
+        z: 0, w: 2.1, d: 2.1
+      });
     });
   }
 });
@@ -1477,6 +1502,14 @@ function paintState() {
     focus = selectedPacket.edge.from;
   }
 
+  /* a focused group dims everything else, unless a part is already open */
+  if (groupFocus && !focus) {
+    NODES.forEach(function (n) {
+      var g = nodeRefs[n.id].g;
+      g.classList.toggle("dim", n.grp !== groupFocus);
+    });
+  }
+
   var neighbours = {};
   if (focus) {
     neighbours[focus] = true;
@@ -1490,7 +1523,8 @@ function paintState() {
     var sel = selectedNode === n.id;
     g.classList.toggle("selected", sel);
     g.classList.toggle("hovered", hoveredNode === n.id);
-    g.classList.toggle("dim", !!focus && !neighbours[n.id]);
+    g.classList.toggle("dim",
+      (!!focus && !neighbours[n.id]) || (!focus && !!groupFocus && n.grp !== groupFocus));
     g.classList.toggle("flagged", FLAGGED[n.id] === "high");
     paintNodeColour(n, sel);
   });
@@ -1788,8 +1822,9 @@ function renderPanel() {
   }
 
   if (!selectedNode) {
-    html += '<div class="eyebrow">SemPKM · ' + esc(LAYOUTS[layout].label) + ' view</div>';
-    html += '<h2>The Commit Loop</h2>';
+    html += '<div class="eyebrow">' + esc(MODEL.repo.name) + ' · ' +
+            esc(LAYOUTS[layout].label) + ' view</div>';
+    html += '<h2>' + esc(MODEL.repo.headline || MODEL.repo.name) + '</h2>';
     html += '<div class="dek">' + esc(LAYOUTS[layout].blurb) + '</div>';
     html += activeTab === "what" ? SYSTEM.what : activeTab === "built" ? SYSTEM.built : SYSTEM.cond;
     if (activeTab === "what") {
@@ -1951,6 +1986,7 @@ document.getElementById("btn-step").addEventListener("click", function () {
 });
 document.getElementById("btn-reset").addEventListener("click", function () {
   resetView(); selectedNode = null; selectedPacket = null; sevFilter = null;
+  groupFocus = null; paintLegend();
   document.getElementById("q").value = "";
   renderPanel(); paintState(); paintRail();
 });
@@ -1974,7 +2010,7 @@ cmodeBtn.addEventListener("click", function () {
   colourMode = colourMode === "group" ? "none" : "group";
   cmodeBtn.textContent = colourMode === "group" ? "By group" : "None";
   paintState();
-  buildRail(); paintRail();
+  buildRail(); paintRail(); paintLegend();
 });
 
 var hmodeBtn = document.getElementById("hmode");
@@ -1994,7 +2030,7 @@ themeBtn.addEventListener("click", function () {
   else document.documentElement.setAttribute("data-theme", m);
   themeBtn.textContent = "Theme: " + m;
   colourCache = {};          /* hues are CSS variables; the theme just changed */
-  paintState(); buildRail(); paintRail();
+  paintState(); buildRail(); paintRail(); paintLegend();
 });
 
 /* layout bar */
@@ -2018,6 +2054,37 @@ function paintLayoutBar() {
       renderPanel();
     });
     layoutbar.appendChild(b);
+  });
+}
+
+/* group legend — the key to the colours, and a way to isolate one group */
+var legendEl = document.getElementById("legend");
+var groupFocus = null;
+
+function paintLegend() {
+  legendEl.textContent = "";
+  if (colourMode !== "group" || !GROUPS.length) { legendEl.style.display = "none"; return; }
+  legendEl.style.display = "flex";
+  var lab = document.createElement("span");
+  lab.className = "ctl-label"; lab.textContent = "Groups";
+  legendEl.appendChild(lab);
+  GROUPS.forEach(function (g) {
+    var count = NODES.filter(function (n) { return n.grp === g.id; }).length;
+    if (!count) return;
+    var b = document.createElement("button");
+    b.className = "btn";
+    b.setAttribute("aria-pressed", groupFocus === g.id ? "true" : "false");
+    b.title = "Show only " + g.label;
+    var key = document.createElement("span");
+    key.className = "key";
+    key.style.background = groupColour(g.id);
+    b.appendChild(key);
+    b.appendChild(document.createTextNode(g.label + " · " + count));
+    b.addEventListener("click", function () {
+      groupFocus = (groupFocus === g.id) ? null : g.id;
+      paintLegend(); paintState();
+    });
+    legendEl.appendChild(b);
   });
 }
 
@@ -2115,10 +2182,13 @@ runLayout();
 buildScene();
 applyGeometry();
 paintTopbar();
+svg.setAttribute("aria-label",
+  "Axonometric drawing of the " + MODEL.repo.name + " repository");
 buildRail();
 paintLayoutBar();
 layoutBarReady = true;
 paintFlowBar();
+paintLegend();
 resetView();
 renderPanel();
 paintState();
@@ -2211,6 +2281,7 @@ function rebuildForDataset(layoutId) {
   buildRail();
   paintLayoutBar();
   paintFlowBar();
+  paintLegend();
   paintCrumbs();
   resetView();
   renderPanel(); paintState(); paintRail();

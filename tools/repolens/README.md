@@ -33,7 +33,7 @@ literal replaced by a model read. It is not repo-specific.
 
 ## Adding to the pipeline
 
-Three levels, in increasing order of effort:
+Four levels, in increasing order of effort:
 
 **A new measurement** — edit `.repolens.yml`:
 
@@ -67,6 +67,16 @@ def cochange(ctx: Context) -> None:
     ...
     ctx.facts.setdefault("edges", {})["cochange"] = edges
     ctx.metric("edges.cochange.count", len(edges))
+```
+
+**A new kind of assertion** — a function in the `_KINDS` dict in
+`stages/conventions.py`. Three ship: `metric` compares a published number,
+`shell` runs a command, `coverage` finds modules that do X without also doing
+Y. A fourth is about ten lines.
+
+```python
+_KINDS = {"metric": _check_metric, "coverage": _check_coverage,
+          "shell": _check_shell, "ratio": _check_ratio}
 ```
 
 Stages declare `requires`/`provides`, so ordering mistakes fail at startup with
@@ -128,12 +138,34 @@ An `llm` adapter is declared but deliberately unimplemented. The intent is that
 anything inferred gets written back into config as a structured check, so it is
 inferred once rather than on every run.
 
+## Running it on a repo that has no overlay
+
+An overlay is optional. With none, `assemble` derives the whole drawing from
+measurement: nodes from the chosen node set, the group from the members' parent
+directory, the tier from depth in the import graph, and a sentence of facts
+instead of prose. The `survey` layout grids them by size rather than expecting
+hand-placed coordinates. Verified against a synthetic repo with no overlay at
+all — 3 nodes, tiers derived from imports, in 4 ms.
+
+```yaml
+# the whole config a new repo needs
+module_root: src
+nodesets: { modules: { from: dirs("src/*") } }
+model:   { name: myrepo, nodeset: modules }
+pipelines:
+  build: [discover, loc, overlay, nodesets, drilldown, imports, assemble, emit]
+```
+
+Nothing in `tools/repolens/` mentions SemPKM. The page title, headline, tagline
+and stat tiles all come from config; the template carries no repo name.
+
 ## Known edges
 
 - `loc` counts source languages only. Left unbounded it counted 1.5M lines of
   generated `.gsd/reports/*.html` as code.
 - YAML 1.1 parses a bare `on:` key as boolean `true`. The flow field is called
   `enabled` for that reason.
-- Layout is deliberately out of scope here. `tier` and `layer` are just an int
-  and an enum per node; only the `survey` view needs coordinates, and a node
-  without them still renders in the computed layouts.
+- Only Python and JS/TS imports are resolved. Other languages drill into files
+  with no edges, and the panel says so rather than implying there are none.
+- `verify` is not in the `check` pipeline, so a stale claim never blocks a
+  commit. That is deliberate: a wrong drawing is not a broken build.

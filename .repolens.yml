@@ -184,6 +184,8 @@ checks:
 # ------------------------------------------------------------------- model
 model:
   name: sempkm
+  title: "SemPKM Commit Loop"        # browser tab and artifact name
+  headline: "The Commit Loop"        # the heading in the inspector
   tagline: "· event-sourced rdf"
   nodeset: survey
   stats:

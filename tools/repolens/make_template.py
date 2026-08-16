@@ -1,4 +1,10 @@
-"""Turn the authored artifact into a data-driven template.
+"""ONE-TIME PORT SCRIPT — kept for the record, not part of the build.
+
+The template it produced (tools/repolens/template/page.html) is now the source
+of truth for the renderer and is edited directly. Re-running this against the
+original hand-authored artifact would discard everything added since.
+
+Turn the authored artifact into a data-driven template.
 
 The renderer and the data were written together; this lifts the data out and
 leaves a page that eats a model. Every substitution asserts, so a change to the
@@ -109,10 +115,6 @@ buildRail();""", "boot hook")
 
 /* ============================================================
    9. LEFT RAIL""", "topbar painter insertion point")
-
-    # ---- 4. title and generated stamp -------------------------------------
-    src = sub_once(src, "<title>SemPKM Commit Loop</title>",
-                   "<title>SemPKM Commit Loop</title>", "title")
 
     if "/*__MODEL__*/null" not in src:
         raise SystemExit("model placeholder missing from output")

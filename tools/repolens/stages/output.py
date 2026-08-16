@@ -34,6 +34,62 @@ def target_module(drill: dict, node_id: str) -> str:
     return parts[2] if len(parts) > 2 else node_id.lower()
 
 
+def derive_nodes(ctx: Context, ns_id: str, measured: dict) -> tuple[list[dict], list[dict]]:
+    """Build a drawing from measurement alone, for a repo with no overlay.
+
+    Nothing here is authored: the group is the member files' common parent, the
+    tier is depth in the import graph, and the prose is a sentence of facts.
+    Returns (nodes, groups).
+    """
+    imports = (ctx.facts.get("edges") or {}).get("imports") or []
+    out_edges: dict[str, set] = {}
+    for e in imports:
+        out_edges.setdefault(e["from"], set()).add(e["to"])
+
+    # tier = how far a node sits from anything that nothing imports
+    roots = [nid for nid in measured if nid not in
+             {t for tos in out_edges.values() for t in tos}]
+    depth = {r: 0 for r in roots}
+    frontier = list(roots)
+    while frontier:
+        cur = frontier.pop(0)
+        for nxt in out_edges.get(cur, ()):
+            if nxt in measured and nxt not in depth:
+                depth[nxt] = depth[cur] + 1
+                frontier.append(nxt)
+    max_depth = max(depth.values()) if depth else 0
+
+    nodes, groups = [], {}
+    for nid, rec in sorted(measured.items(), key=lambda kv: -kv[1]["metrics"]["loc"]):
+        members = rec.get("members") or []
+        parent = members[0].rsplit("/", 1)[0] if members else ""
+        grp = parent.split("/")[0] if parent else "(root)"
+        groups[grp] = True
+        loc = rec["metrics"]["loc"]
+        nodes.append({
+            "id": nid, "key": nid[:2].upper(), "short": nid.upper()[:10], "name": nid,
+            "grp": grp, "layer": None, "tier": depth.get(nid, max_depth),
+            "x": 0, "y": 0, "w": 2.1, "d": 2.1,
+            "loc": loc, "files": rec["metrics"]["files"],
+            "sub": parent or nid,
+            "does": f"{loc:,} lines across {rec['metrics']['files']} file"
+                    f"{'' if rec['metrics']['files'] == 1 else 's'}. "
+                    "Nothing has been written about this part yet — everything "
+                    "shown here was measured.",
+            "built": f"Members: {parent or nid}. "
+                     f"Import depth {depth.get(nid, max_depth)} of {max_depth}.",
+            "cond": [["measured", "Derived with no overlay: no prose, no "
+                                  "hand-placed position, no claims to check."]],
+        })
+    return nodes, [{"id": g, "label": g} for g in sorted(groups)]
+
+
+def _derived_tiers(nodes: list[dict]) -> list[str]:
+    """Tier labels for a derived model: import depth, named plainly."""
+    depths = sorted({n.get("tier") or 0 for n in nodes})
+    return [("Imported by nothing" if d == 0 else f"Import depth {d}") for d in depths]
+
+
 def _load_json(p: Path, default):
     if not p.exists():
         return default
@@ -84,23 +140,32 @@ def assemble(ctx: Context) -> None:
     ns_id = cfg.get("nodeset", "survey")
     measured = {n["id"]: n for n in ctx.facts.get("nodesets", {}).get(ns_id, [])}
 
-    nodes = []
-    for a in ov["nodes"]:
-        m = measured.get(a["id"], {}).get("metrics", {})
-        s = a.get("survey") or {}
-        nodes.append({
-            "id": a["id"], "key": a.get("key", a["id"]),
-            "short": a.get("short", a["id"]), "name": a.get("name", a["id"]),
-            "grp": a.get("group"), "layer": a.get("layer"), "tier": a.get("tier"),
-            "x": s.get("x", 0), "y": s.get("y", 0), "w": s.get("w", 2), "d": s.get("d", 2),
-            # measured wins; the authored number survives only as a fallback
-            "loc": m.get("loc", a.get("claimed", {}).get("loc", 0)),
-            "files": m.get("files", a.get("claimed", {}).get("files", 0)),
-            "sub": _fmt(ctx, a.get("sub", "")),
-            "does": _fmt(ctx, a.get("does", "")),
-            "built": _fmt(ctx, a.get("built", "")),
-            "cond": [[c[0], _fmt(ctx, c[1])] for c in a.get("cond", [])],
-        })
+    derived_groups = []
+    if not ov["nodes"]:
+        # No overlay — a repository nobody has written about yet. Derive the
+        # whole drawing from what was measured, so pointing the tool at an
+        # unfamiliar repo produces something rather than nothing.
+        nodes, derived_groups = derive_nodes(ctx, ns_id, measured)
+        ctx.metric("model.derived", 1)
+        ctx.log(f"no overlay — derived {len(nodes)} nodes from nodeset '{ns_id}'")
+    else:
+        nodes = []
+        for a in ov["nodes"]:
+            m = measured.get(a["id"], {}).get("metrics", {})
+            s = a.get("survey") or {}
+            nodes.append({
+                "id": a["id"], "key": a.get("key", a["id"]),
+                "short": a.get("short", a["id"]), "name": a.get("name", a["id"]),
+                "grp": a.get("group"), "layer": a.get("layer"), "tier": a.get("tier"),
+                "x": s.get("x", 0), "y": s.get("y", 0), "w": s.get("w", 2), "d": s.get("d", 2),
+                # measured wins; the authored number survives only as a fallback
+                "loc": m.get("loc", a.get("claimed", {}).get("loc", 0)),
+                "files": m.get("files", a.get("claimed", {}).get("files", 0)),
+                "sub": _fmt(ctx, a.get("sub", "")),
+                "does": _fmt(ctx, a.get("does", "")),
+                "built": _fmt(ctx, a.get("built", "")),
+                "cond": [[c[0], _fmt(ctx, c[1])] for c in a.get("cond", [])],
+            })
 
     # Import edges between parts, derived from the drill-down's external counts.
     # These deliberately land on the same node pairs as the authored data-flow
@@ -160,14 +225,16 @@ def assemble(ctx: Context) -> None:
     ctx.model = {
         "repo": {
             "name": cfg.get("name", ctx.root.name),
+            "title": cfg.get("title", cfg.get("name", ctx.root.name)),
+            "headline": cfg.get("headline", cfg.get("name", ctx.root.name)),
             "tagline": cfg.get("tagline", ""),
             "stats": [{"k": s["k"], "v": _fmt(ctx, str(s["v"])), "flag": s.get("flag")}
                       for s in cfg.get("stats", [])],
         },
-        "groups": cfg.get("groups", []),
+        "groups": cfg.get("groups") or derived_groups,
         "flows": [{"id": f["id"], "label": f["label"], "enabled": bool(f.get("enabled"))}
                   for f in cfg.get("flows", [])],
-        "tiers": cfg.get("tiers", []),
+        "tiers": cfg.get("tiers") or _derived_tiers(nodes),
         "layers": cfg.get("layers", []),
         "nodes": nodes,
         "edges": edges,
@@ -235,6 +302,8 @@ def emit(ctx: Context) -> None:
         payload = json.dumps(ctx.model, separators=(",", ":"))
         # the artifact CSP forbids fetch, so the model is inlined at build time
         page = tmpl.replace("/*__MODEL__*/null", payload)
+        # <title> is read before any script runs, so it is substituted here
+        page = page.replace("__TITLE__", ctx.model["repo"].get("title") or ctx.root.name)
         if payload not in page:
             ctx.warn("template has no /*__MODEL__*/null placeholder — page not built")
         else:
