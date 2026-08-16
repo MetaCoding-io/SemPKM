@@ -116,6 +116,18 @@ button appears the moment a layout is registered, including at runtime.
 Overridable per layout: `run` (required), `route`, `height`, `box`, `maxPitch`.
 Anything not overridden falls back to `LAYOUT_DEFAULTS`.
 
+## The explorer
+
+The left rail is a stack of independently collapsible panels, each with its own
+scroll. **Parts** is the node list; **Connections** lists every edge as
+`from → to · what it carries`, with a dot in its flow's colour. Hovering a row
+lights that wire in the drawing; clicking one opens its payload. Collapsing a
+panel gives its height to the others rather than just shortening the page, and
+the state is remembered.
+
+One filter box drives both panels, and each header carries a `shown/total`
+count, so typing `sparql` reads `2/33` parts and `20/194` connections.
+
 ## Turning it
 
 Two rotations, and they are different things. **Pitch** raises the eye — 90° is

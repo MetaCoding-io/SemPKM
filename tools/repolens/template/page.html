@@ -194,10 +194,50 @@ body {
 
 /* ---------- left rail ---------- */
 
+/* The rail is a stack of independently collapsible panels. It owns the scroll
+   at the panel level rather than the rail level, so collapsing one gives its
+   height to the others instead of just shortening the page. */
 #rail {
   border-right: 1px solid var(--rule); background: var(--paper);
-  overflow-y: auto; overflow-x: hidden; padding-bottom: 24px;
+  overflow: hidden; display: flex; flex-direction: column; min-height: 0;
 }
+#railpanes { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.rpane { display: flex; flex-direction: column; min-height: 0; }
+.rpane[data-open="true"] { flex: 1 1 0; }
+.rpane[data-open="false"] { flex: 0 0 auto; }
+.rpane h2 { margin: 0; font-size: inherit; font-weight: inherit; }
+.rpane-head {
+  display: flex; align-items: center; gap: 6px; width: 100%; font: inherit;
+  font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--ink-2); background: var(--paper-2); cursor: pointer;
+  border: 0; border-top: 1px solid var(--rule-soft);
+  border-bottom: 1px solid var(--rule-soft); padding: 6px 10px; text-align: left;
+}
+.rpane-head:hover { color: var(--ink); }
+.rpane-head:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.rpane-head .tw { font-size: 8px; width: 8px; transition: transform 110ms linear; }
+.rpane[data-open="false"] .rpane-head .tw { transform: rotate(-90deg); }
+.rpane-head .nm { flex: 1 1 auto; }
+.rpane-head .rpane-n { color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.rpane-body { overflow-y: auto; overflow-x: hidden; min-height: 0; padding-bottom: 10px; }
+.rpane[data-open="false"] .rpane-body { display: none; }
+
+/* ---- connections panel ---- */
+.eitem {
+  display: grid; grid-template-columns: 9px minmax(0, 1fr) auto; gap: 7px;
+  align-items: baseline; width: 100%; text-align: left; font: inherit;
+  background: transparent; border: 0; border-bottom: 1px solid var(--rule-faint);
+  color: var(--ink); padding: 5px 10px; cursor: pointer;
+}
+.eitem:hover { background: var(--paper-3); }
+.eitem[aria-selected="true"] { background: var(--invert-bg); color: var(--invert-fg); }
+.eitem[aria-selected="true"] .er, .eitem[aria-selected="true"] .ec { color: var(--invert-fg); opacity: 0.75; }
+.eitem.dim { opacity: 0.3; }
+.eitem .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-3); }
+.eitem .er { font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.eitem .er b { font-weight: 600; }
+.eitem .ec { font-size: 9px; letter-spacing: 0.08em; color: var(--ink-3); white-space: nowrap; }
+.rpane-empty { padding: 12px 10px; font-size: 10.5px; color: var(--ink-3); }
 #rail::-webkit-scrollbar { width: 8px; }
 #rail::-webkit-scrollbar-thumb { background: var(--rule-soft); }
 
@@ -429,8 +469,11 @@ ul.bul li { margin-bottom: 6px; max-width: 60ch; }
   border: 1px solid var(--rule-soft); border-left: 3px solid var(--ink-3);
   padding: 8px 11px; margin-bottom: 7px;
 }
+/* three columns, so a wrapping title can never run under the unlink button */
 .dec summary {
   cursor: pointer; list-style: none; font-size: 11.5px; line-height: 1.45;
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 7px; align-items: baseline;
 }
 .dec summary::-webkit-details-marker { display: none; }
 .dec summary:hover { color: var(--accent); }
@@ -439,11 +482,15 @@ ul.bul li { margin-bottom: 6px; max-width: 60ch; }
   margin-right: 7px; white-space: nowrap;
 }
 .dec .dec-x {
-  float: right; font: inherit; font-size: 12px; line-height: 1; border: 0;
-  background: transparent; color: var(--ink-3); cursor: pointer;
-  padding: 0 0 0 8px; margin-left: 4px;
+  font: inherit; font-size: 12px; line-height: 1; border: 0;
+  background: transparent; color: var(--ink-3); cursor: pointer; padding: 0 0 0 2px;
 }
 .dec .dec-x:hover { color: var(--sev-high); }
+/* provenance without a word for it: a guess is dashed, a person's link is not */
+.dec.guessed { border-left-style: dashed; }
+.dec.authored { border-left-color: var(--sev-med); }
+.dec .dec-on { font-size: 10px; color: var(--ink-3); margin-top: 5px; }
+.dec .dec-on b { color: var(--ink-2); }
 .dec .dec-why {
   font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--on-accent); background: var(--ink-3); padding: 0 4px; margin-left: 6px;
@@ -511,7 +558,7 @@ ul.bul li { margin-bottom: 6px; max-width: 60ch; }
 #shell.rail-collapsed { --rail-w: var(--pane-strip); }
 #shell.insp-collapsed { --insp-w: var(--pane-strip); }
 #shell.rail-collapsed #railsearch,
-#shell.rail-collapsed #railbody,
+#shell.rail-collapsed #railpanes,
 #shell.insp-collapsed #tabs,
 #shell.insp-collapsed #panel { display: none; }
 
@@ -699,8 +746,12 @@ h2 .pv-tag { margin-left: 8px; vertical-align: middle; }
   color: var(--ink); cursor: pointer;
 }
 .pk-row:hover, .pk-row.hot { background: var(--paper-3); }
-.pk-row .kind { font-size: 8.5px; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--ink-3); }
+/* the left column is fixed width, so anything longer than it must clip rather
+   than run under the name beside it */
+.pk-row .kind {
+  font-size: 8.5px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .pk-row .nm { font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pk-row .nm small { color: var(--ink-3); }
 
@@ -726,14 +777,30 @@ h2 .pv-tag { margin-left: 8px; vertical-align: middle; }
     </div>
   </header>
 
-  <nav id="rail" aria-label="Repository index">
+  <nav id="rail" aria-label="Explorer">
     <button class="pane-toggle" id="rail-toggle" aria-expanded="true"
-            aria-controls="railbody" title="Collapse parts index  [">&#9666;</button>
-    <span class="pane-stub">Parts</span>
+            aria-controls="railpanes" title="Collapse explorer  [">&#9666;</button>
+    <span class="pane-stub">Explorer</span>
     <div id="railsearch">
-      <input id="q" type="search" placeholder="Filter parts…" autocomplete="off" spellcheck="false" aria-label="Filter parts" />
+      <input id="q" type="search" placeholder="Filter…" autocomplete="off"
+             spellcheck="false" aria-label="Filter the explorer" />
     </div>
-    <div id="railbody"></div>
+    <div id="railpanes">
+      <section class="rpane" id="rpane-parts" data-open="true">
+        <h2><button class="rpane-head" aria-expanded="true" aria-controls="railbody">
+          <span class="tw">&#9662;</span><span class="nm">Parts</span>
+          <span class="rpane-n" id="rpane-parts-n"></span>
+        </button></h2>
+        <div class="rpane-body" id="railbody"></div>
+      </section>
+      <section class="rpane" id="rpane-edges" data-open="true">
+        <h2><button class="rpane-head" aria-expanded="true" aria-controls="edgebody">
+          <span class="tw">&#9662;</span><span class="nm">Connections</span>
+          <span class="rpane-n" id="rpane-edges-n"></span>
+        </button></h2>
+        <div class="rpane-body" id="edgebody"></div>
+      </section>
+    </div>
   </nav>
 
   <main id="stage">
@@ -1805,7 +1872,7 @@ function paintState() {
   BUNDLES.forEach(function (b) {
     var w = wireRefs[b.idx];
     var vis = visibleEdgesOf(b);
-    var isLit = vis.some(function (i) { return litSet[i]; });
+    var isLit = vis.some(function (i) { return litSet[i] || i === railHoverEdge; });
     var muted = !vis.length || (!!focus && !isLit);
     w.line.classList.toggle("muted", muted);
     w.line.classList.toggle("lit", isLit);
@@ -1908,16 +1975,111 @@ function buildRail() {
   });
 }
 
+/* ---- connections panel: the same list the drawing draws, as text ---- */
+
+var edgeBody = document.getElementById("edgebody");
+var edgeItems = [];
+var railHoverEdge = null;   /* hovering a row lights its wire in the drawing */
+
+function buildEdgeRail() {
+  edgeBody.textContent = "";
+  edgeItems = [];
+  if (!EDGES.length) {
+    var e = document.createElement("p");
+    e.className = "rpane-empty";
+    e.textContent = inDrill()
+      ? "No connections were resolved between these."
+      : "This drawing has no edges.";
+    edgeBody.appendChild(e);
+    return;
+  }
+  EDGES.forEach(function (ed, i) {
+    var from = byId[ed.from], to = byId[ed.to];
+    if (!from || !to) return;
+    var b = document.createElement("button");
+    b.className = "eitem";
+    b.setAttribute("aria-selected", "false");
+    var dot = document.createElement("span");
+    dot.className = "dot";
+    var flow = FLOWS[ed.flow];
+    if (flow) dot.style.background = flowColour(ed.flow);
+    var r = document.createElement("span");
+    r.className = "er";
+    r.innerHTML = "<b></b> &rarr; <b></b>";
+    r.querySelectorAll("b")[0].textContent = from.short || from.name;
+    r.querySelectorAll("b")[1].textContent = to.short || to.name;
+    var c = document.createElement("span");
+    c.className = "ec";
+    c.textContent = ed.pk || (flow ? flow.label : "");
+    b.appendChild(dot); b.appendChild(r); b.appendChild(c);
+    b.title = from.name + " → " + to.name + (ed.pk ? " · " + ed.pk : "");
+    b.addEventListener("click", function () {
+      if (packets[i]) openPacket(packets[i]);
+      else { selectNode(ed.from); }
+    });
+    b.addEventListener("mouseenter", function () { railHoverEdge = i; paintState(); });
+    b.addEventListener("mouseleave", function () { railHoverEdge = null; paintState(); });
+    edgeBody.appendChild(b);
+    edgeItems.push({ el: b, edge: ed, i: i,
+                     hay: (from.name + " " + to.name + " " + (ed.pk || "") + " " +
+                           (ed.label || "") + " " + ed.flow).toLowerCase() });
+  });
+}
+
+function flowColour(id) {
+  var order = MODEL.flows.map(function (f) { return f.id; }).indexOf(id);
+  var hues = ["--g-loop", "--g-feed", "--g-schema", "--g-after", "--g-id", "--g-surf"];
+  return getComputedStyle(document.documentElement)
+           .getPropertyValue(hues[(order < 0 ? 0 : order) % hues.length]).trim() ||
+         "var(--ink-3)";
+}
+
 function paintRail() {
   var q = document.getElementById("q").value.trim().toLowerCase();
+  var shown = 0;
   NODES.forEach(function (n) {
     var b = railItems[n.id];
+    if (!b) return;
     b.setAttribute("aria-selected", selectedNode === n.id ? "true" : "false");
     var hit = !q || (n.name + " " + n.sub + " " + n.key + " " + n.short).toLowerCase().indexOf(q) >= 0;
+    if (hit) shown++;
     b.classList.toggle("dim", !hit);
     if (nodeRefs[n.id]) nodeRefs[n.id].g.classList.toggle("searchdim", !hit && !!q);
   });
+  countPane("parts", shown, NODES.length);
+
+  var eshown = 0;
+  edgeItems.forEach(function (it) {
+    var hit = !q || it.hay.indexOf(q) >= 0;
+    if (hit) eshown++;
+    it.el.classList.toggle("dim", !hit);
+    it.el.setAttribute("aria-selected",
+      selectedPacket && selectedPacket.edge === it.edge ? "true" : "false");
+  });
+  countPane("edges", eshown, edgeItems.length);
 }
+
+function countPane(id, shown, total) {
+  var el = document.getElementById("rpane-" + id + "-n");
+  if (el) el.textContent = shown === total ? String(total) : shown + "/" + total;
+}
+
+/* ---- panel collapse, remembered ---- */
+["parts", "edges"].forEach(function (id) {
+  var sec = document.getElementById("rpane-" + id);
+  var head = sec.querySelector(".rpane-head");
+  var saved = null;
+  try { saved = localStorage.getItem("repolens.rpane." + id); } catch (e) {}
+  var open = saved === null ? true : saved === "1";
+  var set = function (v) {
+    open = v;
+    sec.setAttribute("data-open", v ? "true" : "false");
+    head.setAttribute("aria-expanded", v ? "true" : "false");
+    try { localStorage.setItem("repolens.rpane." + id, v ? "1" : "0"); } catch (e) {}
+  };
+  set(open);
+  head.addEventListener("click", function () { set(!open); });
+});
 
 document.getElementById("q").addEventListener("input", paintRail);
 
@@ -1997,10 +2159,11 @@ function decisionsBlock(targetKey) {
             'Nothing logged is linked here yet.</p>';
   }
   mine.slice(0, DEC_SHOWN).forEach(function (m) {
-    var d = m.it, why = (m.link.why || []).join(" ");
-    html += '<details class="dec"><summary>' +
-      '<span class="dec-id">' + esc(d.id) + '</span>' + esc(d.title) +
-      '<span class="dec-why">' + esc(why || m.link.src) + '</span>' +
+    var d = m.it, why = (m.link.why || []).join(", ");
+    var guessed = m.link.src === "matched";
+    html += '<details class="dec ' + (guessed ? "guessed" : "authored") + '"><summary>' +
+      '<span class="dec-id">' + esc(d.id) + '</span>' +
+      '<span>' + esc(d.title) + '</span>' +
       '<button class="x dec-x" title="Unlink this decision" data-undec="' + esc(d.id) +
         '" data-target="' + esc(targetKey) + '">&times;</button>' +
       '</summary>' +
@@ -2008,6 +2171,9 @@ function decisionsBlock(targetKey) {
       '<div class="dec-body" style="color:var(--ink-3)">' +
         (d.meta || []).filter(function (kv) { return kv[1]; })
           .map(function (kv) { return esc(kv[1]); }).join(" · ") + '</div>' +
+      '<div class="dec-on">' + (guessed
+        ? 'Guessed from the word <b>' + esc(why) + '</b> in the text.'
+        : 'Linked by hand.') + '</div>' +
       '</details>';
   });
   if (mine.length > DEC_SHOWN) {
@@ -2018,9 +2184,9 @@ function decisionsBlock(targetKey) {
           esc(targetKey) + '">+ Link a decision…</button></div>';
   if (mine.some(function (m) { return m.link.src === "matched"; })) {
     html += '<p style="color:var(--ink-3);font-size:11px;margin-top:8px;">' +
-            'The word after each line is why it was matched — a text match, not a ' +
-            'declared link. Unlink the wrong ones; the correction survives the ' +
-            'next build.</p>';
+            'A dashed edge means the link was guessed from a word in the text, not ' +
+            'declared — open one to see which word. Unlink the wrong ones; the ' +
+            'correction survives the next build.</p>';
   }
   return html;
 }
@@ -2793,11 +2959,14 @@ function openItemPicker(pageId, targetKey) {
   if (!page || !targetKey) return;
   var taken = {};
   decisionsFor(targetKey).forEach(function (m) { taken[m.it.id] = 1; });
+  /* `kind` groups the filter chips; `badge` is what the row shows. For a
+     decision the useful thing in that column is its code, and repeating the
+     word "decisions" on all 395 rows only crowded the title. */
   pickRows = page.items.filter(function (it) { return !taken[it.id]; })
     .map(function (it) {
-      return { kind: it.tag || pageId, key: it.id, name: it.title,
-               sub: it.id + (it.meta && it.meta[0] && it.meta[0][1]
-                             ? " · " + it.meta[0][1] : ""),
+      return { kind: it.tag || pageId, badge: it.tag || it.id,
+               key: it.id, name: it.title,
+               sub: (it.meta && it.meta[0] && it.meta[0][1]) || "",
                hay: (it.id + " " + it.title + " " + (it.body || "")).toLowerCase() };
     });
   pickChoose = function (itemId) { linkAdd(pageId, itemId, targetKey); };
@@ -2863,7 +3032,8 @@ function renderPicker() {
     b.setAttribute("role", "option");
     b.setAttribute("aria-selected", i === pickHot ? "true" : "false");
     var k = document.createElement("span");
-    k.className = "kind"; k.textContent = row.r.kind;
+    k.className = "kind"; k.textContent = row.r.badge || row.r.kind;
+    k.title = row.r.badge || row.r.kind;
     var n = document.createElement("span");
     n.className = "nm";
     n.textContent = row.r.name + " ";
@@ -3025,7 +3195,7 @@ cmodeBtn.addEventListener("click", function () {
   colourMode = colourMode === "group" ? "none" : "group";
   cmodeBtn.textContent = colourMode === "group" ? "By group" : "None";
   paintState();
-  buildRail(); paintRail(); paintLegend();
+  buildRail(); buildEdgeRail(); paintRail(); paintLegend();
 });
 
 var hmodeBtn = document.getElementById("hmode");
@@ -3045,7 +3215,7 @@ themeBtn.addEventListener("click", function () {
   else document.documentElement.setAttribute("data-theme", m);
   themeBtn.textContent = "Theme: " + m;
   colourCache = {};          /* hues are CSS variables; the theme just changed */
-  paintState(); buildRail(); paintRail(); paintLegend();
+  paintState(); buildRail(); buildEdgeRail(); paintRail(); paintLegend();
 });
 
 /* layout bar */
@@ -3207,7 +3377,7 @@ applyGeometry();
 paintTopbar();
 svg.setAttribute("aria-label",
   "Axonometric drawing of the " + MODEL.repo.name + " repository");
-buildRail();
+buildRail(); buildEdgeRail();
 paintLayoutBar();
 layoutBarReady = true;
 paintFlowBar();
@@ -3302,7 +3472,7 @@ function rebuildForDataset(layoutId) {
   runLayout();
   syncAngleRange();
   applyGeometry();
-  buildRail();
+  buildRail(); buildEdgeRail();
   paintLayoutBar();
   paintFlowBar();
   paintLegend();
