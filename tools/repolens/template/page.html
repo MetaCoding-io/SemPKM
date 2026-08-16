@@ -1966,6 +1966,20 @@ function renderPanel() {
     wirePanelChips(); panel.scrollTop = 0; return;
   }
 
+  /* a list is open but nothing picked from it — say what happens if you do,
+     rather than leaving the system essay up as if the list were not there */
+  if (openPage && !selectedNode && !selectedPacket) {
+    panel.innerHTML =
+      '<div class="eyebrow">' + esc(PAGES[openPage].label) + '</div>' +
+      '<h2>' + PAGES[openPage].items.length.toLocaleString() + ' of them</h2>' +
+      '<p>Pick one from the list to read it here and see what it is linked to. ' +
+      'Links can be removed with their <b>&times;</b>, and added with ' +
+      '<b>+ Link…</b>, which searches every part, file and symbol in the ' +
+      'model.</p>' +
+      (PAGES[openPage].note ? '<p>' + esc(PAGES[openPage].note) + '</p>' : '');
+    panel.scrollTop = 0; return;
+  }
+
   if (selectedPacket) {
     var e = selectedPacket.edge;
     var b = e._bundle;
@@ -2456,7 +2470,7 @@ function openStatPage(id) {
   note.hidden = !page.note;
   pvQ.value = "";
   pvRoot.hidden = false; pvRoot.classList.add("open");
-  paintSaveButton(); renderPageList(); paintStatBar();
+  paintSaveButton(); renderPageList(); paintStatBar(); renderPanel();
   pvQ.focus();
 }
 
@@ -2464,11 +2478,18 @@ function closeStatPage() {
   openPage = null;
   pvRoot.classList.remove("open"); pvRoot.hidden = true;
   paintStatBar();
+  if (!selectedItem) renderPanel();
 }
 
 function selectItem(pageId, itemId) {
   selectedItem = { page: pageId, id: itemId };
   selectedNode = null; selectedPacket = null;
+  /* Findings is sticky across selections and renderPanel serves it before
+     anything else, so an item opened while that tab was active showed the
+     findings list and none of its links — no visible way to edit them. */
+  activeTab = "item";
+  /* and there is no point rendering into a pane the reader has collapsed */
+  if (shellEl.classList.contains("insp-collapsed")) setPane("insp", false);
   renderPanel(); renderPageList(); paintState(); paintRail();
 }
 
