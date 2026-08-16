@@ -617,10 +617,8 @@ var heightMode = "loc";
 var layout = "survey";
 
 function nodeHeight(n) {
-  var cap = layout === "survey" ? 5.0 : 2.2;
-  var base = layout === "survey" ? 22 : 44;
-  if (heightMode === "loc") return Math.min(cap, 0.35 + Math.sqrt(n.loc) / base);
-  return Math.min(cap, 0.35 + Math.sqrt(n.files) * (layout === "survey" ? 0.52 : 0.24));
+  var spec = LAYOUTS[layout] || LAYOUT_DEFAULTS;
+  return (spec.height || LAYOUT_DEFAULTS.height)(n, CURRENT_API);
 }
 
 function boxFaces(n) {
@@ -640,16 +638,39 @@ function boxFaces(n) {
    4. LAYOUTS
    ============================================================ */
 
-var BANDS = [];   /* band/tier labels for the current layout */
-
+var BANDS = [];               /* band labels the current layout asked for */
 var TIER_GAP = 6.0, ROW_SP = 2.6;
+var LAYOUTS = {};
+var CURRENT_API = null;
 
-/* A row laid along the grid's x axis slides downhill on screen and the tiers
-   collide. The (1,-1) diagonal projects to a perfectly horizontal line at
-   every pitch, so stacked layouts lay their rows along that instead, and z
-   alone separates one tier from the next.
-   `offset` slides a row along (1,1) — straight down-screen — to park the
-   utilities band beside the stack rather than inside it. */
+/* Every layout inherits these and overrides only what differs. */
+var LAYOUT_DEFAULTS = {
+  label: "Untitled",
+  blurb: "",
+  maxPitch: 90,            /* a plan view flattens stacked tiers onto each other */
+  box: { w: 2.1, d: 2.1 },
+  heightCap: 5.0, heightDiv: 22, heightPer: 0.52,
+
+  height: function (n, api) {
+    var s = api.spec;
+    if (heightMode === "loc") return Math.min(s.heightCap, 0.35 + Math.sqrt(n.loc) / s.heightDiv);
+    return Math.min(s.heightCap, 0.35 + Math.sqrt(n.files) * s.heightPer);
+  },
+
+  /* default routing: travel on the ground, turning at most once */
+  route: function (e, api) {
+    var a = api.centre(api.byId[e.from]), b = api.centre(api.byId[e.to]);
+    var pts = [a];
+    if (e.wp) e.wp.forEach(function (w) { pts.push([w[0], w[1], 0]); });
+    else if (Math.abs(a[0] - b[0]) > 0.4 && Math.abs(a[1] - b[1]) > 0.4) pts.push([b[0], a[1], 0]);
+    pts.push(b);
+    return pts;
+  }
+};
+
+/* Rows laid along the (1,-1) diagonal project to a horizontal line at every
+   pitch, so stacked layouts separate their tiers by z alone. `offset` slides a
+   row down-screen, to park a band beside the stack rather than inside it. */
 function layRow(members, z, offset, label) {
   if (!members.length) return;
   var half = (members.length - 1) / 2;
@@ -660,63 +681,107 @@ function layRow(members, z, offset, label) {
     n._y = -t + offset;
   });
   var tl = -half * ROW_SP - 2.4;
-  BANDS.push({
-    label: label, z: z,
-    x: tl + offset, y: -tl + offset,
-    rx: -tl + offset, ry: tl + offset      /* far end, for the rule */
-  });
+  BANDS.push({ label: label, z: z, x: tl + offset, y: -tl + offset,
+               rx: -tl + offset, ry: tl + offset });
 }
 
-var LAYOUTS = {
-  survey: {
-    label: "Survey",
-    blurb: "The system as a plot of ground: one ring, read one way and written the other.",
-    build: function () {
-      BANDS = [];
-      NODES.forEach(function (n) {
-        n._x = n.x; n._y = n.y; n._z = 0; n._w = n.w; n._d = n.d;
-      });
-    }
-  },
+/* What a layout is handed. Rebuilt whenever the active layout changes. */
+function buildLayoutApi() {
+  var spec = LAYOUTS[layout] || LAYOUT_DEFAULTS;
+  return {
+    spec: spec,
+    nodes: NODES,
+    edges: EDGES,
+    byId: byId,
+    model: MODEL,
+    consts: { TIER_GAP: TIER_GAP, ROW_SP: ROW_SP },
+    centre: function (n) { return [n._x + n._w / 2, n._y + n._d / 2, n._z]; },
+    setPos: function (n, p) {
+      n._x = p.x; n._y = p.y; n._z = p.z || 0;
+      n._w = p.w || spec.box.w; n._d = p.d || spec.box.d;
+    },
+    band: function (b) { BANDS.push(b); },
+    row: layRow
+  };
+}
 
-  stack: {
-    label: "Layers",
-    blurb: "The same parts stacked by how deep a request has travelled — surfaces on top, resources at the bottom.",
-    build: function () {
-      var TIERS = MODEL.tiers;
-      BANDS = [];
-      TIERS.forEach(function (label, t) {
-        var members = NODES.filter(function (n) { return n.tier === t; });
-        if (!members.length) return;
-        layRow(members, (TIERS.length - 1 - t) * TIER_GAP, 0, label);
-      });
-    }
-  },
+var layoutBarReady = false;
 
-  lowy: {
-    label: "Volatility",
-    blurb: "Read through Juval Löwy's volatility-based decomposition: clients on top, resources at the bottom, and nothing allowed to reach past its neighbour.",
-    build: function () {
-      var STACKED = MODEL.layers.filter(function (l) { return !l.side; });
-      var ORDER = STACKED.map(function (l) { return l.id; });
-      var LABELS = {};
-      MODEL.layers.forEach(function (l) { LABELS[l.id] = l.label; });
-      var SIDE = MODEL.layers.filter(function (l) { return l.side; })[0];
-      BANDS = [];
-      ORDER.forEach(function (layer, li) {
-        var members = NODES.filter(function (n) { return n.layer === layer; });
-        layRow(members, (ORDER.length - 1 - li) * TIER_GAP, 0, LABELS[layer]);
-      });
-      /* Löwy draws utilities as a bar crossing every layer. Stacked by
-         elevation there is no sideways to put it, so it gets its own band
-         below the stack, reachable from all of them. */
-      if (SIDE) {
-        var utils = NODES.filter(function (n) { return n.layer === SIDE.id; });
-        layRow(utils, -TIER_GAP, 0, SIDE.label);
-      }
+function registerLayout(spec) {
+  if (!spec || !spec.id) throw new Error("registerLayout: an id is required");
+  if (typeof spec.run !== "function") throw new Error("registerLayout: run(api) is required");
+  var merged = {};
+  Object.keys(LAYOUT_DEFAULTS).forEach(function (k) { merged[k] = LAYOUT_DEFAULTS[k]; });
+  Object.keys(spec).forEach(function (k) { merged[k] = spec[k]; });
+  LAYOUTS[spec.id] = merged;
+  if (layoutBarReady) paintLayoutBar();
+  return spec.id;
+}
+
+/* Position every node for the active layout. */
+function runLayout() {
+  BANDS = [];
+  CURRENT_API = buildLayoutApi();
+  LAYOUTS[layout].run(CURRENT_API);
+}
+
+/* ---- the three built-in layouts, registered like any other ---- */
+
+function stackedRoute(e, api) {
+  var a = api.centre(api.byId[e.from]), b = api.centre(api.byId[e.to]);
+  var mz = (a[2] + b[2]) / 2;
+  return [a, [a[0], a[1], mz], [b[0], b[1], mz], b];
+}
+
+registerLayout({
+  id: "survey",
+  label: "Survey",
+  blurb: "The system as a plot of ground: one ring, read one way and written the other.",
+  run: function (api) {
+    api.nodes.forEach(function (n) {
+      api.setPos(n, { x: n.x, y: n.y, z: 0, w: n.w, d: n.d });
+    });
+  }
+});
+
+registerLayout({
+  id: "stack",
+  label: "Layers",
+  blurb: "The same parts stacked by how deep a request has travelled — surfaces on top, resources at the bottom.",
+  maxPitch: 72,
+  heightCap: 2.2, heightDiv: 44, heightPer: 0.24,
+  route: stackedRoute,
+  run: function (api) {
+    var TIERS = api.model.tiers;
+    TIERS.forEach(function (label, t) {
+      var members = api.nodes.filter(function (n) { return n.tier === t; });
+      api.row(members, (TIERS.length - 1 - t) * api.consts.TIER_GAP, 0, label);
+    });
+  }
+});
+
+registerLayout({
+  id: "lowy",
+  label: "Volatility",
+  blurb: "Read through Juval L\u00f6wy's volatility-based decomposition: clients on top, resources at the bottom, and nothing allowed to reach past its neighbour.",
+  maxPitch: 72,
+  heightCap: 2.2, heightDiv: 44, heightPer: 0.24,
+  route: stackedRoute,
+  run: function (api) {
+    var stacked = api.model.layers.filter(function (l) { return !l.side; });
+    stacked.forEach(function (l, li) {
+      var members = api.nodes.filter(function (n) { return n.layer === l.id; });
+      api.row(members, (stacked.length - 1 - li) * api.consts.TIER_GAP, 0, l.label);
+    });
+    /* L\u00f6wy draws utilities as a bar crossing every layer; stacked by
+       elevation there is no sideways, so it gets its own band below. */
+    var side = api.model.layers.filter(function (l) { return l.side; })[0];
+    if (side) {
+      var utils = api.nodes.filter(function (n) { return n.layer === side.id; });
+      api.row(utils, -api.consts.TIER_GAP, 0, side.label);
     }
   }
-};
+});
 
 /* ============================================================
    5. SCENE
@@ -790,22 +855,8 @@ function applyBands() {
 var wireRefs = {};
 
 function edgeGridPath(e) {
-  var A = byId[e.from], B = byId[e.to];
-  var a = [A._x + A._w/2, A._y + A._d/2, A._z];
-  var b = [B._x + B._w/2, B._y + B._d/2, B._z];
-  var pts = [a];
-  if (layout === "survey" && e.wp) {
-    e.wp.forEach(function (w) { pts.push([w[0], w[1], 0]); });
-  } else if (layout === "survey") {
-    if (Math.abs(a[0] - b[0]) > 0.4 && Math.abs(a[1] - b[1]) > 0.4) pts.push([b[0], a[1], 0]);
-  } else {
-    /* stacked views: leave the box, cross the gap, arrive — reads as a net */
-    var mz = (a[2] + b[2]) / 2;
-    pts.push([a[0], a[1], mz]);
-    pts.push([b[0], b[1], mz]);
-  }
-  pts.push(b);
-  return pts;
+  var spec = LAYOUTS[layout] || LAYOUT_DEFAULTS;
+  return (spec.route || LAYOUT_DEFAULTS.route)(e, CURRENT_API);
 }
 
 /* Edges that join the same two parts share one line. Without this, several
@@ -1141,7 +1192,7 @@ function applyGeometry() {
    top of one another. Cap the angle while a stacked layout is showing. */
 function syncAngleRange() {
   var input = document.getElementById("angle");
-  var max = layout === "survey" ? 90 : 72;
+  var max = (LAYOUTS[layout] || LAYOUT_DEFAULTS).maxPitch || 90;
   input.max = max;
   if (pitchDeg > max) {
     pitchDeg = max;
@@ -1152,8 +1203,9 @@ function syncAngleRange() {
 }
 
 function relayout(id, keepView) {
+  if (!LAYOUTS[id]) { console.warn("no such layout: " + id); return; }
   layout = id;
-  LAYOUTS[layout].build();
+  runLayout();
   syncAngleRange();
   applyGeometry();
   paintLayoutBar();
@@ -1877,12 +1929,13 @@ document.addEventListener("keydown", function (ev) {
    12. BOOT
    ============================================================ */
 
-LAYOUTS.survey.build();
+runLayout();
 buildScene();
 applyGeometry();
 paintTopbar();
 buildRail();
 paintLayoutBar();
+layoutBarReady = true;
 paintFlowBar();
 resetView();
 renderPanel();
@@ -1894,5 +1947,62 @@ requestAnimationFrame(tick);
 window.addEventListener("resize", function () {
   clearTimeout(window.__rt);
   window.__rt = setTimeout(resetView, 160);
+});
+
+/* ============================================================
+   13. PUBLIC HOOK
+
+   Everything a layout author needs, and nothing else. Write one from the
+   console, from a bookmarklet, or from a script tag after this one:
+
+     repolens.registerLayout({
+       id: "circle", label: "Circle",
+       run: function (api) {
+         api.nodes.forEach(function (n, i) {
+           var a = i / api.nodes.length * Math.PI * 2;
+           api.setPos(n, { x: Math.cos(a) * 14, y: Math.sin(a) * 14 });
+         });
+       }
+     });
+     repolens.relayout("circle");
+
+   A layout may also override `height`, `route`, `box` and `maxPitch`.
+   ============================================================ */
+
+window.repolens = {
+  registerLayout: registerLayout,
+  relayout: relayout,
+  layouts: LAYOUTS,
+  model: MODEL,
+  api: function () { return CURRENT_API; },
+  redraw: function () { applyGeometry(); paintState(); }
+};
+
+/* Registered through the public hook rather than the internals, so the page
+   itself exercises the seam a third party would use. */
+repolens.registerLayout({
+  id: "rings",
+  label: "Rings",
+  blurb: "One ring per group, smallest group innermost. No hierarchy implied — just neighbourhoods, and who reaches across them.",
+  /* a radial layout wants chords, not the default right-angled ground route */
+  route: function (e, api) {
+    return [api.centre(api.byId[e.from]), api.centre(api.byId[e.to])];
+  },
+  run: function (api) {
+    var groups = api.model.groups
+      .map(function (g) {
+        return { id: g.id, members: api.nodes.filter(function (n) { return n.grp === g.id; }) };
+      })
+      .filter(function (g) { return g.members.length; })
+      .sort(function (a, b) { return a.members.length - b.members.length; });
+
+    groups.forEach(function (g, gi) {
+      var R = 5 + gi * 4.0;
+      g.members.forEach(function (n, i) {
+        var a = (i / g.members.length) * Math.PI * 2 + gi * 0.4;
+        api.setPos(n, { x: Math.cos(a) * R, y: Math.sin(a) * R, z: 0, w: 2.0, d: 2.0 });
+      });
+    });
+  }
 });
 </script>

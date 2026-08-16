@@ -72,6 +72,39 @@ def cochange(ctx: Context) -> None:
 Stages declare `requires`/`provides`, so ordering mistakes fail at startup with
 a message rather than halfway through with a `KeyError`.
 
+## Layouts are pluggable
+
+A layout decides where the boxes go. It may also say how tall they are, how a
+wire between two of them is routed, and how far the angle dial may be pushed
+before its geometry stops making sense. Four ship — `survey`, `stack`, `lowy`,
+`rings` — and all four are registered through the same public hook a third
+party would use:
+
+```js
+repolens.registerLayout({
+  id: "circle", label: "Circle",
+  maxPitch: 90,                       // 72 for anything stacked by elevation
+  route: function (e, api) {          // optional: default turns once on the ground
+    return [api.centre(api.byId[e.from]), api.centre(api.byId[e.to])];
+  },
+  run: function (api) {
+    api.nodes.forEach(function (n, i) {
+      var a = i / api.nodes.length * Math.PI * 2;
+      api.setPos(n, { x: Math.cos(a) * 14, y: Math.sin(a) * 14 });
+    });
+  }
+});
+repolens.relayout("circle");
+```
+
+The `api` handed to `run` carries `nodes`, `edges`, `byId`, the whole `model`,
+`setPos`, `band` (for a band label), `row` (lays a row along the (1,-1)
+diagonal, which projects horizontally at every pitch) and `centre`. A layout
+button appears the moment a layout is registered, including at runtime.
+
+Overridable per layout: `run` (required), `route`, `height`, `box`, `maxPitch`.
+Anything not overridden falls back to `LAYOUT_DEFAULTS`.
+
 ## Baselines
 
 `check` blocks on **regressions**, not on history. A checker introduced to a
