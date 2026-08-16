@@ -8,6 +8,7 @@ already there into Turtle in the repolens vocabulary.
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 from ..pipeline import Context, stage
@@ -45,7 +46,9 @@ def write_snapshot(ctx: Context, turtle: str, rev: dict, stats: dict,
         index = {"snapshots": []}
     entry = {"id": rev["id"], "sha": rev.get("sha", ""), "date": rev.get("date", ""),
              "branch": rev.get("branch", ""), "subject": rev.get("subject", ""),
-             "file": path.name, **stats}
+             "file": path.name,
+             "scanned": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+             **stats}
     index["snapshots"] = [s for s in index["snapshots"] if s.get("id") != rev["id"]]
     index["snapshots"].append(entry)
     index["snapshots"].sort(key=lambda s: (s.get("date") or "", s.get("id")))

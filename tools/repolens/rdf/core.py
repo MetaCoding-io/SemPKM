@@ -77,10 +77,12 @@ def repository(ctx, w) -> None:
     if rev.get("date"):
         w.add(scan, "prov:startedAtTime", w.datetime(rev["date"]))
     w.add_text(scan, "dcterms:description", rev.get("subject"))
-    generated = (model.get("meta") or {}).get("generated")
-    if generated:
-        w.add(scan, "prov:endedAtTime", w.datetime(generated))
     w.add(scan, "prov:used", repo)
+    # No wall-clock here on purpose. The graph is a pure function of the tree
+    # at a revision, so re-running the same commit produces the same bytes —
+    # which is what makes "did anything actually change?" answerable and keeps
+    # git from storing a whole new blob for an identical scan. When the run
+    # happened is recorded in snapshots/index.json, where it costs nothing.
 
     for aspect, label in ASPECTS.items():
         a = w.iri("aspect", aspect)
