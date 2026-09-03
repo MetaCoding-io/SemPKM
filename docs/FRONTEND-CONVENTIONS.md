@@ -60,7 +60,7 @@ block_name = "content" if is_htmx else None
 return templates.TemplateResponse(request, "page.html", context, block_name=block_name)
 ```
 
-This means a single Jinja2 template serves both full-page loads (initial navigation) and partial updates (htmx swaps). The `block_name` parameter tells jinja2-fragments to render only the named `{% block %}`.
+This means a single Jinja2 template serves both full-page loads (initial navigation) and partial updates (htmx swaps). The `block_name` parameter tells jinja2-fragments to render only the named Jinja2 block tag.
 
 ---
 
