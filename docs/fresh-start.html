@@ -20,7 +20,7 @@
       "name": "SemPKM",
       "url": "https://sempkm.metacoding.io",
       "logo": "https://sempkm.metacoding.io/screenshots/01-workspace-overview-dark.png",
-      "sameAs": ["https://github.com/metacoding/sempkm"]
+      "sameAs": ["https://github.com/MetaCoding-io/SemPKM"]
     },
     {
       "@type": "WebSite",
@@ -31,6 +31,9 @@
 }
 </script>
 <link rel="canonical" href="https://sempkm.metacoding.io/fresh-start.html">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
@@ -77,11 +80,9 @@
   </div>
 </nav>
 
-<!-- Persistent canvas background -->
-<canvas class="hero-graph" id="heroGraph"></canvas>
-
 <!-- ── Hero ── -->
 <section class="hero">
+  <div class="hero-dotgrid"></div>
   <div class="container">
     <h1 class="hero-title">
       Pick a workflow,<br><span class="gradient">start building</span>
@@ -123,7 +124,7 @@
       <div class="kit-card fade-in">
         <div class="kit-icon">📋</div>
         <h3>Basic PKM</h3>
-        <p class="kit-types">5 types &mdash; Notes, Projects, Tasks, Events, Concepts</p>
+        <p class="kit-types">7 types &mdash; Notes, Projects, Tasks, Events, Milestones, Concepts, People</p>
         <p>A general-purpose starter kit for personal knowledge management. Capture notes, plan projects, track tasks, and link everything together with typed relationships. Best for: anyone who wants structure without overcommitting to a methodology.</p>
       </div>
 
@@ -144,8 +145,22 @@
       <div class="kit-card fade-in">
         <div class="kit-icon">🔬</div>
         <h3>Research Workflow</h3>
-        <p class="kit-types">4 types &mdash; Papers, Claims, Evidence, Arguments</p>
+        <p class="kit-types">5 types &mdash; Papers, Claims, Evidence, Arguments, Research Questions</p>
         <p>For academics and researchers who need to track claims, supporting evidence, and argumentation chains. Spot unsupported claims, trace evidence back to sources, and build reproducible knowledge structures. Best for: researchers, analysts, and anyone working with evidence-based reasoning.</p>
+      </div>
+
+      <div class="kit-card fade-in">
+        <div class="kit-icon">📊</div>
+        <h3>Business Planning</h3>
+        <p class="kit-types">30+ types &mdash; OKRs, Business Model Canvas, decision &amp; strategy matrices</p>
+        <p>Plan strategy with structured frameworks: objectives and key results, canvases, and scoring matrices &mdash; each rendered with its own dedicated view. Best for: founders, product managers, and strategic planners.</p>
+      </div>
+
+      <div class="kit-card fade-in">
+        <div class="kit-icon">🧭</div>
+        <h3>Pillars, Pipelines &amp; Vaults</h3>
+        <p class="kit-types">12 types &mdash; Pillars, Value Goals, Projects, Reviews</p>
+        <p>The PPV productivity method. Align projects to life pillars and value goals, then track weekly through yearly reviews with pillar scoring. Best for: anyone running a structured personal review practice.</p>
       </div>
     </div>
   </div>
@@ -262,7 +277,7 @@
 <!-- ── Footer ── -->
 <footer class="footer">
   <div class="footer-inner">
-    <div class="footer-left">&copy; MetaCoding Solutions, LLC 2025. All rights reserved.</div>
+    <div class="footer-left">&copy; MetaCoding Solutions, LLC 2026. All rights reserved.</div>
     <ul class="footer-links">
       <li><a href="guide/index.html">User Guide</a></li>
       <li><a href="https://github.com/metacoding-io/sempkm" target="_blank" rel="noopener">GitHub</a></li>
@@ -310,221 +325,6 @@
   });
 })();
 
-// ── Network graph background animation ──
-(function() {
-  var canvas = document.getElementById('heroGraph');
-  if (!canvas) return;
-  var ctx = canvas.getContext('2d');
-  var nodes = [];
-  var clusters = [
-    { xFrac: 0.14, yFrac: 0.30 },
-    { xFrac: 0.14, yFrac: 0.70 },
-    { xFrac: 0.86, yFrac: 0.30 },
-    { xFrac: 0.86, yFrac: 0.70 }
-  ];
-  var treeSlotsA = [
-    { type: 'project', dxFrac: 0,     dyFrac: -0.09 },
-    { type: 'task',    dxFrac: -0.06, dyFrac: 0 },
-    { type: 'task',    dxFrac: 0.06,  dyFrac: 0 },
-    { type: 'person',  dxFrac: -0.08, dyFrac: 0.12 },
-    { type: 'person',  dxFrac: 0.08,  dyFrac: 0.12 }
-  ];
-  var treeSlotsB = [
-    { type: 'value',   dxFrac: 0,     dyFrac: -0.09 },
-    { type: 'goal',    dxFrac: -0.06, dyFrac: 0 },
-    { type: 'goal',    dxFrac: 0.06,  dyFrac: 0 },
-    { type: 'project', dxFrac: -0.08, dyFrac: 0.12 },
-    { type: 'project', dxFrac: 0.08,  dyFrac: 0.12 }
-  ];
-  var treeTemplates = [treeSlotsA, treeSlotsB];
-  var slotsPerCluster = 5;
-
-  var types = [
-    { name: 'project',  color: [232, 119, 46],  minR: 13, maxR: 19, icon: drawProjectIcon },
-    { name: 'task',     color: [34, 197, 94],    minR: 9,  maxR: 15, icon: drawTaskIcon },
-    { name: 'person',   color: [139, 92, 246],   minR: 9,  maxR: 15, icon: drawPersonIcon },
-    { name: 'value',    color: [234, 179, 8],    minR: 13, maxR: 19, icon: drawValueIcon },
-    { name: 'goal',     color: [59, 130, 246],   minR: 10, maxR: 16, icon: drawGoalIcon }
-  ];
-  var typeMap = {};
-  for (var ti = 0; ti < types.length; ti++) typeMap[types[ti].name] = types[ti];
-
-  var namesByType = {
-    project: ['SemPKM', 'Research', 'Sprint 3', 'v1 Release', 'Onboarding', 'Migration'],
-    task:    ['Build Frontend', 'Design Mockups', 'Write Tests', 'Deploy', 'QA Testing', 'Review PR'],
-    person:  ['Alice', 'Bob', 'Carol', 'Dave', 'Eve', 'Frank'],
-    value:   ['Autonomy', 'Craftsmanship', 'Openness', 'Learning', 'Impact', 'Simplicity'],
-    goal:    ['Ship v1', 'Grow Community', 'Write Docs', 'Get Feedback', 'Open Source', 'Scale Infra']
-  };
-
-  var edgeLabels = {
-    'project-task': 'hasTask', 'task-project': 'hasTask',
-    'task-person': 'assignedTo', 'person-task': 'assignedTo',
-    'project-person': 'hasMember', 'person-project': 'hasMember',
-    'task-task': 'dependsOn', 'project-project': 'relatedTo',
-    'person-person': 'collaborates',
-    'value-goal': 'motivates', 'goal-value': 'motivates',
-    'goal-project': 'drives', 'project-goal': 'drives',
-    'value-value': 'alignsWith', 'goal-goal': 'supports'
-  };
-
-  function drawProjectIcon(ctx, r) {
-    var s = r * 0.4;
-    ctx.beginPath(); ctx.rect(-s * 0.7, -s * 0.6, s * 1.4, s * 1.8); ctx.lineWidth = 1.2; ctx.stroke();
-    ctx.beginPath(); ctx.rect(-s * 0.3, -s * 0.9, s * 0.6, s * 0.4); ctx.lineWidth = 1; ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(-s * 0.35, -s * 0.1); ctx.lineTo(s * 0.4, -s * 0.1);
-    ctx.moveTo(-s * 0.35, s * 0.35); ctx.lineTo(s * 0.4, s * 0.35);
-    ctx.moveTo(-s * 0.35, s * 0.8); ctx.lineTo(s * 0.4, s * 0.8);
-    ctx.lineWidth = 0.8; ctx.stroke();
-  }
-  function drawTaskIcon(ctx, r) {
-    var s = r * 0.4;
-    ctx.beginPath(); ctx.rect(-s * 0.7, -s * 0.7, s * 1.4, s * 1.4); ctx.lineWidth = 1.2; ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-s * 0.35, s * 0.05); ctx.lineTo(-s * 0.05, s * 0.4); ctx.lineTo(s * 0.45, -s * 0.35);
-    ctx.lineWidth = 1.5; ctx.stroke();
-  }
-  function drawPersonIcon(ctx, r) {
-    var s = r * 0.4;
-    ctx.beginPath(); ctx.arc(0, -s * 0.5, s * 0.5, 0, Math.PI * 2); ctx.lineWidth = 1.2; ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-s * 0.8, s * 0.9);
-    ctx.quadraticCurveTo(-s * 0.8, s * 0.2, 0, s * 0.2);
-    ctx.quadraticCurveTo(s * 0.8, s * 0.2, s * 0.8, s * 0.9);
-    ctx.lineWidth = 1.2; ctx.stroke();
-  }
-  function drawValueIcon(ctx, r) {
-    var s = r * 0.45;
-    ctx.beginPath();
-    ctx.moveTo(0, -s); ctx.lineTo(s * 0.8, -s * 0.2); ctx.lineTo(s * 0.5, s);
-    ctx.lineTo(-s * 0.5, s); ctx.lineTo(-s * 0.8, -s * 0.2); ctx.closePath();
-    ctx.lineWidth = 1.2; ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-s * 0.8, -s * 0.2); ctx.lineTo(0, s * 0.3); ctx.lineTo(s * 0.8, -s * 0.2);
-    ctx.lineWidth = 0.8; ctx.stroke();
-  }
-  function drawGoalIcon(ctx, r) {
-    var s = r * 0.4;
-    ctx.beginPath(); ctx.arc(0, 0, s, 0, Math.PI * 2); ctx.lineWidth = 1.2; ctx.stroke();
-    ctx.beginPath(); ctx.arc(0, 0, s * 0.5, 0, Math.PI * 2); ctx.lineWidth = 0.8; ctx.stroke();
-    ctx.beginPath(); ctx.arc(0, 0, s * 0.15, 0, Math.PI * 2); ctx.fill();
-  }
-
-  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-
-  var structEdges = [];
-
-  function initNodes() {
-    nodes = [];
-    structEdges = [];
-    var nameIndex = {};
-    for (var ni = 0; ni < types.length; ni++) nameIndex[types[ni].name] = 0;
-
-    for (var ci = 0; ci < clusters.length; ci++) {
-      var cl = clusters[ci];
-      var template = treeTemplates[ci % treeTemplates.length];
-      var baseIdx = ci * slotsPerCluster;
-
-      for (var si = 0; si < template.length; si++) {
-        var slot = template[si];
-        var type = typeMap[slot.type];
-        var r = type.minR + Math.random() * (type.maxR - type.minR);
-        var pool = namesByType[type.name];
-        var name = pool[nameIndex[type.name] % pool.length];
-        nameIndex[type.name]++;
-        var jitter = 0.015;
-        nodes.push({
-          x: (cl.xFrac + slot.dxFrac + (Math.random() - 0.5) * jitter) * canvas.width,
-          y: (cl.yFrac + slot.dyFrac + (Math.random() - 0.5) * jitter) * canvas.height,
-          targetDx: slot.dxFrac, targetDy: slot.dyFrac,
-          vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4,
-          r: r, type: type, name: name, cluster: ci
-        });
-      }
-      structEdges.push({ a: baseIdx, b: baseIdx + 1 });
-      structEdges.push({ a: baseIdx, b: baseIdx + 2 });
-      structEdges.push({ a: baseIdx + 1, b: baseIdx + 3 });
-      structEdges.push({ a: baseIdx + 2, b: baseIdx + 4 });
-    }
-  }
-
-  var monoFont = '';
-
-  function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (!monoFont) {
-      monoFont = getComputedStyle(document.documentElement).getPropertyValue('--font-mono').trim();
-    }
-
-    for (var sei = 0; sei < structEdges.length; sei++) {
-      var se = structEdges[sei];
-      var nA = nodes[se.a], nB = nodes[se.b];
-      var cA2 = nA.type.color, cB2 = nB.type.color;
-      var sr = (cA2[0] + cB2[0]) >> 1, sg = (cA2[1] + cB2[1]) >> 1, sb = (cA2[2] + cB2[2]) >> 1;
-      ctx.beginPath(); ctx.moveTo(nA.x, nA.y); ctx.lineTo(nB.x, nB.y);
-      ctx.strokeStyle = 'rgba(' + sr + ',' + sg + ',' + sb + ', 0.3)';
-      ctx.lineWidth = 0.8; ctx.stroke();
-      var smx = (nA.x + nB.x) / 2, smy = (nA.y + nB.y) / 2;
-      var pairKey = nA.type.name + '-' + nB.type.name;
-      var label = edgeLabels[pairKey] || 'relatedTo';
-      var sAngle = Math.atan2(nB.y - nA.y, nB.x - nA.x);
-      if (sAngle > Math.PI / 2) sAngle -= Math.PI;
-      if (sAngle < -Math.PI / 2) sAngle += Math.PI;
-      ctx.save(); ctx.translate(smx, smy); ctx.rotate(sAngle);
-      ctx.font = '9px ' + monoFont; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillStyle = 'rgba(' + sr + ',' + sg + ',' + sb + ', 0.35)';
-      ctx.fillText(label, 0, -7); ctx.restore();
-    }
-
-    var pad = 30;
-    for (var k = 0; k < nodes.length; k++) {
-      var n = nodes[k], c = n.type.color;
-      ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.15)'; ctx.fill();
-      ctx.strokeStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.35)';
-      ctx.lineWidth = 1; ctx.stroke();
-      ctx.save(); ctx.translate(n.x, n.y);
-      ctx.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.5)';
-      ctx.strokeStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.5)';
-      n.type.icon(ctx, n.r); ctx.restore();
-      ctx.font = '11px ' + monoFont; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-      ctx.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ', 0.5)';
-      ctx.fillText(n.name, n.x, n.y + n.r + 5);
-    }
-
-    var gravity = 0.00006, repulse = 0.3, minSep = 50;
-    for (var pi = 0; pi < nodes.length; pi++) {
-      var pn = nodes[pi];
-      var cl = clusters[pn.cluster];
-      var targetX = (cl.xFrac + pn.targetDx) * canvas.width;
-      var targetY = (cl.yFrac + pn.targetDy) * canvas.height;
-      pn.vx += (targetX - pn.x) * gravity;
-      pn.vy += (targetY - pn.y) * gravity;
-      for (var pj = pi + 1; pj < nodes.length; pj++) {
-        var on = nodes[pj];
-        var rdx = pn.x - on.x, rdy = pn.y - on.y;
-        var rDist = Math.sqrt(rdx * rdx + rdy * rdy);
-        if (rDist < minSep && rDist > 0) {
-          var push = (minSep - rDist) / minSep * repulse;
-          var rnx = rdx / rDist, rny = rdy / rDist;
-          pn.vx += rnx * push * 0.01; pn.vy += rny * push * 0.01;
-          on.vx -= rnx * push * 0.01; on.vy -= rny * push * 0.01;
-        }
-      }
-    }
-
-    for (var mi = 0; mi < nodes.length; mi++) {
-      var mn = nodes[mi];
-      mn.vx *= 0.99; mn.vy *= 0.99; mn.x += mn.vx; mn.y += mn.vy;
-      if (mn.x < pad) { mn.x = pad; mn.vx *= -0.5; }
-      if (mn.x > canvas.width - pad) { mn.x = canvas.width - pad; mn.vx *= -0.5; }
-      if (mn.y < pad) { mn.y = pad; mn.vy *= -0.5; }
-      if (mn.y > canvas.height - pad) { mn.y = canvas.height - pad; mn.vy *= -0.5; }
-    }
-    requestAnimationFrame(draw);
-  }
-
-  resize(); initNodes(); draw();
-  window.addEventListener('resize', function() { resize(); initNodes(); });
-})();
 </script>
 
 </body>
