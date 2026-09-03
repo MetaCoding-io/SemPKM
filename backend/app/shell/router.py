@@ -101,6 +101,7 @@ GUIDE_SECTIONS: list[dict] = [
             {"filename": "49-media-scheduler.md", "title": "49. Media Scheduler", "icon": "radio"},
             {"filename": "50-ppv-model.md", "title": "50. PPV Model", "icon": "compass"},
             {"filename": "38-hosted-demo.md", "title": "38. Hosted Demo", "icon": "globe"},
+            {"filename": "51-federation.md", "title": "51. Federation & Shared Graphs", "icon": "share-2"},
             # Appendices
             {"filename": "appendix-a-environment-variables.md", "title": "Appendix A: Environment Variables", "icon": "file-text", "appendix": True},
             {"filename": "appendix-b-keyboard-shortcuts.md", "title": "Appendix B: Keyboard Shortcuts", "icon": "file-text", "appendix": True},

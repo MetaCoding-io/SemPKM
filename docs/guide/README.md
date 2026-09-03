@@ -81,6 +81,7 @@ setup to advanced topics like SPARQL queries and creating your own Mental Models
 
 25. [WebID Profiles](25-webid-profiles.md)
 26. [IndieAuth](26-indieauth.md)
+51. [Federation and Shared Graphs](51-federation.md)
 
 ## Appendices
 

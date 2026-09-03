@@ -107,7 +107,7 @@ docker compose -f docker-compose.federation-test.yml up -d --build
 
 ## Documentation
 
-- 📘 [User Guide](docs/guide/README.md) — 50 chapters, from installation through sync apps, AI features, and advanced SPARQL
+- 📘 [User Guide](docs/guide/README.md) — 51 chapters, from installation through sync apps, AI features, federation, and advanced SPARQL
 - 🗺️ [CODEBASE.md](CODEBASE.md) — repository structure map
 - 🧭 [TOUR.md](TOUR.md) — feature tour and manual test checklist
 - 🤖 [CLAUDE.md](CLAUDE.md) — coding conventions for AI-assisted development on this repo
