@@ -298,7 +298,7 @@ section {
 .hero-dotgrid {
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(rgba(152, 152, 176, 0.12) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(152, 152, 176, 0.22) 1px, transparent 1px);
   background-size: 28px 28px;
   -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
   mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
@@ -308,8 +308,8 @@ section {
 .hero-shot {
   position: relative;
   max-width: 1240px;
-  margin: 3.5rem auto -6rem;
-  height: 460px;
+  margin: 2.25rem auto -6rem;
+  height: 580px;
   overflow: hidden;
 }
 
@@ -385,8 +385,8 @@ section {
 
 @media (max-width: 768px) {
   .hero-shot {
-    height: 260px;
-    margin-top: 2.5rem;
+    height: 300px;
+    margin-top: 2rem;
   }
 }
 
