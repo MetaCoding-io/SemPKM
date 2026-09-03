@@ -687,10 +687,16 @@ section, footer {
 /* ── Domain Kits (Mental Models) ── */
 
 .kits-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 1.25rem;
   margin-top: 3rem;
+}
+
+.kits-grid .kit-card {
+  flex: 1 1 260px;
+  max-width: 320px;
 }
 
 .kit-card {
@@ -920,8 +926,9 @@ section, footer {
     gap: 1.25rem;
   }
 
-  .kits-grid {
-    grid-template-columns: 1fr 1fr;
+  .kits-grid .kit-card {
+    flex-basis: calc(50% - 0.625rem);
+    max-width: none;
   }
 
   .features-grid {
@@ -991,8 +998,8 @@ section, footer {
     justify-content: center;
   }
 
-  .kits-grid {
-    grid-template-columns: 1fr;
+  .kits-grid .kit-card {
+    flex-basis: 100%;
   }
 
   .comparison-table {
