@@ -524,9 +524,9 @@ a:hover {
 <!-- Footer -->
 <footer class="footer">
   <div class="footer-inner">
-    <div class="footer-left">&copy; Copyright MetaCoding Solutions, LLC 2016. All rights reserved.</div>
+    <div class="footer-left">&copy; Copyright MetaCoding Solutions, LLC 2026. All rights reserved.</div>
     <ul class="footer-links">
-      <li><a href="https://github.com/SemPKM/SemPKM">GitHub</a></li>
+      <li><a href="https://github.com/MetaCoding-io/SemPKM">GitHub</a></li>
       <li><a href="../index.html">Back to Docs</a></li>
     </ul>
   </div>
@@ -589,13 +589,54 @@ a:hover {
       });
   }
 
-  // Wire up sidebar links
+  // ── Deep linking: the URL hash identifies the chapter (e.g. #51-federation) ──
+
+  function sidebarLinkFor(file) {
+    return document.querySelector('.sidebar-chapter-list a[data-file="' + file + '"]');
+  }
+
+  function fileFromHash() {
+    var name = decodeURIComponent(location.hash.replace(/^#/, ''));
+    if (!name || !/^[A-Za-z0-9._-]+$/.test(name)) return null;
+    if (!/\.md$/.test(name)) name += '.md';
+    return sidebarLinkFor(name) ? name : null;
+  }
+
+  function route() {
+    var file = fileFromHash();
+    var link;
+    if (file) {
+      link = sidebarLinkFor(file);
+    } else {
+      link = document.querySelector('.sidebar-chapter-list a[data-file]');
+      file = link ? link.getAttribute('data-file') : null;
+    }
+    if (file) loadArticle(file, link);
+  }
+
+  // Sidebar links navigate via the hash, so every chapter is directly linkable
   document.querySelectorAll('.sidebar-chapter-list a[data-file]').forEach(function (a) {
-    a.addEventListener('click', function (e) {
-      e.preventDefault();
-      loadArticle(a.getAttribute('data-file'), a);
-    });
+    a.setAttribute('href', '#' + a.getAttribute('data-file').replace(/\.md$/, ''));
   });
+
+  // In-article links to sibling .md files (Previous/Next, See Also) load in the viewer
+  document.getElementById('guide-content').addEventListener('click', function (e) {
+    var a = e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var href = a.getAttribute('href') || '';
+    if (/^[A-Za-z0-9._-]+\.md$/.test(href)) {
+      e.preventDefault();
+      if (sidebarLinkFor(href)) {
+        var base = href.replace(/\.md$/, '');
+        if (location.hash === '#' + base) route();
+        else location.hash = base; // triggers hashchange -> route()
+      } else {
+        loadArticle(href, null); // not listed in the sidebar; load without changing the hash
+      }
+    }
+  });
+
+  window.addEventListener('hashchange', route);
 
   // Mobile nav toggle (preserve existing behavior)
   var toggle = document.querySelector('.nav-toggle');
@@ -607,9 +648,8 @@ a:hover {
     });
   }
 
-  // Load first chapter on init
-  var firstLink = document.querySelector('.sidebar-chapter-list a[data-file]');
-  if (firstLink) loadArticle(firstLink.getAttribute('data-file'), firstLink);
+  // Load the chapter named in the URL hash, or the first chapter
+  route();
 })();
 </script>
 
