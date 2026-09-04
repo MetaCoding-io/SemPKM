@@ -209,8 +209,19 @@ section {
 }
 
 .nav-dropdown:hover .nav-dropdown-menu,
-.nav-dropdown:focus-within .nav-dropdown-menu {
+.nav-dropdown:focus-within .nav-dropdown-menu,
+.nav-dropdown.open .nav-dropdown-menu {
   display: block;
+}
+
+/* invisible bridge across the gap so hover survives the mouse travel */
+.nav-dropdown-menu::before {
+  content: '';
+  position: absolute;
+  top: -0.85rem;
+  left: 0;
+  right: 0;
+  height: 0.85rem;
 }
 
 .nav-dropdown-menu li a {
