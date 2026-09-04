@@ -506,6 +506,33 @@ section {
   opacity: 0.55;
 }
 
+/* Mirrored variant for the Mental Models showcase: panel left, rail right */
+.models-showcase {
+  grid-template-columns: minmax(0, 1fr) 300px;
+}
+
+.model-tab-icon {
+  font-size: 1.05rem;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+
+.models-showcase .feature-tab.feature-tab-active {
+  box-shadow: inset -2px 0 0 var(--accent-orange);
+}
+
+.model-shot-icon {
+  font-size: 2rem;
+  opacity: 0.55;
+}
+
+.feature-pane .kit-types {
+  font-size: 0.85rem;
+  color: var(--accent-orange);
+  margin-bottom: 0.6rem;
+}
+
 @media (max-width: 900px) {
   .features-showcase {
     grid-template-columns: 1fr;
@@ -530,6 +557,14 @@ section {
 
   .feature-tab svg {
     display: none;
+  }
+
+  .models-showcase .feature-tabs {
+    order: -1;
+  }
+
+  .models-showcase .feature-tab.feature-tab-active {
+    box-shadow: none;
   }
 }
 

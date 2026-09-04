@@ -251,47 +251,89 @@
       Think of Mental Models as domain kits &mdash; pre-built bundles of types, forms, views, and validation. Pick one that fits your workflow &mdash; or combine several. No blank-page syndrome, no manual setup.
     </p>
 
-    <div class="kits-grid">
-      <div class="kit-card fade-in">
-        <div class="kit-icon">📋</div>
+    <div class="features-showcase models-showcase">
+      <div class="feature-panes">
+      <div class="feature-pane" id="mp-basic-pkm" role="tabpanel" aria-labelledby="mt-basic-pkm">
         <h3>Basic PKM</h3>
         <p class="kit-types">7 types — Notes, Projects, Tasks, Events, Milestones, Concepts, People</p>
         <p>A general-purpose starter for personal knowledge management. Organize your notes, track projects, and link everything together.</p>
+        <div class="feature-shot feature-shot-placeholder">
+          <span class="model-shot-icon">📋</span>
+          <span>Screenshot coming soon</span>
+        </div>
       </div>
-
-      <div class="kit-card fade-in">
-        <div class="kit-icon">🤝</div>
+      <div class="feature-pane" id="mp-personal-crm" role="tabpanel" aria-labelledby="mt-personal-crm" hidden>
         <h3>Personal CRM</h3>
         <p class="kit-types">4 types — Contacts, Companies, Interactions, Deals</p>
         <p>Track relationships, log meetings, and manage opportunities. Every interaction is linked to the people and companies involved.</p>
+        <div class="feature-shot feature-shot-placeholder">
+          <span class="model-shot-icon">🤝</span>
+          <span>Screenshot coming soon</span>
+        </div>
       </div>
-
-      <div class="kit-card fade-in">
-        <div class="kit-icon">🧠</div>
+      <div class="feature-pane" id="mp-zettelkasten" role="tabpanel" aria-labelledby="mt-zettelkasten" hidden>
         <h3>Zettelkasten+</h3>
         <p class="kit-types">5 types — Fleeting → Literature → Permanent → Structure notes</p>
         <p>The Zettelkasten method, enforced. Notes progress through stages with provenance chains and automatic relationship discovery.</p>
+        <div class="feature-shot feature-shot-placeholder">
+          <span class="model-shot-icon">🧠</span>
+          <span>Screenshot coming soon</span>
+        </div>
       </div>
-
-      <div class="kit-card fade-in">
-        <div class="kit-icon">🔬</div>
+      <div class="feature-pane" id="mp-research-workflow" role="tabpanel" aria-labelledby="mt-research-workflow" hidden>
         <h3>Research Workflow</h3>
         <p class="kit-types">5 types — Papers, Claims, Evidence, Arguments, Research Questions</p>
         <p>For academics and researchers. Track claims with supporting evidence, spot unsupported arguments, and build reproducible knowledge.</p>
+        <div class="feature-shot feature-shot-placeholder">
+          <span class="model-shot-icon">🔬</span>
+          <span>Screenshot coming soon</span>
+        </div>
       </div>
-
-      <div class="kit-card fade-in">
-        <div class="kit-icon">📊</div>
+      <div class="feature-pane" id="mp-business-planning" role="tabpanel" aria-labelledby="mt-business-planning" hidden>
         <h3>Business Planning</h3>
         <p class="kit-types">30+ types — OKRs, Business Model Canvas, decision &amp; strategy matrices</p>
         <p>Plan strategy with structured frameworks: objectives and key results, canvases, and scoring matrices &mdash; each with its own dedicated view.</p>
+        <div class="feature-shot feature-shot-placeholder">
+          <span class="model-shot-icon">📊</span>
+          <span>Screenshot coming soon</span>
+        </div>
       </div>
-
-      <div class="kit-card fade-in">
-        <div class="kit-icon">🧭</div>
+      <div class="feature-pane" id="mp-pillars-pipelines-and-vaults" role="tabpanel" aria-labelledby="mt-pillars-pipelines-and-vaults" hidden>
         <h3>Pillars, Pipelines &amp; Vaults</h3>
         <p class="kit-types">12 types — Pillars, Value Goals, Projects, Reviews</p>
         <p>The PPV productivity method. Align projects to life pillars and value goals, then track weekly through yearly reviews with pillar scoring.</p>
+        <div class="feature-shot feature-shot-placeholder">
+          <span class="model-shot-icon">🧭</span>
+          <span>Screenshot coming soon</span>
+        </div>
+      </div>
+      </div>
+
+      <div class="feature-tabs" role="tablist" aria-label="Mental Models">
+      <button class="feature-tab feature-tab-active" id="mt-basic-pkm" role="tab" aria-selected="true" aria-controls="mp-basic-pkm">
+        <span class="model-tab-icon">📋</span>
+        <span>Basic PKM</span>
+      </button>
+      <button class="feature-tab" id="mt-personal-crm" role="tab" aria-selected="false" aria-controls="mp-personal-crm">
+        <span class="model-tab-icon">🤝</span>
+        <span>Personal CRM</span>
+      </button>
+      <button class="feature-tab" id="mt-zettelkasten" role="tab" aria-selected="false" aria-controls="mp-zettelkasten">
+        <span class="model-tab-icon">🧠</span>
+        <span>Zettelkasten+</span>
+      </button>
+      <button class="feature-tab" id="mt-research-workflow" role="tab" aria-selected="false" aria-controls="mp-research-workflow">
+        <span class="model-tab-icon">🔬</span>
+        <span>Research Workflow</span>
+      </button>
+      <button class="feature-tab" id="mt-business-planning" role="tab" aria-selected="false" aria-controls="mp-business-planning">
+        <span class="model-tab-icon">📊</span>
+        <span>Business Planning</span>
+      </button>
+      <button class="feature-tab" id="mt-pillars-pipelines-and-vaults" role="tab" aria-selected="false" aria-controls="mp-pillars-pipelines-and-vaults">
+        <span class="model-tab-icon">🧭</span>
+        <span>Pillars, Pipelines &amp; Vaults</span>
+      </button>
       </div>
     </div>
   </div>
@@ -512,23 +554,24 @@
   targets.forEach(function(el) { observer.observe(el); });
 })();
 
-// ── Features showcase tabs ──
+// ── Showcase tabs (features + mental models) ──
 (function() {
-  var tabs = document.querySelectorAll('.feature-tab');
-  if (!tabs.length) return;
-  function activate(tab) {
+  document.querySelectorAll('.features-showcase').forEach(function(section) {
+    var tabs = section.querySelectorAll('.feature-tab');
+    function activate(tab) {
+      tabs.forEach(function(t) {
+        var active = t === tab;
+        t.classList.toggle('feature-tab-active', active);
+        t.setAttribute('aria-selected', active ? 'true' : 'false');
+        var pane = document.getElementById(t.getAttribute('aria-controls'));
+        if (pane) pane.hidden = !active;
+      });
+    }
     tabs.forEach(function(t) {
-      var active = t === tab;
-      t.classList.toggle('feature-tab-active', active);
-      t.setAttribute('aria-selected', active ? 'true' : 'false');
-      var pane = document.getElementById(t.getAttribute('aria-controls'));
-      if (pane) pane.hidden = !active;
+      t.addEventListener('click', function() { activate(t); });
+      t.addEventListener('mouseenter', function() { activate(t); });
+      t.addEventListener('focus', function() { activate(t); });
     });
-  }
-  tabs.forEach(function(t) {
-    t.addEventListener('click', function() { activate(t); });
-    t.addEventListener('mouseenter', function() { activate(t); });
-    t.addEventListener('focus', function() { activate(t); });
   });
 })();
 
