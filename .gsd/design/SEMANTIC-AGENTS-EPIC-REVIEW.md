@@ -1,7 +1,7 @@
 # Review: "A Semantic Agent Platform for SemPKM" (Agents Epic)
 
-> **Status:** Design review  
-> **Date:** 2026-09-09  
+> **Status:** Design review, revision 2  
+> **Date:** 2026-09-09 (revision 2 same day: Section 2.5 corrected, Section 9 added after the author's response)  
 > **Reviewed document:** EPIC "A Semantic Agent Platform for SemPKM" (design proposal, working title SemPKM Agents / Semantic Agent Runtime)  
 > **Reviewer role:** senior software architect / product designer (AI background)  
 > **Method:** the proposal was read against the current codebase (`backend/app`, `src/sdk`, `models/`, `.gsd/design/`) rather than in the abstract. Where the review says "today the platform does X", that was verified in code and the file is named.
@@ -56,11 +56,17 @@ This is acceptable for first-party sync apps. It is not acceptable as the founda
 
 The repository already has an accepted PROV-O alignment design (`.gsd/design/PROV-O-ALIGNMENT.md`) that the proposal never cites. `prov:Agent`, `prov:actedOnBehalfOf`, `prov:wasAssociatedWith`, `prov:used`, `prov:wasDerivedFrom` and `prov:wasRevisionOf` cover a large part of Sections 6.1, 6.2 and 6.5. The epistemic vocabulary should be built as a PROV-O extension, not a parallel `sempkm:` vocabulary that the PROV-O design will later want to migrate. The ops log (`urn:sempkm:ops-log`, already `prov:Activity`-based) is the natural home for admin-visible agent activity.
 
-### 2.5 The copilot has no approval gate and no structured LLM interface
+### 2.5 The copilot has a query-approval interaction, not an approval substrate, and no structured LLM interface
 
-Section 2.2 lists "an LLM integration with SPARQL validation, correction, and approval". The copilot (`backend/app/copilot/service.py`, `backend/app/api/ai.py`) generates read-only SPARQL, validates syntax and predicates, retries on error, and executes. There is no human approval step, and there is no write path. LLM calls are raw `httpx` posts to an OpenAI-compatible `/v1/chat/completions` endpoint with prompt-in, text-out; there is no JSON-schema-constrained output, no tool-calling abstraction, no recording of prompt and response, and no token accounting.
+*Corrected in revision 2.* Revision 1 said the copilot has no approval gate. That was wrong: `POST /api/copilot/approve` (`backend/app/api/copilot.py`) supports approve, reject, edit and retry of a generated query, and revision 1 missed it by looking only in the `copilot/` package and `api/ai.py`.
 
-The proposal assumes all of these ("LLM invocations as traceable, replaceable reasoning steps", "typed output", "budgets", "trace redaction"). An `LLMActivity` abstraction (provider adapter, schema-constrained output, recorded and redacted request/response, cost meter) is a prerequisite for `LLMInterpret` and `LLMProposePlan` and does not appear in any phase. The test stack already ships a mock LLM (`docker-compose.test.yml`), which should be the determinism mechanism for runtime tests.
+The corrected statement is: SemPKM has a useful query-approval interaction to reuse, but not yet a durable, general-purpose approval substrate for agent action. Specifically, the existing endpoint:
+
+- approves a read-only SPARQL query, not a proposed command or command batch;
+- creates no durable approval object that a suspended run could wait on;
+- does not bind the approval to an immutable action payload, so nothing prevents an approval-time versus execution-time gap.
+
+The LLM interface itself is unchanged from revision 1: raw `httpx` posts to an OpenAI-compatible `/v1/chat/completions` endpoint with prompt-in, text-out; no JSON-schema-constrained output, no tool-calling abstraction, no recording of prompt and response, and no token accounting. The proposal assumes all of these ("LLM invocations as traceable, replaceable reasoning steps", "typed output", "budgets", "trace redaction"). An `LLMActivity` abstraction (provider adapter, schema-constrained output, recorded and redacted request/response, cost meter) is a prerequisite for `LLMInterpret` and `LLMProposePlan` and does not appear in any phase. The test stack already ships a mock LLM (`docker-compose.test.yml`), which should be the determinism mechanism for runtime tests.
 
 ### 2.6 WorkflowSpec is a UI wizard, not an execution model
 
@@ -195,7 +201,7 @@ For balance, and so the fixes above are not read as a rejection:
 
 ## 8. Recommended edits, in priority order
 
-1. Add a "Platform prerequisites" phase before Phase 1: durable event outbox with consumer cursors; command idempotency keys; agent principal with server-side command allowlist and separate rate-limit class; `prov:actedOnBehalfOf` in event metadata; LLM activity abstraction with schema-constrained output, recording and metering.
+1. Add a "Platform prerequisites" phase before Phase 1: stable event ordering and durable subscriptions over the existing event ledger (see 9.2, not a second event log); command idempotency keys; agent principal with server-side constrained grants (see 9.3) and separate rate-limit class; `prov:actedOnBehalfOf` in event metadata; LLM activity abstraction with schema-constrained output, recording and metering.
 2. Rewrite Section 2.2 to describe the substrate as it is, citing the PROV-O alignment design, the app state graph, event undo, the ops log, and Jaeger.
 3. Define the execution model: resume-at-cursor with guard re-evaluation, activities versus logic, working-memory data flow, no `Parallel` in v1, compiled IR pinned per run.
 4. Choose the epistemic representation (named graphs per status plus PROV-O) and forbid agent hypotheses in `urn:sempkm:current`.
@@ -205,3 +211,92 @@ For balance, and so the fixes above are not read as a rejection:
 8. Add a threat-model subsection extending `docs/security-model.md`, and an NFR table.
 9. Fix the textual inconsistencies in 3.8 and settle on one product name and one app id.
 10. Add the "why not a simple automation engine" paragraph and relate the design to existing SHACL rules.
+
+---
+
+## 9. Revision 2: decisions and refinements after the author's response
+
+The author accepted the architecture-preserving findings and the three-epic decomposition, corrected Section 2.5, refined two recommendations, and proposed a revised delivery order. This section records what is now agreed, and where the reviewer would take each refinement one step further. Items marked **agreed** should move into the version-two epic as decisions; items marked **spike** should become short, time-boxed design spikes with the listed exit criteria.
+
+### 9.1 Reclassification
+
+**Agreed.** The document is reclassified as *Semantic Agent Platform: Program Architecture and Master Epic*, with three delivery epics beneath it:
+
+- Epic A: Durable Governed Automation
+- Epic B: Agent Authoring and Deliberation
+- Epic C: Social Agency and Governance
+
+The breadth of the master document is a feature in that role. The scope criticism in Section 5 applies to the delivery plan only, and every AGT requirement gets an epic tag.
+
+### 9.2 Extend the event ledger; do not create a second event log
+
+**Agreed, with one hard constraint the refinement should state.** The immutable event graphs written atomically with materialised state remain the single source of truth. The additional machinery (stable ordering, subscription filters, consumer cursors, leases, retries, dead-letter state, delivery attempts, wake-up deduplication) is a *derived* delivery layer.
+
+The constraint: SemPKM has two stores with no cross-store transaction. RDF4J holds the event graphs; SQLite holds app and scheduler bookkeeping. Delivery records therefore cannot be written atomically with the event. The design must make them rebuildable from the ledger, which requires:
+
+- a monotonic `sempkm:sequence` (or equivalent) minted by the API process and written into the event metadata inside the same RDF4J transaction as the event. The platform is single-writer per instance (Section 2.7), so a process-local counter persisted on startup from `MAX(sequence)` is sufficient;
+- consumer cursors of the form `(sequence, eventIRI)`, never timestamps;
+- a dispatcher that indexes the ledger into SQLite delivery records and can be dropped and rebuilt from any cursor without losing or reordering events.
+
+The author's observation about `EventQueryService.list_events()` is confirmed in code: it filters `?timestamp < cursor` and takes the next cursor from the last row's timestamp, so events sharing that timestamp are skipped. This is a latent bug in the event log UI today, independent of the agent work, and the sequence number fixes both.
+
+The delivery contract is **at-least-once delivery plus idempotent effects**. "Exactly once" is not promised anywhere in the revised document.
+
+### 9.3 Grants are constraints over the whole proposed command, not command-type allowlists
+
+**Agreed, and the reviewer proposes a concrete representation.** A server-side per-command-type allowlist is necessary and insufficient. The grant must be evaluated against the complete proposed command before dispatch, on the dimensions the author lists: command type, target graph, subject ownership, RDF type, permitted predicates, effect class (reversible only), budget, delegator, expiry.
+
+Representation proposal: **a grant is a SHACL shape that the proposed command payload must conform to**, plus budget and expiry metadata that SHACL cannot express. The platform already has shape loading, validation and form generation. Expressing "this agent may `object.patch` objects of type `bpkm:Task` on predicates `status` and `priority` in graph X" as a shape over the command JSON-LD gives:
+
+- one validator for human-authored and LLM-authored commands alike;
+- a visible, editable, versionable grant artifact in the same Mental Model as the agent;
+- a natural place for the CONSTRUCT-to-command compiler (Section 3.5) to report exactly which constraint an LLM-generated payload violated.
+
+Two costs to state up front. Subject-ownership and type checks need one SPARQL read against current state per command, so grant evaluation adds a round-trip. And budgets need a counter that survives restart, which lands in SQLite with the delivery records.
+
+### 9.4 Provenance: PROV-O core plus SemPKM epistemic extensions
+
+**Agreed.** Use `prov:Agent`, `prov:actedOnBehalfOf`, `prov:Activity`, `prov:wasAssociatedWith`, `prov:used`, `prov:generated` and `prov:hadPlan` (for the pinned behavior definition). Belief, doubt, hypothesis, confidence and justification remain SemPKM extensions. Revision 1's "build it as a PROV-O extension" and the author's "PROV-O does not express everything" are the same position.
+
+### 9.5 Epistemic representation
+
+**Spike, not decision.** Revision 1 recommended one named graph per epistemic status. The author is right that this deserves a comparison of named graphs, RDF-star statement annotation, claim/assertion resources, and provenance-qualified assertion sets. Exit criteria for the spike: claim identity, provenance, competing beliefs, confidence, promotion to assertion, retraction, and query complexity in the existing view renderers.
+
+One input the spike should weigh heavily: the entire platform speaks JSON-LD (`backend/app/rdf/jsonld.py`, model bundles, the command API, federation patches). JSON-LD 1.1 has no RDF-star serialisation, and RDF-star triples would be invisible or lossy at every import, export and federation boundary. That is a strong practical argument against RDF-star regardless of RDF4J support, and a point in favour of claim resources (nanopublication-style) or named graphs, both of which serialise cleanly.
+
+The invariant is agreed regardless of representation: **agent hypotheses must not silently become assertions in the current knowledge graph.**
+
+### 9.6 Runtime semantics, now decided
+
+**Agreed as decisions.** Resume a suspended run at its durable cursor; re-evaluate relevant ancestor conditions, guards, budgets and grants before continuing; give every run a typed working-memory binding environment; distinguish deterministic control nodes from recorded activities; treat LLM, HTTP, clock and live-query reads as activities replayed from recorded results; compile RDF definitions to a validated internal representation at deployment; skolemise node IRIs; pin the compiled hash and handler versions to each run; mark a run `blocked` when a required handler version disappears; omit `Parallel` from v1; name and specify the proposal-to-command compiler.
+
+The run state model is `Ready → Running → {Suspended, Blocked, Completed, Failed, Cancelled}`, with `Suspended → Running` on signal plus guard recheck and `Blocked → Running` on resolution. Two additions the state machine contract should carry: `Cancelled` must be reachable from `Suspended` and `Blocked` as well as `Running` (an operator kill switch cannot wait for a wake-up), and every transition out of `Suspended` records which signal caused it, so the inspector can show why a run woke.
+
+### 9.7 Approval binds an immutable payload
+
+**Agreed, with one more binding.** An approval binds the exact command or batch, a canonical payload hash, the behavior and run versions, the capability snapshot, the approving principal, expiry and permitted execution count. If the payload changes, the approval is void.
+
+Add a **precondition hash**: the approval also records the ledger sequence (or the relevant objects' state hash) that the proposal was computed from. If the target objects changed between proposal and execution, the approval is stale and the run must re-propose. Without this, an approved "set status to done" can execute against a task the user has since rewritten. This is the same optimistic-concurrency idea the platform already uses for conditional GET on JSON APIs.
+
+### 9.8 Promise Theory and transports
+
+**Agreed.** For v1, `Commitment` is derived from `propose → accept`; there is no separate `promise` act. The conceptual distinction is preserved in the ontology: a promise is a communicative act, a commitment is the resulting social state, and fulfilment, violation, release and cancellation operate on the commitment. LDN is the first transport because signature-verified inbox handling exists; the message model stays transport-neutral so XMPP, ActivityPub or local delivery can be added without redefining message semantics.
+
+### 9.9 Revised delivery order for Epic A
+
+**Agreed.** The reviewer would keep the author's order and only annotate it:
+
+1. Platform contracts and threat model.
+2. Stable event ordering and durable subscriptions (9.2).
+3. Idempotent command execution.
+4. Agent principals, delegation and server-side constrained grants (9.3).
+5. Durable approvals and autonomy levels (9.7).
+6. Recorded `LLMActivity` abstraction.
+7. Minimal sequential runtime with cursor resume (9.6).
+8. One vertical slice in shadow mode.
+9. One reversible autonomous effect with visible undo.
+10. Run inspection and operator kill switch.
+
+Annotations: steps 2 to 4 are pure platform work with their own tests and can ship independently of any agent code, which is the point. Step 8 before step 9 is the right order and should be stated as a rule: no behavior version executes an effect until it has run in shadow mode against live events at least once. Step 10's kill switch should be built with step 7, not after it, because the first time the runtime is wrong is during step 8.
+
+Only after this foundation should the graphical Behavior Studio, general BDI/HTN selection, inter-agent protocols and VSM governance begin.
