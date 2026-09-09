@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SemPKM Walkthroughs — A Day in the Graph</title>
+<meta name="description" content="Pick a persona and scroll through a day of their work on SemPKM — capture, type, connect, view, validate, and trust your knowledge graph.">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="icon" type="image/png" sizes="64x64" href="../favicon.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="walkthroughs.css">
+</head>
+<body>
+
+<!-- ── Nav ── -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo">Sem<span>PKM</span></a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../guide/index.html">User Guide</a></li>
+      <li><a href="https://demo.sempkm.app" class="nav-cta">Try Demo</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ── Hero ── -->
+<header class="wt-hero">
+  <h1>One day. <span class="gradient">One graph.</span></h1>
+  <p>Pick a persona and scroll through a day of their work on SemPKM &mdash; from the first stray capture to a knowledge graph they can trust tomorrow.</p>
+</header>
+
+<!-- ── Flow tabs ── -->
+<div class="flow-tabs" role="tablist" aria-label="Choose a walkthrough">
+  <div class="flow-tabs-inner">
+    <button class="flow-tab flow-tab-active" data-flow="alice" role="tab" aria-selected="true">
+      <strong>Alice</strong><span>Project lead</span>
+    </button>
+    <button class="flow-tab" data-flow="maya" role="tab" aria-selected="false">
+      <strong>Maya</strong><span>Researcher</span>
+    </button>
+    <button class="flow-tab" data-flow="agents" role="tab" aria-selected="false">
+      <strong>Agents</strong><span>Coming soon</span>
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════ Flow: Alice — project lead ═══════════════ -->
+<main class="flow" data-flow="alice">
+<div class="walkthrough">
+
+  <div class="stage-col">
+    <div class="stage">
+      <div class="stage-frame">
+        <div class="stage-bar">
+          <span class="stage-dot"></span><span class="stage-dot"></span><span class="stage-dot"></span>
+          <span class="stage-url"><span class="stage-clock">9:02</span> &middot; sempkm.yourdomain.com</span>
+        </div>
+        <div class="stage-body">
+
+          <!-- Scene 1: capture via command palette -->
+          <div class="scene scene-active" data-scene="1">
+            <div class="mini-workspace-dim"></div>
+            <div class="mini-palette">
+              <div class="mini-palette-input">Type a command or search&hellip;</div>
+              <div class="mini-palette-item mini-palette-item-active">Create new object <kbd>Alt N</kbd></div>
+              <div class="mini-palette-item">Create Note</div>
+              <div class="mini-palette-item">Create Task</div>
+            </div>
+            <div class="mini-note-card">
+              <span class="mini-type-chip">Note</span>
+              <div class="mini-note-title">Standup: switch persistence to event sourcing?<span class="mini-caret"></span></div>
+            </div>
+          </div>
+
+          <!-- Scene 2: schema-generated form -->
+          <div class="scene" data-scene="2">
+            <div class="mini-form">
+              <div class="mini-form-head">
+                <strong>Architecture Decision: Event Sourcing</strong>
+                <span class="mini-type-chip">bpkm:Note</span>
+              </div>
+              <label>Title <em>*</em></label>
+              <div class="mini-field">Architecture Decision: Event Sourcing</div>
+              <label>Body</label>
+              <div class="mini-field mini-field-tall">Store every mutation as an immutable event; materialize current state&hellip;</div>
+              <label>Tags</label>
+              <div class="mini-field"><span class="mini-tag">#architecture</span> <span class="mini-tag">#rdf</span></div>
+              <div class="mini-form-note">Form generated from the schema &mdash; fields, hints, and validation included.</div>
+            </div>
+          </div>
+
+          <!-- Scene 3: typed relations -->
+          <div class="scene" data-scene="3">
+            <div class="mini-relations">
+              <div class="mini-rel-head">RELATIONS</div>
+              <div class="mini-rel-group">OUTBOUND</div>
+              <div class="mini-rel-row"><span class="mini-pred">isAbout</span><span class="mini-arrow">&rarr;</span><a>Event Sourcing</a></div>
+              <div class="mini-rel-row"><span class="mini-pred">hasParticipant</span><span class="mini-arrow">&rarr;</span><a>Alice Chen</a></div>
+              <div class="mini-rel-row"><span class="mini-pred">hasParticipant</span><span class="mini-arrow">&rarr;</span><a>Bob Martinez</a></div>
+              <div class="mini-rel-group">INBOUND</div>
+              <div class="mini-rel-row"><span class="mini-pred">hasNote</span><span class="mini-arrow">&larr;</span><a>SemPKM Development</a></div>
+              <div class="mini-rel-row"><span class="mini-pred">hasRelatedNote</span><span class="mini-arrow">&larr;</span><a>Kickoff Note</a> <span class="mini-badge">inferred</span></div>
+            </div>
+          </div>
+
+          <!-- Scene 4: views -->
+          <div class="scene" data-scene="4">
+            <div class="mini-views">
+              <div class="mini-view-tabs"><span class="mini-view-tab mini-view-tab-active">Table</span><span class="mini-view-tab">Kanban</span><span class="mini-view-tab">Graph</span></div>
+              <table class="mini-table">
+                <tr><th>Title</th><th>Status</th><th>Owner</th></tr>
+                <tr><td>Event Sourcing decision</td><td><span class="mini-pill">review</span></td><td>Alice</td></tr>
+                <tr><td>Fix validation edge case</td><td><span class="mini-pill mini-pill-green">active</span></td><td>Bob</td></tr>
+                <tr><td>v1.0 Launch</td><td><span class="mini-pill">planned</span></td><td>Alice</td></tr>
+              </table>
+              <div class="mini-kanban">
+                <div class="mini-kcol"><span>To&nbsp;do</span><div class="mini-kcard"></div><div class="mini-kcard"></div></div>
+                <div class="mini-kcol"><span>Doing</span><div class="mini-kcard mini-kcard-hi"></div></div>
+                <div class="mini-kcol"><span>Done</span><div class="mini-kcard"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scene 5: validation -->
+          <div class="scene" data-scene="5">
+            <div class="mini-lint">
+              <div class="mini-lint-warn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <div><strong>Review date is missing</strong><br><span>bpkm:Note &middot; sh:minCount 1 on reviewBy</span></div>
+              </div>
+              <div class="mini-lint-fix">
+                <label>Review by</label>
+                <div class="mini-field">2026-09-16</div>
+              </div>
+              <div class="mini-lint-pass">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                All validations pass
+              </div>
+            </div>
+          </div>
+
+          <!-- Scene 6: event log -->
+          <div class="scene" data-scene="6">
+            <div class="mini-log">
+              <div class="mini-log-head">EVENT LOG</div>
+              <div class="mini-log-row"><span class="mini-op mini-op-amber">object.update</span> Event Sourcing decision <span class="mini-log-meta">18:02 &middot; alice</span> <span class="mini-log-actions"><i>Diff</i><i>Undo</i></span></div>
+              <div class="mini-log-row"><span class="mini-op mini-op-amber">edge.create</span> hasParticipant &rarr; Bob <span class="mini-log-meta">11:34 &middot; alice</span> <span class="mini-log-actions"><i>Diff</i><i>Undo</i></span></div>
+              <div class="mini-log-row"><span class="mini-op mini-op-green">object.create</span> Architecture Decision <span class="mini-log-meta">9:02 &middot; alice</span> <span class="mini-log-actions"><i>Diff</i></span></div>
+              <div class="mini-log-note">Immutable, attributed, undoable.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="steps-col">
+
+    <section class="step step-active" data-scene="1" data-clock="9:02">
+      <span class="step-time">9:02</span>
+      <h2>Capture without breaking stride</h2>
+      <p>Standup surfaces a decision worth keeping. <kbd>Ctrl</kbd>+<kbd>K</kbd>, create a note, type the thought, done. Capture takes seconds &mdash; structure can wait until the meeting ends.</p>
+    </section>
+
+    <section class="step" data-scene="2" data-clock="9:15">
+      <span class="step-time">9:15</span>
+      <h2>Give it a type</h2>
+      <p>Coffee in hand, the stray note becomes a real object. Pick a type and SemPKM generates the form from the schema &mdash; required fields, hints, and validation included. No template to maintain, no frontmatter convention to remember.</p>
+    </section>
+
+    <section class="step" data-scene="3" data-clock="11:30">
+      <span class="step-time">11:30</span>
+      <h2>Say how things connect</h2>
+      <p>Not just linked &mdash; <em>typed</em>. The decision <code>isAbout</code> Event Sourcing; Alice and Bob are <code>hasParticipant</code>. Some edges she never draws at all: inference adds them from what's already true. Every edge means something you can query later.</p>
+    </section>
+
+    <section class="step" data-scene="4" data-clock="14:00">
+      <span class="step-time">14:00</span>
+      <h2>Same graph, your lens</h2>
+      <p>Afternoon planning: the same objects as a table for triage, a kanban for flow, a graph to see the shape of the project. No exports, no copies drifting apart &mdash; one graph, eleven views.</p>
+    </section>
+
+    <section class="step" data-scene="5" data-clock="16:45">
+      <span class="step-time">16:45</span>
+      <h2>Catch drift before it becomes debt</h2>
+      <p>The lint panel notices the decision never got a review date. Assistive, not blocking &mdash; nothing stopped her from saving, but nothing let it rot silently either. Fix it in place, watch it go green.</p>
+    </section>
+
+    <section class="step" data-scene="6" data-clock="18:00">
+      <span class="step-time">18:00</span>
+      <h2>Close the laptop with a clear conscience</h2>
+      <p>Everything that happened today is an immutable event &mdash; attributed, diffable, undoable. Tomorrow's Alice can trust what today's Alice wrote, and see exactly how it got that way.</p>
+    </section>
+
+  </div>
+</div>
+</main>
+
+<!-- ═══════════════ Flow: Maya — researcher ═══════════════ -->
+<main class="flow" data-flow="maya" hidden>
+<div class="walkthrough">
+
+  <div class="stage-col">
+    <div class="stage">
+      <div class="stage-frame">
+        <div class="stage-bar">
+          <span class="stage-dot"></span><span class="stage-dot"></span><span class="stage-dot"></span>
+          <span class="stage-url"><span class="stage-clock">9:30</span> &middot; sempkm.yourdomain.com</span>
+        </div>
+        <div class="stage-body">
+
+          <!-- Scene 1: capture a source -->
+          <div class="scene scene-active" data-scene="1">
+            <div class="mini-form">
+              <div class="mini-form-head">
+                <strong>Spacing Effects in Learning</strong>
+                <span class="mini-type-chip">bpkm:Source</span>
+              </div>
+              <label>Title <em>*</em></label>
+              <div class="mini-field">Spacing Effects in Learning</div>
+              <label>Authors &middot; Year</label>
+              <div class="mini-field">Cepeda, Vul, Rohrer, Wixted &amp; Pashler &middot; 2008</div>
+              <label>DOI</label>
+              <div class="mini-field"><span class="mini-tag">10.1111/j.1467-9280.2008.02209.x</span></div>
+              <div class="mini-form-note">A paper is an object with real fields &mdash; not a PDF lost in a folder.</div>
+            </div>
+          </div>
+
+          <!-- Scene 2: claims with typed stances -->
+          <div class="scene" data-scene="2">
+            <div class="mini-relations">
+              <div class="mini-rel-head">CLAIM &middot; "Optimal review gap scales with retention interval"</div>
+              <div class="mini-rel-group">EVIDENCE</div>
+              <div class="mini-rel-row"><span class="mini-pred">cites</span><span class="mini-arrow">&rarr;</span><a>Cepeda et al. 2008</a></div>
+              <div class="mini-rel-row"><span class="mini-pred mini-pred-green">supports</span><span class="mini-arrow">&rarr;</span><a>Spaced practice beats cramming</a></div>
+              <div class="mini-rel-row"><span class="mini-pred mini-pred-red">contradicts</span><span class="mini-arrow">&rarr;</span><a>Fixed daily review is optimal</a></div>
+              <div class="mini-rel-group">INBOUND</div>
+              <div class="mini-rel-row"><span class="mini-pred">hasQuestion</span><span class="mini-arrow">&larr;</span><a>How should review be scheduled?</a></div>
+            </div>
+          </div>
+
+          <!-- Scene 3: the debate as a graph -->
+          <div class="scene" data-scene="3">
+            <div class="mini-graph">
+              <svg viewBox="0 0 360 240" role="img" aria-label="Graph of claims supporting and contradicting a research question">
+                <line class="mg-edge mg-edge-green" x1="90" y1="70" x2="180" y2="120"/>
+                <line class="mg-edge mg-edge-green" x1="95" y1="180" x2="180" y2="120"/>
+                <line class="mg-edge mg-edge-red" x1="272" y1="60" x2="180" y2="120"/>
+                <line class="mg-edge" x1="285" y1="185" x2="180" y2="120"/>
+                <circle class="mg-node mg-node-q" cx="180" cy="120" r="26"/>
+                <circle class="mg-node mg-node-green" cx="90" cy="70" r="16"/>
+                <circle class="mg-node mg-node-green" cx="95" cy="180" r="16"/>
+                <circle class="mg-node mg-node-red" cx="272" cy="60" r="16"/>
+                <circle class="mg-node" cx="285" cy="185" r="16"/>
+                <text class="mg-label" x="180" y="124">review?</text>
+                <text class="mg-tag" x="90" y="42">spacing</text>
+                <text class="mg-tag" x="95" y="212">interleaving</text>
+                <text class="mg-tag" x="272" y="32">fixed daily</text>
+                <text class="mg-tag" x="285" y="217">open</text>
+              </svg>
+              <div class="mini-graph-legend">
+                <span><i class="mg-dot mg-dot-green"></i>supports</span>
+                <span><i class="mg-dot mg-dot-red"></i>contradicts</span>
+                <span><i class="mg-dot"></i>related</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scene 4: query -->
+          <div class="scene" data-scene="4">
+            <div class="mini-query">
+              <div class="mini-query-head">SPARQL</div>
+              <pre class="mini-query-code"><span class="q-kw">SELECT</span> ?claim ?source <span class="q-kw">WHERE</span> {
+  ?claim  <span class="q-pred">:contradicts</span>  <span class="q-obj">:fixed-daily-review</span> ;
+          <span class="q-pred">:cites</span>        ?source .
+}</pre>
+              <table class="mini-table">
+                <tr><th>claim</th><th>source</th></tr>
+                <tr><td>Optimal gap scales with interval</td><td>Cepeda et al. 2008</td></tr>
+                <tr><td>Expanding schedules outperform</td><td>Kang 2016</td></tr>
+              </table>
+            </div>
+          </div>
+
+          <!-- Scene 5: share with the lab -->
+          <div class="scene" data-scene="5">
+            <div class="mini-sync">
+              <div class="mini-sync-head">SHARED GRAPH &middot; lab-memory</div>
+              <div class="mini-sync-row"><i class="mg-dot mg-dot-green"></i> maya@lab.university.edu <span class="mini-log-meta">you</span></div>
+              <div class="mini-sync-row"><i class="mg-dot mg-dot-green"></i> priya@lab.university.edu <span class="mini-log-meta">synced 17:02</span></div>
+              <div class="mini-sync-row"><i class="mg-dot"></i> tom@lab.university.edu <span class="mini-log-meta">synced 16:40</span></div>
+              <div class="mini-sync-stats">
+                <span><strong>3</strong> changes pulled</span>
+                <span><strong>1</strong> pushed</span>
+                <span class="mini-badge">signed &middot; Ed25519</span>
+              </div>
+              <div class="mini-log-note">Federated as RDF Patches &mdash; everyone keeps their own copy.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="steps-col">
+
+    <section class="step step-active" data-scene="1" data-clock="9:30">
+      <span class="step-time">9:30</span>
+      <h2>A paper becomes an object</h2>
+      <p>The morning reading pile. Each paper goes in as a <code>Source</code> with authors, year, and DOI as real fields &mdash; not a PDF buried in a folder with a hopeful filename. The schema keeps every entry consistent.</p>
+    </section>
+
+    <section class="step" data-scene="2" data-clock="10:15">
+      <span class="step-time">10:15</span>
+      <h2>Claims, not highlights</h2>
+      <p>Instead of highlighting passages, Maya extracts <em>claims</em> &mdash; each one an object that <code>cites</code> its source and takes a stance: <code>supports</code> one position, <code>contradicts</code> another. The disagreement in the literature becomes structure, not vibes.</p>
+    </section>
+
+    <section class="step" data-scene="3" data-clock="13:00">
+      <span class="step-time">13:00</span>
+      <h2>See the debate</h2>
+      <p>Switch to graph view and the research question sits in the middle with claims pulling for and against it. A glance shows where the evidence piles up, which position stands alone, and what's still an open thread.</p>
+    </section>
+
+    <section class="step" data-scene="4" data-clock="15:30">
+      <span class="step-time">15:30</span>
+      <h2>Ask a precise question</h2>
+      <p>Time to write the related-work section. One SPARQL query pulls every claim that contradicts the fixed-daily-review position, with its citation attached. Try that with full-text search over a folder of PDFs.</p>
+    </section>
+
+    <section class="step" data-scene="5" data-clock="17:00">
+      <span class="step-time">17:00</span>
+      <h2>Share it with the lab</h2>
+      <p>The claims graph syncs to the lab's shared graph &mdash; federated, cryptographically signed, and everyone keeps their own copy. Priya picks up where Maya left off, without a "final_v3_REAL.docx" in sight.</p>
+    </section>
+
+  </div>
+</div>
+</main>
+
+<!-- ═══════════════ Flow: SemPKM-Agents — teaser ═══════════════ -->
+<main class="flow" data-flow="agents" hidden>
+  <div class="agents-teaser">
+    <span class="agents-chip">Coming soon</span>
+    <h2>A day with <span class="gradient">SemPKM-Agents</span></h2>
+    <p>The next walkthrough on this page: create, view, and monitor live running agents that work for you and your goals 24/7 &mdash; inside your own graph.</p>
+
+    <div class="stage-frame agents-frame">
+      <div class="stage-bar">
+        <span class="stage-dot"></span><span class="stage-dot"></span><span class="stage-dot"></span>
+        <span class="stage-url">sempkm.yourdomain.com/agents</span>
+      </div>
+      <div class="agents-body">
+        <div class="mini-sync-row"><i class="mg-dot mg-dot-green mg-dot-pulse"></i> <strong>literature-watcher</strong> <span class="agents-goal">watching 4 feeds for new spacing-effect papers</span> <span class="mini-log-meta">running</span></div>
+        <div class="mini-sync-row"><i class="mg-dot mg-dot-green mg-dot-pulse"></i> <strong>graph-gardener</strong> <span class="agents-goal">7 lint warnings fixed overnight</span> <span class="mini-log-meta">running</span></div>
+        <div class="mini-sync-row"><i class="mg-dot"></i> <strong>weekly-digest</strong> <span class="agents-goal">next run Monday 8:00</span> <span class="mini-log-meta">idle</span></div>
+      </div>
+    </div>
+
+    <p class="agents-note">This walkthrough will land here once SemPKM-Agents ships.</p>
+    <a href="../index.html#roadmap" class="btn btn-secondary">See the roadmap</a>
+  </div>
+</main>
+
+<!-- ── Finale ── -->
+<footer class="wt-finale">
+  <h2>That was one day. The graph compounds.</h2>
+  <p>Every note, edge, and decision added today makes tomorrow's queries richer. Start yours.</p>
+  <div class="wt-cta">
+    <a href="https://demo.sempkm.app" class="btn btn-primary">Try the Demo</a>
+    <a href="../guide/index.html" class="btn btn-secondary">Read the User Guide</a>
+  </div>
+  <p class="wt-back"><a href="../index.html">&larr; Back to sempkm.metacoding.io</a></p>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  var flows = Array.prototype.slice.call(document.querySelectorAll('.flow'));
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.flow-tab'));
+  var flowIds = flows.map(function (f) { return f.getAttribute('data-flow'); });
+
+  /* ── Scene activation within a flow ── */
+  function activate(step) {
+    var flow = step.closest('.flow');
+    if (!flow) return;
+    var n = step.getAttribute('data-scene');
+    flow.querySelectorAll('.step').forEach(function (s) {
+      s.classList.toggle('step-active', s === step);
+    });
+    flow.querySelectorAll('.scene').forEach(function (sc) {
+      sc.classList.toggle('scene-active', sc.getAttribute('data-scene') === n);
+    });
+    var clock = flow.querySelector('.stage-clock');
+    if (clock) clock.textContent = step.getAttribute('data-clock');
+  }
+
+  if ('IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) activate(entry.target);
+      });
+    }, { rootMargin: '-45% 0px -45% 0px' });
+    document.querySelectorAll('.step').forEach(function (s) { observer.observe(s); });
+  }
+
+  /* ── Flow switching (tabs + hash routing) ── */
+  function currentFlowId() {
+    var id = location.hash.replace('#', '');
+    return flowIds.indexOf(id) !== -1 ? id : flowIds[0];
+  }
+
+  function showFlow(id, scrollUp) {
+    flows.forEach(function (f) {
+      f.hidden = f.getAttribute('data-flow') !== id;
+    });
+    tabs.forEach(function (t) {
+      var on = t.getAttribute('data-flow') === id;
+      t.classList.toggle('flow-tab-active', on);
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    if (scrollUp) window.scrollTo(0, 0);
+  }
+
+  tabs.forEach(function (t) {
+    t.addEventListener('click', function () {
+      var id = t.getAttribute('data-flow');
+      if (currentFlowId() === id) {
+        showFlow(id, true);
+      } else {
+        location.hash = id; /* hashchange handler does the switch */
+      }
+    });
+  });
+
+  window.addEventListener('hashchange', function () {
+    showFlow(currentFlowId(), true);
+  });
+
+  showFlow(currentFlowId(), false);
+})();
+</script>
+
+</body>
+</html>
