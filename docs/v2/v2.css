@@ -182,13 +182,16 @@ code {
     display: grid;
     grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
     gap: 4rem;
-    align-items: start;
+    /* NOTE: columns must stretch to the full row height (the default) —
+       align-items:start would collapse .stage-col to its content height
+       and leave position:sticky with no room to travel. */
 }
 
 .stage-col { min-width: 0; }
 .stage {
     position: sticky;
-    top: calc(50vh - 240px);
+    top: calc(50vh - 230px);              /* stuck: vertically centered */
+    margin-top: calc(46vh - 230px);       /* start: aligned with step 1's center */
 }
 
 /* Browser frame */
@@ -750,8 +753,9 @@ code {
    ═══════════════════════════════════════════════════════════════════ */
 @media (max-width: 900px) {
     .walkthrough {
-        grid-template-columns: 1fr;
-        gap: 0;
+        /* block, not grid: a sticky child of a single-column grid can only
+           travel within its own row, which is just its content height */
+        display: block;
         padding: 0;
     }
     .stage-col {
@@ -761,7 +765,7 @@ code {
         background: linear-gradient(var(--bg-primary) 88%, transparent);
         padding: 0.75rem 1rem 1.25rem;
     }
-    .stage { position: static; }
+    .stage { position: static; margin-top: 0; }
     .stage-body { height: 345px; }
     .scene { padding: 1rem; }
 
