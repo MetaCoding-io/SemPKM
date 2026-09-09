@@ -43,12 +43,21 @@ html {
 
 body {
   font-family: var(--font-stack);
-  background: var(--bg-primary);
+  background-color: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+
+  /* Graph-paper background, matching the rest of the site */
+  background-image:
+    linear-gradient(rgba(232, 119, 46, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(232, 119, 46, 0.045) 1px, transparent 1px),
+    linear-gradient(rgba(152, 152, 176, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(152, 152, 176, 0.05) 1px, transparent 1px);
+  background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+  background-position: -1px -1px;
 }
 
 a {
@@ -402,6 +411,7 @@ a:hover {
       <li><a href="#04-workspace-interface">Workspace</a></li>
       <li><a href="#09-understanding-mental-models">Mental Models</a></li>
       <li><a href="#20-production-deployment">Deploy</a></li>
+      <li><a href="../walkthroughs/index.html">Walkthroughs</a></li>
       <li><a href="index.html" class="nav-active">User Guide</a></li>
       <li><a href="https://demo.sempkm.app" class="nav-cta">Try Demo</a></li>
     </ul>
