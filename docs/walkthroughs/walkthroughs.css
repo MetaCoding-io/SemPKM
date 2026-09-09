@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   SemPKM v2 — scrollytelling walkthrough
+   SemPKM Walkthroughs — scrollytelling persona flows
    Isolated stylesheet: nothing here touches the classic site.
    ═══════════════════════════════════════════════════════════════════ */
 
@@ -22,6 +22,7 @@
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
+[hidden] { display: none !important; }
 
 html { scroll-behavior: smooth; }
 
@@ -101,16 +102,6 @@ code {
     background-clip: text;
     -webkit-text-fill-color: transparent;
 }
-.v2-chip {
-    font-family: var(--mono);
-    font-size: 0.68rem;
-    letter-spacing: 0.06em;
-    color: var(--accent-2);
-    border: 1px solid rgba(245, 158, 11, 0.35);
-    background: rgba(245, 158, 11, 0.08);
-    border-radius: 999px;
-    padding: 0.15rem 0.6rem;
-}
 .nav-links {
     margin-left: auto;
     display: flex;
@@ -135,44 +126,77 @@ code {
 .nav-links a.nav-cta:hover { opacity: 0.9; color: #0a0a0f; }
 
 /* ── Hero ────────────────────────────────────────────────────────── */
-.v2-hero {
+.wt-hero {
     max-width: 760px;
     margin: 0 auto;
     padding: 7rem 1.5rem 5rem;
     text-align: center;
 }
-.v2-hero h1 {
+.wt-hero h1 {
     font-size: clamp(2.4rem, 6vw, 3.8rem);
     font-weight: 800;
     letter-spacing: -0.03em;
     line-height: 1.1;
     margin-bottom: 1.25rem;
 }
-.v2-hero p {
+.wt-hero p {
     font-size: 1.15rem;
     color: var(--text-secondary);
     max-width: 580px;
     margin: 0 auto;
 }
-.v2-scroll-hint {
-    margin-top: 3.5rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-family: var(--mono);
-    font-size: 0.75rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+/* ── Flow tabs (persona switcher) ────────────────────────────────── */
+.flow-tabs {
+    position: sticky;
+    top: 57px; /* just below the nav */
+    z-index: 90;
+    background: rgba(10, 10, 15, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-subtle);
+}
+.flow-tabs-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0.6rem 1.5rem;
+    display: flex;
+    gap: 0.6rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.flow-tabs-inner::-webkit-scrollbar { display: none; }
+.flow-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.05rem;
+    font-family: inherit;
+    text-align: left;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 0.45rem 1rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: border-color 0.2s, background 0.2s, color 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.flow-tab strong {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+.flow-tab span {
+    font-size: 0.7rem;
     color: var(--text-muted);
 }
-.v2-scroll-hint svg {
-    flex-shrink: 0;
-    animation: hint-bob 1.8s ease-in-out infinite;
+.flow-tab:hover { border-color: var(--text-muted); }
+.flow-tab-active {
+    border-color: rgba(232, 119, 46, 0.55);
+    background: rgba(232, 119, 46, 0.09);
 }
-@keyframes hint-bob {
-    0%, 100% { transform: translateY(-2px); }
-    50%      { transform: translateY(3px); }
-}
+.flow-tab-active span { color: var(--accent-2); }
 
 /* ── Walkthrough layout ──────────────────────────────────────────── */
 .walkthrough {
@@ -237,7 +261,7 @@ code {
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.stage-url #stage-clock {
+.stage-url .stage-clock {
     color: var(--accent-2);
     font-weight: 500;
 }
@@ -309,25 +333,25 @@ code {
 }
 
 /* ── Finale ──────────────────────────────────────────────────────── */
-.v2-finale {
+.wt-finale {
     max-width: 700px;
     margin: 0 auto;
     padding: 4rem 1.5rem 6rem;
     text-align: center;
 }
-.v2-finale h2 {
+.wt-finale h2 {
     font-size: clamp(1.8rem, 4vw, 2.6rem);
     font-weight: 800;
     letter-spacing: -0.025em;
     line-height: 1.2;
     margin-bottom: 1rem;
 }
-.v2-finale > p {
+.wt-finale > p {
     color: var(--text-secondary);
     font-size: 1.1rem;
     margin-bottom: 2.25rem;
 }
-.v2-cta {
+.wt-cta {
     display: flex;
     gap: 1rem;
     justify-content: center;
@@ -353,13 +377,13 @@ code {
     background: var(--bg-card);
 }
 .btn-secondary:hover { border-color: var(--text-muted); }
-.v2-back { margin-top: 2.5rem; }
-.v2-back a {
+.wt-back { margin-top: 2.5rem; }
+.wt-back a {
     color: var(--text-muted);
     font-size: 0.9rem;
     text-decoration: none;
 }
-.v2-back a:hover { color: var(--text-secondary); }
+.wt-back a:hover { color: var(--text-secondary); }
 
 /* ═══════════════════════════════════════════════════════════════════
    Mini-UI scenes
@@ -748,6 +772,177 @@ code {
     margin-top: 0.2rem;
 }
 
+/* Stance-colored predicates (Maya flow) */
+.mini-pred-green { color: var(--green); }
+.mini-pred-red { color: #f87171; }
+
+/* Scene — claims graph */
+.mini-graph { width: min(400px, 92%); }
+.mini-graph svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+}
+.mg-edge { stroke: var(--border-subtle); stroke-width: 2; }
+.mg-edge-green { stroke: rgba(52, 211, 153, 0.55); }
+.mg-edge-red { stroke: rgba(248, 113, 113, 0.55); }
+.mg-node { fill: var(--bg-card); stroke: var(--text-muted); stroke-width: 1.5; }
+.mg-node-q { fill: rgba(232, 119, 46, 0.15); stroke: var(--accent-1); }
+.mg-node-green { stroke: var(--green); }
+.mg-node-red { stroke: #f87171; }
+.mg-label {
+    fill: var(--text-primary);
+    font-family: var(--mono);
+    font-size: 11px;
+    text-anchor: middle;
+}
+.mg-tag {
+    fill: var(--text-muted);
+    font-family: var(--mono);
+    font-size: 10px;
+    text-anchor: middle;
+}
+.mini-graph-legend {
+    display: flex;
+    gap: 1.1rem;
+    justify-content: center;
+    margin-top: 0.7rem;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--text-muted);
+}
+.mini-graph-legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.mg-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    flex-shrink: 0;
+}
+.mg-dot-green { background: var(--green); }
+.mg-dot-red { background: #f87171; }
+.mg-dot-pulse { animation: dot-pulse 1.6s ease-in-out infinite; }
+@keyframes dot-pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.35; }
+}
+
+/* Scene — SPARQL query */
+.mini-query { width: min(420px, 94%); }
+.mini-query-head {
+    font-family: var(--mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+.mini-query-code {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    line-height: 1.65;
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 0.8rem 1rem;
+    margin-bottom: 0.8rem;
+    overflow-x: auto;
+}
+.q-kw { color: var(--accent-2); }
+.q-pred { color: var(--green); }
+.q-obj { color: #f87171; }
+
+/* Scene — federation sync */
+.mini-sync {
+    width: min(410px, 92%);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.1rem;
+    font-size: 0.8rem;
+}
+.mini-sync-head {
+    font-family: var(--mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    padding-bottom: 0.6rem;
+    margin-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border-subtle);
+}
+.mini-sync-row {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid var(--border-subtle);
+}
+.mini-sync-row:last-of-type { border-bottom: none; }
+.mini-sync-row .mini-log-meta { margin-left: auto; }
+.mini-sync-stats {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.6rem 0 0.2rem;
+    color: var(--text-secondary);
+    font-size: 0.76rem;
+}
+.mini-sync-stats strong { color: var(--text-primary); }
+
+/* ── Agents teaser flow ──────────────────────────────────────────── */
+.agents-teaser {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 4.5rem 1.5rem 3rem;
+    text-align: center;
+}
+.agents-chip {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    color: var(--accent-2);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    background: rgba(245, 158, 11, 0.08);
+    border-radius: 999px;
+    padding: 0.15rem 0.6rem;
+    margin-bottom: 1.1rem;
+}
+.agents-teaser h2 {
+    font-size: clamp(1.7rem, 4vw, 2.4rem);
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    margin-bottom: 0.9rem;
+}
+.agents-teaser > p {
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+    margin-bottom: 2rem;
+}
+.agents-frame {
+    text-align: left;
+    margin-bottom: 1.75rem;
+}
+.agents-body {
+    background: var(--bg-primary);
+    padding: 0.6rem 1.1rem;
+    font-size: 0.8rem;
+}
+.agents-body .mini-sync-row { flex-wrap: wrap; }
+.agents-goal {
+    color: var(--text-muted);
+    font-size: 0.74rem;
+}
+.agents-note {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 1.4rem;
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    Mobile: stage pins to top, steps scroll beneath
    ═══════════════════════════════════════════════════════════════════ */
@@ -760,14 +955,26 @@ code {
     }
     .stage-col {
         position: sticky;
-        top: 60px; /* below the nav */
+        top: 106px; /* below the nav + flow tabs */
         z-index: 50;
         background: linear-gradient(var(--bg-primary) 88%, transparent);
         padding: 0.75rem 1rem 1.25rem;
     }
     .stage { position: static; margin-top: 0; }
-    .stage-body { height: 345px; }
+    .stage-body { height: 360px; }
     .scene { padding: 1rem; }
+
+    /* Compact the form-heavy scenes so they fit the shorter stage */
+    .mini-form { padding: 0.75rem 0.85rem; }
+    .mini-form-head { padding-bottom: 0.5rem; margin-bottom: 0.6rem; font-size: 0.82rem; }
+    .mini-form label, .mini-lint-fix label { margin-bottom: 0.2rem; }
+    .mini-field { padding: 0.35rem 0.6rem; margin-bottom: 0.45rem; font-size: 0.78rem; }
+    .mini-field-tall { min-height: 2.5rem; }
+    .mini-form-note, .mini-log-note { font-size: 0.7rem; padding-top: 0.45rem; }
+    .mini-relations, .mini-sync, .mini-log { padding: 0.8rem 0.9rem; }
+    .mini-rel-row { padding: 0.26rem 0; }
+    .mini-table th, .mini-table td { padding: 0.34rem 0.6rem; }
+    .mini-query-code { padding: 0.6rem 0.8rem; font-size: 0.7rem; }
 
     .steps-col { padding: 4vh 1.25rem 10vh; }
     .step {
@@ -776,7 +983,7 @@ code {
     }
     .step p { max-width: none; }
 
-    .v2-hero { padding: 4.5rem 1.25rem 3.5rem; }
+    .wt-hero { padding: 4.5rem 1.25rem 3.5rem; }
     .nav-links a:not(.nav-cta) { display: none; }
 }
 
