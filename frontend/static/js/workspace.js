@@ -1812,6 +1812,9 @@
       // Add per-type Create entries from nav tree DOM
       _addTypeCreateEntries(ninja);
 
+      // Guided tours + persona walkthroughs (tutorials.js)
+      _addTutorialPaletteEntries(ninja);
+
       // Load app command palette entries from running apps
       _loadAppCommandEntries(ninja);
     }).catch(function () {
@@ -3109,13 +3112,46 @@
     url.searchParams.delete('tour');
     history.replaceState(null, '', url.pathname + (url.search || ''));
     // Brief delay to let the workspace fully render before the tour overlay
+    // Ids: 'welcome', 'create-object', 'demo', or a persona walkthrough
+    // ('alice', 'maya:claims', ...) — resolved by tutorials.js.
     setTimeout(function () {
-      if (tour === 'welcome' && typeof window.SemPKM.startWelcomeTour === 'function') {
-        window.SemPKM.startWelcomeTour();
-      } else if (tour === 'create-object' && typeof window.SemPKM.startCreateObjectTour === 'function') {
-        window.SemPKM.startCreateObjectTour();
+      if (typeof window.SemPKM.startTourById === 'function') {
+        window.SemPKM.startTourById(tour);
       }
     }, 600);
+  }
+
+  // Command palette entries for the guided tours and persona walkthroughs
+  // registered by tutorials.js (window.SemPKM.walkthroughPersonas).
+  function _addTutorialPaletteEntries(ninja) {
+    if (!ninja || !Array.isArray(ninja.data)) return;
+    var entries = [
+      { id: 'tour-welcome', title: 'Tutorial: Welcome to SemPKM', tourId: 'welcome' },
+      { id: 'tour-create-object', title: 'Tutorial: Creating Your First Object', tourId: 'create-object' }
+    ];
+    (window.SemPKM.walkthroughPersonas || []).forEach(function (p) {
+      entries.push({
+        id: 'walkthrough-' + p.id,
+        title: 'Walkthrough: A day as ' + p.name + ' (' + p.role + ')',
+        tourId: p.id
+      });
+    });
+    var existing = {};
+    ninja.data.forEach(function (item) { existing[item.id] = true; });
+    var added = entries.filter(function (e) { return !existing[e.id]; }).map(function (e) {
+      return {
+        id: e.id,
+        title: e.title,
+        section: 'Help',
+        handler: function () {
+          ninja.close();
+          if (typeof window.SemPKM.startTourById === 'function') {
+            window.SemPKM.startTourById(e.tourId);
+          }
+        }
+      };
+    });
+    if (added.length) ninja.data = ninja.data.concat(added);
   }
 
   // Wait for DOM ready

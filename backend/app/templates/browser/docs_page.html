@@ -39,6 +39,13 @@
     </div>
   </section>
 
+  <!-- Persona walkthroughs — "A day in the graph" (rendered from tutorials.js registry) -->
+  <section class="docs-section" id="docs-walkthroughs">
+    <h3 class="docs-section-title">Walkthroughs &mdash; A Day in the Graph</h3>
+    <p class="docs-section-intro">Pick a persona and follow a day of their work inside your own workspace. Each chapter is a short guided tour that opens the real views, panels and sample objects it talks about.</p>
+    <div class="wt-picker" data-walkthrough-picker></div>
+  </section>
+
   <!-- Documentation section -->
   <section class="docs-section">
     <h3 class="docs-section-title">User Guide</h3>
@@ -278,6 +285,11 @@
 
 <script>
 (function () {
+  // Render the persona walkthrough picker (tutorials.js), then icons
+  var picker = document.querySelector('#docs-walkthroughs [data-walkthrough-picker]');
+  if (picker && window.SemPKM && typeof SemPKM.renderWalkthroughPicker === 'function') {
+    SemPKM.renderWalkthroughPicker(picker);
+  }
   // Re-initialize Lucide icons added by this fragment
   if (typeof lucide !== 'undefined' && lucide.createIcons) {
     lucide.createIcons();

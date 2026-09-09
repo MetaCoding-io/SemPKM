@@ -4710,6 +4710,260 @@ details.form-group[open] > .form-group-summary::before {
   padding: 6px 14px;
 }
 
+.docs-section-intro {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0 0 14px;
+  line-height: 1.5;
+}
+
+/* Persona walkthroughs picker ("A Day in the Graph") — rendered by tutorials.js */
+.wt-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.wt-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.wt-tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px 8px 10px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: border-color 0.1s, background 0.1s, color 0.1s;
+}
+
+.wt-tab:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.wt-tab-active,
+.wt-tab-active:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface));
+}
+
+.wt-tab svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  stroke: currentColor;
+}
+
+.wt-tab-active svg {
+  color: var(--color-accent);
+}
+
+.wt-tab-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.wt-tab-text strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.wt-tab-text span {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.wt-tab-count {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-accent);
+  padding-left: 4px;
+}
+
+.wt-persona {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.wt-persona-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.wt-persona-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.wt-tagline {
+  font-size: 14px;
+  color: var(--color-text);
+  margin: 0 0 4px;
+  line-height: 1.4;
+}
+
+.wt-meta {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.wt-persona-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.wt-play-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wt-play-all svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  stroke: currentColor;
+}
+
+.wt-reset {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 11px;
+  color: var(--color-text-faint, var(--color-text-muted));
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.wt-reset:hover {
+  color: var(--color-text);
+}
+
+.wt-chapters {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.wt-chapter {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 4px;
+  border-top: 1px solid var(--color-border);
+}
+
+.wt-chapter:first-child {
+  border-top: none;
+}
+
+.wt-time {
+  flex-shrink: 0;
+  width: 44px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.wt-chapter-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.wt-chapter-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 2px;
+}
+
+.wt-chapter-done .wt-chapter-title {
+  color: var(--color-text-muted);
+}
+
+.wt-check {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--color-success);
+  stroke: currentColor;
+}
+
+.wt-chapter-summary {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.wt-chapter-btn {
+  min-width: 64px;
+}
+
+/* Chapter cards inside Driver.js popovers */
+.driver-popover .wt-card-tag {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-accent);
+  margin-bottom: 6px;
+}
+
+.driver-popover .wt-code {
+  display: block;
+  margin: 8px 0;
+  padding: 8px 10px;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 11px;
+  line-height: 1.45;
+  white-space: pre;
+  overflow-x: auto;
+  background: var(--color-surface-elevated, var(--color-surface));
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-text);
+}
+
+@media (max-width: 640px) {
+  .wt-persona-head {
+    flex-direction: column;
+  }
+  .wt-persona-actions {
+    align-items: flex-start;
+  }
+  .wt-chapter {
+    flex-wrap: wrap;
+  }
+}
+
 .docs-links {
   display: flex;
   flex-direction: column;

@@ -140,7 +140,7 @@ Vanilla JS modules under `frontend/static/js/` (IIFE, `window.SemPKM` namespace)
 | Area | Files |
 |------|-------|
 | Bootstrap & shared | `app.js`, `api-fetch.js`, `auth.js`, `cleanup.js`, `sempkm-shims.js`, `dropdown-dismiss.js`, `posthog.js`, `theme.js` |
-| Workspace shell | `workspace.js`, `workspace-layout.js` (Dockview, deep links, closed-tab recovery), `sidebar.js`, `named-layouts.js`, `explorer-config.js`, `context-indicator.js`, `tutorials.js` |
+| Workspace shell | `workspace.js`, `workspace-layout.js` (Dockview, deep links, closed-tab recovery), `sidebar.js`, `named-layouts.js`, `explorer-config.js`, `context-indicator.js`, `tutorials.js` (Driver.js tours + persona walkthroughs registry, `?tour=` dispatcher, Docs page picker) |
 | Editing | `editor.js` (command dispatch), `markdown-render.js` (marked.js + DOMPurify), `recurrence-editor.js`, `column-prefs.js` |
 | View renderers | `graph.js` (Cytoscape), `kanban.js`, `calendar.js`, `okr.js`, `bmc.js`, `quadrant.js`, `decision-matrix.js` |
 | Feature panels | `canvas.js` (spatial canvas), `ontology-graph.js` (TBox graph), `federation.js` (collab/inbox panels), `copilot.js`, `sparql-console.js`, `vfs-browser.js`, `settings.js` |

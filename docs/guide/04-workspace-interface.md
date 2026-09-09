@@ -330,6 +330,43 @@ The palette dynamically grows as you use the workspace: every object you open an
 
 ---
 
+## Interactive Tutorials and Walkthroughs
+
+The **Docs & Tutorials** page (sidebar **Meta** group, or the standalone `/guide` page) is the entry point for guided, in-workspace onboarding. Everything on it is built with [Driver.js](https://driverjs.com/) overlays that highlight the real interface rather than screenshots.
+
+### Guided tours
+
+| Tour | What it covers |
+|------|----------------|
+| **Welcome to SemPKM** | Sidebar, explorer, opening an object, read/edit toggle, details panel, command palette, saving |
+| **Creating Your First Object** | Type picker, the schema-generated form, saving your first object |
+
+### Persona walkthroughs — "A Day in the Graph"
+
+The **Walkthroughs** section mirrors the day-in-the-life stories on the SemPKM website. Pick a persona and follow their day, one chapter at a time or as a single run:
+
+| Persona | Mental Model | Chapters |
+|---------|--------------|----------|
+| **Alice** — project lead | Basic PKM | 9:02 Capture · 9:15 Give it a type · 11:30 Say how things connect · 14:00 Same graph, your lens · 16:45 Catch drift · 18:00 Close the laptop |
+| **Maya** — researcher | Research | 9:30 A paper becomes an object · 10:15 Claims, not highlights · 13:00 See the debate · 15:30 Ask a precise question · 17:00 Share it with the lab |
+
+Each chapter opens the views, panels and sample objects it talks about — for example, Alice's afternoon opens the Task table, then the kanban, then the graph; Maya's 15:30 chapter opens the SPARQL console with a query to paste. Chapters need the persona's Mental Model (and its bundled sample objects) to be installed; if it is missing, the walkthrough tells you where to install it.
+
+Completed chapters are ticked in the picker. Progress is stored in your browser (`sempkm_walkthrough_progress` in local storage) and can be reset per persona from the picker.
+
+> **Note:** These onboarding personas are unrelated to [Workspace Personas](30-personas.md), which save panel layouts.
+
+You can also start any tour from the command palette (**Help** section) or by linking straight to it:
+
+| URL | Starts |
+|-----|--------|
+| `/browser/?tour=welcome` | Welcome tour |
+| `/browser/?tour=create-object` | Creating Your First Object |
+| `/browser/?tour=alice` | Alice's whole day |
+| `/browser/?tour=maya:query` | One chapter (`persona:chapter`) |
+
+---
+
 ## Keyboard Shortcut Summary
 
 Here is a quick reference for all workspace-level shortcuts discussed in this chapter. For the full list, see [Keyboard Shortcuts and Command Palette](08-keyboard-shortcuts.md).

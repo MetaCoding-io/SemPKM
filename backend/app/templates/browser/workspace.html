@@ -287,8 +287,9 @@
 </div>
 <script>
 (function() {
-  // Auto-start demo tour on first visit
-  if (!localStorage.getItem('sempkm_demo_tour_done')) {
+  // Auto-start demo tour on first visit — unless the page was opened with an
+  // explicit ?tour= link (e.g. a persona walkthrough), which workspace.js starts.
+  if (!localStorage.getItem('sempkm_demo_tour_done') && !/[?&]tour=/.test(window.location.search)) {
     // Wait for dockview and workspace to initialize
     setTimeout(function() {
       if (typeof SemPKM.startDemoTour === 'function') {

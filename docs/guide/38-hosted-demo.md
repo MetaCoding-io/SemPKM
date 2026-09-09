@@ -131,6 +131,10 @@ When `DEMO_MODE` is enabled, the tour auto-starts on the visitor's first page lo
 
 A "Restart Tour" button in the workspace toolbar lets visitors replay the tour at any time.
 
+### Persona Walkthroughs
+
+The demo also serves the persona walkthroughs described in [The Workspace Interface](04-workspace-interface.md#interactive-tutorials-and-walkthroughs). A link such as `/browser/?tour=alice` or `/browser/?tour=maya` starts that persona's day directly; the website's Walkthroughs page links here so visitors can replay the story inside the live app. When a `?tour=` parameter is present the demo tour does not auto-start, so the two never overlap.
+
 ### localStorage Keys
 
 | Key                        | Purpose                              |
