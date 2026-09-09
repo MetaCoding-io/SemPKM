@@ -48,3 +48,33 @@ npm run screenshots:headed
 | `21-vfs-browser.png` | Virtual Filesystem file browser (markdown projections) |
 | `22-spatial-canvas.png` | Spatial canvas with draggable objects |
 | `23-sparql-console.png` | Interactive SPARQL console (Yasgui) |
+
+### Persona walkthroughs ("A Day in the Graph")
+
+Captured by `tests/screenshots/walkthroughs-capture.spec.ts`. Requires the
+Research Mental Model to be installed (`POST /api/models/install` with
+`{"path": "/app/models/research"}`) so Maya's chapters can open seed objects.
+
+| File | Description |
+|------|-------------|
+| `24-walkthrough-picker.png` | Docs & Tutorials → Walkthroughs picker, Alice selected (+ `-dark`) |
+| `25-walkthrough-picker-maya.png` | Picker with Maya's five chapters |
+| `26-walkthrough-alice-chapter-card.png` | Chapter card that opens each chapter (+ `-dark`) |
+| `27-walkthrough-alice-typed-object.png` | 9:15 — seed Note opened, typed object step |
+| `28-walkthrough-alice-edit-toggle.png` | 9:15 — read/edit toggle step |
+| `29-walkthrough-alice-relations.png` | 11:30 — relations panel step |
+| `30-walkthrough-alice-inference.png` | 11:30 — inference bottom tab step |
+| `31-walkthrough-alice-table.png` | 14:00 — Task table view |
+| `32-walkthrough-alice-kanban.png` | 14:00 — Task kanban view |
+| `33-walkthrough-alice-graph.png` | 14:00 — Task graph view |
+| `34-walkthrough-alice-lint.png` | 16:45 — lint dashboard step |
+| `35-walkthrough-alice-event-log.png` | 18:00 — event log step |
+| `36-walkthrough-alice-day-done.png` | 18:00 — closing card |
+| `37-walkthrough-maya-chapter-card.png` | Maya 10:15 chapter card (+ `-dark`) |
+| `38-walkthrough-maya-claim.png` | 10:15 — Claim object step |
+| `39-walkthrough-maya-evidence.png` | 10:15 — supports/refutes relations step |
+| `40-walkthrough-maya-graph.png` | 13:00 — Claim graph view |
+| `41-walkthrough-maya-sparql.png` | 15:30 — SPARQL console step with sample query |
+| `42-walkthrough-picker-progress.png` | Picker after completing chapters (ticks, Replay, Reset) |
+| `43-walkthrough-picker-progress-maya.png` | Same, Maya tab |
+| `44-walkthrough-alice-capture-type-picker.png` | 9:02 — htmx-gated type picker step |
