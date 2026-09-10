@@ -109,19 +109,37 @@
 
           <!-- Scene 4: views -->
           <div class="scene" data-scene="4">
-            <div class="mini-views stagger">
+            <div class="mini-views">
               <div class="mini-view-tabs"><span class="mini-view-tab mini-view-tab-active">Table</span><span class="mini-view-tab">Kanban</span><span class="mini-view-tab">Graph</span></div>
-              <table class="mini-table">
-                <tr><th>Title</th><th>Status</th><th>Owner</th></tr>
-                <tr><td>Event Sourcing decision</td><td><span class="mini-pill">review</span></td><td>Alice</td></tr>
-                <tr><td>Fix validation edge case</td><td><span class="mini-pill mini-pill-green">active</span></td><td>Bob</td></tr>
-                <tr><td>v1.0 Launch</td><td><span class="mini-pill">planned</span></td><td>Alice</td></tr>
-              </table>
-              <div class="mini-kanban">
-                <div class="mini-kcol"><span>To&nbsp;do</span><div class="mini-kcard"></div><div class="mini-kcard"></div></div>
-                <div class="mini-kcol"><span>Doing</span><div class="mini-kcard mini-kcard-hi"></div></div>
-                <div class="mini-kcol"><span>Done</span><div class="mini-kcard"></div></div>
+              <div class="mini-view-body">
+                <div class="mv-panel mv-panel-table">
+                  <table class="mini-table">
+                    <tr><th>Title</th><th>Status</th><th>Owner</th></tr>
+                    <tr><td>Event Sourcing decision</td><td><span class="mini-pill">review</span></td><td>Alice</td></tr>
+                    <tr><td>Fix validation edge case</td><td><span class="mini-pill mini-pill-green">active</span></td><td>Bob</td></tr>
+                    <tr><td>v1.0 Launch</td><td><span class="mini-pill">planned</span></td><td>Alice</td></tr>
+                  </table>
+                </div>
+                <div class="mv-panel mv-panel-kanban">
+                  <div class="mini-kanban">
+                    <div class="mini-kcol"><span>To&nbsp;do</span><div class="mini-kcard"></div><div class="mini-kcard"></div><div class="mini-kcard"></div></div>
+                    <div class="mini-kcol"><span>Doing</span><div class="mini-kcard mini-kcard-hi"></div></div>
+                    <div class="mini-kcol"><span>Done</span><div class="mini-kcard"></div><div class="mini-kcard"></div></div>
+                  </div>
+                </div>
+                <div class="mv-panel mv-panel-graph">
+                  <svg class="mv-graph" viewBox="0 0 360 180" aria-hidden="true">
+                    <line x1="180" y1="90" x2="104" y2="48"/><line x1="180" y1="90" x2="92" y2="132"/>
+                    <line x1="180" y1="90" x2="252" y2="50"/><line x1="180" y1="90" x2="266" y2="128"/>
+                    <line x1="252" y1="50" x2="312" y2="86"/>
+                    <circle class="mv-g-center" cx="180" cy="90" r="12"/>
+                    <circle cx="104" cy="48" r="7"/><circle cx="92" cy="132" r="7"/>
+                    <circle cx="252" cy="50" r="7"/><circle class="mv-g-green" cx="266" cy="128" r="7"/>
+                    <circle cx="312" cy="86" r="7"/>
+                  </svg>
+                </div>
               </div>
+              <svg class="mv-cursor" width="16" height="18" viewBox="0 0 16 18" aria-hidden="true"><path d="M1 1 L1 14.5 L4.8 11.6 L7.2 17 L9.9 15.8 L7.5 10.4 L12.4 10.2 Z" fill="#e8e8f0" stroke="#0a0a0f" stroke-width="1.2"/></svg>
             </div>
           </div>
 
@@ -134,7 +152,7 @@
               </div>
               <div class="mini-lint-fix">
                 <label>Action item</label>
-                <div class="mini-field">Draft event-sourcing ADR</div>
+                <div class="mini-field"><span class="mini-typetext">Draft event-sourcing ADR</span><span class="mini-caret mini-caret-fix"></span></div>
               </div>
               <div class="mini-lint-pass">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
