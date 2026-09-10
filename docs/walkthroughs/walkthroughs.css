@@ -1018,6 +1018,33 @@ code {
 .scene-active .mini-graph .mg-tag { animation: wt-fade-up 0.35s ease 0.55s both; }
 .scene-active .mini-graph-legend { animation: wt-fade-up 0.35s ease 0.75s both; }
 
+/* Claims: stance predicates pop once their rows have landed */
+.scene-active .mini-pred-green,
+.scene-active .mini-pred-red {
+    display: inline-block;
+    animation: wt-pop 0.35s ease both;
+}
+.scene-active .mini-pred-green { animation-delay: 0.75s; }
+.scene-active .mini-pred-red   { animation-delay: 0.95s; }
+
+/* Query: the code appears first, then results arrive as it "runs" */
+.scene-active .mini-query .mini-table tr:not(:first-child) {
+    animation: wt-fade-up 0.3s ease both;
+}
+.scene-active .mini-query .mini-table tr:nth-child(2) { animation-delay: 0.9s; }
+.scene-active .mini-query .mini-table tr:nth-child(3) { animation-delay: 1.1s; }
+
+/* Views: table rows cascade in under the header */
+.scene-active .mini-views .mini-table tr:not(:first-child) {
+    animation: wt-fade-up 0.3s ease both;
+}
+.scene-active .mini-views .mini-table tr:nth-child(2) { animation-delay: 0.35s; }
+.scene-active .mini-views .mini-table tr:nth-child(3) { animation-delay: 0.45s; }
+.scene-active .mini-views .mini-table tr:nth-child(4) { animation-delay: 0.55s; }
+
+/* Sync: peers slide in one by one */
+.scene-active .mini-sync > .mini-sync-row { animation-name: wt-slide-right; }
+
 /* ═══════════════════════════════════════════════════════════════════
    Mobile: stage pins to top, steps scroll beneath
    ═══════════════════════════════════════════════════════════════════ */
