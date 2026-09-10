@@ -64,7 +64,7 @@
           <!-- Scene 1: capture via command palette -->
           <div class="scene scene-active" data-scene="1">
             <div class="mini-workspace-dim"></div>
-            <div class="mini-palette">
+            <div class="mini-palette stagger">
               <div class="mini-palette-input">Type a command or search&hellip;</div>
               <div class="mini-palette-item mini-palette-item-active">Create new object <kbd>Alt N</kbd></div>
               <div class="mini-palette-item">Create Note</div>
@@ -78,38 +78,38 @@
 
           <!-- Scene 2: schema-generated form -->
           <div class="scene" data-scene="2">
-            <div class="mini-form">
+            <div class="mini-form stagger">
               <div class="mini-form-head">
-                <strong>Architecture Decision: Event Sourcing</strong>
-                <span class="mini-type-chip">bpkm:Note</span>
+                <strong>Architecture Sync</strong>
+                <span class="mini-type-chip">bpkm:Meeting</span>
               </div>
               <label>Title <em>*</em></label>
-              <div class="mini-field">Architecture Decision: Event Sourcing</div>
-              <label>Body</label>
-              <div class="mini-field mini-field-tall">Store every mutation as an immutable event; materialize current state&hellip;</div>
-              <label>Tags</label>
-              <div class="mini-field"><span class="mini-tag">#architecture</span> <span class="mini-tag">#rdf</span></div>
-              <div class="mini-form-note">Form generated from the schema &mdash; fields, hints, and validation included.</div>
+              <div class="mini-field">Architecture Sync</div>
+              <label>Date</label>
+              <div class="mini-field">Today &middot; 9:00</div>
+              <label>Agenda</label>
+              <div class="mini-field mini-field-tall">Switch persistence to event sourcing? Weigh migration cost against the audit trail&hellip;</div>
+              <div class="mini-form-note">Form generated from the Meeting schema &mdash; fields, hints, and validation included.</div>
             </div>
           </div>
 
           <!-- Scene 3: typed relations -->
           <div class="scene" data-scene="3">
-            <div class="mini-relations">
+            <div class="mini-relations stagger">
               <div class="mini-rel-head">RELATIONS</div>
               <div class="mini-rel-group">OUTBOUND</div>
               <div class="mini-rel-row"><span class="mini-pred">isAbout</span><span class="mini-arrow">&rarr;</span><a>Event Sourcing</a></div>
               <div class="mini-rel-row"><span class="mini-pred">hasParticipant</span><span class="mini-arrow">&rarr;</span><a>Alice Chen</a></div>
               <div class="mini-rel-row"><span class="mini-pred">hasParticipant</span><span class="mini-arrow">&rarr;</span><a>Bob Martinez</a></div>
               <div class="mini-rel-group">INBOUND</div>
-              <div class="mini-rel-row"><span class="mini-pred">hasNote</span><span class="mini-arrow">&larr;</span><a>SemPKM Development</a></div>
-              <div class="mini-rel-row"><span class="mini-pred">hasRelatedNote</span><span class="mini-arrow">&larr;</span><a>Kickoff Note</a> <span class="mini-badge">inferred</span></div>
+              <div class="mini-rel-row"><span class="mini-pred">hasMeeting</span><span class="mini-arrow">&larr;</span><a>SemPKM Development</a></div>
+              <div class="mini-rel-row"><span class="mini-pred">relatesTo</span><span class="mini-arrow">&larr;</span><a>Kickoff Note</a> <span class="mini-badge">inferred</span></div>
             </div>
           </div>
 
           <!-- Scene 4: views -->
           <div class="scene" data-scene="4">
-            <div class="mini-views">
+            <div class="mini-views stagger">
               <div class="mini-view-tabs"><span class="mini-view-tab mini-view-tab-active">Table</span><span class="mini-view-tab">Kanban</span><span class="mini-view-tab">Graph</span></div>
               <table class="mini-table">
                 <tr><th>Title</th><th>Status</th><th>Owner</th></tr>
@@ -127,14 +127,14 @@
 
           <!-- Scene 5: validation -->
           <div class="scene" data-scene="5">
-            <div class="mini-lint">
+            <div class="mini-lint stagger">
               <div class="mini-lint-warn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                <div><strong>Review date is missing</strong><br><span>bpkm:Note &middot; sh:minCount 1 on reviewBy</span></div>
+                <div><strong>No action item recorded</strong><br><span>bpkm:Meeting &middot; sh:minCount 1 on hasActionItem</span></div>
               </div>
               <div class="mini-lint-fix">
-                <label>Review by</label>
-                <div class="mini-field">2026-09-16</div>
+                <label>Action item</label>
+                <div class="mini-field">Draft event-sourcing ADR</div>
               </div>
               <div class="mini-lint-pass">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -145,11 +145,11 @@
 
           <!-- Scene 6: event log -->
           <div class="scene" data-scene="6">
-            <div class="mini-log">
+            <div class="mini-log stagger">
               <div class="mini-log-head">EVENT LOG</div>
-              <div class="mini-log-row"><span class="mini-op mini-op-amber">object.update</span> Event Sourcing decision <span class="mini-log-meta">18:02 &middot; alice</span> <span class="mini-log-actions"><i>Diff</i><i>Undo</i></span></div>
+              <div class="mini-log-row"><span class="mini-op mini-op-amber">object.update</span> Architecture Sync <span class="mini-log-meta">18:02 &middot; alice</span> <span class="mini-log-actions"><i>Diff</i><i>Undo</i></span></div>
               <div class="mini-log-row"><span class="mini-op mini-op-amber">edge.create</span> hasParticipant &rarr; Bob <span class="mini-log-meta">11:34 &middot; alice</span> <span class="mini-log-actions"><i>Diff</i><i>Undo</i></span></div>
-              <div class="mini-log-row"><span class="mini-op mini-op-green">object.create</span> Architecture Decision <span class="mini-log-meta">9:02 &middot; alice</span> <span class="mini-log-actions"><i>Diff</i></span></div>
+              <div class="mini-log-row"><span class="mini-op mini-op-green">object.create</span> Architecture Sync <span class="mini-log-meta">9:02 &middot; alice</span> <span class="mini-log-actions"><i>Diff</i></span></div>
               <div class="mini-log-note">Immutable, attributed, undoable.</div>
             </div>
           </div>
@@ -170,13 +170,13 @@
     <section class="step" data-scene="2" data-clock="9:15">
       <span class="step-time">9:15</span>
       <h2>Give it a type</h2>
-      <p>Coffee in hand, the stray note becomes a real object. Pick a type and SemPKM generates the form from the schema &mdash; required fields, hints, and validation included. No template to maintain, no frontmatter convention to remember.</p>
+      <p>Coffee in hand, the stray note becomes a real object: a <code>Meeting</code>. SemPKM generates the form from the schema &mdash; date, agenda, required fields, validation included. No template to maintain, no frontmatter convention to remember.</p>
     </section>
 
     <section class="step" data-scene="3" data-clock="11:30">
       <span class="step-time">11:30</span>
       <h2>Say how things connect</h2>
-      <p>Not just linked &mdash; <em>typed</em>. The decision <code>isAbout</code> Event Sourcing; Alice and Bob are <code>hasParticipant</code>. Some edges she never draws at all: inference adds them from what's already true. Every edge means something you can query later.</p>
+      <p>Not just linked &mdash; <em>typed</em>. The meeting <code>isAbout</code> Event Sourcing and <code>hasParticipant</code>s Alice and Bob. Some edges she never draws at all: inference adds them from what's already true. Every edge means something you can query later.</p>
     </section>
 
     <section class="step" data-scene="4" data-clock="14:00">
@@ -188,7 +188,7 @@
     <section class="step" data-scene="5" data-clock="16:45">
       <span class="step-time">16:45</span>
       <h2>Catch drift before it becomes debt</h2>
-      <p>The lint panel notices the decision never got a review date. Assistive, not blocking &mdash; nothing stopped her from saving, but nothing let it rot silently either. Fix it in place, watch it go green.</p>
+      <p>The lint panel notices this morning's meeting never got an action item. Assistive, not blocking &mdash; nothing stopped her from saving, but nothing let it rot silently either. Add one in place, watch it go green.</p>
     </section>
 
     <section class="step" data-scene="6" data-clock="18:00">
@@ -216,7 +216,7 @@
 
           <!-- Scene 1: capture a source -->
           <div class="scene scene-active" data-scene="1">
-            <div class="mini-form">
+            <div class="mini-form stagger">
               <div class="mini-form-head">
                 <strong>Spacing Effects in Learning</strong>
                 <span class="mini-type-chip">bpkm:Source</span>
@@ -233,7 +233,7 @@
 
           <!-- Scene 2: claims with typed stances -->
           <div class="scene" data-scene="2">
-            <div class="mini-relations">
+            <div class="mini-relations stagger">
               <div class="mini-rel-head">CLAIM &middot; "Optimal review gap scales with retention interval"</div>
               <div class="mini-rel-group">EVIDENCE</div>
               <div class="mini-rel-row"><span class="mini-pred">cites</span><span class="mini-arrow">&rarr;</span><a>Cepeda et al. 2008</a></div>
@@ -273,7 +273,7 @@
 
           <!-- Scene 4: query -->
           <div class="scene" data-scene="4">
-            <div class="mini-query">
+            <div class="mini-query stagger">
               <div class="mini-query-head">SPARQL</div>
               <pre class="mini-query-code"><span class="q-kw">SELECT</span> ?claim ?source <span class="q-kw">WHERE</span> {
   ?claim  <span class="q-pred">:contradicts</span>  <span class="q-obj">:fixed-daily-review</span> ;
@@ -289,7 +289,7 @@
 
           <!-- Scene 5: share with the lab -->
           <div class="scene" data-scene="5">
-            <div class="mini-sync">
+            <div class="mini-sync stagger">
               <div class="mini-sync-head">SHARED GRAPH &middot; lab-memory</div>
               <div class="mini-sync-row"><i class="mg-dot mg-dot-green"></i> maya@lab.university.edu <span class="mini-log-meta">you</span></div>
               <div class="mini-sync-row"><i class="mg-dot mg-dot-green"></i> priya@lab.university.edu <span class="mini-log-meta">synced 17:02</span></div>

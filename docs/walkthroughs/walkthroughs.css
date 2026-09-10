@@ -944,6 +944,81 @@ code {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
+   Scene animations — each activation replays the user's action.
+   Elements animate to their natural state (fill-mode: both), so the
+   global reduced-motion block collapses everything to an instant jump.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@keyframes wt-fade-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+}
+@keyframes wt-slide-right {
+    from { opacity: 0; transform: translateX(-14px); }
+    to   { opacity: 1; transform: none; }
+}
+@keyframes wt-pop {
+    0%   { opacity: 0; transform: scale(0.6); }
+    70%  { opacity: 1; transform: scale(1.08); }
+    100% { opacity: 1; transform: none; }
+}
+@keyframes wt-draw {
+    from { stroke-dashoffset: 220; }
+    to   { stroke-dashoffset: 0; }
+}
+
+/* Generic stagger: children of a .stagger container cascade in */
+.scene-active .stagger > * { animation: wt-fade-up 0.35s ease both; }
+.scene-active .stagger > :nth-child(2) { animation-delay: 0.10s; }
+.scene-active .stagger > :nth-child(3) { animation-delay: 0.20s; }
+.scene-active .stagger > :nth-child(4) { animation-delay: 0.30s; }
+.scene-active .stagger > :nth-child(5) { animation-delay: 0.40s; }
+.scene-active .stagger > :nth-child(6) { animation-delay: 0.50s; }
+.scene-active .stagger > :nth-child(7) { animation-delay: 0.60s; }
+.scene-active .stagger > :nth-child(8) { animation-delay: 0.70s; }
+.scene-active .stagger > :nth-child(9) { animation-delay: 0.80s; }
+
+/* Capture: the note card lands after the palette finishes */
+.scene-active .mini-note-card { animation: wt-fade-up 0.4s ease 0.6s both; }
+
+/* Relations: rows slide in; the inferred badge pops last */
+.scene-active .mini-relations > .mini-rel-row { animation-name: wt-slide-right; }
+.scene-active .mini-badge {
+    animation: wt-pop 0.35s ease 1s both;
+    display: inline-block;
+}
+
+/* Views: the active kanban card slides across as if just moved */
+.scene-active .mini-kcard-hi { animation: wt-slide-right 0.5s ease 0.8s both; }
+
+/* Lint: warn → fix → all-green, in story order.
+   Selectors include .stagger so their delays outrank the nth-child ladder. */
+.scene-active .stagger > .mini-lint-warn { animation: wt-fade-up 0.35s ease both; animation-delay: 0s; }
+.scene-active .stagger > .mini-lint-fix  { animation: wt-fade-up 0.35s ease both; animation-delay: 0.7s; }
+.scene-active .stagger > .mini-lint-pass { animation: wt-pop 0.4s ease both; animation-delay: 1.4s; }
+
+/* Claims graph: edges draw, nodes pop, labels settle last */
+.scene-active .mini-graph .mg-edge {
+    stroke-dasharray: 220;
+    animation: wt-draw 0.7s ease-out both;
+}
+.scene-active .mini-graph .mg-edge:nth-of-type(2) { animation-delay: 0.12s; }
+.scene-active .mini-graph .mg-edge:nth-of-type(3) { animation-delay: 0.24s; }
+.scene-active .mini-graph .mg-edge:nth-of-type(4) { animation-delay: 0.36s; }
+.scene-active .mini-graph .mg-node {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: wt-pop 0.4s ease both;
+}
+.scene-active .mini-graph circle.mg-node:nth-of-type(2) { animation-delay: 0.15s; }
+.scene-active .mini-graph circle.mg-node:nth-of-type(3) { animation-delay: 0.25s; }
+.scene-active .mini-graph circle.mg-node:nth-of-type(4) { animation-delay: 0.35s; }
+.scene-active .mini-graph circle.mg-node:nth-of-type(5) { animation-delay: 0.45s; }
+.scene-active .mini-graph .mg-label,
+.scene-active .mini-graph .mg-tag { animation: wt-fade-up 0.35s ease 0.55s both; }
+.scene-active .mini-graph-legend { animation: wt-fade-up 0.35s ease 0.75s both; }
+
+/* ═══════════════════════════════════════════════════════════════════
    Mobile: stage pins to top, steps scroll beneath
    ═══════════════════════════════════════════════════════════════════ */
 @media (max-width: 900px) {
