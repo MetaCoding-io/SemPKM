@@ -627,7 +627,6 @@ code {
 .mini-kanban {
     display: flex;
     gap: 0.6rem;
-    margin-top: 0.8rem;
 }
 .mini-kcol {
     flex: 1;
@@ -978,8 +977,70 @@ code {
 .scene-active .stagger > :nth-child(8) { animation-delay: 0.70s; }
 .scene-active .stagger > :nth-child(9) { animation-delay: 0.80s; }
 
-/* Capture: the note card lands after the palette finishes */
-.scene-active .mini-note-card { animation: wt-fade-up 0.4s ease 0.6s both; }
+/* ── Capture scene: pick "Create new object", palette closes,
+      the note card appears and the thought types in ── */
+.mini-note-wide { width: min(500px, 94%); }
+@keyframes wt-palette-cycle {
+    0%        { opacity: 0; transform: translateY(8px); }
+    7%, 30%   { opacity: 1; transform: none; }
+    38%, 100% { opacity: 0; transform: scale(0.98); }
+}
+@keyframes wt-item-select {
+    0%       { opacity: 0; transform: translateY(8px); background: rgba(232, 119, 46, 0.12); }
+    6%, 100% { opacity: 1; transform: none; }
+    0%, 21%  { background: rgba(232, 119, 46, 0.12); }
+    24%, 28% { background: rgba(232, 119, 46, 0.4); }
+    32%, 100% { background: rgba(232, 119, 46, 0.12); }
+}
+.scene-active .mini-palette { animation: wt-palette-cycle 4.2s ease both; }
+.scene-active .stagger > .mini-palette-item-active { animation: wt-item-select 4.2s linear both; animation-delay: 0s; }
+.scene-active .mini-note-card { animation: wt-fade-up 0.4s ease 1.7s both; }
+.scene-active .mini-note-title .mini-typetext-live { animation-duration: 1.5s; animation-delay: 2.2s; }
+
+/* ── Form scenes: the title types in, remaining values fill after ── */
+.scene-active .mini-typetext-live { animation: wt-type 1s steps(24, end) 0.9s both; }
+@keyframes wt-caret-window {
+    0%, 20%  { opacity: 0; }
+    22%, 48% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+}
+.mini-caret-live { animation: none; }
+.scene-active .mini-caret-live { animation: wt-caret-window 4s linear both; }
+.mini-fill { display: inline; }
+.scene-active .mini-fill-1 { animation: wt-fade-up 0.3s ease 2.1s both; display: inline-block; }
+.scene-active .mini-fill-2 { animation: wt-fade-up 0.35s ease 2.5s both; display: inline-block; }
+.scene-active .stagger > .mini-form-note { animation-delay: 3.1s; }
+
+/* ── Query scene: cursor clicks Run, results land ── */
+.mini-query { position: relative; }
+.mini-query-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.mini-run {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    color: var(--green);
+    border: 1px solid rgba(52, 211, 153, 0.35);
+    border-radius: 5px;
+    padding: 0.12rem 0.5rem;
+    background: rgba(52, 211, 153, 0.07);
+}
+@keyframes mq-cursor {
+    0%        { opacity: 0; transform: translate(230px, 70px) scale(1); }
+    14%, 26%  { opacity: 1; transform: translate(230px, 70px) scale(1); }
+    48%       { transform: translate(355px, 0px) scale(1); }
+    54%       { transform: translate(355px, 0px) scale(0.8); }
+    60%, 100% { opacity: 1; transform: translate(355px, 0px) scale(1); }
+}
+@keyframes mq-run-flash {
+    0%, 52%   { background: rgba(52, 211, 153, 0.07); }
+    56%, 64%  { background: rgba(52, 211, 153, 0.35); }
+    72%, 100% { background: rgba(52, 211, 153, 0.07); }
+}
+.scene-active .mini-query .mv-cursor { animation: mq-cursor 2.8s ease-in-out 0.3s both; }
+.scene-active .mini-run { animation: mq-run-flash 2.8s linear 0.3s both; }
 
 /* Relations: rows slide in; the inferred badge pops last */
 .scene-active .mini-relations > .mini-rel-row { animation-name: wt-slide-right; }
@@ -988,14 +1049,87 @@ code {
     display: inline-block;
 }
 
-/* Views: the active kanban card slides across as if just moved */
-.scene-active .mini-kcard-hi { animation: wt-slide-right 0.5s ease 0.8s both; }
+/* ── Views scene: a cursor clicks Table → Kanban → Graph ─────────── */
+.mini-views { position: relative; }
+.mini-view-body { position: relative; height: 190px; margin-top: 0.7rem; }
+.mv-panel { position: absolute; inset: 0; opacity: 0; }
+.mv-panel-table { opacity: 1; }
+.mv-panel .mini-kanban { margin-top: 0; height: 100%; }
+.mv-graph { width: 100%; height: 100%; display: block; }
+.mv-graph line { stroke: #3a3a52; stroke-width: 1.3; }
+.mv-graph circle { fill: var(--bg-card); stroke: var(--text-secondary); stroke-width: 1.5; }
+.mv-graph .mv-g-center { fill: #2a1c12; stroke: var(--accent-1); stroke-width: 2; }
+.mv-graph .mv-g-green { stroke: var(--green); }
+.mv-cursor {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 5;
+    opacity: 0;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+}
 
-/* Lint: warn → fix → all-green, in story order.
-   Selectors include .stagger so their delays outrank the nth-child ladder. */
-.scene-active .stagger > .mini-lint-warn { animation: wt-fade-up 0.35s ease both; animation-delay: 0s; }
+@keyframes mv-cursor-move {
+    0%       { opacity: 0; transform: translate(24px, 12px) scale(1); }
+    8%, 28%  { opacity: 1; transform: translate(24px, 12px) scale(1); }
+    36%      { transform: translate(90px, 12px) scale(1); }
+    39%      { transform: translate(90px, 12px) scale(0.8); }
+    42%, 64% { transform: translate(90px, 12px) scale(1); }
+    72%      { transform: translate(153px, 12px) scale(1); }
+    75%      { transform: translate(153px, 12px) scale(0.8); }
+    78%, 100% { opacity: 1; transform: translate(153px, 12px) scale(1); }
+}
+@keyframes mv-show-table  { 0%, 40% { opacity: 1; } 44%, 100% { opacity: 0; } }
+@keyframes mv-show-kanban { 0%, 40% { opacity: 0; } 44%, 74% { opacity: 1; } 78%, 100% { opacity: 0; } }
+@keyframes mv-show-graph  { 0%, 74% { opacity: 0; } 78%, 100% { opacity: 1; } }
+@keyframes mv-tab-1 {
+    0%, 40%   { color: #e8e8f0; border-color: rgba(232, 119, 46, 0.5); background: rgba(232, 119, 46, 0.1); }
+    44%, 100% { color: #68688a; border-color: #1e1e2e; background: transparent; }
+}
+@keyframes mv-tab-2 {
+    0%, 40%   { color: #68688a; border-color: #1e1e2e; background: transparent; }
+    44%, 74%  { color: #e8e8f0; border-color: rgba(232, 119, 46, 0.5); background: rgba(232, 119, 46, 0.1); }
+    78%, 100% { color: #68688a; border-color: #1e1e2e; background: transparent; }
+}
+@keyframes mv-tab-3 {
+    0%, 74%   { color: #68688a; border-color: #1e1e2e; background: transparent; }
+    78%, 100% { color: #e8e8f0; border-color: rgba(232, 119, 46, 0.5); background: rgba(232, 119, 46, 0.1); }
+}
+
+.scene-active .mini-view-tabs { animation: wt-fade-up 0.35s ease both; }
+.scene-active .mini-view-body { animation: wt-fade-up 0.35s ease 0.1s both; }
+.scene-active .mini-views .mv-cursor { animation: mv-cursor-move 5.5s ease-in-out 0.5s both; }
+.scene-active .mv-panel-table  { animation: mv-show-table 5.5s linear 0.5s both; }
+.scene-active .mv-panel-kanban { animation: mv-show-kanban 5.5s linear 0.5s both; }
+.scene-active .mv-panel-graph  { animation: mv-show-graph 5.5s linear 0.5s both; }
+.scene-active .mini-view-tab:nth-child(1) { animation: mv-tab-1 5.5s linear 0.5s both; }
+.scene-active .mini-view-tab:nth-child(2) { animation: mv-tab-2 5.5s linear 0.5s both; }
+.scene-active .mini-view-tab:nth-child(3) { animation: mv-tab-3 5.5s linear 0.5s both; }
+/* the moved card slides in while the kanban view is up */
+.scene-active .mini-kcard-hi { animation: wt-slide-right 0.5s ease 3.1s both; }
+
+/* ── Lint scene: Alice types the action item, warning turns green ── */
+.mini-typetext {
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    vertical-align: bottom;
+}
+@keyframes wt-type { from { max-width: 0; } to { max-width: var(--type-w, 200px); } }
+@keyframes wt-caret-off { to { opacity: 0; } }
+@keyframes wt-warn-cycle {
+    0%        { opacity: 0; transform: translateY(8px); }
+    9%, 62%   { opacity: 1; transform: none; }
+    76%, 100% { opacity: 0.22; transform: none; }
+}
+.scene-active .stagger > .mini-lint-warn { animation: wt-warn-cycle 4s ease both; animation-delay: 0s; }
 .scene-active .stagger > .mini-lint-fix  { animation: wt-fade-up 0.35s ease both; animation-delay: 0.7s; }
-.scene-active .stagger > .mini-lint-pass { animation: wt-pop 0.4s ease both; animation-delay: 1.4s; }
+.scene-active .stagger > .mini-lint-pass { animation: wt-pop 0.4s ease both; animation-delay: 2.7s; }
+.scene-active .mini-lint-fix .mini-typetext { animation: wt-type 1.2s steps(22, end) 1.3s both; }
+.scene-active .mini-caret-fix {
+    animation: caret-blink 1.1s steps(1) infinite,
+               wt-caret-off 0.01s linear 2.6s forwards;
+}
 
 /* Claims graph: edges draw, nodes pop, labels settle last */
 .scene-active .mini-graph .mg-edge {
@@ -1031,8 +1165,8 @@ code {
 .scene-active .mini-query .mini-table tr:not(:first-child) {
     animation: wt-fade-up 0.3s ease both;
 }
-.scene-active .mini-query .mini-table tr:nth-child(2) { animation-delay: 0.9s; }
-.scene-active .mini-query .mini-table tr:nth-child(3) { animation-delay: 1.1s; }
+.scene-active .mini-query .mini-table tr:nth-child(2) { animation-delay: 1.9s; }
+.scene-active .mini-query .mini-table tr:nth-child(3) { animation-delay: 2.1s; }
 
 /* Views: table rows cascade in under the header */
 .scene-active .mini-views .mini-table tr:not(:first-child) {
@@ -1077,6 +1211,12 @@ code {
     .mini-rel-row { padding: 0.26rem 0; }
     .mini-table th, .mini-table td { padding: 0.34rem 0.6rem; }
     .mini-query-code { padding: 0.6rem 0.8rem; font-size: 0.7rem; }
+    .mini-note-wide { width: min(500px, 94%); }
+    .mini-note-title .mini-typetext-live {
+        white-space: normal;
+        max-width: none !important;
+        animation: wt-fade-up 0.4s ease 2.2s both !important;
+    }
 
     .steps-col { padding: 4vh 1.25rem 10vh; }
     .step {
