@@ -396,6 +396,10 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
         <span>Federation</span>
       </button>
+      <button class="feature-tab" id="ft-context-awareness" role="tab" aria-selected="false" aria-controls="fp-context-awareness">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        <span>Context Awareness</span>
+      </button>
       <button class="feature-tab" id="ft-full-text-search" role="tab" aria-selected="false" aria-controls="fp-full-text-search">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <span>Full-Text Search</span>
@@ -483,6 +487,14 @@
         <p>Share graphs across SemPKM instances. Invite collaborators by handle, sync changes with full attribution &mdash; everyone keeps their own server.</p>
         <div class="feature-shot feature-shot-placeholder">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          <span>Screenshot coming soon</span>
+        </div>
+      </div>
+      <div class="feature-pane" id="fp-context-awareness" role="tabpanel" aria-labelledby="ft-context-awareness" hidden>
+        <h3>Context Awareness</h3>
+        <p>Your phone becomes a context provider: it reports your location zone, activity, and current calendar event, and SemPKM switches personas, fires rules, and surfaces what's relevant &mdash; live in the workspace sidebar. Any app can feed context over a simple REST API; <a href="https://github.com/MetaCoding-io/AndroidUsageControl" target="_blank" rel="noopener">AndroidUsageControl</a> is an open-source example, and <a href="guide/index.html#48-mobile-app-context">Chapter 48</a> covers the full setup.</p>
+        <div class="feature-shot feature-shot-placeholder">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
           <span>Screenshot coming soon</span>
         </div>
       </div>
