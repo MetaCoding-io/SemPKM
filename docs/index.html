@@ -515,7 +515,7 @@
     </p>
 
     <div class="ecosystem-scroll fade-in">
-      <svg class="ecosystem-svg" viewBox="0 0 1240 640" font-family="'DM Sans', -apple-system, sans-serif"
+      <svg class="ecosystem-svg" viewBox="0 -16 1240 656" font-family="'DM Sans', -apple-system, sans-serif"
            role="img" aria-label="Diagram: Alice and Bob each use a browser window showing SemPKM's Object Browser, open on the shared object Q4 Plan, connected to their own SemPKM instances. Alice's phone runs the AndroidUsageControl app, sending context events to her instance, which runs agents on her knowledge graph. The two instances federate via signed RDF patches, and Q4 Plan exists in both graphs.">
         <defs>
           <marker id="eco-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -530,14 +530,14 @@
         </defs>
 
         <!-- ═══ Alice: name + object browser ═══ -->
-        <g>
+        <g transform="translate(0,-30)">
           <circle cx="355" cy="36" r="13" fill="#16161f" stroke="#2e2e44" stroke-width="1.5"/>
           <circle cx="355" cy="32" r="4.5" fill="none" stroke="#9898b0" stroke-width="1.6"/>
           <path d="M347 45 a8 8 0 0 1 16 0" fill="none" stroke="#9898b0" stroke-width="1.6"/>
           <text x="375" y="35" fill="#e8e8f0" font-size="14" font-weight="600">Alice</text>
           <text x="375" y="51" fill="#686880" font-size="10.5">laptop &#183; browser</text>
         </g>
-        <g>
+        <g transform="translate(0,-30)">
           <rect x="330" y="62" width="370" height="150" rx="8" fill="#16161f" stroke="#2e2e44" stroke-width="1.5"/>
           <circle cx="343" cy="72" r="2.5" fill="#2e2e44"/><circle cx="353" cy="72" r="2.5" fill="#2e2e44"/><circle cx="363" cy="72" r="2.5" fill="#2e2e44"/>
           <rect x="372" y="66.5" width="318" height="11" rx="5.5" fill="#0a0a0f" stroke="#1e1e2e"/>
@@ -596,8 +596,8 @@
           <line x1="590" y1="186" x2="700" y2="186" stroke="#1e1e2e"/>
           <text x="598" y="199" fill="#34d399" font-size="6">&#10003; validations pass</text>
         </g>
-        <path d="M515 216 L 515 228" fill="none" stroke="#686880" stroke-width="1.5" marker-end="url(#eco-arrow)"/>
-        <text x="525" y="226" fill="#9898b0" font-size="10" font-family="monospace">Web UI</text>
+        <path d="M515 187 L 515 227" fill="none" stroke="#686880" stroke-width="1.5" marker-end="url(#eco-arrow)"/>
+        <text x="525" y="211" fill="#9898b0" font-size="10" font-family="monospace">Web UI</text>
 
         <!-- Alice's phone -->
         <g>
@@ -685,14 +685,14 @@
           <tspan fill="#34d399">&#9679;</tspan> shared: &#8220;Q4 Plan&#8221;</text>
 
         <!-- ═══ Bob: name + object browser ═══ -->
-        <g>
+        <g transform="translate(0,-30)">
           <circle cx="875" cy="36" r="13" fill="#16161f" stroke="#2e2e44" stroke-width="1.5"/>
           <circle cx="875" cy="32" r="4.5" fill="none" stroke="#9898b0" stroke-width="1.6"/>
           <path d="M867 45 a8 8 0 0 1 16 0" fill="none" stroke="#9898b0" stroke-width="1.6"/>
           <text x="895" y="35" fill="#e8e8f0" font-size="14" font-weight="600">Bob</text>
           <text x="895" y="51" fill="#686880" font-size="10.5">another user</text>
         </g>
-        <g>
+        <g transform="translate(0,-30)">
           <rect x="850" y="62" width="370" height="150" rx="8" fill="#16161f" stroke="#2e2e44" stroke-width="1.5"/>
           <circle cx="863" cy="72" r="2.5" fill="#2e2e44"/><circle cx="873" cy="72" r="2.5" fill="#2e2e44"/><circle cx="883" cy="72" r="2.5" fill="#2e2e44"/>
           <rect x="892" y="66.5" width="318" height="11" rx="5.5" fill="#0a0a0f" stroke="#1e1e2e"/>
@@ -751,8 +751,8 @@
           <line x1="1110" y1="186" x2="1220" y2="186" stroke="#1e1e2e"/>
           <text x="1118" y="199" fill="#34d399" font-size="6">&#10003; validations pass</text>
         </g>
-        <path d="M1035 216 L 1035 228" fill="none" stroke="#686880" stroke-width="1.5" marker-end="url(#eco-arrow)"/>
-        <text x="1045" y="226" fill="#9898b0" font-size="10" font-family="monospace">Web UI</text>
+        <path d="M1035 187 L 1035 227" fill="none" stroke="#686880" stroke-width="1.5" marker-end="url(#eco-arrow)"/>
+        <text x="1045" y="211" fill="#9898b0" font-size="10" font-family="monospace">Web UI</text>
 
         <!-- ═══ Bob's instance ═══ -->
         <g>
