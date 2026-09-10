@@ -70,9 +70,9 @@
               <div class="mini-palette-item">Create Note</div>
               <div class="mini-palette-item">Create Task</div>
             </div>
-            <div class="mini-note-card">
+            <div class="mini-note-card mini-note-wide">
               <span class="mini-type-chip">Note</span>
-              <div class="mini-note-title">Standup: switch persistence to event sourcing?<span class="mini-caret"></span></div>
+              <div class="mini-note-title"><span class="mini-typetext mini-typetext-live" style="--type-w: 340px">Standup: switch persistence to event sourcing?</span><span class="mini-caret"></span></div>
             </div>
           </div>
 
@@ -84,11 +84,11 @@
                 <span class="mini-type-chip">bpkm:Meeting</span>
               </div>
               <label>Title <em>*</em></label>
-              <div class="mini-field">Architecture Sync</div>
+              <div class="mini-field"><span class="mini-typetext mini-typetext-live" style="--type-w: 130px">Architecture Sync</span><span class="mini-caret mini-caret-live"></span></div>
               <label>Date</label>
-              <div class="mini-field">Today &middot; 9:00</div>
+              <div class="mini-field"><span class="mini-fill mini-fill-1">Today &middot; 9:00</span></div>
               <label>Agenda</label>
-              <div class="mini-field mini-field-tall">Switch persistence to event sourcing? Weigh migration cost against the audit trail&hellip;</div>
+              <div class="mini-field mini-field-tall"><span class="mini-fill mini-fill-2">Switch persistence to event sourcing? Weigh migration cost against the audit trail&hellip;</span></div>
               <div class="mini-form-note">Form generated from the Meeting schema &mdash; fields, hints, and validation included.</div>
             </div>
           </div>
@@ -240,11 +240,11 @@
                 <span class="mini-type-chip">bpkm:Source</span>
               </div>
               <label>Title <em>*</em></label>
-              <div class="mini-field">Spacing Effects in Learning</div>
+              <div class="mini-field"><span class="mini-typetext mini-typetext-live" style="--type-w: 200px">Spacing Effects in Learning</span><span class="mini-caret mini-caret-live"></span></div>
               <label>Authors &middot; Year</label>
-              <div class="mini-field">Cepeda, Vul, Rohrer, Wixted &amp; Pashler &middot; 2008</div>
+              <div class="mini-field"><span class="mini-fill mini-fill-1">Cepeda, Vul, Rohrer, Wixted &amp; Pashler &middot; 2008</span></div>
               <label>DOI</label>
-              <div class="mini-field"><span class="mini-tag">10.1111/j.1467-9280.2008.02209.x</span></div>
+              <div class="mini-field"><span class="mini-fill mini-fill-2"><span class="mini-tag">10.1111/j.1467-9280.2008.02209.x</span></span></div>
               <div class="mini-form-note">A paper is an object with real fields &mdash; not a PDF lost in a folder.</div>
             </div>
           </div>
@@ -292,7 +292,7 @@
           <!-- Scene 4: query -->
           <div class="scene" data-scene="4">
             <div class="mini-query stagger">
-              <div class="mini-query-head">SPARQL</div>
+              <div class="mini-query-head"><span>SPARQL</span><span class="mini-run">&#9654; Run</span></div>
               <pre class="mini-query-code"><span class="q-kw">SELECT</span> ?claim ?source <span class="q-kw">WHERE</span> {
   ?claim  <span class="q-pred">:contradicts</span>  <span class="q-obj">:fixed-daily-review</span> ;
           <span class="q-pred">:cites</span>        ?source .
@@ -302,6 +302,7 @@
                 <tr><td>Optimal gap scales with interval</td><td>Cepeda et al. 2008</td></tr>
                 <tr><td>Expanding schedules outperform</td><td>Kang 2016</td></tr>
               </table>
+              <svg class="mv-cursor" width="16" height="18" viewBox="0 0 16 18" aria-hidden="true"><path d="M1 1 L1 14.5 L4.8 11.6 L7.2 17 L9.9 15.8 L7.5 10.4 L12.4 10.2 Z" fill="#e8e8f0" stroke="#0a0a0f" stroke-width="1.2"/></svg>
             </div>
           </div>
 
