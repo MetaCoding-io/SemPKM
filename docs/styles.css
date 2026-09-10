@@ -540,6 +540,52 @@ section {
   margin-bottom: 0.6rem;
 }
 
+/* ── Ecosystem diagram ── */
+
+.ecosystem-scroll {
+  overflow-x: auto;
+  margin-top: 3rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ecosystem-svg {
+  display: block;
+  width: 100%;
+  min-width: 880px;
+  max-width: 1160px;
+  height: auto;
+  margin: 0 auto;
+}
+
+.ecosystem-svg a:hover text {
+  fill: var(--accent-orange);
+}
+
+.eco-pulse {
+  animation: eco-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes eco-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.ecosystem-footnote {
+  text-align: center;
+  margin-top: 2rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.ecosystem-footnote a {
+  color: var(--accent-orange);
+  text-decoration: none;
+}
+
+.ecosystem-footnote a:hover {
+  text-decoration: underline;
+}
+
 /* ── Roadmap ── */
 
 .roadmap-featured {
