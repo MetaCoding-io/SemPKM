@@ -515,8 +515,8 @@
     </p>
 
     <div class="ecosystem-scroll fade-in">
-      <svg class="ecosystem-svg" viewBox="0 0 1160 570" font-family="'DM Sans', -apple-system, sans-serif"
-           role="img" aria-label="Diagram: Alice reaches her SemPKM instance from her laptop and phone; the AndroidUsageControl app on her phone sends context events to the instance, which runs agents on her knowledge graph; her instance federates with Bob's instance via signed RDF patches.">
+      <svg class="ecosystem-svg" viewBox="0 0 1240 600" font-family="'DM Sans', -apple-system, sans-serif"
+           role="img" aria-label="Diagram: Alice and Bob each use a browser window showing SemPKM's object browser, open on the shared object Q4 Plan, connected to their own SemPKM instances. Alice's phone runs the AndroidUsageControl app, sending context events to her instance, which runs agents on her knowledge graph. The two instances federate via signed RDF patches, and Q4 Plan exists in both graphs.">
         <defs>
           <marker id="eco-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
             <path d="M0 0L10 5L0 10z" fill="#686880"/>
@@ -529,134 +529,189 @@
           </linearGradient>
         </defs>
 
-        <!-- ═══ Alice ═══ -->
+        <!-- ═══ Alice: name + object browser ═══ -->
         <g>
-          <circle cx="120" cy="130" r="26" fill="#16161f" stroke="#2e2e44" stroke-width="1.5"/>
-          <circle cx="120" cy="122" r="8" fill="none" stroke="#9898b0" stroke-width="2"/>
-          <path d="M104 146 a16 16 0 0 1 32 0" fill="none" stroke="#9898b0" stroke-width="2"/>
-          <text x="120" y="182" text-anchor="middle" fill="#e8e8f0" font-size="15" font-weight="600">Alice</text>
-          <text x="120" y="200" text-anchor="middle" fill="#686880" font-size="11">laptop &#183; browser</text>
+          <circle cx="70" cy="36" r="13" fill="#16161f" stroke="#2e2e44" stroke-width="1.5"/>
+          <circle cx="70" cy="32" r="4.5" fill="none" stroke="#9898b0" stroke-width="1.6"/>
+          <path d="M62 45 a8 8 0 0 1 16 0" fill="none" stroke="#9898b0" stroke-width="1.6"/>
+          <text x="90" y="35" fill="#e8e8f0" font-size="14" font-weight="600">Alice</text>
+          <text x="90" y="51" fill="#686880" font-size="10.5">laptop &#183; browser</text>
         </g>
-        <path d="M158 140 C 240 150, 260 175, 322 195" fill="none" stroke="#686880" stroke-width="1.5" marker-end="url(#eco-arrow)"/>
-        <text x="232" y="136" text-anchor="middle" fill="#9898b0" font-size="11" font-family="monospace">Web UI &#183; HTTPS</text>
+        <g>
+          <rect x="55" y="65" width="170" height="100" rx="8" fill="#16161f" stroke="#2e2e44" stroke-width="1.5"/>
+          <circle cx="68" cy="75" r="2.5" fill="#2e2e44"/><circle cx="78" cy="75" r="2.5" fill="#2e2e44"/><circle cx="88" cy="75" r="2.5" fill="#2e2e44"/>
+          <rect x="97" y="69.5" width="118" height="11" rx="5.5" fill="#0a0a0f" stroke="#1e1e2e"/>
+          <text x="156" y="77.5" text-anchor="middle" fill="#686880" font-size="6.5" font-family="monospace">alice/objects/q4-plan</text>
+          <line x1="55" y1="85" x2="225" y2="85" stroke="#1e1e2e"/>
+          <line x1="99" y1="85" x2="99" y2="164" stroke="#1e1e2e"/>
+          <rect x="63" y="95" width="26" height="3" rx="1.5" fill="#2a2a3e"/>
+          <rect x="63" y="105" width="22" height="3" rx="1.5" fill="#2a2a3e"/>
+          <rect x="63" y="115" width="30" height="3" rx="1.5" fill="#e8772e"/>
+          <rect x="63" y="125" width="24" height="3" rx="1.5" fill="#2a2a3e"/>
+          <rect x="63" y="135" width="27" height="3" rx="1.5" fill="#2a2a3e"/>
+          <text x="107" y="101" fill="#e8e8f0" font-size="9" font-weight="700">Q4 Plan</text>
+          <rect x="153" y="92" width="32" height="12" rx="6" fill="#231708" stroke="#f59e0b" stroke-opacity="0.4"/>
+          <text x="169" y="100.5" text-anchor="middle" fill="#f59e0b" font-size="6.5" font-family="monospace">Note</text>
+          <rect x="107" y="111" width="105" height="3" rx="1.5" fill="#2a2a3e"/>
+          <rect x="107" y="119" width="88" height="3" rx="1.5" fill="#2a2a3e"/>
+          <circle cx="110" cy="133" r="2.5" fill="#34d399"/>
+          <rect x="117" y="131" width="80" height="3" rx="1.5" fill="#2a2a3e"/>
+          <circle cx="110" cy="145" r="2.5" fill="#686880"/>
+          <rect x="117" y="143" width="62" height="3" rx="1.5" fill="#2a2a3e"/>
+        </g>
+        <path d="M229 115 C 280 140, 300 190, 326 245" fill="none" stroke="#686880" stroke-width="1.5" marker-end="url(#eco-arrow)"/>
+        <text x="243" y="185" text-anchor="middle" fill="#9898b0" font-size="11" font-family="monospace">Web UI &#183; HTTPS</text>
 
         <!-- Alice's phone -->
         <g>
-          <rect x="70" y="276" width="112" height="204" rx="18" fill="#16161f" stroke="#2e2e44" stroke-width="1.5"/>
-          <rect x="80" y="292" width="92" height="172" rx="8" fill="#0a0a0f" stroke="#1e1e2e"/>
-          <rect x="103" y="282" width="46" height="5" rx="2.5" fill="#1e1e2e"/>
-          <!-- browser block -->
-          <rect x="86" y="300" width="80" height="42" rx="6" fill="#16161f" stroke="#1e1e2e"/>
-          <text x="126" y="318" text-anchor="middle" fill="#e8e8f0" font-size="10.5" font-weight="600">SemPKM</text>
-          <text x="126" y="334" text-anchor="middle" fill="#686880" font-size="8.5" font-family="monospace">mobile web</text>
-          <!-- UsageControl app block -->
-          <rect x="86" y="350" width="80" height="106" rx="6" fill="#16161f" stroke="#e8772e" stroke-opacity="0.45"/>
-          <rect x="93" y="358" width="14" height="14" rx="4" fill="url(#eco-hex)"/>
-          <text x="112" y="369" fill="#e8e8f0" font-size="9.5" font-weight="600">Usage</text>
-          <text x="112" y="379" fill="#e8e8f0" font-size="9.5" font-weight="600">Control</text>
-          <text x="94" y="399" fill="#9898b0" font-size="8.5" font-family="monospace">zone: Office</text>
-          <text x="94" y="413" fill="#9898b0" font-size="8.5" font-family="monospace">act: walking</text>
-          <text x="94" y="427" fill="#9898b0" font-size="8.5" font-family="monospace">cal: standup</text>
-          <circle cx="98" cy="443" r="3" fill="#34d399"/>
-          <text x="106" y="446" fill="#686880" font-size="8.5" font-family="monospace">reporting</text>
-          <text x="126" y="502" text-anchor="middle" fill="#e8e8f0" font-size="12" font-weight="600">Alice's phone</text>
+          <rect x="70" y="316" width="112" height="204" rx="18" fill="#16161f" stroke="#2e2e44" stroke-width="1.5"/>
+          <rect x="80" y="332" width="92" height="172" rx="8" fill="#0a0a0f" stroke="#1e1e2e"/>
+          <rect x="103" y="322" width="46" height="5" rx="2.5" fill="#1e1e2e"/>
+          <rect x="86" y="340" width="80" height="42" rx="6" fill="#16161f" stroke="#1e1e2e"/>
+          <text x="126" y="358" text-anchor="middle" fill="#e8e8f0" font-size="10.5" font-weight="600">SemPKM</text>
+          <text x="126" y="374" text-anchor="middle" fill="#686880" font-size="8.5" font-family="monospace">mobile web</text>
+          <rect x="86" y="390" width="80" height="106" rx="6" fill="#16161f" stroke="#e8772e" stroke-opacity="0.45"/>
+          <rect x="93" y="398" width="14" height="14" rx="4" fill="url(#eco-hex)"/>
+          <text x="112" y="409" fill="#e8e8f0" font-size="9.5" font-weight="600">Usage</text>
+          <text x="112" y="419" fill="#e8e8f0" font-size="9.5" font-weight="600">Control</text>
+          <text x="94" y="439" fill="#9898b0" font-size="8.5" font-family="monospace">zone: Office</text>
+          <text x="94" y="453" fill="#9898b0" font-size="8.5" font-family="monospace">act: walking</text>
+          <text x="94" y="467" fill="#9898b0" font-size="8.5" font-family="monospace">cal: standup</text>
+          <circle cx="98" cy="483" r="3" fill="#34d399"/>
+          <text x="106" y="486" fill="#686880" font-size="8.5" font-family="monospace">reporting</text>
+          <text x="126" y="542" text-anchor="middle" fill="#e8e8f0" font-size="12" font-weight="600">Alice's phone</text>
           <a href="https://github.com/MetaCoding-io/AndroidUsageControl" target="_blank" rel="noopener">
-            <text x="126" y="520" text-anchor="middle" fill="#f59e0b" font-size="10.5" font-family="monospace" text-decoration="underline">AndroidUsageControl &#8599;</text>
+            <text x="126" y="560" text-anchor="middle" fill="#f59e0b" font-size="10.5" font-family="monospace" text-decoration="underline">AndroidUsageControl &#8599;</text>
           </a>
-          <text x="126" y="536" text-anchor="middle" fill="#686880" font-size="10">example context provider</text>
+          <text x="126" y="576" text-anchor="middle" fill="#686880" font-size="10">example context provider</text>
         </g>
-        <path d="M186 320 C 240 312, 280 306, 322 300" fill="none" stroke="#686880" stroke-width="1.5" marker-end="url(#eco-arrow)"/>
-        <text x="252" y="296" text-anchor="middle" fill="#9898b0" font-size="11" font-family="monospace">mobile web</text>
-        <path d="M186 420 C 240 428, 280 438, 322 447" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#eco-arrow-amber)"/>
-        <text x="250" y="470" text-anchor="middle" fill="#f59e0b" font-size="11" font-family="monospace">context events &#183; REST</text>
+        <path d="M186 360 C 240 352, 280 346, 322 340" fill="none" stroke="#686880" stroke-width="1.5" marker-end="url(#eco-arrow)"/>
+        <text x="252" y="336" text-anchor="middle" fill="#9898b0" font-size="11" font-family="monospace">mobile web</text>
+        <path d="M186 460 C 240 468, 280 478, 322 487" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#eco-arrow-amber)"/>
+        <text x="250" y="510" text-anchor="middle" fill="#f59e0b" font-size="11" font-family="monospace">context events &#183; REST</text>
 
         <!-- ═══ Alice's instance ═══ -->
         <g>
-          <rect x="330" y="150" width="370" height="330" rx="14" fill="#16161f" stroke="#2e2e44" stroke-width="1.5"/>
-          <rect x="330" y="150" width="370" height="44" rx="14" fill="#12121a"/>
-          <rect x="330" y="180" width="370" height="14" fill="#12121a"/>
-          <line x1="330" y1="194" x2="700" y2="194" stroke="#1e1e2e"/>
-          <path d="M352 162 l9 5.2 v10.4 l-9 5.2 l-9 -5.2 v-10.4 z" fill="none" stroke="url(#eco-hex)" stroke-width="2.5"/>
-          <text x="372" y="177" fill="#e8e8f0" font-size="14" font-weight="700">SemPKM</text>
-          <text x="444" y="177" fill="#686880" font-size="11" font-family="monospace">alice.yourdomain.com</text>
-          <circle cx="682" cy="172" r="4" fill="#34d399"/>
+          <rect x="330" y="190" width="370" height="330" rx="14" fill="#16161f" stroke="#2e2e44" stroke-width="1.5"/>
+          <rect x="330" y="190" width="370" height="44" rx="14" fill="#12121a"/>
+          <rect x="330" y="220" width="370" height="14" fill="#12121a"/>
+          <line x1="330" y1="234" x2="700" y2="234" stroke="#1e1e2e"/>
+          <path d="M352 202 l9 5.2 v10.4 l-9 5.2 l-9 -5.2 v-10.4 z" fill="none" stroke="url(#eco-hex)" stroke-width="2.5"/>
+          <text x="372" y="217" fill="#e8e8f0" font-size="14" font-weight="700">SemPKM</text>
+          <text x="444" y="217" fill="#686880" font-size="11" font-family="monospace">alice.yourdomain.com</text>
+          <circle cx="682" cy="212" r="4" fill="#34d399"/>
 
-          <!-- knowledge graph -->
           <g stroke="#3a3a52" stroke-width="1.3">
-            <line x1="475" y1="252" x2="398" y2="222"/><line x1="475" y1="252" x2="420" y2="292"/>
-            <line x1="475" y1="252" x2="548" y2="218"/><line x1="475" y1="252" x2="562" y2="290"/>
-            <line x1="548" y1="218" x2="620" y2="240"/><line x1="398" y1="222" x2="420" y2="292"/>
+            <line x1="475" y1="292" x2="398" y2="262"/><line x1="475" y1="292" x2="420" y2="332"/>
+            <line x1="475" y1="292" x2="548" y2="258"/><line x1="475" y1="292" x2="562" y2="330"/>
+            <line x1="548" y1="258" x2="620" y2="280"/><line x1="398" y1="262" x2="420" y2="332"/>
           </g>
-          <circle cx="475" cy="252" r="13" fill="#2a1c12" stroke="#e8772e" stroke-width="2"/>
-          <circle cx="398" cy="222" r="8" fill="#16161f" stroke="#9898b0" stroke-width="1.5"/>
-          <circle cx="420" cy="292" r="8" fill="#16161f" stroke="#9898b0" stroke-width="1.5"/>
-          <circle cx="548" cy="218" r="8" fill="#16161f" stroke="#9898b0" stroke-width="1.5"/>
-          <circle cx="562" cy="290" r="8" fill="#16161f" stroke="#34d399" stroke-width="1.5"/>
-          <circle cx="620" cy="240" r="8" fill="#16161f" stroke="#9898b0" stroke-width="1.5"/>
-          <text x="475" y="322" text-anchor="middle" fill="#686880" font-size="10.5" font-family="monospace">knowledge graph &#183; RDF</text>
+          <circle cx="475" cy="292" r="13" fill="#2a1c12" stroke="#e8772e" stroke-width="2"/>
+          <circle cx="398" cy="262" r="8" fill="#16161f" stroke="#9898b0" stroke-width="1.5"/>
+          <circle cx="420" cy="332" r="8" fill="#16161f" stroke="#9898b0" stroke-width="1.5"/>
+          <circle cx="548" cy="258" r="8" fill="#16161f" stroke="#9898b0" stroke-width="1.5"/>
+          <circle cx="562" cy="330" r="8" fill="#0d2018" stroke="#34d399" stroke-width="1.5"/>
+          <text x="576" y="334" fill="#34d399" font-size="9" font-family="monospace">Q4 Plan</text>
+          <circle cx="620" cy="280" r="8" fill="#16161f" stroke="#9898b0" stroke-width="1.5"/>
+          <text x="475" y="362" text-anchor="middle" fill="#686880" font-size="10.5" font-family="monospace">knowledge graph &#183; RDF</text>
 
-          <line x1="348" y1="338" x2="682" y2="338" stroke="#1e1e2e"/>
+          <line x1="348" y1="378" x2="682" y2="378" stroke="#1e1e2e"/>
 
-          <!-- agents -->
-          <text x="352" y="360" fill="#686880" font-size="10" font-family="monospace" letter-spacing="1.5">AGENTS</text>
-          <rect x="352" y="370" width="136" height="26" rx="13" fill="#0a0a0f" stroke="#1e1e2e"/>
-          <circle cx="368" cy="383" r="3.5" fill="#34d399" class="eco-pulse"/>
-          <text x="378" y="387" fill="#9898b0" font-size="10.5" font-family="monospace">graph-gardener</text>
-          <rect x="496" y="370" width="122" height="26" rx="13" fill="#0a0a0f" stroke="#1e1e2e"/>
-          <circle cx="512" cy="383" r="3.5" fill="#34d399" class="eco-pulse"/>
-          <text x="522" y="387" fill="#9898b0" font-size="10.5" font-family="monospace">weekly-digest</text>
+          <text x="352" y="400" fill="#686880" font-size="10" font-family="monospace" letter-spacing="1.5">AGENTS</text>
+          <rect x="352" y="410" width="136" height="26" rx="13" fill="#0a0a0f" stroke="#1e1e2e"/>
+          <circle cx="368" cy="423" r="3.5" fill="#34d399" class="eco-pulse"/>
+          <text x="378" y="427" fill="#9898b0" font-size="10.5" font-family="monospace">graph-gardener</text>
+          <rect x="496" y="410" width="122" height="26" rx="13" fill="#0a0a0f" stroke="#1e1e2e"/>
+          <circle cx="512" cy="423" r="3.5" fill="#34d399" class="eco-pulse"/>
+          <text x="522" y="427" fill="#9898b0" font-size="10.5" font-family="monospace">weekly-digest</text>
 
-          <!-- live context -->
-          <text x="352" y="424" fill="#686880" font-size="10" font-family="monospace" letter-spacing="1.5">LIVE CONTEXT</text>
-          <rect x="352" y="434" width="266" height="26" rx="13" fill="#231708" stroke="#f59e0b" stroke-opacity="0.4"/>
-          <circle cx="368" cy="447" r="3.5" fill="#f59e0b"/>
-          <text x="378" y="451" fill="#f59e0b" font-size="10.5" font-family="monospace">Office &#183; walking &#183; standup</text>
+          <text x="352" y="464" fill="#686880" font-size="10" font-family="monospace" letter-spacing="1.5">LIVE CONTEXT</text>
+          <rect x="352" y="474" width="266" height="26" rx="13" fill="#231708" stroke="#f59e0b" stroke-opacity="0.4"/>
+          <circle cx="368" cy="487" r="3.5" fill="#f59e0b"/>
+          <text x="378" y="491" fill="#f59e0b" font-size="10.5" font-family="monospace">Office &#183; walking &#183; standup</text>
         </g>
 
         <!-- ═══ Federation link ═══ -->
-        <line x1="708" y1="300" x2="852" y2="300" stroke="#686880" stroke-width="1.5" stroke-dasharray="6 5" marker-start="url(#eco-arrow)" marker-end="url(#eco-arrow)"/>
-        <text x="780" y="278" text-anchor="middle" fill="#e8e8f0" font-size="13" font-weight="600">Federation</text>
-        <text x="780" y="322" text-anchor="middle" fill="#9898b0" font-size="10" font-family="monospace">shared graphs</text>
-        <text x="780" y="336" text-anchor="middle" fill="#9898b0" font-size="10" font-family="monospace">signed RDF Patches</text>
+        <line x1="708" y1="340" x2="842" y2="340" stroke="#686880" stroke-width="1.5" stroke-dasharray="6 5" marker-start="url(#eco-arrow)" marker-end="url(#eco-arrow)"/>
+        <text x="775" y="318" text-anchor="middle" fill="#e8e8f0" font-size="13" font-weight="600">Federation</text>
+        <text x="775" y="362" text-anchor="middle" fill="#9898b0" font-size="10" font-family="monospace">shared graphs</text>
+        <text x="775" y="376" text-anchor="middle" fill="#9898b0" font-size="10" font-family="monospace">signed RDF Patches</text>
+        <text x="775" y="400" text-anchor="middle" fill="#686880" font-size="10">
+          <tspan fill="#34d399">&#9679;</tspan> shared: &#8220;Q4 Plan&#8221;</text>
 
-        <!-- ═══ Bob ═══ -->
+        <!-- ═══ Bob: name + object browser ═══ -->
         <g>
-          <circle cx="990" cy="120" r="22" fill="#16161f" stroke="#2e2e44" stroke-width="1.5"/>
-          <circle cx="990" cy="113" r="7" fill="none" stroke="#9898b0" stroke-width="2"/>
-          <path d="M976 134 a14 14 0 0 1 28 0" fill="none" stroke="#9898b0" stroke-width="2"/>
-          <text x="1022" y="118" fill="#e8e8f0" font-size="15" font-weight="600">Bob</text>
-          <text x="1022" y="134" fill="#686880" font-size="11">another user</text>
+          <circle cx="875" cy="36" r="13" fill="#16161f" stroke="#2e2e44" stroke-width="1.5"/>
+          <circle cx="875" cy="32" r="4.5" fill="none" stroke="#9898b0" stroke-width="1.6"/>
+          <path d="M867 45 a8 8 0 0 1 16 0" fill="none" stroke="#9898b0" stroke-width="1.6"/>
+          <text x="895" y="35" fill="#e8e8f0" font-size="14" font-weight="600">Bob</text>
+          <text x="895" y="51" fill="#686880" font-size="10.5">another user</text>
         </g>
-        <path d="M990 146 L 990 182" fill="none" stroke="#686880" stroke-width="1.5" marker-end="url(#eco-arrow)"/>
-
-        <!-- Bob's instance -->
         <g>
-          <rect x="860" y="190" width="250" height="230" rx="14" fill="#16161f" stroke="#2e2e44" stroke-width="1.5"/>
-          <rect x="860" y="190" width="250" height="40" rx="14" fill="#12121a"/>
-          <rect x="860" y="216" width="250" height="14" fill="#12121a"/>
-          <line x1="860" y1="230" x2="1110" y2="230" stroke="#1e1e2e"/>
-          <path d="M880 200 l7.5 4.3 v8.6 l-7.5 4.3 l-7.5 -4.3 v-8.6 z" fill="none" stroke="url(#eco-hex)" stroke-width="2"/>
-          <text x="897" y="214" fill="#e8e8f0" font-size="12.5" font-weight="700">SemPKM</text>
-          <text x="960" y="214" fill="#686880" font-size="10" font-family="monospace">bob.example.org</text>
-          <circle cx="1094" cy="210" r="3.5" fill="#34d399"/>
-          <g stroke="#3a3a52" stroke-width="1.2">
-            <line x1="975" y1="290" x2="925" y2="262"/><line x1="975" y1="290" x2="940" y2="326"/>
-            <line x1="975" y1="290" x2="1032" y2="264"/><line x1="975" y1="290" x2="1040" y2="322"/>
+          <rect x="860" y="65" width="170" height="100" rx="8" fill="#16161f" stroke="#2e2e44" stroke-width="1.5"/>
+          <circle cx="873" cy="75" r="2.5" fill="#2e2e44"/><circle cx="883" cy="75" r="2.5" fill="#2e2e44"/><circle cx="893" cy="75" r="2.5" fill="#2e2e44"/>
+          <rect x="902" y="69.5" width="118" height="11" rx="5.5" fill="#0a0a0f" stroke="#1e1e2e"/>
+          <text x="961" y="77.5" text-anchor="middle" fill="#686880" font-size="6.5" font-family="monospace">bob/objects/q4-plan</text>
+          <line x1="860" y1="85" x2="1030" y2="85" stroke="#1e1e2e"/>
+          <line x1="904" y1="85" x2="904" y2="164" stroke="#1e1e2e"/>
+          <rect x="868" y="95" width="26" height="3" rx="1.5" fill="#2a2a3e"/>
+          <rect x="868" y="105" width="22" height="3" rx="1.5" fill="#2a2a3e"/>
+          <rect x="868" y="115" width="30" height="3" rx="1.5" fill="#e8772e"/>
+          <rect x="868" y="125" width="24" height="3" rx="1.5" fill="#2a2a3e"/>
+          <rect x="868" y="135" width="27" height="3" rx="1.5" fill="#2a2a3e"/>
+          <text x="912" y="101" fill="#e8e8f0" font-size="9" font-weight="700">Q4 Plan</text>
+          <rect x="958" y="92" width="32" height="12" rx="6" fill="#231708" stroke="#f59e0b" stroke-opacity="0.4"/>
+          <text x="974" y="100.5" text-anchor="middle" fill="#f59e0b" font-size="6.5" font-family="monospace">Note</text>
+          <rect x="912" y="111" width="105" height="3" rx="1.5" fill="#2a2a3e"/>
+          <rect x="912" y="119" width="88" height="3" rx="1.5" fill="#2a2a3e"/>
+          <circle cx="915" cy="133" r="2.5" fill="#34d399"/>
+          <rect x="922" y="131" width="80" height="3" rx="1.5" fill="#2a2a3e"/>
+          <circle cx="915" cy="145" r="2.5" fill="#686880"/>
+          <rect x="922" y="143" width="62" height="3" rx="1.5" fill="#2a2a3e"/>
+        </g>
+        <path d="M945 169 L 945 186" fill="none" stroke="#686880" stroke-width="1.5" marker-end="url(#eco-arrow)"/>
+        <text x="955" y="181" fill="#9898b0" font-size="10" font-family="monospace">Web UI</text>
+
+        <!-- ═══ Bob's instance ═══ -->
+        <g>
+          <rect x="850" y="190" width="370" height="330" rx="14" fill="#16161f" stroke="#2e2e44" stroke-width="1.5"/>
+          <rect x="850" y="190" width="370" height="44" rx="14" fill="#12121a"/>
+          <rect x="850" y="220" width="370" height="14" fill="#12121a"/>
+          <line x1="850" y1="234" x2="1220" y2="234" stroke="#1e1e2e"/>
+          <path d="M872 202 l9 5.2 v10.4 l-9 5.2 l-9 -5.2 v-10.4 z" fill="none" stroke="url(#eco-hex)" stroke-width="2.5"/>
+          <text x="892" y="217" fill="#e8e8f0" font-size="14" font-weight="700">SemPKM</text>
+          <text x="964" y="217" fill="#686880" font-size="11" font-family="monospace">bob.example.org</text>
+          <circle cx="1202" cy="212" r="4" fill="#34d399"/>
+
+          <g stroke="#3a3a52" stroke-width="1.3">
+            <line x1="995" y1="292" x2="918" y2="262"/><line x1="995" y1="292" x2="940" y2="332"/>
+            <line x1="995" y1="292" x2="1068" y2="258"/><line x1="995" y1="292" x2="1082" y2="330"/>
+            <line x1="1068" y1="258" x2="1140" y2="280"/><line x1="918" y1="262" x2="940" y2="332"/>
           </g>
-          <circle cx="975" cy="290" r="11" fill="#2a1c12" stroke="#e8772e" stroke-width="2"/>
-          <circle cx="925" cy="262" r="7" fill="#16161f" stroke="#9898b0" stroke-width="1.5"/>
-          <circle cx="940" cy="326" r="7" fill="#16161f" stroke="#9898b0" stroke-width="1.5"/>
-          <circle cx="1032" cy="264" r="7" fill="#16161f" stroke="#34d399" stroke-width="1.5"/>
-          <circle cx="1040" cy="322" r="7" fill="#16161f" stroke="#9898b0" stroke-width="1.5"/>
-          <text x="985" y="360" text-anchor="middle" fill="#686880" font-size="10" font-family="monospace">his own graph &#183; his own server</text>
-          <rect x="890" y="374" width="122" height="24" rx="12" fill="#0a0a0f" stroke="#1e1e2e"/>
-          <circle cx="905" cy="386" r="3" fill="#34d399" class="eco-pulse"/>
-          <text x="914" y="390" fill="#9898b0" font-size="10" font-family="monospace">inbox-triage</text>
-        </g>
+          <circle cx="995" cy="292" r="13" fill="#2a1c12" stroke="#e8772e" stroke-width="2"/>
+          <circle cx="918" cy="262" r="8" fill="#16161f" stroke="#9898b0" stroke-width="1.5"/>
+          <circle cx="940" cy="332" r="8" fill="#16161f" stroke="#9898b0" stroke-width="1.5"/>
+          <circle cx="1068" cy="258" r="8" fill="#16161f" stroke="#9898b0" stroke-width="1.5"/>
+          <circle cx="1082" cy="330" r="8" fill="#0d2018" stroke="#34d399" stroke-width="1.5"/>
+          <text x="1096" y="334" fill="#34d399" font-size="9" font-family="monospace">Q4 Plan</text>
+          <circle cx="1140" cy="280" r="8" fill="#16161f" stroke="#9898b0" stroke-width="1.5"/>
+          <text x="995" y="362" text-anchor="middle" fill="#686880" font-size="10.5" font-family="monospace">his own graph &#183; his own server</text>
 
-        <!-- shared node note -->
-        <text x="780" y="372" text-anchor="middle" fill="#686880" font-size="10">
-          <tspan fill="#34d399">&#9679;</tspan> objects both can see</text>
+          <line x1="868" y1="378" x2="1202" y2="378" stroke="#1e1e2e"/>
+
+          <text x="872" y="400" fill="#686880" font-size="10" font-family="monospace" letter-spacing="1.5">AGENTS</text>
+          <rect x="872" y="410" width="116" height="26" rx="13" fill="#0a0a0f" stroke="#1e1e2e"/>
+          <circle cx="888" cy="423" r="3.5" fill="#34d399" class="eco-pulse"/>
+          <text x="898" y="427" fill="#9898b0" font-size="10.5" font-family="monospace">inbox-triage</text>
+          <rect x="996" y="410" width="116" height="26" rx="13" fill="#0a0a0f" stroke="#1e1e2e"/>
+          <circle cx="1012" cy="423" r="3.5" fill="#34d399" class="eco-pulse"/>
+          <text x="1022" y="427" fill="#9898b0" font-size="10.5" font-family="monospace">lit-watcher</text>
+
+          <text x="872" y="464" fill="#686880" font-size="10" font-family="monospace" letter-spacing="1.5">SHARED WITH</text>
+          <rect x="872" y="474" width="220" height="26" rx="13" fill="#0d2018" stroke="#34d399" stroke-opacity="0.4"/>
+          <circle cx="888" cy="487" r="3.5" fill="#34d399"/>
+          <text x="898" y="491" fill="#34d399" font-size="10.5" font-family="monospace">&#8646; alice.yourdomain.com</text>
+        </g>
       </svg>
     </div>
 
