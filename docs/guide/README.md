@@ -23,7 +23,8 @@ setup to advanced topics like SPARQL queries and creating your own Mental Models
 
 9. [Understanding Mental Models](09-understanding-mental-models.md)
 10. [Managing Mental Models](10-managing-mental-models.md)
-39. [Mental Model Catalog](39-mental-model-catalog.md)
+11. [Mental Model Catalog](11-mental-model-catalog.md)
+12. [PPV Model (Pillars, Pipelines & Vaults)](12-ppv-model.md)
 
 **Mental Model Reference** (generated from each bundled model's `README.md`):
 
@@ -38,60 +39,62 @@ setup to advanced topics like SPARQL queries and creating your own Mental Models
 
 ## Part IV: Administration
 
-11. [User Management](11-user-management.md)
-12. [Webhooks](12-webhooks.md)
-13. [Settings](13-settings.md)
-14. [System Health and Debugging](14-system-health-and-debugging.md)
+13. [User Management](13-user-management.md)
+14. [Webhooks](14-webhooks.md)
+15. [Settings](15-settings.md)
+16. [System Health and Debugging](16-system-health-and-debugging.md)
 
 ## Part V: The Event Log
 
-15. [Understanding the Event Log](15-event-log.md)
+17. [Understanding the Event Log](17-event-log.md)
 
 ## Part VI: Advanced Topics
 
-16. [The Data Model](16-data-model.md)
-17. [The Command API](17-command-api.md)
-18. [The SPARQL Endpoint](18-sparql-endpoint.md)
-19. [Creating Mental Models](19-creating-mental-models.md)
+18. [The Data Model](18-data-model.md)
+19. [The Command API](19-command-api.md)
+20. [The SPARQL Endpoint](20-sparql-endpoint.md)
+21. [Creating Mental Models](21-creating-mental-models.md)
 
 ## Part VII: Deployment and Operations
 
-20. [Production Deployment](20-production-deployment.md)
+22. [Production Deployment](22-production-deployment.md)
+23. [Hosted Demo Instance](23-hosted-demo.md)
 
 ## Part VIII: Discovery and Integration
 
-21. [SPARQL Console](21-sparql-console.md)
-22. [Keyword Search](22-keyword-search.md)
-23. [Virtual Filesystem (WebDAV)](23-vfs.md)
-24. [Obsidian Onboarding](24-obsidian-onboarding.md)
-45. [Notion Import](45-notion-import.md)
-27. [Spatial Canvas](27-spatial-canvas.md)
-28. [Dashboards and Workflows](28-dashboards-and-workflows.md)
-29. [App Platform](29-app-platform.md)
-40. [RSS Reader](40-rss-reader.md)
-30. [Workspace Personas](30-personas.md)
-31. [API Surface](31-api-surface.md)
-32. [Browser Extension](32-browser-extension.md)
-33. [Context Overlay](33-context-overlay.md)
-46. [AI Features](46-ai-features.md)
-34. [Linear Sync](34-linear-sync.md)
-35. [GitHub Sync](35-github-sync.md)
-36. [Jira Sync](36-jira-sync.md)
-37. [Monday.com Sync](37-monday-sync.md)
-41. [Google Calendar Sync](41-google-calendar-sync.md)
-42. [Todoist Sync](42-todoist-sync.md)
-43. [Outlook Calendar Sync](43-outlook-calendar-sync.md)
-44. [CalDAV Calendar Sync](44-caldav-calendar-sync.md)
-47. [Asana Sync](47-asana-sync.md)
-48. [Mobile App & Context](48-mobile-app-context.md)
-49. [Media Scheduler](49-media-scheduler.md)
-50. [PPV Model](50-ppv-model.md)
-38. [Hosted Demo](38-hosted-demo.md)
+24. [SPARQL Console](24-sparql-console.md)
+25. [Keyword Search](25-keyword-search.md)
+26. [Virtual Filesystem (WebDAV)](26-vfs.md)
+27. [Obsidian Import](27-obsidian-onboarding.md)
+28. [Notion Import](28-notion-import.md)
+29. [Spatial Canvas](29-spatial-canvas.md)
+30. [Dashboards and Workflows](30-dashboards-and-workflows.md)
+31. [App Platform](31-app-platform.md)
+32. [RSS Reader](32-rss-reader.md)
+33. [Workspace Personas](33-personas.md)
+34. [API Surface](34-api-surface.md)
+35. [Browser Extension](35-browser-extension.md)
+36. [Context Overlay](36-context-overlay.md)
+37. [AI Features](37-ai-features.md)
 
-## Part IX: Identity and Federation
+## Part IX: Sync and Companion Apps
 
-25. [WebID Profiles](25-webid-profiles.md)
-26. [IndieAuth](26-indieauth.md)
+38. [Linear Sync](38-linear-sync.md)
+39. [GitHub Sync](39-github-sync.md)
+40. [Jira Sync](40-jira-sync.md)
+41. [Monday.com Sync](41-monday-sync.md)
+42. [Google Calendar Sync](42-google-calendar-sync.md)
+43. [Todoist Sync](43-todoist-sync.md)
+44. [Outlook Calendar Sync](44-outlook-calendar-sync.md)
+45. [CalDAV Calendar Sync](45-caldav-calendar-sync.md)
+46. [Asana Sync](46-asana-sync.md)
+47. [Mobile App & Context](47-mobile-app-context.md)
+48. [Media Scheduler](48-media-scheduler.md)
+
+## Part X: Identity and Federation
+
+49. [WebID Profiles](49-webid-profiles.md)
+50. [IndieAuth](50-indieauth.md)
 51. [Federation and Shared Graphs](51-federation.md)
 
 ## Appendices

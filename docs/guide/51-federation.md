@@ -1,6 +1,6 @@
 # Chapter 51: Federation and Shared Graphs
 
-Federation lets separate SemPKM instances collaborate. You can create a **shared graph**, invite a user on another instance to join it, copy objects into it, and keep both copies in sync — all while each person keeps full ownership of their own self-hosted instance. Identity is anchored in your [WebID profile](25-webid-profiles.md), discovery uses WebFinger, and instances talk to each other with signed Linked Data Notifications (LDN).
+Federation lets separate SemPKM instances collaborate. You can create a **shared graph**, invite a user on another instance to join it, copy objects into it, and keep both copies in sync — all while each person keeps full ownership of their own self-hosted instance. Identity is anchored in your [WebID profile](49-webid-profiles.md), discovery uses WebFinger, and instances talk to each other with signed Linked Data Notifications (LDN).
 
 By the end of this chapter you will understand what shared graphs are, how to create one and invite a remote collaborator, how invitations arrive in your Inbox, how sync pulls changes between instances, and what security guarantees protect your knowledge base from remote data.
 
@@ -18,14 +18,14 @@ Four building blocks make up SemPKM federation:
 
 3. **Linked Data Notifications.** Instances exchange JSON-LD notifications (invitations, sync alerts, recommendations, messages) by POSTing ActivityStreams payloads to each other's `/api/inbox`. Inbound notifications must carry a valid HTTP Message Signature (RFC 9421) that verifies against the Ed25519 public key published in the sender's WebID profile.
 
-4. **RDF Patch sync.** Sync is **pull-based**: your instance fetches the changes made to a shared graph on a remote instance since your last sync, as an RDF Patch derived from the remote event log, and applies them locally through the event store. Every synced change is an attributed event in your [Event Log](15-event-log.md), like any other write.
+4. **RDF Patch sync.** Sync is **pull-based**: your instance fetches the changes made to a shared graph on a remote instance since your last sync, as an RDF Patch derived from the remote event log, and applies them locally through the event store. Every synced change is an attributed event in your [Event Log](17-event-log.md), like any other write.
 
 ### Prerequisites
 
 Before federating, on **both** instances:
 
-1. **Claim a username and publish your WebID.** Navigate to **Settings > WebID Profile**, claim a username, and publish your profile. Invitation delivery, signature verification, and remote-instance discovery all depend on a published, HTTP-reachable WebID. See [Chapter 25: WebID Profiles](25-webid-profiles.md).
-2. **Deploy with a public base URL over HTTPS.** WebFinger discovery contacts `https://{domain}/.well-known/webfinger`, and remote instances must be able to fetch your profile document and reach your inbox. A locally-bound dev instance cannot receive invitations from the outside. See [Chapter 20: Production Deployment](20-production-deployment.md).
+1. **Claim a username and publish your WebID.** Navigate to **Settings > WebID Profile**, claim a username, and publish your profile. Invitation delivery, signature verification, and remote-instance discovery all depend on a published, HTTP-reachable WebID. See [Chapter 49: WebID Profiles](49-webid-profiles.md).
+2. **Deploy with a public base URL over HTTPS.** WebFinger discovery contacts `https://{domain}/.well-known/webfinger`, and remote instances must be able to fetch your profile document and reach your inbox. A locally-bound dev instance cannot receive invitations from the outside. See [Chapter 22: Production Deployment](22-production-deployment.md).
 
 ---
 
@@ -97,7 +97,7 @@ curl -X POST https://your-instance/api/federation/shared-graphs/{graph-id}/copy 
 
 `{graph-id}` is the UUID portion of the shared graph IRI (`urn:sempkm:shared:{graph-id}` — visible on the graph card's `data-graph-iri` attribute or in the `GET /api/federation/shared-graphs` response).
 
-> **Note:** Copying is currently API-only — there is no button in the object editor yet. See [Chapter 31: API Surface](31-api-surface.md) for authentication options.
+> **Note:** Copying is currently API-only — there is no button in the object editor yet. See [Chapter 34: API Surface](34-api-surface.md) for authentication options.
 
 The copy is committed through the event store like any other write, so it is attributed and auditable. After the commit, your instance sends a fire-and-forget **Update** sync alert to every remote member's inbox, telling them there are new changes to pull.
 
@@ -203,14 +203,14 @@ Instance A serves on `http://localhost:3911` and instance B on `http://localhost
 
 ## See Also
 
-- [Chapter 25: WebID Profiles](25-webid-profiles.md) — publish the identity and Ed25519 keys that federation depends on
-- [Chapter 15: Understanding the Event Log](15-event-log.md) — how synced changes are recorded as events
-- [Chapter 31: API Surface](31-api-surface.md) — authenticating scripted calls to the federation API
-- [Chapter 20: Production Deployment](20-production-deployment.md) — HTTPS deployment, a prerequisite for cross-instance federation
-- [Chapter 18: The SPARQL Endpoint](18-sparql-endpoint.md) — querying shared graphs directly
+- [Chapter 49: WebID Profiles](49-webid-profiles.md) — publish the identity and Ed25519 keys that federation depends on
+- [Chapter 17: Understanding the Event Log](17-event-log.md) — how synced changes are recorded as events
+- [Chapter 34: API Surface](34-api-surface.md) — authenticating scripted calls to the federation API
+- [Chapter 22: Production Deployment](22-production-deployment.md) — HTTPS deployment, a prerequisite for cross-instance federation
+- [Chapter 20: The SPARQL Endpoint](20-sparql-endpoint.md) — querying shared graphs directly
 
 > **Federated SPARQL queries:** the **Admin > Federation Endpoints** page manages an allowlist of external SPARQL endpoints usable in `SERVICE` clauses and from the SPARQL console. It is configured there or via the `FEDERATION_ALLOWED_ENDPOINTS` environment variable (comma-separated URLs; empty means none allowed).
 
 ---
 
-**Previous:** [Chapter 26: IndieAuth](26-indieauth.md) | **Next:** [Appendix A: Environment Variable Reference](appendix-a-environment-variables.md)
+**Previous:** [Chapter 50: IndieAuth](50-indieauth.md) | **Next:** [Appendix A: Environment Variable Reference](appendix-a-environment-variables.md)

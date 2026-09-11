@@ -36,7 +36,7 @@ The exported N-Quads file can be imported into any other RDF-compatible tool or 
 
 ### Can I import data from other tools?
 
-SemPKM has a built-in Obsidian Import wizard that lets you upload a `.zip` of your Obsidian vault and migrate notes into typed SemPKM objects. The wizard walks you through scanning your vault, mapping folders and tags to SemPKM types, configuring property mappings, and importing in batch with real-time progress tracking. See [Chapter 24: Obsidian Onboarding](24-obsidian-onboarding.md) for a complete walkthrough.
+SemPKM has a built-in Obsidian Import wizard that lets you upload a `.zip` of your Obsidian vault and migrate notes into typed SemPKM objects. The wizard walks you through scanning your vault, mapping folders and tags to SemPKM types, configuring property mappings, and importing in batch with real-time progress tracking. See [Chapter 27: Obsidian Onboarding](27-obsidian-onboarding.md) for a complete walkthrough.
 
 For other tools, you can build import scripts using the Command API:
 
@@ -56,7 +56,7 @@ Yes. SemPKM includes a built-in Obsidian Import wizard that lets you migrate you
 
 SemPKM and Obsidian use different storage models (typed RDF triples vs. flat Markdown files), so this is a one-way migration rather than a live sync. However, the Virtual Filesystem (WebDAV) feature lets you browse SemPKM objects as Markdown files after import, providing a familiar file-based view.
 
-For a complete walkthrough, see [Chapter 24: Obsidian Onboarding](24-obsidian-onboarding.md).
+For a complete walkthrough, see [Chapter 27: Obsidian Onboarding](27-obsidian-onboarding.md).
 
 ### Does SemPKM work on mobile?
 
@@ -103,7 +103,7 @@ Absolutely -- this is one of SemPKM's core design goals. A Mental Model is a dir
 - A views file (SPARQL-powered table, card, and graph views)
 - Optionally, a seed data file with starter objects
 
-See [Chapter 19: Creating Mental Models](19-creating-mental-models.md) for a complete walkthrough with examples.
+See [Chapter 21: Creating Mental Models](21-creating-mental-models.md) for a complete walkthrough with examples.
 
 ### Can I install multiple Mental Models at the same time?
 
@@ -127,7 +127,7 @@ You do not need to configure anything for WebID to work -- it is created automat
 - Share a public profile URL that links to your knowledge contributions
 - Participate in the decentralized Linked Data ecosystem
 
-See [Chapter 25: WebID Profiles](25-webid-profiles.md) for details.
+See [Chapter 49: WebID Profiles](49-webid-profiles.md) for details.
 
 ### Can I sign into other services with SemPKM?
 
@@ -140,7 +140,7 @@ The flow works like this:
 3. You are redirected to SemPKM to approve the authorization request.
 4. After approval, you are signed into the third-party service.
 
-This requires `APP_BASE_URL` to be set to a publicly accessible URL. See [Chapter 26: IndieAuth](26-indieauth.md) for a complete walkthrough.
+This requires `APP_BASE_URL` to be set to a publicly accessible URL. See [Chapter 50: IndieAuth](50-indieauth.md) for a complete walkthrough.
 
 ---
 
@@ -185,7 +185,7 @@ Named graphs allow SemPKM to update, query, and manage different data sets indep
 
 ### How do I back up my data?
 
-See the "Backup and Restore" section in [Chapter 20: Production Deployment](20-production-deployment.md). In short:
+See the "Backup and Restore" section in [Chapter 22: Production Deployment](22-production-deployment.md). In short:
 
 1. Back up the RDF4J triplestore volume (all object and event data).
 2. Back up the SQL database (user accounts and settings).

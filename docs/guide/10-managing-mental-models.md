@@ -457,4 +457,4 @@ Each item has inline **Edit** and **Delete** action buttons, providing the same 
 
 ---
 
-**Previous:** [Chapter 9: Understanding Mental Models](09-understanding-mental-models.md) | **Next:** [Chapter 11: User Management](11-user-management.md)
+**Previous:** [Chapter 9: Understanding Mental Models](09-understanding-mental-models.md) | **Next:** [Chapter 11: Mental Model Catalog](11-mental-model-catalog.md)

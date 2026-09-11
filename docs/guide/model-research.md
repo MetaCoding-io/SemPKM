@@ -157,4 +157,4 @@ Claims (top-right), Research Gaps (bottom-left), and High Confidence Claims (bot
 
 ---
 
-**Back:** [Chapter 39: Mental Model Catalog](39-mental-model-catalog.md)
+**Back:** [Chapter 11: Mental Model Catalog](11-mental-model-catalog.md)
