@@ -139,6 +139,7 @@ Rules for the file:
 - It must be a relative path inside the archive with a `.md` extension. Absolute paths and `..` segments are rejected at manifest validation.
 - It may be at most 1 MB.
 - It is rendered client-side with the same Markdown pipeline as the user guide (marked + DOMPurify), so headings, tables, fenced code blocks, and links all work. Raw HTML is sanitized.
+- Blockquotes that open with a bold label render as colored callouts: `> **Warning:**` (also Important, Caution, Danger) is red with an exclamation icon, `> **Tip:**` is green with a lightbulb, and `> **Note:**` or any other bold label is blue with an info icon.
 - Relative links to other files in the archive are not resolved -- link to the user guide or external URLs instead.
 
 Where it appears:

@@ -3878,6 +3878,56 @@ details.form-group[open] > .form-group-summary::before {
     margin: 0.8em 0;
 }
 
+/* Callouts: labelled blockquotes (Tip / Note / Warning) rendered as alerts.
+   Classes are added by SemPKM.decorateCallouts() in markdown-render.js. */
+.markdown-body blockquote.callout {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    border-left-width: 4px;
+    border-radius: 0 6px 6px 0;
+    padding: 0.75em 1em;
+    color: var(--color-text);
+}
+
+.markdown-body blockquote.callout > .callout-icon {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    margin-top: 0.15em;
+}
+
+.markdown-body blockquote.callout > .callout-icon svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+    stroke: currentColor;
+}
+
+.markdown-body blockquote.callout > p { flex: 1; margin: 0; }
+.markdown-body blockquote.callout > p + p { margin-top: 0.6em; }
+
+.markdown-body blockquote.callout-warning {
+    background: var(--color-error-bg);
+    border-left-color: var(--color-error);
+}
+.markdown-body blockquote.callout-warning > .callout-icon,
+.markdown-body blockquote.callout-warning strong:first-child { color: var(--color-error); }
+
+.markdown-body blockquote.callout-tip {
+    background: var(--color-success-bg);
+    border-left-color: var(--color-success);
+}
+.markdown-body blockquote.callout-tip > .callout-icon,
+.markdown-body blockquote.callout-tip strong:first-child { color: var(--color-success); }
+
+.markdown-body blockquote.callout-note {
+    background: var(--color-info-bg);
+    border-left-color: var(--color-info);
+}
+.markdown-body blockquote.callout-note > .callout-icon,
+.markdown-body blockquote.callout-note strong:first-child { color: var(--color-info); }
+
 .markdown-body img { max-width: 100%; border-radius: 4px; }
 
 .markdown-body table {

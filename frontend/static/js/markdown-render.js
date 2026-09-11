@@ -40,6 +40,34 @@
     return _marked;
   }
 
+  // ── Callouts: blockquotes that open with a bold label become Bootstrap-style
+  //    alerts. Warning/Important/Caution/Danger -> red with "!", Tip/Example ->
+  //    green with a lightbulb, any other labelled quote (Note, ...) -> blue info.
+  var CALLOUT_ICONS = {
+    warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="7" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+    tip: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg>',
+    note: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="12" y1="7" x2="12.01" y2="7"/></svg>'
+  };
+  function decorateCallouts(root) {
+    if (!root || !root.querySelectorAll) return;
+    root.querySelectorAll('blockquote').forEach(function (bq) {
+      if (bq.classList.contains('callout')) return;
+      var first = bq.firstElementChild;
+      var strong = first && first.tagName === 'P' ? first.firstElementChild : null;
+      if (!strong || strong.tagName !== 'STRONG' || strong !== first.firstChild) return;
+      var label = (strong.textContent || '').trim().replace(/[:.!]$/, '');
+      var kind = /^(warning|important|caution|danger)/i.test(label) ? 'warning'
+               : /^(tip|example)/i.test(label) ? 'tip' : 'note';
+      bq.classList.add('callout', 'callout-' + kind);
+      var icon = document.createElement('span');
+      icon.className = 'callout-icon';
+      icon.innerHTML = CALLOUT_ICONS[kind];
+      bq.insertBefore(icon, bq.firstChild);
+    });
+  }
+
+  window.SemPKM.decorateCallouts = decorateCallouts;
+
   /**
    * Render a Markdown string into a target element.
    *
@@ -110,6 +138,7 @@
     }
     if (typeof rawText !== 'string') rawText = String(rawText);
     window.SemPKM.renderMarkdownText(rawText, targetId);
+    decorateCallouts(target);
   };
 
   /**
@@ -138,6 +167,7 @@
           rawHtml = DOMPurify.sanitize(rawHtml);
         }
         target.innerHTML = rawHtml;
+        decorateCallouts(target);
 
         // Rebase relative image paths against the fetch URL so they resolve
         // correctly when the page URL differs (e.g. /guide/ vs /docs/guide/).
