@@ -148,6 +148,8 @@ Where it appears:
 
 Because the file lives inside the archive, it is versioned with the model: a marketplace update or a **Refresh** picks up the new text immediately. The bundled models each ship a `README.md` -- `models/basic-pkm/README.md` is a good template, covering types with field tables, relationships, views and saved queries, rules, seed data, and recommended dashboards.
 
+> **Contributing a bundled model?** The READMEs of the models that ship with SemPKM are also mirrored into this guide's **Mental Model Reference** section. The mirrors are generated: run `python3 scripts/sync-model-docs.py` after editing a bundled README, and list the new `model-{modelId}.md` page in the three chapter lists (`docs/guide/index.html`, `docs/guide/README.md`, and `GUIDE_SECTIONS` in the shell router). The pre-commit hook and the test suite both reject stale mirrors.
+
 ### Icons
 
 The `icons` array assigns Lucide icon names and colors to each type your model defines. Each entry supports per-context overrides for the **Explorer tree**, **editor tabs**, and **graph nodes**:

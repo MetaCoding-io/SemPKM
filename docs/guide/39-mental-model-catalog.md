@@ -2,7 +2,7 @@
 
 SemPKM ships eight bundled Mental Models. Each one defines domain-specific types, forms, views, and (for most) validation rules and saved queries. This chapter is the catalog: a short profile of every bundled model and where to find its full documentation.
 
-> **Where the detailed docs live.** Every model archive ships its own `README.md` with field-by-field type references, relationship diagrams, saved queries, validation rules, and recommended dashboards. SemPKM renders it in the admin portal under **Admin > Models > *model* > Documentation**, and serves the raw Markdown at `/api/models/{modelId}/docs`. Because the documentation travels inside the archive, it always matches the installed version -- this chapter deliberately does not repeat it (or version numbers, which the admin portal shows).
+> **Where the detailed docs live.** Every model archive ships its own `README.md` with field-by-field type references, relationship diagrams, saved queries, validation rules, and recommended dashboards. SemPKM renders it in the admin portal under **Admin > Models > *model* > Documentation** and serves the raw Markdown at `/api/models/{modelId}/docs`, so what you read always matches the installed version. The same pages are mirrored into this guide under **Mental Model Reference** (linked from each profile below) so everything is readable in one place; the mirrors are generated from the archives, not hand-maintained. This chapter deliberately does not repeat their content or version numbers.
 
 For background on what Mental Models are and how they work, see [Chapter 9: Understanding Mental Models](09-understanding-mental-models.md). For installation, refresh, and removal, see [Chapter 10: Managing Mental Models](10-managing-mental-models.md). To build your own, see [Chapter 19: Creating Mental Models](19-creating-mental-models.md).
 
@@ -26,7 +26,7 @@ Basic PKM is installed automatically on a fresh instance. All models can coexist
 
 General-purpose personal knowledge management plus lightweight project management: **Note**, **Concept**, **Project**, **Person**, **Task**, **Milestone**, and **Event**. Tasks carry scheduling, recurrence, and external-sync fields used by the Linear, GitHub, Jira, Monday, Asana, and Todoist apps; Events back the calendar view and the Google Calendar, Outlook, and CalDAV sync apps. Ships eight saved queries (open, overdue, and blocked tasks; upcoming and past events; active projects; recent notes; concept hierarchy) and SHACL-AF rules for overdue tasks, missing titles, comma-separated tags, and more.
 
-Documentation: `models/basic-pkm/README.md` · Also see [Chapter 9](09-understanding-mental-models.md#the-basic-pkm-mental-model).
+Documentation: [Basic PKM reference](model-basic-pkm.md) · Also see [Chapter 9](09-understanding-mental-models.md#the-basic-pkm-mental-model).
 
 ### Personal CRM
 
@@ -34,7 +34,7 @@ Documentation: `models/basic-pkm/README.md` · Also see [Chapter 9](09-understan
 
 Relationship management with **Contact**, **Company**, **Interaction**, and **Deal**. Deals move through a `lead → qualified → proposal → negotiation → won / lost` pipeline. Rules warn about contacts with no recorded interactions and overdue follow-ups; an inference rule derives each contact's last-contacted date.
 
-Documentation: `models/crm/README.md`
+Documentation: [Personal CRM reference](model-crm.md)
 
 ### Zettelkasten+
 
@@ -42,7 +42,7 @@ Documentation: `models/crm/README.md`
 
 The Zettelkasten method with a full provenance chain: **FleetingNote → Source → LiteratureNote → PermanentNote → StructureNote**. Permanent notes connect through `supports`, `contradicts`, `followsFrom`, and `relatedTo` argumentation links; a Contradiction Map graph visualizes tensions. Rules flag unprocessed fleeting notes, isolated permanent notes, and unsourced ideas.
 
-Documentation: `models/zettelkasten/README.md`
+Documentation: [Zettelkasten+ reference](model-zettelkasten.md)
 
 ### Research Workflow
 
@@ -50,7 +50,7 @@ Documentation: `models/zettelkasten/README.md`
 
 Academic research tracking with **Paper**, **Claim**, **Evidence**, **ResearchQuestion**, and **Argument**. Claims carry a confidence level and accumulate supporting and refuting evidence with type and strength; rules flag unsupported and contested claims, orphan evidence, and unanswered questions. Includes a citation network graph and an evidence map.
 
-Documentation: `models/research/README.md`
+Documentation: [Research Workflow reference](model-research.md)
 
 ### Business Planning
 
@@ -58,7 +58,7 @@ Documentation: `models/research/README.md`
 
 Fifteen strategy frameworks as container + item types (32 concrete types): Eisenhower Matrix, Decision Matrix, SWOT, Porter's Five Forces, PESTLE, BCG Matrix, Ansoff Matrix, Business Model Canvas, Lean Canvas, Value Chain, OKR, Balanced Scorecard, RACI Matrix, Stakeholder Map, and Risk Matrix. Four custom renderers -- **Quadrant**, **BMC**, **OKR**, and **Decision Matrix** -- plus cross-model edges to Basic PKM tasks and projects and PPV goal outcomes. No rules or saved queries; the README includes SPARQL starting points.
 
-Documentation: `models/business-planning/README.md`
+Documentation: [Business Planning reference](model-business-planning.md)
 
 ### Pillars, Pipelines & Vaults (PPV)
 
@@ -66,7 +66,7 @@ Documentation: `models/business-planning/README.md`
 
 August Bradley's PPV system: a five-level goal hierarchy (**PillarGroup → Pillar → ValueGoal → GoalOutcome → Project → ActionItem**) and a four-tier review cycle (**Weekly → Monthly → Quarterly → Yearly**) with **PillarScore** and **GuidingPrinciples**. Installing it also creates five dashboards (Action Items, Life Dashboard, Projects Board, Goals Overview, Review Hub) and five guided workflows (Daily Check-in and the four reviews). Rules flag orphan action items and projects.
 
-Documentation: `models/ppv/README.md` · Also see [Chapter 50: PPV Model](50-ppv-model.md).
+Documentation: [PPV reference](model-ppv.md) · Also see [Chapter 50: PPV Model](50-ppv-model.md).
 
 ### RSS Feeds
 
@@ -74,7 +74,7 @@ Documentation: `models/ppv/README.md` · Also see [Chapter 50: PPV Model](50-ppv
 
 The two types behind the RSS Reader app: **FeedSubscription** and **Article**, with Unread and Starred saved queries. No seed data -- the app populates the graph as it polls. Install the model before the app.
 
-Documentation: `models/rss-feeds/README.md` · Also see [Chapter 40: RSS Reader](40-rss-reader.md).
+Documentation: [RSS Feeds reference](model-rss-feeds.md) · Also see [Chapter 40: RSS Reader](40-rss-reader.md).
 
 ### Media Scheduler
 
@@ -82,7 +82,7 @@ Documentation: `models/rss-feeds/README.md` · Also see [Chapter 40: RSS Reader]
 
 The types behind the Media Scheduler app: **MediaSource** (podcast, YouTube, Spotify), **MediaItem**, **MediaCategory**, **DailyMediaPlan**, and **PlanEntry**. No seed data -- the app populates the graph. Install the model before the app.
 
-Documentation: `models/media-scheduler/README.md` · Also see [Chapter 49: Media Scheduler](49-media-scheduler.md).
+Documentation: [Media Scheduler reference](model-media-scheduler.md) · Also see [Chapter 49: Media Scheduler](49-media-scheduler.md).
 
 ---
 

@@ -25,6 +25,17 @@ setup to advanced topics like SPARQL queries and creating your own Mental Models
 10. [Managing Mental Models](10-managing-mental-models.md)
 39. [Mental Model Catalog](39-mental-model-catalog.md)
 
+**Mental Model Reference** (generated from each bundled model's `README.md`):
+
+- [Basic PKM](model-basic-pkm.md)
+- [Personal CRM](model-crm.md)
+- [Zettelkasten+](model-zettelkasten.md)
+- [Research Workflow](model-research.md)
+- [Business Planning](model-business-planning.md)
+- [Pillars, Pipelines & Vaults](model-ppv.md)
+- [RSS Feeds](model-rss-feeds.md)
+- [Media Scheduler](model-media-scheduler.md)
+
 ## Part IV: Administration
 
 11. [User Management](11-user-management.md)

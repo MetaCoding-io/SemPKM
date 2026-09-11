@@ -29,6 +29,16 @@ test.describe('Mental Model Documentation', () => {
     const missing = await ownerRequest.get(`${BASE_URL}/api/models/does-not-exist/docs`);
     expect(missing.status()).toBe(404);
 
+    // ---- Part A2: the user guide mirror of the same README ----
+    // docs/guide/model-{id}.md is generated from models/{id}/README.md and served
+    // by the guide static mount, so the in-app Docs hub and the public site can show it.
+    const mirror = await ownerRequest.get(`${BASE_URL}/docs/guide/model-basic-pkm.md`);
+    expect(mirror.status()).toBe(200);
+    const mirrorText = await mirror.text();
+    expect(mirrorText).toContain('<!-- GENERATED FILE');
+    expect(mirrorText).toContain('# Basic PKM');
+    expect(mirrorText).toContain(markdown.trim());
+
     // ---- Part B: Documentation tab on the admin detail page ----
     const resp = await ownerPage.goto(`${BASE_URL}/admin/models/basic-pkm`);
     expect(resp?.status()).toBe(200);

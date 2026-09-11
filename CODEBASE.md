@@ -181,7 +181,7 @@ Mental Models are pluggable domain schemas containing:
 - `shapes/` — SHACL shapes for auto-generated forms (JSON-LD)
 - `views/` — ViewSpec definitions for the view renderers (JSON-LD)
 - `seed/` — Seed data objects (JSON-LD)
-- `README.md` — Markdown documentation (`entrypoints.docs`, or root `README.md` by convention); rendered on the admin model detail page's Documentation tab and served at `GET /api/models/{id}/docs`
+- `README.md` — Markdown documentation (`entrypoints.docs`, or root `README.md` by convention); rendered on the admin model detail page's Documentation tab, served at `GET /api/models/{id}/docs`, and mirrored into the user guide as `docs/guide/model-{id}.md` by `scripts/sync-model-docs.py` (generated files; the pre-commit hook and `test_model_docs.py` reject stale mirrors)
 - optionally dashboards, workflows, and rules
 
 **Bundled models** (`models/`, mounted read-only at `/app/models/`):

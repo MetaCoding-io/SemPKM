@@ -22,6 +22,9 @@ router = APIRouter(tags=["shell"])
 # NOTE: docs/guide/README.md and docs/guide/index.html have their own
 # manually-maintained chapter lists. When adding a chapter, update all three.
 # See KNOWLEDGE.md "User guide has THREE files that must stay in sync".
+# The "Mental Model Reference" pages (model-*.md) are generated from
+# models/*/README.md by scripts/sync-model-docs.py -- add a bundled model
+# there and list it in all three chapter lists.
 #
 # Section types:
 #   "tours"    — Interactive tutorial cards (onclick navigation)
@@ -109,6 +112,22 @@ GUIDE_SECTIONS: list[dict] = [
             {"filename": "appendix-d-glossary.md", "title": "Appendix D: Glossary", "icon": "book", "appendix": True},
             {"filename": "appendix-e-troubleshooting.md", "title": "Appendix E: Troubleshooting", "icon": "alert-triangle", "appendix": True},
             {"filename": "appendix-f-faq.md", "title": "Appendix F: FAQ", "icon": "help-circle", "appendix": True},
+        ],
+    },
+    {
+        # Generated from models/*/README.md by scripts/sync-model-docs.py.
+        # Keep in step with docs/guide/index.html and docs/guide/README.md.
+        "title": "Mental Model Reference",
+        "type": "chapters",
+        "items": [
+            {"filename": "model-basic-pkm.md", "title": "Basic PKM", "icon": "file-text"},
+            {"filename": "model-crm.md", "title": "Personal CRM", "icon": "contact"},
+            {"filename": "model-zettelkasten.md", "title": "Zettelkasten+", "icon": "notebook-pen"},
+            {"filename": "model-research.md", "title": "Research Workflow", "icon": "flask-conical"},
+            {"filename": "model-business-planning.md", "title": "Business Planning", "icon": "briefcase"},
+            {"filename": "model-ppv.md", "title": "Pillars, Pipelines & Vaults", "icon": "compass"},
+            {"filename": "model-rss-feeds.md", "title": "RSS Feeds", "icon": "rss"},
+            {"filename": "model-media-scheduler.md", "title": "Media Scheduler", "icon": "radio"},
         ],
     },
     {
