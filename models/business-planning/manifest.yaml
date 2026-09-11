@@ -10,6 +10,7 @@ entrypoints:
   shapes: "shapes/business-planning.jsonld"
   views: "views/business-planning.jsonld"
   seed: "seed/business-planning.jsonld"
+  docs: "README.md"
 icons:
   - type: "bp:EisenhowerMatrix"
     icon: "grid-2x2"

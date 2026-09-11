@@ -10,6 +10,7 @@ entrypoints:
   shapes: "shapes/media-scheduler.jsonld"
   views: "views/media-scheduler.jsonld"
   seed: null
+  docs: "README.md"
 icons:
   - type: "ms:MediaSource"
     icon: "radio"

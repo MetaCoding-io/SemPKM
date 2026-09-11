@@ -4,6 +4,7 @@ Serves Jinja2 templates with htmx partial rendering for in-place updates.
 Uses ModelService, WebhookService, and AuthService via FastAPI dependency injection.
 """
 
+import html
 import logging
 import time
 import uuid
@@ -403,6 +404,30 @@ async def admin_model_detail(
     if _is_htmx_request(request):
         return templates_response(request, "admin/model_detail.html", context, block_name="content")
     return templates_response(request, "admin/model_detail.html", context)
+
+
+@router.get("/models/{model_id}/docs")
+async def admin_model_docs(
+    request: Request,
+    model_id: str,
+    user: User = Depends(require_role("owner")),
+    model_service: ModelService = Depends(get_model_service),
+):
+    """Render the Documentation tab partial for an installed model.
+
+    The Markdown source is embedded in the partial as JSON and rendered
+    client-side via SemPKM.renderMarkdownJson (marked + DOMPurify).
+    """
+    models = await model_service.list_models()
+    info = next((m for m in models if m.model_id == model_id), None)
+    if info is None:
+        safe_id = html.escape(model_id)
+        return HTMLResponse(
+            f'<div class="error-box">Model \'{safe_id}\' not found.</div>', status_code=404
+        )
+    docs = model_service.get_model_docs(model_id)
+    context = {"request": request, "info": info, "docs": docs}
+    return templates_response(request, "admin/model_docs.html", context)
 
 
 @router.get("/models/{model_id}/ontology-diagram")

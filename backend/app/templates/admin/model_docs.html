@@ -1,0 +1,39 @@
+{# Documentation tab for the model detail dashboard.
+   Rendered as an htmx partial loaded on Documentation tab click.
+   The Markdown source ships inside the model archive (entrypoints.docs
+   or a root README.md) and is rendered client-side via marked + DOMPurify.
+   Accepts:
+     info: InstalledModel (model_id, name, version)
+     docs: str | None -- raw Markdown text
+#}
+<div class="model-docs-panel" data-model-id="{{ info.model_id }}">
+    {% if docs and docs.strip() %}
+    <script type="application/json" id="model-docs-src-{{ info.model_id }}">{{ docs | tojson }}</script>
+    <div class="markdown-body model-docs-content" id="model-docs-rendered-{{ info.model_id }}">
+        <p class="docs-loading">Rendering documentation...</p>
+    </div>
+    <script>
+    (function() {
+      var srcId = 'model-docs-src-{{ info.model_id }}';
+      var tgtId = 'model-docs-rendered-{{ info.model_id }}';
+      if (window.SemPKM && typeof SemPKM.renderMarkdownJson === 'function') {
+        SemPKM.renderMarkdownJson(srcId, tgtId);
+      } else {
+        var src = document.getElementById(srcId);
+        var tgt = document.getElementById(tgtId);
+        if (src && tgt) {
+          try { tgt.textContent = JSON.parse(src.textContent || '""'); }
+          catch (e) { tgt.textContent = src.textContent || ''; }
+        }
+      }
+    })();
+    </script>
+    {% else %}
+    <div class="diagram-empty model-docs-empty">
+        <i data-lucide="book-open"></i>
+        <p>This model ships no documentation.</p>
+        <p class="model-docs-hint">Model authors can add a <code>README.md</code> at the archive root, or declare
+        <code>entrypoints.docs</code> in <code>manifest.yaml</code>, and it will be rendered here.</p>
+    </div>
+    {% endif %}
+</div>

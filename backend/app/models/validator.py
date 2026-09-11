@@ -244,6 +244,21 @@ def validate_archive(archive: ModelArchive) -> ArchiveValidationReport:
                     )
                 )
 
+    # Warning: archive ships no human-readable documentation
+    if archive.docs is None or not archive.docs.strip():
+        all_issues.append(
+            ValidationIssue(
+                file="manifest",
+                subject=archive.manifest.modelId,
+                rule="missing-docs",
+                message=(
+                    "Model ships no documentation. Add a README.md at the "
+                    "archive root or declare entrypoints.docs in manifest.yaml."
+                ),
+                severity="warning",
+            )
+        )
+
     # Separate into errors and warnings
     errors = [i for i in all_issues if i.severity == "error"]
     warnings = [i for i in all_issues if i.severity == "warning"]

@@ -17,7 +17,7 @@ from rdflib import Graph, URIRef, Literal, BNode
 from rdflib.namespace import RDF, XSD
 
 from app.events.store import EventStore, Operation
-from app.models.loader import ModelArchive, load_archive
+from app.models.loader import ModelArchive, load_archive, load_model_docs
 from app.models.manifest import ManifestSchema, parse_manifest
 from app.models.registry import (
     MODELS_GRAPH,
@@ -891,6 +891,33 @@ class ModelService:
             List of InstalledModel with metadata.
         """
         return await registry_list_models(self._client)
+
+    def get_model_docs(self, model_id: str) -> str | None:
+        """Read the Markdown documentation shipped inside a model archive.
+
+        Reads straight from the on-disk archive (bundled or downloaded) so
+        that a refreshed archive is reflected immediately -- documentation
+        is not stored in the triplestore. Returns None when the archive
+        cannot be located or ships no documentation; errors from a broken
+        docs declaration are logged and also yield None so the admin page
+        still renders.
+        """
+        from app.config import settings
+        from app.models.paths import resolve_model_dir
+
+        model_dir = resolve_model_dir(
+            model_id, extra_dirs=[settings.marketplace_models_dir]
+        )
+        if model_dir is None:
+            return None
+        try:
+            manifest = parse_manifest(model_dir)
+            return load_model_docs(model_dir, manifest)
+        except Exception:
+            logger.warning(
+                "Could not load documentation for model '%s'", model_id, exc_info=True
+            )
+            return None
 
     async def get_model_detail(self, model_id: str) -> dict | None:
         """Get detailed information about an installed model.

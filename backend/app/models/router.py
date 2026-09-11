@@ -6,6 +6,7 @@ Provides endpoints for installing, removing, and listing Mental Models.
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, Field
 
 from app.auth.dependencies import get_current_user, require_role
@@ -179,3 +180,30 @@ async def list_models(
         ],
         count=len(models),
     )
+
+
+@router.get(
+    "/{model_id}/docs",
+    response_class=PlainTextResponse,
+    responses={404: {"model": ErrorResponse}},
+)
+async def get_model_docs(
+    model_id: str,
+    user: User = Depends(get_current_user),
+    model_service: ModelService = Depends(get_model_service),
+) -> PlainTextResponse:
+    """Return the Markdown documentation bundled with an installed model.
+
+    Serves the file declared as ``entrypoints.docs`` in the model manifest
+    (or the archive's root ``README.md``) as ``text/markdown``. Returns 404
+    when the model is not installed or ships no documentation.
+    """
+    models = await model_service.list_models()
+    if not any(m.model_id == model_id for m in models):
+        raise HTTPException(status_code=404, detail=f"Model '{model_id}' is not installed")
+    docs = model_service.get_model_docs(model_id)
+    if docs is None:
+        raise HTTPException(
+            status_code=404, detail=f"Model '{model_id}' ships no documentation"
+        )
+    return PlainTextResponse(docs, media_type="text/markdown; charset=utf-8")

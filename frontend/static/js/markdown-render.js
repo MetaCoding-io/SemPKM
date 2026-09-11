@@ -41,18 +41,16 @@
   }
 
   /**
-   * Render Markdown from a source element into a target element.
+   * Render a Markdown string into a target element.
    *
-   * @param {string} sourceId - ID of the element containing raw Markdown text
-   *                            (e.g., a <script type="text/plain"> or <template>)
+   * @param {string} rawText  - Raw Markdown text
    * @param {string} targetId - ID of the element to receive rendered HTML
    */
-  window.SemPKM.renderMarkdownBody = function (sourceId, targetId) {
-    var source = document.getElementById(sourceId);
+  window.SemPKM.renderMarkdownText = function (rawText, targetId) {
     var target = document.getElementById(targetId);
-    if (!source || !target) return;
+    if (!target) return;
 
-    var rawText = source.textContent || '';
+    rawText = rawText || '';
     if (!rawText.trim()) {
       target.innerHTML = '';
       return;
@@ -73,6 +71,45 @@
     }
 
     target.innerHTML = rawHtml;
+  };
+
+  /**
+   * Render Markdown from a source element into a target element.
+   *
+   * @param {string} sourceId - ID of the element containing raw Markdown text
+   *                            (e.g., a <script type="text/plain"> or <template>)
+   * @param {string} targetId - ID of the element to receive rendered HTML
+   */
+  window.SemPKM.renderMarkdownBody = function (sourceId, targetId) {
+    var source = document.getElementById(sourceId);
+    var target = document.getElementById(targetId);
+    if (!source || !target) return;
+
+    window.SemPKM.renderMarkdownText(source.textContent || '', targetId);
+  };
+
+  /**
+   * Render Markdown carried as a JSON string in a
+   * <script type="application/json"> element. Unlike text/plain sources,
+   * JSON-encoded text survives HTML autoescaping byte-for-byte, so
+   * code blocks containing < > & render exactly as authored.
+   *
+   * @param {string} sourceId - ID of the <script type="application/json"> element
+   * @param {string} targetId - ID of the element to receive rendered HTML
+   */
+  window.SemPKM.renderMarkdownJson = function (sourceId, targetId) {
+    var source = document.getElementById(sourceId);
+    var target = document.getElementById(targetId);
+    if (!source || !target) return;
+
+    var rawText = '';
+    try {
+      rawText = JSON.parse(source.textContent || '""');
+    } catch (e) {
+      rawText = source.textContent || '';
+    }
+    if (typeof rawText !== 'string') rawText = String(rawText);
+    window.SemPKM.renderMarkdownText(rawText, targetId);
   };
 
   /**

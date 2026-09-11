@@ -11,6 +11,7 @@ A Mental Model is a directory with a fixed structure. At the top level sits a `m
 ```
 my-research/
   manifest.yaml
+  README.md
   ontology/
     my-research.jsonld
   shapes/
@@ -21,7 +22,7 @@ my-research/
     my-research.jsonld
 ```
 
-Each subdirectory contains a single JSON-LD file (named after the model ID by convention). The manifest tells SemPKM where to find each file and provides metadata about the model.
+Each subdirectory contains a single JSON-LD file (named after the model ID by convention). The manifest tells SemPKM where to find each file and provides metadata about the model. The `README.md` is the model's human-readable documentation -- SemPKM renders it in the admin portal (see [Documentation](#documentation) below).
 
 > **Note:** All JSON-LD files must use inline `@context` mappings. Remote `@context` URLs (like `https://schema.org/`) are rejected because the Docker containers may not have internet access. Define all prefixes directly in each file.
 
@@ -34,6 +35,7 @@ Each subdirectory contains a single JSON-LD file (named after the model ID by co
 | `shapes/`   | `{modelId}.jsonld` | SHACL shapes for forms and validation        | Yes      |
 | `views/`    | `{modelId}.jsonld` | View specifications (table, card, graph)     | Yes      |
 | `seed/`     | `{modelId}.jsonld` | Starter objects loaded on first install      | No       |
+| (root)      | `README.md`       | Markdown documentation rendered in the admin portal | Recommended |
 
 ## The Manifest
 
@@ -54,6 +56,7 @@ entrypoints:
   shapes: "shapes/basic-pkm.jsonld"
   views: "views/basic-pkm.jsonld"
   seed: "seed/basic-pkm.jsonld"
+  docs: "README.md"
 icons:
   - type: "bpkm:Note"
     icon: "file-text"
@@ -107,8 +110,43 @@ The `entrypoints` section maps artifact types to file paths. If you omit entrypo
 | `shapes`    | `shapes/{modelId}.jsonld`      | Yes      |
 | `views`     | `views/{modelId}.jsonld`       | Yes      |
 | `seed`      | `seed/{modelId}.jsonld`        | No       |
+| `rules`     | *(none)*                       | No       |
+| `dashboards`| *(none)*                       | No       |
+| `workflows` | *(none)*                       | No       |
+| `docs`      | *(none; `README.md` is picked up by convention)* | No |
 
 The `{modelId}` placeholder is resolved automatically from the manifest. You can also specify explicit paths if you prefer a different naming convention.
+
+`rules` points at a SHACL-AF Turtle file (inference rules and validation constraints). `dashboards` and `workflows` are JSON files that v2 manifests use to ship dashboards and guided workflows (see [Chapter 28](28-dashboards-and-workflows.md)). `docs` is described in the next section.
+
+### Documentation
+
+Every model should ship human-readable documentation: what the types mean, how they relate, which views and rules the model provides, and recommended workflows. Put it in a Markdown file inside the archive and, optionally, declare it in the manifest:
+
+```yaml
+entrypoints:
+  docs: "README.md"
+```
+
+How SemPKM resolves the file:
+
+1. If `entrypoints.docs` is declared, that file is used. It **must exist** -- install and refresh fail with an `Archive loading error` if it is missing, so a broken declaration is caught before anything is written to the triplestore.
+2. If `entrypoints.docs` is not declared but a `README.md` sits at the archive root, it is used automatically.
+3. If neither exists, the model installs with a `missing-docs` warning and the Documentation tab shows an empty state.
+
+Rules for the file:
+
+- It must be a relative path inside the archive with a `.md` extension. Absolute paths and `..` segments are rejected at manifest validation.
+- It may be at most 1 MB.
+- It is rendered client-side with the same Markdown pipeline as the user guide (marked + DOMPurify), so headings, tables, fenced code blocks, and links all work. Raw HTML is sanitized.
+- Relative links to other files in the archive are not resolved -- link to the user guide or external URLs instead.
+
+Where it appears:
+
+- **Admin > Models > *model* > Documentation** tab, rendered as HTML.
+- `GET /api/models/{modelId}/docs` returns the raw Markdown (`text/markdown`) for scripts and other clients.
+
+Because the file lives inside the archive, it is versioned with the model: a marketplace update or a **Refresh** picks up the new text immediately. The bundled models each ship a `README.md` -- `models/basic-pkm/README.md` is a good template, covering types with field tables, relationships, views and saved queries, rules, seed data, and recommended dashboards.
 
 ### Icons
 
@@ -611,8 +649,13 @@ Common manifest issues:
 
 - **modelId format**: Must be lowercase with hyphens only. No underscores, uppercase, or spaces.
 - **namespace mismatch**: The `namespace` field must exactly match `urn:sempkm:model:{modelId}:`.
-- **missing files**: All required entrypoint files must exist at the specified paths.
+- **missing files**: All required entrypoint files must exist at the specified paths. A declared `docs` file must exist too.
 - **remote @context**: JSON-LD files must not reference remote context URLs.
+- **missing-docs warning**: The archive has neither `entrypoints.docs` nor a root `README.md`. Installation still succeeds, but add documentation before distributing the model.
+
+### Check the Documentation Tab
+
+Open **Admin > Models**, click your model, and switch to the **Documentation** tab. Your README should render as HTML with headings and tables. If the tab shows "This model ships no documentation", check the file name and the `entrypoints.docs` path in your manifest.
 
 ### Check Forms
 
@@ -654,6 +697,7 @@ The archive should contain the `manifest.yaml` at the root level (not nested ins
 ```
 my-research.sempkm-model
   manifest.yaml
+  README.md
   ontology/
     my-research.jsonld
   shapes/
@@ -663,6 +707,8 @@ my-research.sempkm-model
   seed/
     my-research.jsonld
 ```
+
+Include the `README.md` (or whatever file `entrypoints.docs` names) in the archive -- if the manifest declares it and the archive omits it, installation is rejected.
 
 > **Warning:** Ensure the ZIP archive does not contain a wrapping directory. The `manifest.yaml` file should be at the top level inside the archive, not inside a `my-research/` subdirectory.
 
@@ -685,6 +731,7 @@ entrypoints:
   shapes: "shapes/research.jsonld"
   views: "views/research.jsonld"
   seed: "seed/research.jsonld"
+  docs: "README.md"
 icons:
   - type: "res:Paper"
     icon: "book-open"
@@ -732,7 +779,27 @@ icons:
 }
 ```
 
-From here, you would create matching shapes (with `sh:targetClass` pointing to `res:Paper`), views (with SPARQL queries using the full `urn:sempkm:model:research:Paper` IRI), and optional seed data following the patterns shown throughout this chapter.
+### README.md (excerpt)
+
+```markdown
+# Research Tracker
+
+**Model ID:** `research` · **Namespace:** `urn:sempkm:model:research:`
+
+Track papers, authors, and research topics.
+
+## Types
+
+### Paper
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| Title | string | ✓ | Full title of the paper |
+| Authors | string | | Comma-separated author names |
+| Year | gYear | | Publication year |
+```
+
+From here, you would create matching shapes (with `sh:targetClass` pointing to `res:Paper`), views (with SPARQL queries using the full `urn:sempkm:model:research:Paper` IRI), and optional seed data following the patterns shown throughout this chapter. Finish the README as you add types so the Documentation tab stays in step with the schema.
 
 ---
 

@@ -18,7 +18,7 @@ The manifest is the identity card of the model. It declares:
 - **description** -- a paragraph explaining what the model provides.
 - **namespace** -- the IRI namespace for the model's types and properties, following the pattern `urn:sempkm:model:{modelId}:`.
 - **prefixes** -- short prefix mappings for the model's namespace (e.g., `bpkm: urn:sempkm:model:basic-pkm:`).
-- **entrypoints** -- file paths to the model's JSON-LD artifacts (ontology, shapes, views, seed data).
+- **entrypoints** -- file paths to the model's artifacts (ontology, shapes, views, seed data, optional rules, dashboards, workflows, and Markdown documentation).
 - **icons** -- icon and color definitions for each type, used in the explorer tree, editor tabs, and graph nodes.
 - **settings** -- optional user-configurable settings contributed by the model.
 
@@ -66,6 +66,10 @@ Seed data is a collection of **example objects** that are loaded when the model 
 2. **Documentation by example** -- the seed objects demonstrate the intended usage of each type, showing realistic property values and inter-object relationships.
 
 Seed data is materialized through the event store during installation, which means it appears in the event log and can be undone or modified like any other data.
+
+### Documentation (`README.md`)
+
+Each model ships a Markdown file describing its types, relationships, views, validation rules, and recommended workflows. The manifest can point at it explicitly via `entrypoints.docs`; otherwise a `README.md` at the archive root is used. SemPKM renders it on the model's **Documentation** tab in the admin portal (**Admin > Models > *model***) and serves the raw Markdown at `/api/models/{modelId}/docs`. Because the documentation travels inside the archive, it is always the version that matches the installed model.
 
 ### Icons
 

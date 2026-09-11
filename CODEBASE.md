@@ -181,6 +181,7 @@ Mental Models are pluggable domain schemas containing:
 - `shapes/` — SHACL shapes for auto-generated forms (JSON-LD)
 - `views/` — ViewSpec definitions for the view renderers (JSON-LD)
 - `seed/` — Seed data objects (JSON-LD)
+- `README.md` — Markdown documentation (`entrypoints.docs`, or root `README.md` by convention); rendered on the admin model detail page's Documentation tab and served at `GET /api/models/{id}/docs`
 - optionally dashboards, workflows, and rules
 
 **Bundled models** (`models/`, mounted read-only at `/app/models/`):
@@ -297,7 +298,7 @@ HTML response (hx-swap into DOM)
 - **New command type:** `commands/schemas.py` (union) + `commands/handlers/{name}.py` + register in `dispatcher.py`
 - **New service:** `services/{name}.py` + instantiate in `main.py` lifespan + DI in `dependencies.py`
 - **New router/feature:** `{feature}/router.py` + `__init__.py` + register in `main.py` + templates in `templates/{feature}/`
-- **New Mental Model:** `models/{id}/manifest.yaml` + `ontology/`, `shapes/`, `views/`, `seed/`
+- **New Mental Model:** `models/{id}/manifest.yaml` + `README.md` + `ontology/`, `shapes/`, `views/`, `seed/`
 - **New platform app:** `apps/{id}/manifest.yaml` + entrypoint; install via Admin > Applications
 - **New user guide chapter:** the chapter list lives in THREE places — `docs/guide/README.md`, `docs/guide/index.html`, and `GUIDE_SECTIONS` in `shell/router.py` (see `.gsd/KNOWLEDGE.md`)
 

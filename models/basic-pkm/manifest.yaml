@@ -11,6 +11,7 @@ entrypoints:
   views: "views/basic-pkm.jsonld"
   seed: "seed/basic-pkm.jsonld"
   rules: "rules/basic-pkm.ttl"
+  docs: "README.md"
 entailment_defaults:
   owl_inverseOf: true
   rdfs_subClassOf: false

@@ -195,7 +195,7 @@ You do **not** need Refresh for normal day-to-day use — it is specifically for
 Refresh is designed to update model *definitions* without touching your *data*:
 
 - **Preserved:** All user-created objects, edges, events, and seed data remain untouched. Your knowledge base content is safe.
-- **Replaced:** Ontology classes, SHACL shapes, view definitions, and rules are cleared from their named graphs and reloaded from the model's files on disk.
+- **Replaced:** Ontology classes, SHACL shapes, view definitions, and rules are cleared from their named graphs and reloaded from the model's files on disk. Bundled documentation is not stored in the triplestore; the Documentation tab always reads the current file from disk.
 
 ### What Refresh Replaces
 
@@ -220,6 +220,17 @@ The refresh operation is **transactional**. All graph clears and reloads happen 
 6. If the refresh fails, an error message explains the problem. The model's previous state is preserved.
 
 You can also refresh from the **model detail page** (`/admin/models/{model_id}`), which has its own Refresh button.
+
+### The Model Detail Page
+
+Clicking a model's name in the installed models table opens its detail page with four tabs:
+
+- **Schema** -- every type with its fields, relationships, and views, plus per-type analytics on the flip side of each card.
+- **Documentation** -- the Markdown documentation bundled inside the model archive (its `README.md` or `entrypoints.docs` file), rendered as HTML. This is the authoritative guide to what the model's types mean and how to use them, and it always matches the installed version.
+- **Relationships** -- an interactive diagram of object properties and class hierarchy.
+- **Inference Settings** -- per-model entailment toggles.
+
+Documentation is read from disk each time the tab is opened, so a **Refresh** (or a marketplace update) shows the new text immediately. Models that ship no documentation show an empty state on the tab and produce a `missing-docs` warning at install time.
 
 ### Refresh and the Operations Log
 

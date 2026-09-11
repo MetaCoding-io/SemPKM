@@ -10,6 +10,7 @@ entrypoints:
   shapes: "shapes/rss-feeds.jsonld"
   views: "views/rss-feeds.jsonld"
   seed: null
+  docs: "README.md"
 icons:
   - type: "rss:Article"
     icon: "newspaper"
