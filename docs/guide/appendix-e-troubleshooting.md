@@ -52,7 +52,7 @@ This appendix covers common issues you may encounter when running SemPKM, with s
 
 **Solution:**
 
-- Set a persistent `SECRET_KEY` environment variable so it survives container rebuilds. See [Production Deployment](22-production-deployment.md).
+- Set a persistent `SECRET_KEY` environment variable so it survives container rebuilds. See [Production Deployment](21-production-deployment.md).
 - Increase `SESSION_DURATION_DAYS` if needed.
 
 ---
@@ -278,7 +278,7 @@ This appendix covers common issues you may encounter when running SemPKM, with s
 
 - During the import wizard's property mapping step, review the detected frontmatter keys and map each one to the appropriate SemPKM property.
 - Unmapped keys are ignored during import. You can re-import the same vault with updated mappings.
-- See [Chapter 27: Obsidian Onboarding](27-obsidian-onboarding.md) for a detailed walkthrough of the mapping step.
+- See [Chapter 26: Obsidian Onboarding](26-obsidian-onboarding.md) for a detailed walkthrough of the mapping step.
 
 ### Import appears stuck or does not complete
 
@@ -370,7 +370,7 @@ This appendix covers common issues you may encounter when running SemPKM, with s
 ## See Also
 
 - [Installation and Setup](03-installation-and-setup.md) -- initial setup walkthrough
-- [Production Deployment](22-production-deployment.md) -- production configuration
+- [Production Deployment](21-production-deployment.md) -- production configuration
 - [Appendix A: Environment Variable Reference](appendix-a-environment-variables.md) -- all configuration options
 - [Appendix F: FAQ](appendix-f-faq.md) -- frequently asked questions
 

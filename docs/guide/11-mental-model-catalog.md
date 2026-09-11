@@ -4,7 +4,7 @@ SemPKM ships eight bundled Mental Models. Each one defines domain-specific types
 
 > **Where the detailed docs live.** Every model archive ships its own `README.md` with field-by-field type references, relationship diagrams, saved queries, validation rules, and recommended dashboards. SemPKM renders it in the admin portal under **Admin > Models > *model* > Documentation** and serves the raw Markdown at `/api/models/{modelId}/docs`, so what you read always matches the installed version. The same pages are mirrored into this guide under **Mental Model Reference** (linked from each profile below) so everything is readable in one place; the mirrors are generated from the archives, not hand-maintained. This chapter deliberately does not repeat their content or version numbers.
 
-For background on what Mental Models are and how they work, see [Chapter 9: Understanding Mental Models](09-understanding-mental-models.md). For installation, refresh, and removal, see [Chapter 10: Managing Mental Models](10-managing-mental-models.md). To build your own, see [Chapter 21: Creating Mental Models](21-creating-mental-models.md).
+For background on what Mental Models are and how they work, see [Chapter 9: Understanding Mental Models](09-understanding-mental-models.md). For installation, refresh, and removal, see [Chapter 10: Managing Mental Models](10-managing-mental-models.md). To build your own, see [Chapter 20: Creating Mental Models](20-creating-mental-models.md).
 
 ---
 
@@ -66,7 +66,7 @@ Documentation: [Business Planning reference](model-business-planning.md)
 
 August Bradley's PPV system: a five-level goal hierarchy (**PillarGroup → Pillar → ValueGoal → GoalOutcome → Project → ActionItem**) and a four-tier review cycle (**Weekly → Monthly → Quarterly → Yearly**) with **PillarScore** and **GuidingPrinciples**. Installing it also creates five dashboards (Action Items, Life Dashboard, Projects Board, Goals Overview, Review Hub) and five guided workflows (Daily Check-in and the four reviews). Rules flag orphan action items and projects.
 
-Documentation: [PPV reference](model-ppv.md) · Also see [Chapter 12: PPV Model](12-ppv-model.md).
+Documentation: [PPV reference](model-ppv.md)
 
 ### RSS Feeds
 
@@ -74,7 +74,7 @@ Documentation: [PPV reference](model-ppv.md) · Also see [Chapter 12: PPV Model]
 
 The two types behind the RSS Reader app: **FeedSubscription** and **Article**, with Unread and Starred saved queries. No seed data -- the app populates the graph as it polls. Install the model before the app.
 
-Documentation: [RSS Feeds reference](model-rss-feeds.md) · Also see [Chapter 32: RSS Reader](32-rss-reader.md).
+Documentation: [RSS Feeds reference](model-rss-feeds.md) · Also see [Chapter 31: RSS Reader](31-rss-reader.md).
 
 ### Media Scheduler
 
@@ -82,7 +82,7 @@ Documentation: [RSS Feeds reference](model-rss-feeds.md) · Also see [Chapter 32
 
 The types behind the Media Scheduler app: **MediaSource** (podcast, YouTube, Spotify), **MediaItem**, **MediaCategory**, **DailyMediaPlan**, and **PlanEntry**. No seed data -- the app populates the graph. Install the model before the app.
 
-Documentation: [Media Scheduler reference](model-media-scheduler.md) · Also see [Chapter 48: Media Scheduler](48-media-scheduler.md).
+Documentation: [Media Scheduler reference](model-media-scheduler.md) · Also see [Chapter 47: Media Scheduler](47-media-scheduler.md).
 
 ---
 
@@ -109,4 +109,4 @@ Models installed from the remote marketplace follow the same conventions. Their 
 
 ---
 
-**Previous:** [Chapter 10: Managing Mental Models](10-managing-mental-models.md) | **Next:** [Chapter 12: PPV Model (Pillars, Pipelines & Vaults)](12-ppv-model.md)
+**Previous:** [Chapter 10: Managing Mental Models](10-managing-mental-models.md) | **Next:** [Chapter 12: User Management](12-user-management.md)

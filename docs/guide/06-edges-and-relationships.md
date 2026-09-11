@@ -105,7 +105,7 @@ For advanced users or automation scenarios, edges can also be created programmat
 
 This creates a first-class edge resource with its own IRI, typed as `sempkm:Edge`, with structural properties (source, target, predicate) and optional annotation properties (like "role" in the example above). Structural properties are immutable after creation; annotation properties can be updated via `edge.patch`.
 
-See [The Command API](19-command-api.md) for full details.
+See [The Command API](18-command-api.md) for full details.
 
 ---
 

@@ -85,9 +85,9 @@ SESSION_DURATION_DAYS=90
 
 ## See Also
 
-- [Production Deployment](22-production-deployment.md) -- full deployment guide
+- [Production Deployment](21-production-deployment.md) -- full deployment guide
 - [Installation and Setup](03-installation-and-setup.md) -- first-run configuration
 
 ---
 
-**Previous:** [Chapter 50: IndieAuth](50-indieauth.md) | **Next:** [Appendix B: Keyboard Shortcut Reference](appendix-b-keyboard-shortcuts.md)
+**Previous:** [Chapter 49: IndieAuth](49-indieauth.md) | **Next:** [Appendix B: Keyboard Shortcut Reference](appendix-b-keyboard-shortcuts.md)

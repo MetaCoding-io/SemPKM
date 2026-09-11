@@ -8,43 +8,43 @@ Alphabetical definitions of key terms used throughout the SemPKM documentation a
 (Assertional Box) The set of individual instances (objects) in a knowledge base, as opposed to the class definitions (TBox).
 
 **API Surface**
-The set of structured JSON endpoints that external clients — browser extensions, mobile apps, CLI tools, and integrations — use to interact with a SemPKM instance. Includes instance discovery, type listing, SHACL shapes, and context query. See [Chapter 34: API Surface](34-api-surface.md).
+The set of structured JSON endpoints that external clients — browser extensions, mobile apps, CLI tools, and integrations — use to interact with a SemPKM instance. Includes instance discovery, type listing, SHACL shapes, and context query. See [Chapter 33: API Surface](33-api-surface.md).
 
 **API Token**
-A secret key generated in the Admin panel that allows external clients (like the browser extension) to authenticate with your SemPKM instance without a session cookie. Tokens are created at Settings > API Keys and shown only once. See [Chapter 34: API Surface](34-api-surface.md) and [Chapter 35: Browser Extension](35-browser-extension.md).
+A secret key generated in the Admin panel that allows external clients (like the browser extension) to authenticate with your SemPKM instance without a session cookie. Tokens are created at Settings > API Keys and shown only once. See [Chapter 33: API Surface](33-api-surface.md) and [Chapter 34: Browser Extension](34-browser-extension.md).
 
 **App Contribution**
-A UI element an app contributes to the workspace: right-pane sections, views, command palette entries, or object renderer overrides. Declared in the manifest's `ui.contributions` section. See [Chapter 31: App Platform](31-app-platform.md).
+A UI element an app contributes to the workspace: right-pane sections, views, command palette entries, or object renderer overrides. Declared in the manifest's `ui.contributions` section. See [Chapter 30: App Platform](30-app-platform.md).
 
 **App Manifest**
-The `manifest.yaml` file in an app's root directory that declares its identity, dependencies, permissions, tasks, frontend assets, and UI contributions. The platform validates the manifest at install time using a Pydantic schema. See [Chapter 31: App Platform](31-app-platform.md).
+The `manifest.yaml` file in an app's root directory that declares its identity, dependencies, permissions, tasks, frontend assets, and UI contributions. The platform validates the manifest at install time using a Pydantic schema. See [Chapter 30: App Platform](30-app-platform.md).
 
 **App Platform**
-The subsystem that manages third-party and first-party Python applications. Apps run as sandboxed subprocesses communicating with the platform via HTTP over unix domain sockets. See [Chapter 31: App Platform](31-app-platform.md).
+The subsystem that manages third-party and first-party Python applications. Apps run as sandboxed subprocesses communicating with the platform via HTTP over unix domain sockets. See [Chapter 30: App Platform](30-app-platform.md).
 
 **App Sandbox**
-The isolation boundary for each app: a separate Python subprocess with its own virtual environment, communicating with the platform only through a scoped HTTP API. Apps cannot access platform internals directly. See [Chapter 31: App Platform](31-app-platform.md).
+The isolation boundary for each app: a separate Python subprocess with its own virtual environment, communicating with the platform only through a scoped HTTP API. Apps cannot access platform internals directly. See [Chapter 30: App Platform](30-app-platform.md).
 
 **App SDK**
-The `sempkm-app-sdk` Python package that provides the `App` class, `AppContext`, and scoped clients for building SemPKM applications. Installed automatically into each app's virtual environment. See [Chapter 31: App Platform](31-app-platform.md).
+The `sempkm-app-sdk` Python package that provides the `App` class, `AppContext`, and scoped clients for building SemPKM applications. Installed automatically into each app's virtual environment. See [Chapter 30: App Platform](30-app-platform.md).
 
 **Argument** (Research Workflow)
 A structured reasoning unit that synthesizes claims and evidence to address a research question. Each argument presents a thesis supported by referenced claims and evidence items. See [Chapter 11: Mental Model Catalog](11-mental-model-catalog.md).
 
 **Atlassian Document Format (ADF)**
-JSON-based rich text format used by Jira Cloud for issue descriptions and comments. SemPKM's Jira Sync automatically converts ADF to Markdown on import and Markdown back to ADF on push. See [Chapter 40: Jira Sync](40-jira-sync.md).
+JSON-based rich text format used by Jira Cloud for issue descriptions and comments. SemPKM's Jira Sync automatically converts ADF to Markdown on import and Markdown back to ADF on push. See [Chapter 39: Jira Sync](39-jira-sync.md).
 
 **Bidirectional Sync**
-A sync mode where changes flow in both directions between two systems. In Linear Sync, bidirectional mode pushes SemPKM task changes back to Linear in addition to pulling Linear issues. See [Chapter 38: Linear Sync](38-linear-sync.md).
+A sync mode where changes flow in both directions between two systems. In Linear Sync, bidirectional mode pushes SemPKM task changes back to Linear in addition to pulling Linear issues. See [Chapter 37: Linear Sync](37-linear-sync.md).
 
 **Block**
-A content unit within a dashboard. Six types: view-embed, markdown, object-embed, create-form, sparql-result, and divider. Each block occupies a named slot in the dashboard's grid layout. See [Chapter 30: Dashboards and Workflows](30-dashboards-and-workflows.md).
+A content unit within a dashboard. Six types: view-embed, markdown, object-embed, create-form, sparql-result, and divider. Each block occupies a named slot in the dashboard's grid layout. See [Chapter 29: Dashboards and Workflows](29-dashboards-and-workflows.md).
 
 **Body Diff**
-An incremental change record for object body content. When editing an existing body, SemPKM stores only the unified diff (additions and deletions) rather than the full replacement text. The event log renders body diffs with green (additions) and red (deletions) highlighting. See [Chapter 17: Understanding the Event Log](17-event-log.md).
+An incremental change record for object body content. When editing an existing body, SemPKM stores only the unified diff (additions and deletions) rather than the full replacement text. The event log renders body diffs with green (additions) and red (deletions) highlighting. See [Chapter 16: Understanding the Event Log](16-event-log.md).
 
 **Browser Extension**
-A Chrome/Firefox extension that captures typed, schema-validated objects from any web page directly into your SemPKM knowledge graph. Supports SHACL-driven forms, auto-population from page metadata and schema.org JSON-LD, relationship creation, and keyboard shortcuts. See [Chapter 35: Browser Extension](35-browser-extension.md).
+A Chrome/Firefox extension that captures typed, schema-validated objects from any web page directly into your SemPKM knowledge graph. Supports SHACL-driven forms, auto-population from page metadata and schema.org JSON-LD, relationship creation, and keyboard shortcuts. See [Chapter 34: Browser Extension](34-browser-extension.md).
 
 **Calendar View**
 An interactive view that renders date-bearing objects on a FullCalendar grid with month, week, day, and list modes. Supports drag-to-reschedule, resize-to-change-duration, click-to-create, and cross-view drag from kanban columns. Types qualify automatically when their SHACL shapes declare `xsd:date` or `xsd:dateTime` fields. Recurring task instances are expanded via RRULE and displayed as repeating events. See [Chapter 7: Browsing and Visualizing Data](07-browsing-and-visualizing.md).
@@ -56,7 +56,7 @@ A tabbed browsing interface for Mental Model views that groups table, card, and 
 A specific assertion or proposition extracted from a paper, with a confidence level ranging from established to refuted. Claims accumulate supporting and refuting evidence over time. See [Chapter 11: Mental Model Catalog](11-mental-model-catalog.md).
 
 **Column Mapping**
-The user-configurable mapping between Monday.com board columns and SemPKM properties. Because Monday.com boards have fully customizable columns, the mapping cannot be hardcoded — users configure which columns correspond to status, priority, due date, etc. via type-filtered dropdowns. See [Chapter 41: Monday.com Sync](41-monday-sync.md).
+The user-configurable mapping between Monday.com board columns and SemPKM properties. Because Monday.com boards have fully customizable columns, the mapping cannot be hardcoded — users configure which columns correspond to status, priority, due date, etc. via type-filtered dropdowns. See [Chapter 40: Monday.com Sync](40-monday-sync.md).
 
 **Company** (Personal CRM)
 An organization entity representing a business your contacts work at. Tracks industry, size, and website to provide context for relationships. See [Chapter 11: Mental Model Catalog](11-mental-model-catalog.md).
@@ -65,43 +65,43 @@ An organization entity representing a business your contacts work at. Tracks ind
 A person in your professional or personal network. Tracks name, email, role, company affiliation, and interaction history. See [Chapter 11: Mental Model Catalog](11-mental-model-catalog.md).
 
 **Content Negotiation**
-An HTTP mechanism where the server returns different representations of a resource based on the client's `Accept` header. SemPKM uses content negotiation for WebID profiles: browsers receive an HTML page while Linked Data clients receive JSON-LD or Turtle. See [Chapter 49: WebID Profiles](49-webid-profiles.md).
+An HTTP mechanism where the server returns different representations of a resource based on the client's `Accept` header. SemPKM uses content negotiation for WebID profiles: browsers receive an HTML page while Linked Data clients receive JSON-LD or Turtle. See [Chapter 48: WebID Profiles](48-webid-profiles.md).
 
 **Context Badge**
-The extension icon badge showing the count of related objects found for the current page. Appears ~2 seconds after page load when auto-context is enabled. A number (teal) indicates matches found; "!" (red) indicates a query error. See [Chapter 36: Context Overlay](36-context-overlay.md).
+The extension icon badge showing the count of related objects found for the current page. Appears ~2 seconds after page load when auto-context is enabled. A number (teal) indicates matches found; "!" (red) indicates a query error. See [Chapter 35: Context Overlay](35-context-overlay.md).
 
 **Context Overlay**
-The browser extension feature that shows related objects from your SemPKM knowledge graph when browsing any web page. Includes the context badge and knowledge sidebar. See [Chapter 36: Context Overlay](36-context-overlay.md).
+The browser extension feature that shows related objects from your SemPKM knowledge graph when browsing any web page. Includes the context badge and knowledge sidebar. See [Chapter 35: Context Overlay](35-context-overlay.md).
 
 **Context Query**
-An API endpoint (`POST /api/context-query`) that finds objects in the knowledge graph related to a given page context. Accepts a URL, title, and/or keywords; returns matching objects via exact URL matching (SPARQL) and full-text keyword search (LuceneSail FTS). Used primarily by browser extensions to surface related knowledge while browsing. See [Chapter 34: API Surface](34-api-surface.md).
+An API endpoint (`POST /api/context-query`) that finds objects in the knowledge graph related to a given page context. Accepts a URL, title, and/or keywords; returns matching objects via exact URL matching (SPARQL) and full-text keyword search (LuceneSail FTS). Used primarily by browser extensions to surface related knowledge while browsing. See [Chapter 33: API Surface](33-api-surface.md).
 
 **Cross-View Context**
-A dashboard mechanism where selecting a row in one block filters data in other blocks. The source block emits a context IRI on row click; consumer blocks bind it to a SPARQL variable and re-fetch their data. See [Chapter 30: Dashboards and Workflows](30-dashboards-and-workflows.md).
+A dashboard mechanism where selecting a row in one block filters data in other blocks. The source block emits a context IRI on row click; consumer blocks bind it to a SPARQL variable and re-fetch their data. See [Chapter 29: Dashboards and Workflows](29-dashboards-and-workflows.md).
 
 **Cross-View Drag**
 The ability to drag an object card from one view (such as a kanban column) and drop it onto a calendar date in a side-by-side layout, automatically setting the object's date field. Enables composable planning workflows where multiple views are arranged together in the dockview workspace. See [Chapter 7: Browsing and Visualizing Data](07-browsing-and-visualizing.md).
 
 **Dashboard**
-A configurable multi-block layout page that combines views, markdown, object embeds, forms, and SPARQL results into a single workspace tab. Five layout templates arrange blocks in a CSS Grid. See [Chapter 30: Dashboards and Workflows](30-dashboards-and-workflows.md).
+A configurable multi-block layout page that combines views, markdown, object embeds, forms, and SPARQL results into a single workspace tab. Five layout templates arrange blocks in a CSS Grid. See [Chapter 29: Dashboards and Workflows](29-dashboards-and-workflows.md).
 
 **Data Quality Rules**
-SHACL-AF validation rules that detect data hygiene issues (empty bodies, orphan objects, comma-in-tags, duplicate URLs, etc.) at Warning or Info severity. Unlike structural SHACL constraints that enforce object schema (required fields, data types), data quality rules are advisory — they highlight potential issues but don't indicate broken data. Each Mental Model can ship its own rules. See [Chapter 16: System Health and Debugging](16-system-health-and-debugging.md).
+SHACL-AF validation rules that detect data hygiene issues (empty bodies, orphan objects, comma-in-tags, duplicate URLs, etc.) at Warning or Info severity. Unlike structural SHACL constraints that enforce object schema (required fields, data types), data quality rules are advisory — they highlight potential issues but don't indicate broken data. Each Mental Model can ship its own rules. See [Chapter 15: System Health and Debugging](15-system-health-and-debugging.md).
 
 **Deal** (Personal CRM)
 A business opportunity tracked through a pipeline from lead through qualification, proposal, and negotiation to won or lost. Deals link to contacts and companies. See [Chapter 11: Mental Model Catalog](11-mental-model-catalog.md).
 
 **Demo Mode**
-A configuration flag (`DEMO_MODE=true`) that makes SemPKM accessible without login for prospective users. Enables anonymous access via a synthetic guest user, bypasses the setup wizard, auto-starts the demo tour on first visit, and shows a CTA banner after tour completion. Combine with read-only nginx config to prevent data modification. See [Chapter 23: Hosted Demo](23-hosted-demo.md).
+A configuration flag (`DEMO_MODE=true`) that makes SemPKM accessible without login for prospective users. Enables anonymous access via a synthetic guest user, bypasses the setup wizard, auto-starts the demo tour on first visit, and shows a CTA banner after tour completion. Combine with read-only nginx config to prevent data modification. See [Chapter 22: Hosted Demo](22-hosted-demo.md).
 
 **Edge**
 A typed, directional relationship between two objects. Unlike a simple link, an edge carries a specific predicate (relationship type) such as `hasParticipant` or `isAbout`. Edges are first-class resources in SemPKM with their own IRIs, meaning they can carry annotation properties (like labels or timestamps) in addition to connecting a source and target. See also: Object, Property.
 
 **Embed Node**
-A canvas node that displays live content from another part of SemPKM (view, dashboard, SPARQL result, or object) inside an iframe. Embeds are interactive and update in real-time. Maximum 8 per canvas. See [Chapter 29: Spatial Canvas](29-spatial-canvas.md).
+A canvas node that displays live content from another part of SemPKM (view, dashboard, SPARQL result, or object) inside an iframe. Embeds are interactive and update in real-time. Maximum 8 per canvas. See [Chapter 28: Spatial Canvas](28-spatial-canvas.md).
 
 **Entailment**
-The process of deriving new triples from existing data using ontological reasoning rules. SemPKM supports RDFS and OWL entailment (e.g., inferring that if Alice is a `Researcher` and `Researcher` is a subclass of `Person`, then Alice is also a `Person`). Configure entailment in Settings > Inference. See [Chapter 15: Settings](15-settings.md).
+The process of deriving new triples from existing data using ontological reasoning rules. SemPKM supports RDFS and OWL entailment (e.g., inferring that if Alice is a `Researcher` and `Researcher` is a subclass of `Person`, then Alice is also a `Person`). Configure entailment in Settings > Inference. See [Chapter 14: Settings](14-settings.md).
 
 **Evidence** (Research Workflow)
 Empirical data, experimental results, or observations that support or refute research claims. Each piece of evidence has a type (e.g., empirical-data, case-study) and a strength assessment (strong through preliminary). See [Chapter 11: Mental Model Catalog](11-mental-model-catalog.md).
@@ -122,25 +122,25 @@ A quick-capture note in the Zettelkasten workflow — the entry point for raw id
 A minimalist upper ontology (v14.0.0) by Semantic Arts that provides foundational classes and properties. Auto-loaded in SemPKM as the semantic foundation for all Mental Models.
 
 **GitHub Sync**
-A SemPKM app that synchronizes GitHub Issues and Pull Requests with `bpkm:Task` objects. Supports pull sync (GitHub → SemPKM), push sync (SemPKM → GitHub), and bidirectional mode. PRs that reference issues are linked via `bpkm:dependsOn` edges. See [Chapter 39: GitHub Sync](39-github-sync.md).
+A SemPKM app that synchronizes GitHub Issues and Pull Requests with `bpkm:Task` objects. Supports pull sync (GitHub → SemPKM), push sync (SemPKM → GitHub), and bidirectional mode. PRs that reference issues are linked via `bpkm:dependsOn` edges. See [Chapter 38: GitHub Sync](38-github-sync.md).
 
 **Gantt Chart**
 A horizontal bar chart showing tasks along a timeline with dependency arrows between them. In SemPKM, the Timeline View renders a Gantt chart using the Frappe Gantt library. Tasks are positioned by start date and duration; `bpkm:dependsOn` edges render as SVG arrows. Supports drag-to-reschedule and zoom levels from quarter-day to month. See [Chapter 7: Browsing and Visualizing Data](07-browsing-and-visualizing.md).
 
 **Hosted Demo**
-A pre-populated, read-only SemPKM instance deployed for prospective users to explore. Includes 4 Mental Models with 74 sample objects, a guided Driver.js tour, and a pre-built dashboard demonstrating cross-view context filtering. See [Chapter 23: Hosted Demo](23-hosted-demo.md).
+A pre-populated, read-only SemPKM instance deployed for prospective users to explore. Includes 4 Mental Models with 74 sample objects, a guided Driver.js tour, and a pre-built dashboard demonstrating cross-view context filtering. See [Chapter 22: Hosted Demo](22-hosted-demo.md).
 
 **IndieAuth**
-An authentication and authorization protocol built on OAuth 2.0 that uses personal URLs (like WebID profiles) as identities. SemPKM acts as an IndieAuth provider, allowing you to sign into other IndieAuth-compatible services using your SemPKM identity. See [Chapter 50: IndieAuth](50-indieauth.md).
+An authentication and authorization protocol built on OAuth 2.0 that uses personal URLs (like WebID profiles) as identities. SemPKM acts as an IndieAuth provider, allowing you to sign into other IndieAuth-compatible services using your SemPKM identity. See [Chapter 49: IndieAuth](49-indieauth.md).
 
 **Inference**
-The automatic derivation of implicit facts from explicit data using ontological rules. In SemPKM, inference materializes triples such as `owl:inverseOf` relationships and `rdfs:subClassOf` hierarchies. Also called entailment. See [Chapter 15: Settings](15-settings.md).
+The automatic derivation of implicit facts from explicit data using ontological rules. In SemPKM, inference materializes triples such as `owl:inverseOf` relationships and `rdfs:subClassOf` hierarchies. Also called entailment. See [Chapter 14: Settings](14-settings.md).
 
 **Interaction** (Personal CRM)
 A recorded touchpoint with a contact — meetings, calls, emails, coffees, or conferences. Interactions build a contact's history and trigger follow-up tracking. See [Chapter 11: Mental Model Catalog](11-mental-model-catalog.md).
 
 **Instance Discovery**
-The `GET /.well-known/sempkm` endpoint that returns a JSON document describing a SemPKM instance — its version, available API endpoints, supported authentication methods, and enabled capabilities. External clients should call this endpoint first to learn how to interact with the instance. See [Chapter 34: API Surface](34-api-surface.md).
+The `GET /.well-known/sempkm` endpoint that returns a JSON document describing a SemPKM instance — its version, available API endpoints, supported authentication methods, and enabled capabilities. External clients should call this endpoint first to learn how to interact with the instance. See [Chapter 33: API Surface](33-api-surface.md).
 
 **IRI**
 Internationalized Resource Identifier. The globally unique identifier for every resource in SemPKM -- every object, every property, every type, every edge. IRIs look like URLs (e.g., `https://example.org/data/Person/alice-chen`) or URNs (e.g., `urn:sempkm:model:basic-pkm:Project`). They serve the same role as primary keys in a relational database, but are globally unique by design.
@@ -149,37 +149,37 @@ Internationalized Resource Identifier. The globally unique identifier for every 
 JSON for Linking Data. The serialization format used by SemPKM for Mental Model files (ontologies, shapes, views, seed data). JSON-LD is standard JSON with a `@context` block that maps short keys to full IRIs, making it both human-readable and machine-processable as RDF.
 
 **Jira Sync**
-App that synchronizes Jira Cloud issues with SemPKM `bpkm:Task` objects. Supports bidirectional sync with statusCategory-based status normalization and ADF→Markdown conversion. Jira Epics are mapped to `bpkm:Milestone` objects. See [Chapter 40: Jira Sync](40-jira-sync.md).
+App that synchronizes Jira Cloud issues with SemPKM `bpkm:Task` objects. Supports bidirectional sync with statusCategory-based status normalization and ADF→Markdown conversion. Jira Epics are mapped to `bpkm:Milestone` objects. See [Chapter 39: Jira Sync](39-jira-sync.md).
 
 **Knowledge Sidebar**
-The side panel (Chrome) or sidebar (Firefox) showing related objects from SemPKM grouped by type, with actions to open, link, or add evidence. Opened via Alt+K or from the extension popup. See [Chapter 36: Context Overlay](36-context-overlay.md).
+The side panel (Chrome) or sidebar (Firefox) showing related objects from SemPKM grouped by type, with actions to open, link, or add evidence. Opened via Alt+K or from the extension popup. See [Chapter 35: Context Overlay](35-context-overlay.md).
 
 **Layout** (dashboard)
-The CSS Grid template that arranges blocks on a dashboard. Five options: single, sidebar-main, grid-2x2, grid-3, and top-bottom. Each layout defines named slots where blocks are placed. See [Chapter 30: Dashboards and Workflows](30-dashboards-and-workflows.md).
+The CSS Grid template that arranges blocks on a dashboard. Five options: single, sidebar-main, grid-2x2, grid-3, and top-bottom. Each layout defines named slots where blocks are placed. See [Chapter 29: Dashboards and Workflows](29-dashboards-and-workflows.md).
 
 **LiteratureNote** (Zettelkasten+)
 A note that summarizes a key idea from a source in your own words. Each literature note references a single source and preserves the original quote for attribution. Part of the Zettelkasten provenance chain. See [Chapter 11: Mental Model Catalog](11-mental-model-catalog.md).
 
 **Linear Sync**
-A SemPKM app that synchronizes Linear project management issues with `bpkm:Task` objects. Supports pull sync (Linear → SemPKM), push sync (SemPKM → Linear), and bidirectional mode. See [Chapter 38: Linear Sync](38-linear-sync.md).
+A SemPKM app that synchronizes Linear project management issues with `bpkm:Task` objects. Supports pull sync (Linear → SemPKM), push sync (SemPKM → Linear), and bidirectional mode. See [Chapter 37: Linear Sync](37-linear-sync.md).
 
 **Lint Dashboard**
-A global page that shows all validation results across every object in the knowledge base. Unlike the per-object Lint Panel, the dashboard provides a system-wide overview of data quality, groupable by type, severity, or violation message. Supports filtering via rule suppression, individual result dismissal, and named filter presets. Accessible from the sidebar under Tools. See [Chapter 16: System Health and Debugging](16-system-health-and-debugging.md).
+A global page that shows all validation results across every object in the knowledge base. Unlike the per-object Lint Panel, the dashboard provides a system-wide overview of data quality, groupable by type, severity, or violation message. Supports filtering via rule suppression, individual result dismissal, and named filter presets. Accessible from the sidebar under Tools. See [Chapter 15: System Health and Debugging](15-system-health-and-debugging.md).
 
 **Lint Dismissal**
-Hiding a specific lint finding for one object. The finding remains visible for other objects with the same issue. Only Warning and Info results can be dismissed — Violations cannot. Managed via the × button on individual results in the lint panel, or from Lint Settings. See [Chapter 16: System Health and Debugging](16-system-health-and-debugging.md).
+Hiding a specific lint finding for one object. The finding remains visible for other objects with the same issue. Only Warning and Info results can be dismissed — Violations cannot. Managed via the × button on individual results in the lint panel, or from Lint Settings. See [Chapter 15: System Health and Debugging](15-system-health-and-debugging.md).
 
 **Lint Preset**
-A named set of suppressed rules that can be saved, switched between, and applied to quickly configure lint filtering for different review contexts. Presets replace current suppressions when applied. Managed from the Lint Dashboard sidebar or Lint Settings. See [Chapter 16: System Health and Debugging](16-system-health-and-debugging.md).
+A named set of suppressed rules that can be saved, switched between, and applied to quickly configure lint filtering for different review contexts. Presets replace current suppressions when applied. Managed from the Lint Dashboard sidebar or Lint Settings. See [Chapter 15: System Health and Debugging](15-system-health-and-debugging.md).
 
 **Lint**
 The validation report for an object, displayed in the **Lint Panel** on the right side of the workspace. Linting checks the object's data against its SHACL shape and reports violations (missing required fields, invalid values, etc.). Lint is assistive -- it warns but does not block saving.
 
 **Lint Suppression**
-Hiding all lint results from a specific rule type across the entire knowledge base. When a rule is suppressed, its results are hidden from the Lint Dashboard and per-object panels, but validation still runs internally. Suppressions are per-user and don't affect other users. Managed from the lint dashboard or Lint Settings. See [Chapter 16: System Health and Debugging](16-system-health-and-debugging.md).
+Hiding all lint results from a specific rule type across the entire knowledge base. When a rule is suppressed, its results are hidden from the Lint Dashboard and per-object panels, but validation still runs internally. Suppressions are per-user and don't affect other users. Managed from the lint dashboard or Lint Settings. See [Chapter 15: System Health and Debugging](15-system-health-and-debugging.md).
 
 **LoopGuard**
-An in-memory TTL cache that prevents echo loops in bidirectional sync. When a change is pushed to Monday.com, LoopGuard marks the affected item/column pair for 30 seconds. If the next pull sees the same change within that window, it recognizes it as an echo of the push and skips it. See [Chapter 41: Monday.com Sync](41-monday-sync.md).
+An in-memory TTL cache that prevents echo loops in bidirectional sync. When a change is pushed to Monday.com, LoopGuard marks the affected item/column pair for 30 seconds. If the next pull sees the same change within that window, it recognizes it as an echo of the push and skips it. See [Chapter 40: Monday.com Sync](40-monday-sync.md).
 
 **Materialization**
 The process of applying event operations to the current state graph. When a command is executed, the event store records the event and then materializes it by running SPARQL INSERT and DELETE operations against the `urn:sempkm:current` graph. The result is an up-to-date view of all objects and their current property values.
@@ -191,13 +191,13 @@ An installable package that defines a domain vocabulary for SemPKM. A Mental Mod
 A project phase that groups related tasks toward a deliverable or deadline. Milestones have a target date and status (planned, active, completed, cancelled). See [Chapter 11: Mental Model Catalog](11-mental-model-catalog.md).
 
 **Monday.com Sync**
-An app that synchronizes Monday.com board items with SemPKM `bpkm:Task` objects. Supports user-configurable column mapping, custom status/priority label mapping, bidirectional sync with LoopGuard echo prevention, groups as taskGroup, subitems as parentTask, and dependency edges. See [Chapter 41: Monday.com Sync](41-monday-sync.md).
+An app that synchronizes Monday.com board items with SemPKM `bpkm:Task` objects. Supports user-configurable column mapping, custom status/priority label mapping, bidirectional sync with LoopGuard echo prevention, groups as taskGroup, subitems as parentTask, and dependency edges. See [Chapter 40: Monday.com Sync](40-monday-sync.md).
 
 **Named Graph**
 An RDF concept where a set of triples is associated with a graph IRI. SemPKM uses named graphs extensively: the current state lives in `urn:sempkm:current`, each event occupies its own named graph, and each Mental Model's ontology, shapes, and views are stored in separate named graphs. Named graphs enable SemPKM to organize, query, and manage different sets of triples independently.
 
 **Obsidian Import**
-The built-in wizard for migrating an Obsidian vault into SemPKM. Upload a `.zip` of your vault, map Obsidian folders and tags to SemPKM types, configure property mappings, and import notes as typed objects with relationships preserved. See [Chapter 27: Obsidian Onboarding](27-obsidian-onboarding.md).
+The built-in wizard for migrating an Obsidian vault into SemPKM. Upload a `.zip` of your vault, map Obsidian folders and tags to SemPKM types, configure property mappings, and import notes as typed objects with relationships preserved. See [Chapter 26: Obsidian Onboarding](26-obsidian-onboarding.md).
 
 **Object**
 The primary unit of data in SemPKM. An object is an RDF resource with a type (like Note, Person, or Project), a set of properties (title, status, email), and optionally a Markdown body and edges to other objects. Objects are identified by IRIs and displayed as form-based editors in the workspace.
@@ -215,22 +215,22 @@ An academic paper, journal article, preprint, or other publication in the Resear
 An atomic, self-contained knowledge claim — the core unit of a Zettelkasten. Permanent notes express your own ideas and connect to other permanent notes via argumentation links (supports, contradicts, followsFrom, relatedTo). See [Chapter 11: Mental Model Catalog](11-mental-model-catalog.md).
 
 **Persona**
-A named workspace configuration that stores panel layout, sidebar arrangement, and explorer mode. Switching personas instantly reconfigures the workspace without affecting user settings like theme or font size. See [Chapter 33: Workspace Personas](33-personas.md).
+A named workspace configuration that stores panel layout, sidebar arrangement, and explorer mode. Switching personas instantly reconfigures the workspace without affecting user settings like theme or font size. See [Chapter 32: Workspace Personas](32-personas.md).
 
 **PKCE**
-Proof Key for Code Exchange. A security extension to the OAuth 2.0 authorization code flow that prevents authorization code interception attacks. SemPKM's IndieAuth provider requires PKCE for all authorization requests. The client generates a random `code_verifier`, sends a hashed `code_challenge` with the authorization request, then proves possession of the original verifier when exchanging the code for a token. See [Chapter 50: IndieAuth](50-indieauth.md). A W3C standard for defining ontologies -- formal descriptions of types, properties, and their relationships. SemPKM uses OWL Class and Property declarations in Mental Model ontology files.
+Proof Key for Code Exchange. A security extension to the OAuth 2.0 authorization code flow that prevents authorization code interception attacks. SemPKM's IndieAuth provider requires PKCE for all authorization requests. The client generates a random `code_verifier`, sends a hashed `code_challenge` with the authorization request, then proves possession of the original verifier when exchanging the code for a token. See [Chapter 49: IndieAuth](49-indieauth.md). A W3C standard for defining ontologies -- formal descriptions of types, properties, and their relationships. SemPKM uses OWL Class and Property declarations in Mental Model ontology files.
 
 **Property Flip**
-A toggle on spatial canvas object nodes that switches between the Markdown body and a compact property table showing SHACL-derived metadata. See [Chapter 29: Spatial Canvas](29-spatial-canvas.md).
+A toggle on spatial canvas object nodes that switches between the Markdown body and a compact property table showing SHACL-derived metadata. See [Chapter 28: Spatial Canvas](28-spatial-canvas.md).
 
 **Property**
 A named attribute of an object. Properties can hold literal values (strings, dates, numbers, URIs) or references to other objects. In RDF terms, a property is a predicate in a subject-predicate-object triple. SemPKM distinguishes between datatype properties (literal values) and object properties (references to other resources). See also: Edge, Object.
 
 **Pull Sync**
-The process of fetching data from an external system into SemPKM. In Linear Sync, pull sync imports Linear issues as `bpkm:Task` objects with field mapping. See [Chapter 38: Linear Sync](38-linear-sync.md).
+The process of fetching data from an external system into SemPKM. In Linear Sync, pull sync imports Linear issues as `bpkm:Task` objects with field mapping. See [Chapter 37: Linear Sync](37-linear-sync.md).
 
 **Push Sync**
-The process of sending local changes from SemPKM back to an external system. In Linear Sync, push sync detects modified tasks and updates the corresponding Linear issues. See [Chapter 38: Linear Sync](38-linear-sync.md).
+The process of sending local changes from SemPKM back to an external system. In Linear Sync, push sync detects modified tasks and updates the corresponding Linear issues. See [Chapter 37: Linear Sync](37-linear-sync.md).
 
 **RBox**
 (Relational Box) The set of properties (object properties and datatype properties) defined in an ontology. Viewable in the Ontology Viewer's RBox tab.
@@ -245,13 +245,13 @@ Resource Description Framework. The W3C standard data model that underpins SemPK
 An open question driving a research investigation. Research questions can be addressed by arguments that synthesize claims and evidence. Status tracks progress from open through partially-answered to answered. See [Chapter 11: Mental Model Catalog](11-mental-model-catalog.md).
 
 **Review Workflow**
-A seeded workflow that guides a structured review process through a sequence of view, dashboard, and form steps. SemPKM ships with five review workflows: Weekly Review, Monthly Review, Quarterly Review, Project Status Review, and Goal Alignment Review. Launched from the command palette with Ctrl+K → "review". See [Chapter 30: Dashboards and Workflows](30-dashboards-and-workflows.md).
+A seeded workflow that guides a structured review process through a sequence of view, dashboard, and form steps. SemPKM ships with five review workflows: Weekly Review, Monthly Review, Quarterly Review, Project Status Review, and Goal Alignment Review. Launched from the command palette with Ctrl+K → "review". See [Chapter 29: Dashboards and Workflows](29-dashboards-and-workflows.md).
 
 **SHACL**
 Shapes Constraint Language.
 
 **SHACL-AF Rule**
-A SHACL Advanced Features rule that generates new triples from existing data. Unlike validation shapes (which check constraints), SHACL-AF rules produce inferred triples -- for example, automatically deriving a `fullName` property by concatenating `firstName` and `lastName`. SemPKM executes SHACL-AF rules as part of the inference pipeline. See [Chapter 18: The Data Model](18-data-model.md). A W3C standard for validating RDF data against a set of conditions (shapes). In SemPKM, SHACL shapes serve double duty: they define the form structure for editing objects (field names, order, groups, data types, dropdowns) and they provide validation rules (required fields, allowed values, cardinality). See also: Shape, Validation.
+A SHACL Advanced Features rule that generates new triples from existing data. Unlike validation shapes (which check constraints), SHACL-AF rules produce inferred triples -- for example, automatically deriving a `fullName` property by concatenating `firstName` and `lastName`. SemPKM executes SHACL-AF rules as part of the inference pipeline. See [Chapter 17: The Data Model](17-data-model.md). A W3C standard for validating RDF data against a set of conditions (shapes). In SemPKM, SHACL shapes serve double duty: they define the form structure for editing objects (field names, order, groups, data types, dropdowns) and they provide validation rules (required fields, allowed values, cardinality). See also: Shape, Validation.
 
 **Scope Propagation**
 The mechanism by which a Saved View's scope query filters data across different renderers. When a view is saved with a scope (a SPARQL WHERE clause), that scope is injected into the renderer's data query at load time. Scope propagation ensures that switching renderers (e.g., from table to calendar) preserves the same data filter without the user reconfiguring it. See [Chapter 7: Browsing and Visualizing Data](07-browsing-and-visualizing.md).
@@ -260,13 +260,13 @@ The mechanism by which a Saved View's scope query filters data across different 
 A SHACL node shape that describes the expected structure of a specific type. Each shape lists property constraints (what fields should exist, their data types, whether they are required, allowed values) and property groups (how fields are organized in the form). Shapes drive both form generation and data validation. See also: SHACL, Mental Model.
 
 **Spatial Canvas**
-An interactive freeform workspace for exploring your knowledge graph visually. Unlike auto-layout graph views, the canvas starts empty and lets you build a custom map by dragging objects from the navigation tree, expanding neighborhoods, and arranging nodes by hand. Named sessions let you save and switch between different explorations. See [Chapter 29: Spatial Canvas](29-spatial-canvas.md).
+An interactive freeform workspace for exploring your knowledge graph visually. Unlike auto-layout graph views, the canvas starts empty and lets you build a custom map by dragging objects from the navigation tree, expanding neighborhoods, and arranging nodes by hand. Named sessions let you save and switch between different explorations. See [Chapter 28: Spatial Canvas](28-spatial-canvas.md).
 
 **Step** (workflow)
-An individual stage in a workflow. Three types: view (opens a view), dashboard (opens a dashboard), and form (opens a create form). Each step has an optional label displayed in the stepper bar. See [Chapter 30: Dashboards and Workflows](30-dashboards-and-workflows.md).
+An individual stage in a workflow. Three types: view (opens a view), dashboard (opens a dashboard), and form (opens a create form). Each step has an optional label displayed in the stepper bar. See [Chapter 29: Dashboards and Workflows](29-dashboards-and-workflows.md).
 
 **statusCategory**
-Jira's three-way classification of all issue statuses: `new` (not started), `indeterminate` (in progress), and `done` (completed). Every Jira status — regardless of its custom name — belongs to exactly one category. Used by SemPKM's Jira Sync for reliable cross-project status normalization. See [Chapter 40: Jira Sync](40-jira-sync.md).
+Jira's three-way classification of all issue statuses: `new` (not started), `indeterminate` (in progress), and `done` (completed). Every Jira status — regardless of its custom name — belongs to exactly one category. Used by SemPKM's Jira Sync for reliable cross-project status normalization. See [Chapter 39: Jira Sync](39-jira-sync.md).
 
 **StructureNote** (Zettelkasten+)
 An organizing note that curates permanent notes into coherent topics — argument maps, field surveys, or indexes. Structure notes sit at the top of the Zettelkasten provenance chain. See [Chapter 11: Mental Model Catalog](11-mental-model-catalog.md).
@@ -281,7 +281,7 @@ SPARQL Protocol and RDF Query Language. The standard query language for RDF data
 A unit of work with status tracking (todo, in-progress, done, blocked, cancelled), priority, effort sizing, due dates, and person assignment. Tasks link to projects and milestones to form a work graph. See [Chapter 11: Mental Model Catalog](11-mental-model-catalog.md).
 
 **Task Template**
-A reusable blueprint for creating pre-configured tasks. Templates store a set of property values (title pattern, priority, effort, assignee, edges) that are stamped onto new task objects via the "Create from Template" command palette action. Templates support batch instantiation where multiple linked objects are created in a single operation using `@slot:` cross-references. See [Chapter 30: Dashboards and Workflows](30-dashboards-and-workflows.md).
+A reusable blueprint for creating pre-configured tasks. Templates store a set of property values (title pattern, priority, effort, assignee, edges) that are stamped onto new task objects via the "Create from Template" command palette action. Templates support batch instantiation where multiple linked objects are created in a single operation using `@slot:` cross-references. See [Chapter 29: Dashboards and Workflows](29-dashboards-and-workflows.md).
 
 **Triple**
 The atomic unit of data in RDF: a subject-predicate-object statement. For example: `<Person/alice> <foaf:name> "Alice Chen"` is a triple stating that the resource `Person/alice` has the name "Alice Chen". All data in SemPKM -- objects, properties, edges, events -- is ultimately stored as triples.
@@ -302,18 +302,18 @@ A high-level, domain-independent ontology that provides general concepts (like E
 The process of checking an object's data against its SHACL shape. Validation runs asynchronously after every save operation. Results appear in the Lint Panel and include violation severity (warning or error), the affected property, and a human-readable message. Validation is non-blocking -- you can always save your work regardless of validation results. See also: SHACL, Lint.
 
 **WebID**
-A personal identifier that is also a web URL pointing to a machine-readable profile document. In SemPKM, each user gets a WebID at `{APP_BASE_URL}/id/{username}` that serves both a human-readable HTML profile and Linked Data (JSON-LD/Turtle) via content negotiation. WebIDs enable decentralized identity -- you can use your SemPKM WebID to authenticate with other services via IndieAuth. See [Chapter 49: WebID Profiles](49-webid-profiles.md).
+A personal identifier that is also a web URL pointing to a machine-readable profile document. In SemPKM, each user gets a WebID at `{APP_BASE_URL}/id/{username}` that serves both a human-readable HTML profile and Linked Data (JSON-LD/Turtle) via content negotiation. WebIDs enable decentralized identity -- you can use your SemPKM WebID to authenticate with other services via IndieAuth. See [Chapter 48: WebID Profiles](48-webid-profiles.md).
 
 **View**
 A named query-and-renderer combination that displays a collection of objects. Each view targets a specific type and uses a SPARQL query to fetch data, combined with a renderer type (table, card, or graph) to determine the visual layout. Views are defined in Mental Model bundles and appear in the Views menu. See also: Mental Model, SPARQL.
 
 **Workflow**
-An ordered sequence of steps that guides users through a multi-step process, with a stepper UI for navigation. Steps can be views, dashboards, or forms. Created and launched from the Explorer sidebar. See [Chapter 30: Dashboards and Workflows](30-dashboards-and-workflows.md).
+An ordered sequence of steps that guides users through a multi-step process, with a stepper UI for navigation. Steps can be views, dashboards, or forms. Created and launched from the Explorer sidebar. See [Chapter 29: Dashboards and Workflows](29-dashboards-and-workflows.md).
 
 ## See Also
 
 - [Core Concepts](02-core-concepts.md) -- introductory explanation of these terms in context
-- [The Data Model](18-data-model.md) -- technical details of how RDF, events, and named graphs work together
+- [The Data Model](17-data-model.md) -- technical details of how RDF, events, and named graphs work together
 
 ---
 

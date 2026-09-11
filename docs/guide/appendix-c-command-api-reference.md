@@ -395,9 +395,9 @@ Webhook payloads include the `event_iri`, `command` type, and `timestamp`.
 
 ## See Also
 
-- [The Command API](19-command-api.md) -- conceptual guide to the command system
-- [Webhooks](14-webhooks.md) -- configuring webhook integrations
-- [The Data Model](18-data-model.md) -- how commands map to RDF triples and events
+- [The Command API](18-command-api.md) -- conceptual guide to the command system
+- [Webhooks](13-webhooks.md) -- configuring webhook integrations
+- [The Data Model](17-data-model.md) -- how commands map to RDF triples and events
 
 ---
 
