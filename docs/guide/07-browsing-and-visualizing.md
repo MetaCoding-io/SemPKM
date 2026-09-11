@@ -298,7 +298,7 @@ Click any query in the QUERIES section to open a **scoped Table View** filtered 
 
 ### Drag to Spatial Canvas
 
-Drag a query from the Explorer sidebar onto the **Spatial Canvas** to create an embedded view widget. The widget displays the query's results inline on the canvas, where you can position and resize it alongside other canvas elements. See [Chapter 27: Spatial Canvas](27-spatial-canvas.md) for more on canvas interactions.
+Drag a query from the Explorer sidebar onto the **Spatial Canvas** to create an embedded view widget. The widget displays the query's results inline on the canvas, where you can position and resize it alongside other canvas elements. See [Chapter 29: Spatial Canvas](29-spatial-canvas.md) for more on canvas interactions.
 
 ## Table View
 
@@ -471,7 +471,7 @@ You do not need to write view specifications yourself -- they come pre-packaged 
 
 For a deeper look at what Mental Models contain and how they shape your experience, see [Understanding Mental Models](09-understanding-mental-models.md).
 
-> **Looking for freeform exploration?** The views described in this chapter show pre-defined collections of objects. If you want to build a custom visual map by hand -- dragging objects onto a canvas, expanding neighborhoods, and saving named sessions -- see [Chapter 27: Spatial Canvas](27-spatial-canvas.md).
+> **Looking for freeform exploration?** The views described in this chapter show pre-defined collections of objects. If you want to build a custom visual map by hand -- dragging objects onto a canvas, expanding neighborhoods, and saving named sessions -- see [Chapter 29: Spatial Canvas](29-spatial-canvas.md).
 
 ---
 

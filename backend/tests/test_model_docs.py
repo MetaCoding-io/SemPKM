@@ -364,7 +364,7 @@ class TestGuideMirrors:
             text = mirror.read_text(encoding="utf-8")
             assert text.startswith("<!-- GENERATED FILE"), d.name
             assert f"models/{d.name}/README.md" in text
-            assert "39-mental-model-catalog.md" in text
+            assert "11-mental-model-catalog.md" in text
 
     def test_mirrors_are_listed_in_all_chapter_lists(self):
         """Each mirror must appear in the public sidebar, the guide README, and GUIDE_SECTIONS."""

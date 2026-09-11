@@ -23,8 +23,11 @@ async def docs_page(
 ) -> HTMLResponse:
     """Docs & Tutorials hub page rendered as a workspace tab fragment."""
     templates = request.app.state.templates
+    from app.shell.router import GUIDE_SECTIONS
+
     return templates.TemplateResponse(request, "browser/docs_page.html", {
         "user": user,
+        "guide_sections": GUIDE_SECTIONS,
     })
 
 

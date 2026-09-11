@@ -222,6 +222,8 @@ a:hover {
   top: 64px;
   height: calc(100vh - 64px);
   overflow-y: auto;
+  /* Solid panel so the table of contents sits on top of the body's graph-paper background */
+  background: var(--bg-secondary);
 }
 
 .reader-content {
@@ -362,6 +364,7 @@ a:hover {
     height: auto;
     max-height: 240px;
     padding: 1rem 1.5rem;
+    background: var(--bg-secondary);
   }
 
   .reader-content {
@@ -444,7 +447,8 @@ a:hover {
       <ul class="sidebar-chapter-list">
         <li><a href="#" data-file="09-understanding-mental-models.md">9. Understanding Mental Models</a></li>
         <li><a href="#" data-file="10-managing-mental-models.md">10. Managing Mental Models</a></li>
-        <li><a href="#" data-file="39-mental-model-catalog.md">39. Mental Model Catalog</a></li>
+        <li><a href="#" data-file="11-mental-model-catalog.md">11. Mental Model Catalog</a></li>
+        <li><a href="#" data-file="12-ppv-model.md">12. PPV Model (Pillars, Pipelines &amp; Vaults)</a></li>
       </ul>
 
       <div class="sidebar-part-label">Mental Model Reference</div>
@@ -461,68 +465,70 @@ a:hover {
 
       <div class="sidebar-part-label">Part IV &mdash; Administration</div>
       <ul class="sidebar-chapter-list">
-        <li><a href="#" data-file="11-user-management.md">11. User Management</a></li>
-        <li><a href="#" data-file="12-webhooks.md">12. Webhooks</a></li>
-        <li><a href="#" data-file="13-settings.md">13. Settings</a></li>
-        <li><a href="#" data-file="14-system-health-and-debugging.md">14. System Health and Debugging</a></li>
+        <li><a href="#" data-file="13-user-management.md">13. User Management</a></li>
+        <li><a href="#" data-file="14-webhooks.md">14. Webhooks</a></li>
+        <li><a href="#" data-file="15-settings.md">15. Settings</a></li>
+        <li><a href="#" data-file="16-system-health-and-debugging.md">16. System Health and Debugging</a></li>
       </ul>
 
       <div class="sidebar-part-label">Part V &mdash; Event Log</div>
       <ul class="sidebar-chapter-list">
-        <li><a href="#" data-file="15-event-log.md">15. Understanding the Event Log</a></li>
+        <li><a href="#" data-file="17-event-log.md">17. Understanding the Event Log</a></li>
       </ul>
 
       <div class="sidebar-part-label">Part VI &mdash; Advanced Topics</div>
       <ul class="sidebar-chapter-list">
-        <li><a href="#" data-file="16-data-model.md">16. The Data Model</a></li>
-        <li><a href="#" data-file="17-command-api.md">17. The Command API</a></li>
-        <li><a href="#" data-file="18-sparql-endpoint.md">18. The SPARQL Endpoint</a></li>
-        <li><a href="#" data-file="19-creating-mental-models.md">19. Creating Mental Models</a></li>
+        <li><a href="#" data-file="18-data-model.md">18. The Data Model</a></li>
+        <li><a href="#" data-file="19-command-api.md">19. The Command API</a></li>
+        <li><a href="#" data-file="20-sparql-endpoint.md">20. The SPARQL Endpoint</a></li>
+        <li><a href="#" data-file="21-creating-mental-models.md">21. Creating Mental Models</a></li>
       </ul>
 
       <div class="sidebar-part-label">Part VII &mdash; Deployment</div>
       <ul class="sidebar-chapter-list">
-        <li><a href="#" data-file="20-production-deployment.md">20. Production Deployment</a></li>
+        <li><a href="#" data-file="22-production-deployment.md">22. Production Deployment</a></li>
+        <li><a href="#" data-file="23-hosted-demo.md">23. Hosted Demo Instance</a></li>
       </ul>
 
       <div class="sidebar-part-label">Part VIII &mdash; Discovery &amp; Integration</div>
       <ul class="sidebar-chapter-list">
-        <li><a href="#" data-file="21-sparql-console.md">21. SPARQL Console</a></li>
-        <li><a href="#" data-file="22-keyword-search.md">22. Keyword Search</a></li>
-        <li><a href="#" data-file="23-vfs.md">23. Virtual Filesystem (WebDAV)</a></li>
-        <li><a href="#" data-file="24-obsidian-onboarding.md">24. Obsidian Onboarding</a></li>
-        <li><a href="#" data-file="45-notion-import.md">45. Notion Import</a></li>
-        <li><a href="#" data-file="27-spatial-canvas.md">27. Spatial Canvas</a></li>
-        <li><a href="#" data-file="28-dashboards-and-workflows.md">28. Dashboards &amp; Workflows</a></li>
-        <li><a href="#" data-file="29-app-platform.md">29. App Platform</a></li>
-        <li><a href="#" data-file="40-rss-reader.md">40. RSS Reader</a></li>
-        <li><a href="#" data-file="30-personas.md">30. Workspace Personas</a></li>
-        <li><a href="#" data-file="31-api-surface.md">31. API Surface</a></li>
-        <li><a href="#" data-file="32-browser-extension.md">32. Browser Extension</a></li>
-        <li><a href="#" data-file="33-context-overlay.md">33. Context Overlay</a></li>
-        <li><a href="#" data-file="46-ai-features.md">46. AI Features</a></li>
-        <li><a href="#" data-file="34-linear-sync.md">34. Linear Sync</a></li>
-        <li><a href="#" data-file="35-github-sync.md">35. GitHub Sync</a></li>
-        <li><a href="#" data-file="36-jira-sync.md">36. Jira Sync</a></li>
-        <li><a href="#" data-file="37-monday-sync.md">37. Monday.com Sync</a></li>
-        <li><a href="#" data-file="41-google-calendar-sync.md">41. Google Calendar Sync</a></li>
-        <li><a href="#" data-file="42-todoist-sync.md">42. Todoist Sync</a></li>
-        <li><a href="#" data-file="43-outlook-calendar-sync.md">43. Outlook Calendar Sync</a></li>
-        <li><a href="#" data-file="44-caldav-calendar-sync.md">44. CalDAV Calendar Sync</a></li>
-        <li><a href="#" data-file="47-asana-sync.md">47. Asana Sync</a></li>
-        <li><a href="#" data-file="48-mobile-app-context.md">48. Mobile App & Context</a></li>
-        <li><a href="#" data-file="49-media-scheduler.md">49. Media Scheduler</a></li>
-        <li><a href="#" data-file="50-ppv-model.md">50. PPV Model</a></li>
-        <li><a href="#" data-file="38-hosted-demo.md">38. Hosted Demo</a></li>
+        <li><a href="#" data-file="24-sparql-console.md">24. SPARQL Console</a></li>
+        <li><a href="#" data-file="25-keyword-search.md">25. Keyword Search</a></li>
+        <li><a href="#" data-file="26-vfs.md">26. Virtual Filesystem (WebDAV)</a></li>
+        <li><a href="#" data-file="27-obsidian-onboarding.md">27. Obsidian Import</a></li>
+        <li><a href="#" data-file="28-notion-import.md">28. Notion Import</a></li>
+        <li><a href="#" data-file="29-spatial-canvas.md">29. Spatial Canvas</a></li>
+        <li><a href="#" data-file="30-dashboards-and-workflows.md">30. Dashboards and Workflows</a></li>
+        <li><a href="#" data-file="31-app-platform.md">31. App Platform</a></li>
+        <li><a href="#" data-file="32-rss-reader.md">32. RSS Reader</a></li>
+        <li><a href="#" data-file="33-personas.md">33. Workspace Personas</a></li>
+        <li><a href="#" data-file="34-api-surface.md">34. API Surface</a></li>
+        <li><a href="#" data-file="35-browser-extension.md">35. Browser Extension</a></li>
+        <li><a href="#" data-file="36-context-overlay.md">36. Context Overlay</a></li>
+        <li><a href="#" data-file="37-ai-features.md">37. AI Features</a></li>
       </ul>
 
-      <div class="sidebar-part-label">Part IX &mdash; Identity &amp; Federation</div>
+      <div class="sidebar-part-label">Part IX &mdash; Sync &amp; Companion Apps</div>
       <ul class="sidebar-chapter-list">
-        <li><a href="#" data-file="25-webid-profiles.md">25. WebID Profiles</a></li>
-        <li><a href="#" data-file="26-indieauth.md">26. IndieAuth</a></li>
-        <li><a href="#" data-file="51-federation.md">51. Federation &amp; Shared Graphs</a></li>
+        <li><a href="#" data-file="38-linear-sync.md">38. Linear Sync</a></li>
+        <li><a href="#" data-file="39-github-sync.md">39. GitHub Sync</a></li>
+        <li><a href="#" data-file="40-jira-sync.md">40. Jira Sync</a></li>
+        <li><a href="#" data-file="41-monday-sync.md">41. Monday.com Sync</a></li>
+        <li><a href="#" data-file="42-google-calendar-sync.md">42. Google Calendar Sync</a></li>
+        <li><a href="#" data-file="43-todoist-sync.md">43. Todoist Sync</a></li>
+        <li><a href="#" data-file="44-outlook-calendar-sync.md">44. Outlook Calendar Sync</a></li>
+        <li><a href="#" data-file="45-caldav-calendar-sync.md">45. CalDAV Calendar Sync</a></li>
+        <li><a href="#" data-file="46-asana-sync.md">46. Asana Sync</a></li>
+        <li><a href="#" data-file="47-mobile-app-context.md">47. Mobile App &amp; Context</a></li>
+        <li><a href="#" data-file="48-media-scheduler.md">48. Media Scheduler</a></li>
       </ul>
 
+      <div class="sidebar-part-label">Part X &mdash; Identity &amp; Federation</div>
+      <ul class="sidebar-chapter-list">
+        <li><a href="#" data-file="49-webid-profiles.md">49. WebID Profiles</a></li>
+        <li><a href="#" data-file="50-indieauth.md">50. IndieAuth</a></li>
+        <li><a href="#" data-file="51-federation.md">51. Federation and Shared Graphs</a></li>
+      </ul>
       <div class="sidebar-part-label">Appendices</div>
       <ul class="sidebar-chapter-list">
         <li><a href="#" data-file="appendix-a-environment-variables.md">A. Environment Variable Reference</a></li>
@@ -619,9 +625,59 @@ a:hover {
     return document.querySelector('.sidebar-chapter-list a[data-file="' + file + '"]');
   }
 
+  // Chapters were renumbered to match reading order; keep old deep links working.
+  var LEGACY_CHAPTERS = {
+      "39-mental-model-catalog": "11-mental-model-catalog.md",
+      "50-ppv-model": "12-ppv-model.md",
+      "11-user-management": "13-user-management.md",
+      "12-webhooks": "14-webhooks.md",
+      "13-settings": "15-settings.md",
+      "14-system-health-and-debugging": "16-system-health-and-debugging.md",
+      "15-event-log": "17-event-log.md",
+      "16-data-model": "18-data-model.md",
+      "17-command-api": "19-command-api.md",
+      "18-sparql-endpoint": "20-sparql-endpoint.md",
+      "19-creating-mental-models": "21-creating-mental-models.md",
+      "20-production-deployment": "22-production-deployment.md",
+      "38-hosted-demo": "23-hosted-demo.md",
+      "21-sparql-console": "24-sparql-console.md",
+      "22-keyword-search": "25-keyword-search.md",
+      "23-vfs": "26-vfs.md",
+      "24-obsidian-onboarding": "27-obsidian-onboarding.md",
+      "45-notion-import": "28-notion-import.md",
+      "27-spatial-canvas": "29-spatial-canvas.md",
+      "28-dashboards-and-workflows": "30-dashboards-and-workflows.md",
+      "29-app-platform": "31-app-platform.md",
+      "40-rss-reader": "32-rss-reader.md",
+      "30-personas": "33-personas.md",
+      "31-api-surface": "34-api-surface.md",
+      "32-browser-extension": "35-browser-extension.md",
+      "33-context-overlay": "36-context-overlay.md",
+      "46-ai-features": "37-ai-features.md",
+      "34-linear-sync": "38-linear-sync.md",
+      "35-github-sync": "39-github-sync.md",
+      "36-jira-sync": "40-jira-sync.md",
+      "37-monday-sync": "41-monday-sync.md",
+      "41-google-calendar-sync": "42-google-calendar-sync.md",
+      "42-todoist-sync": "43-todoist-sync.md",
+      "43-outlook-calendar-sync": "44-outlook-calendar-sync.md",
+      "44-caldav-calendar-sync": "45-caldav-calendar-sync.md",
+      "47-asana-sync": "46-asana-sync.md",
+      "48-mobile-app-context": "47-mobile-app-context.md",
+      "49-media-scheduler": "48-media-scheduler.md",
+      "25-webid-profiles": "49-webid-profiles.md",
+      "26-indieauth": "50-indieauth.md"
+  };
+
   function fileFromHash() {
     var name = decodeURIComponent(location.hash.replace(/^#/, ''));
     if (!name || !/^[A-Za-z0-9._-]+$/.test(name)) return null;
+    var stem = name.replace(/\.md$/, '');
+    if (LEGACY_CHAPTERS[stem]) {
+      // Rewrite the URL so the new location is what gets bookmarked or shared.
+      location.replace('#' + LEGACY_CHAPTERS[stem].replace(/\.md$/, ''));
+      return LEGACY_CHAPTERS[stem];
+    }
     if (!/\.md$/.test(name)) name += '.md';
     return sidebarLinkFor(name) ? name : null;
   }

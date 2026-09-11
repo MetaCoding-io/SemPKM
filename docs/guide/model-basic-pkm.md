@@ -254,4 +254,4 @@ Events work well in the **Calendar** view renderer; add it as a block for a week
 
 ---
 
-**Back:** [Chapter 39: Mental Model Catalog](39-mental-model-catalog.md)
+**Back:** [Chapter 11: Mental Model Catalog](11-mental-model-catalog.md)

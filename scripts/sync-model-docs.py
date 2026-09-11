@@ -26,7 +26,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 MODELS_DIR = REPO_ROOT / "models"
 GUIDE_DIR = REPO_ROOT / "docs" / "guide"
 MIRROR_PREFIX = "model-"
-CATALOG_CHAPTER = "39-mental-model-catalog.md"
+CATALOG_CHAPTER = "11-mental-model-catalog.md"
 
 
 def model_dirs() -> list[Path]:
@@ -55,7 +55,7 @@ def render_mirror(model_id: str, readme: str) -> str:
     )
     footer = (
         "\n\n---\n\n"
-        f"**Back:** [Chapter 39: Mental Model Catalog]({CATALOG_CHAPTER})\n"
+        f"**Back:** [Chapter 11: Mental Model Catalog]({CATALOG_CHAPTER})\n"
     )
     return banner + readme.rstrip("\n") + footer
 

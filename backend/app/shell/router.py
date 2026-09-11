@@ -7,7 +7,11 @@ rendering and htmx partial block rendering.
 Note: /browser/ is now served by app.browser.router (plan 04-04).
 """
 
+import json
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, Request
+from fastapi.responses import RedirectResponse
 
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
@@ -57,54 +61,54 @@ GUIDE_SECTIONS: list[dict] = [
             {"filename": "01-what-is-sempkm.md", "title": "1. What is SemPKM?", "icon": "info"},
             {"filename": "02-core-concepts.md", "title": "2. Core Concepts", "icon": "layers"},
             {"filename": "03-installation-and-setup.md", "title": "3. Installation and Setup", "icon": "download"},
-            {"filename": "04-workspace-interface.md", "title": "4. Workspace Interface", "icon": "layout-dashboard"},
+            {"filename": "04-workspace-interface.md", "title": "4. The Workspace Interface", "icon": "layout-dashboard"},
             {"filename": "05-working-with-objects.md", "title": "5. Working with Objects", "icon": "box"},
             {"filename": "06-edges-and-relationships.md", "title": "6. Edges and Relationships", "icon": "git-branch"},
-            {"filename": "07-browsing-and-visualizing.md", "title": "7. Browsing and Visualizing", "icon": "eye"},
-            {"filename": "08-keyboard-shortcuts.md", "title": "8. Keyboard Shortcuts", "icon": "keyboard"},
+            {"filename": "07-browsing-and-visualizing.md", "title": "7. Browsing and Visualizing Data", "icon": "eye"},
+            {"filename": "08-keyboard-shortcuts.md", "title": "8. Keyboard Shortcuts and Command Palette", "icon": "keyboard"},
             {"filename": "09-understanding-mental-models.md", "title": "9. Understanding Mental Models", "icon": "brain"},
             {"filename": "10-managing-mental-models.md", "title": "10. Managing Mental Models", "icon": "package"},
-            {"filename": "39-mental-model-catalog.md", "title": "39. Mental Model Catalog", "icon": "library"},
-            {"filename": "11-user-management.md", "title": "11. User Management", "icon": "users"},
-            {"filename": "12-webhooks.md", "title": "12. Webhooks", "icon": "webhook"},
-            {"filename": "13-settings.md", "title": "13. Settings", "icon": "settings"},
-            {"filename": "14-system-health-and-debugging.md", "title": "14. System Health and Debugging", "icon": "activity"},
-            {"filename": "15-event-log.md", "title": "15. Event Log", "icon": "clock"},
-            {"filename": "16-data-model.md", "title": "16. Data Model", "icon": "database"},
-            {"filename": "17-command-api.md", "title": "17. Command API", "icon": "terminal"},
-            {"filename": "18-sparql-endpoint.md", "title": "18. SPARQL Endpoint", "icon": "search-code"},
-            {"filename": "19-creating-mental-models.md", "title": "19. Creating Mental Models", "icon": "plus-square"},
-            {"filename": "20-production-deployment.md", "title": "20. Production Deployment", "icon": "server"},
-            {"filename": "21-sparql-console.md", "title": "21. SPARQL Console", "icon": "terminal-square"},
-            {"filename": "22-keyword-search.md", "title": "22. Keyword Search", "icon": "search"},
-            {"filename": "23-vfs.md", "title": "23. Virtual Filesystem (WebDAV)", "icon": "hard-drive"},
-            {"filename": "24-obsidian-onboarding.md", "title": "24. Obsidian Onboarding", "icon": "gem"},
-            {"filename": "45-notion-import.md", "title": "45. Notion Import", "icon": "file-input"},
-            {"filename": "25-webid-profiles.md", "title": "25. WebID Profiles", "icon": "user-check"},
-            {"filename": "26-indieauth.md", "title": "26. IndieAuth", "icon": "shield-check"},
-            {"filename": "27-spatial-canvas.md", "title": "27. Spatial Canvas", "icon": "move"},
-            {"filename": "28-dashboards-and-workflows.md", "title": "28. Dashboards & Workflows", "icon": "gauge"},
-            {"filename": "29-app-platform.md", "title": "29. App Platform", "icon": "blocks"},
-            {"filename": "40-rss-reader.md", "title": "40. RSS Reader", "icon": "rss"},
-            {"filename": "30-personas.md", "title": "30. Workspace Personas", "icon": "user-cog"},
-            {"filename": "31-api-surface.md", "title": "31. API Surface", "icon": "plug"},
-            {"filename": "32-browser-extension.md", "title": "32. Browser Extension", "icon": "puzzle"},
-            {"filename": "33-context-overlay.md", "title": "33. Context Overlay", "icon": "layers"},
-            {"filename": "46-ai-features.md", "title": "46. AI Features", "icon": "sparkles"},
-            {"filename": "34-linear-sync.md", "title": "34. Linear Sync", "icon": "refresh-cw"},
-            {"filename": "35-github-sync.md", "title": "35. GitHub Sync", "icon": "github"},
-            {"filename": "36-jira-sync.md", "title": "36. Jira Sync", "icon": "ticket"},
-            {"filename": "37-monday-sync.md", "title": "37. Monday.com Sync", "icon": "columns-3"},
-            {"filename": "41-google-calendar-sync.md", "title": "41. Google Calendar Sync", "icon": "calendar"},
-            {"filename": "42-todoist-sync.md", "title": "42. Todoist Sync", "icon": "check-square"},
-            {"filename": "43-outlook-calendar-sync.md", "title": "43. Outlook Calendar Sync", "icon": "mail"},
-            {"filename": "44-caldav-calendar-sync.md", "title": "44. CalDAV Calendar Sync", "icon": "calendar-clock"},
-            {"filename": "47-asana-sync.md", "title": "47. Asana Sync", "icon": "list-checks"},
-            {"filename": "48-mobile-app-context.md", "title": "48. Mobile App & Context", "icon": "smartphone"},
-            {"filename": "49-media-scheduler.md", "title": "49. Media Scheduler", "icon": "radio"},
-            {"filename": "50-ppv-model.md", "title": "50. PPV Model", "icon": "compass"},
-            {"filename": "38-hosted-demo.md", "title": "38. Hosted Demo", "icon": "globe"},
-            {"filename": "51-federation.md", "title": "51. Federation & Shared Graphs", "icon": "share-2"},
+            {"filename": "11-mental-model-catalog.md", "title": "11. Mental Model Catalog", "icon": "library"},
+            {"filename": "12-ppv-model.md", "title": "12. PPV Model (Pillars, Pipelines & Vaults)", "icon": "compass"},
+            {"filename": "13-user-management.md", "title": "13. User Management", "icon": "users"},
+            {"filename": "14-webhooks.md", "title": "14. Webhooks", "icon": "webhook"},
+            {"filename": "15-settings.md", "title": "15. Settings", "icon": "settings"},
+            {"filename": "16-system-health-and-debugging.md", "title": "16. System Health and Debugging", "icon": "activity"},
+            {"filename": "17-event-log.md", "title": "17. Understanding the Event Log", "icon": "clock"},
+            {"filename": "18-data-model.md", "title": "18. The Data Model", "icon": "database"},
+            {"filename": "19-command-api.md", "title": "19. The Command API", "icon": "terminal"},
+            {"filename": "20-sparql-endpoint.md", "title": "20. The SPARQL Endpoint", "icon": "search-code"},
+            {"filename": "21-creating-mental-models.md", "title": "21. Creating Mental Models", "icon": "plus-square"},
+            {"filename": "22-production-deployment.md", "title": "22. Production Deployment", "icon": "server"},
+            {"filename": "23-hosted-demo.md", "title": "23. Hosted Demo Instance", "icon": "globe"},
+            {"filename": "24-sparql-console.md", "title": "24. SPARQL Console", "icon": "terminal-square"},
+            {"filename": "25-keyword-search.md", "title": "25. Keyword Search", "icon": "search"},
+            {"filename": "26-vfs.md", "title": "26. Virtual Filesystem (WebDAV)", "icon": "hard-drive"},
+            {"filename": "27-obsidian-onboarding.md", "title": "27. Obsidian Import", "icon": "gem"},
+            {"filename": "28-notion-import.md", "title": "28. Notion Import", "icon": "file-input"},
+            {"filename": "29-spatial-canvas.md", "title": "29. Spatial Canvas", "icon": "move"},
+            {"filename": "30-dashboards-and-workflows.md", "title": "30. Dashboards and Workflows", "icon": "gauge"},
+            {"filename": "31-app-platform.md", "title": "31. App Platform", "icon": "blocks"},
+            {"filename": "32-rss-reader.md", "title": "32. RSS Reader", "icon": "rss"},
+            {"filename": "33-personas.md", "title": "33. Workspace Personas", "icon": "user-cog"},
+            {"filename": "34-api-surface.md", "title": "34. API Surface", "icon": "plug"},
+            {"filename": "35-browser-extension.md", "title": "35. Browser Extension", "icon": "puzzle"},
+            {"filename": "36-context-overlay.md", "title": "36. Context Overlay", "icon": "layers"},
+            {"filename": "37-ai-features.md", "title": "37. AI Features", "icon": "sparkles"},
+            {"filename": "38-linear-sync.md", "title": "38. Linear Sync", "icon": "refresh-cw"},
+            {"filename": "39-github-sync.md", "title": "39. GitHub Sync", "icon": "github"},
+            {"filename": "40-jira-sync.md", "title": "40. Jira Sync", "icon": "ticket"},
+            {"filename": "41-monday-sync.md", "title": "41. Monday.com Sync", "icon": "columns-3"},
+            {"filename": "42-google-calendar-sync.md", "title": "42. Google Calendar Sync", "icon": "calendar"},
+            {"filename": "43-todoist-sync.md", "title": "43. Todoist Sync", "icon": "check-square"},
+            {"filename": "44-outlook-calendar-sync.md", "title": "44. Outlook Calendar Sync", "icon": "mail"},
+            {"filename": "45-caldav-calendar-sync.md", "title": "45. CalDAV Calendar Sync", "icon": "calendar-clock"},
+            {"filename": "46-asana-sync.md", "title": "46. Asana Sync", "icon": "list-checks"},
+            {"filename": "47-mobile-app-context.md", "title": "47. Mobile App & Context", "icon": "smartphone"},
+            {"filename": "48-media-scheduler.md", "title": "48. Media Scheduler", "icon": "radio"},
+            {"filename": "49-webid-profiles.md", "title": "49. WebID Profiles", "icon": "user-check"},
+            {"filename": "50-indieauth.md", "title": "50. IndieAuth", "icon": "shield-check"},
+            {"filename": "51-federation.md", "title": "51. Federation and Shared Graphs", "icon": "share-2"},
             # Appendices
             {"filename": "appendix-a-environment-variables.md", "title": "Appendix A: Environment Variables", "icon": "file-text", "appendix": True},
             {"filename": "appendix-b-keyboard-shortcuts.md", "title": "Appendix B: Keyboard Shortcuts", "icon": "file-text", "appendix": True},
@@ -178,11 +182,24 @@ async def guide_page(request: Request, user: User = Depends(get_current_user)):
     return templates.TemplateResponse(request, "guide.html", context)
 
 
+# Old chapter filenames (before the guide was renumbered to match reading
+# order) -> current filenames. Source of truth: docs/guide/legacy-chapter-map.json,
+# shared with the public guide viewer.
+_LEGACY_MAP_PATH = Path(__file__).resolve().parent.parent.parent.parent / "docs" / "guide" / "legacy-chapter-map.json"
+try:
+    LEGACY_GUIDE_FILES: dict[str, str] = json.loads(_LEGACY_MAP_PATH.read_text(encoding="utf-8"))
+except (OSError, ValueError):
+    LEGACY_GUIDE_FILES = {}
+
+
 @router.get("/guide/{filename:path}")
 async def guide_article(
     filename: str, request: Request, user: User = Depends(get_current_user)
 ):
     """Render a single user guide article as a standalone page."""
+    legacy_target = LEGACY_GUIDE_FILES.get(filename.removesuffix(".md"))
+    if legacy_target:
+        return RedirectResponse(url=f"/guide/{legacy_target}", status_code=301)
     templates = request.app.state.templates
     context = {"active_page": "guide", "user": user, "filename": filename}
     if _is_htmx_request(request):
