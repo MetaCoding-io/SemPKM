@@ -84,7 +84,7 @@ The OBJECTS section header includes a **mode selector** dropdown that lets you s
 | **By Type** (default) | Groups objects under their type (Project, Note, Concept, etc.) |
 | **Hierarchy** | Groups objects by `dcterms:isPartOf` parent-child relationships |
 | **By Tag** | Groups objects by their `schema:keywords` tags |
-| **VFS Mounts** | Shows configured virtual filesystem mount trees (see [Virtual Filesystem](26-vfs.md)) |
+| **VFS Mounts** | Shows configured virtual filesystem mount trees (see [Virtual Filesystem](25-vfs.md)) |
 
 Switch modes by clicking the dropdown next to "OBJECTS" and selecting a mode. The tree reloads to show objects organized according to the selected mode. Your mode selection is remembered across page reloads.
 

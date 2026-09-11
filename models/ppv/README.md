@@ -101,15 +101,33 @@ Context, per-tier review tables, a Review Calendar, and Pillar Scores.
 ## Installation
 
 Go to **Admin > Models**, pick **Pillars, Pipelines & Vaults** from the bundled catalog (or
-enter the path `/app/models/ppv`) and click **Install**. Dashboards appear in the **DASHBOARDS**
-section of the workspace sidebar and workflows in **WORKFLOWS**.
+enter the path `/app/models/ppv`) and click **Install**. The model registers all 12 types with
+their SHACL shapes, views (table, kanban, graph), five dashboards, and five workflows.
+Dashboards appear in the **DASHBOARDS** section of the workspace sidebar and workflows in
+**WORKFLOWS**.
+
+> **Tip:** After installing, check the Explorer sidebar: the PPV types should be listed under
+> their icons. Open any dashboard from the sidebar to verify the installation.
 
 ## Seed data
 
-The bundle ships a connected demo hierarchy: 3 pillar groups, 6 pillars, 4 value goals, 4 goal
-outcomes, 4 projects, 6 action items, one review at each tier, 3 pillar scores, and one Guiding
-Principles document. Everything is linked so the dashboards and graphs render meaningfully out
-of the box.
+The bundle ships a connected demo hierarchy so dashboards, workflows, and graphs render
+meaningfully before you add your own data:
+
+- **3 Pillar Groups** (Personal Growth, Professional, Relationships & Community)
+- **6 Pillars** (Health & Fitness, Learning & Development, Career, Finance, Family, Community)
+- **4 Value Goals** spanning different pillars, **4 Goal Outcomes**, **4 Projects** in various
+  statuses, and **6 Action Items** across priorities
+- **4 Reviews** (one weekly, monthly, quarterly, and yearly) with reflection fields filled in
+- **3 Pillar Scores** linking pillars to the weekly review
+- **1 Guiding Principles** document
+
+Everything is linked: projects connect to goal outcomes, which connect to value goals, which
+connect to pillars, which belong to pillar groups. The review hierarchy is similarly connected.
+
+> **Note:** Seed data creates instances in the knowledge graph, so uninstalling the model will
+> ask you to confirm removing these objects. You can also delete individual seed instances from
+> the object editor if you want to replace them with your own data.
 
 ## Tips
 

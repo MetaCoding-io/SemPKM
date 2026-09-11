@@ -99,7 +99,7 @@ All modules live under `backend/app/`. Standard shape per module: `__init__.py`,
 | `auth` | Passwordless magic-link auth, sessions, roles (owner/member), teams |
 | `indieauth` | IndieAuth OAuth2 provider (authorization code + PKCE) |
 | `webid` | WebID profile (username, Ed25519 keys, link management, public page) |
-| `federation` | Instance-to-instance federation: shared graphs, WebFinger, LDN inbox, RFC 9421 HTTP Message Signatures, RDF Patch sync (see [user guide ch. 51](docs/guide/51-federation.md)) |
+| `federation` | Instance-to-instance federation: shared graphs, WebFinger, LDN inbox, RFC 9421 HTTP Message Signatures, RDF Patch sync (see [user guide ch. 50](docs/guide/50-federation.md)) |
 
 ### UI Routers
 
