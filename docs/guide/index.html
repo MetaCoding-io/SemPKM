@@ -320,14 +320,19 @@ a:hover {
   padding: 0.5em 1em;
   color: var(--text-secondary);
   margin: 0.8em 0;
+  background: var(--bg-card);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
 .markdown-body img { max-width: 100%; border-radius: var(--radius-sm); }
 
+/* Tables sit on a solid card surface so the body's graph-paper pattern
+   does not show through the cells; the header row is one step lighter. */
 .markdown-body table {
   border-collapse: collapse;
   width: 100%;
   margin: 0.8em 0;
+  background: var(--bg-card);
 }
 
 .markdown-body th, .markdown-body td {
@@ -336,7 +341,7 @@ a:hover {
   text-align: left;
 }
 
-.markdown-body th { background: var(--bg-card); font-weight: 600; }
+.markdown-body th { background: var(--bg-card-hover); font-weight: 600; }
 
 .markdown-body ul, .markdown-body ol { padding-left: 2em; margin: 0.8em 0; }
 .markdown-body li { margin: 0.3em 0; }
