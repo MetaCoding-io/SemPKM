@@ -118,12 +118,94 @@ def _validate_context(context, file_path: Path) -> None:
     # dict contexts (inline mappings) are always valid
 
 
+# Conventional documentation file when the manifest declares no docs entrypoint.
+DEFAULT_DOCS_FILENAME = "README.md"
+
+# Upper bound on the documentation file size (bytes). Docs are embedded in
+# admin pages and rendered client-side, so keep them reasonably small.
+MAX_DOCS_BYTES = 1024 * 1024
+
+
+def resolve_docs_path(model_dir: Path, manifest: ManifestSchema) -> Path | None:
+    """Locate the Markdown documentation file for a model archive.
+
+    Resolution order:
+
+    1. ``entrypoints.docs`` from the manifest, when declared. The file
+       **must** exist -- a declared-but-missing docs file is an error so
+       that install validation catches broken archives.
+    2. A conventional ``README.md`` at the archive root, when present.
+    3. ``None`` when the archive ships no documentation.
+
+    Args:
+        model_dir: Path to the model archive directory.
+        manifest: The validated manifest with resolved entrypoint paths.
+
+    Returns:
+        Path to the documentation file, or None if the archive has none.
+
+    Raises:
+        FileNotFoundError: If ``entrypoints.docs`` is declared but missing.
+        ValueError: If the declared path escapes the archive directory.
+    """
+    declared = manifest.entrypoints.docs
+    if declared is not None:
+        docs_path = (model_dir / declared)
+        root = model_dir.resolve()
+        try:
+            docs_path.resolve().relative_to(root)
+        except ValueError:
+            raise ValueError(
+                f"Documentation path '{declared}' escapes the model directory"
+            ) from None
+        if not docs_path.is_file():
+            raise FileNotFoundError(
+                f"Documentation file not found: {docs_path} "
+                f"(declared as entrypoints.docs in manifest.yaml)"
+            )
+        return docs_path
+
+    fallback = model_dir / DEFAULT_DOCS_FILENAME
+    if fallback.is_file():
+        return fallback
+    return None
+
+
+def load_model_docs(model_dir: Path, manifest: ManifestSchema) -> str | None:
+    """Read the Markdown documentation for a model archive.
+
+    See :func:`resolve_docs_path` for the resolution rules.
+
+    Args:
+        model_dir: Path to the model archive directory.
+        manifest: The validated manifest with resolved entrypoint paths.
+
+    Returns:
+        The Markdown text, or None if the archive has no documentation.
+
+    Raises:
+        FileNotFoundError: If ``entrypoints.docs`` is declared but missing.
+        ValueError: If the file escapes the archive or exceeds MAX_DOCS_BYTES.
+    """
+    docs_path = resolve_docs_path(model_dir, manifest)
+    if docs_path is None:
+        return None
+    size = docs_path.stat().st_size
+    if size > MAX_DOCS_BYTES:
+        raise ValueError(
+            f"Documentation file {docs_path.name} is {size} bytes; "
+            f"the maximum is {MAX_DOCS_BYTES} bytes"
+        )
+    return docs_path.read_text(encoding="utf-8", errors="replace")
+
+
 @dataclass
 class ModelArchive:
     """A loaded Mental Model archive with all RDF graphs.
 
     Holds the parsed manifest and rdflib Graphs for each
-    artifact type (ontology, shapes, views, and optionally seed).
+    artifact type (ontology, shapes, views, and optionally seed),
+    plus the optional Markdown documentation text.
     """
 
     manifest: ManifestSchema
@@ -132,6 +214,7 @@ class ModelArchive:
     views: Graph
     seed: Graph | None
     rules: Graph | None
+    docs: str | None = None
 
 
 def load_archive(model_dir: Path, manifest: ManifestSchema) -> ModelArchive:
@@ -139,7 +222,9 @@ def load_archive(model_dir: Path, manifest: ManifestSchema) -> ModelArchive:
 
     Resolves entrypoint paths relative to model_dir and loads each
     JSON-LD file. Seed data is optional -- if the entrypoint is None
-    or the file does not exist, seed is set to None.
+    or the file does not exist, seed is set to None. Markdown
+    documentation is loaded from ``entrypoints.docs`` (required to
+    exist when declared) or a root ``README.md`` when present.
 
     Args:
         model_dir: Path to the model archive directory.
@@ -150,8 +235,9 @@ def load_archive(model_dir: Path, manifest: ManifestSchema) -> ModelArchive:
 
     Raises:
         FileNotFoundError: If a required file (ontology, shapes, views)
-            does not exist.
-        ValueError: If any file contains remote @context URLs.
+            or a declared documentation file does not exist.
+        ValueError: If any file contains remote @context URLs, or the
+            documentation file is invalid.
     """
     ontology = load_jsonld_file(model_dir / manifest.entrypoints.ontology)
     shapes = load_jsonld_file(model_dir / manifest.entrypoints.shapes)
@@ -169,6 +255,8 @@ def load_archive(model_dir: Path, manifest: ManifestSchema) -> ModelArchive:
         if rules_path.exists():
             rules = load_rdf_file(rules_path)
 
+    docs = load_model_docs(model_dir, manifest)
+
     return ModelArchive(
         manifest=manifest,
         ontology=ontology,
@@ -176,4 +264,5 @@ def load_archive(model_dir: Path, manifest: ManifestSchema) -> ModelArchive:
         views=views,
         seed=seed,
         rules=rules,
+        docs=docs,
     )

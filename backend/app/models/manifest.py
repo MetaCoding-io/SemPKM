@@ -55,6 +55,7 @@ class ManifestEntrypoints(BaseModel):
     rules: str | None = None
     dashboards: str | None = None
     workflows: str | None = None
+    docs: str | None = None   # Markdown documentation (e.g. "README.md")
 
 
 class ManifestSchema(BaseModel):
@@ -119,7 +120,28 @@ class ManifestSchema(BaseModel):
             ep.dashboards = ep.dashboards.replace("{modelId}", self.modelId)
         if ep.workflows is not None:
             ep.workflows = ep.workflows.replace("{modelId}", self.modelId)
+        if ep.docs is not None:
+            ep.docs = ep.docs.replace("{modelId}", self.modelId)
         return self
+
+    @field_validator("entrypoints")
+    @classmethod
+    def validate_docs_entrypoint(cls, ep: ManifestEntrypoints) -> ManifestEntrypoints:
+        """The docs entrypoint must be a relative Markdown path inside the archive."""
+        if ep.docs is not None:
+            docs = ep.docs.strip()
+            if not docs:
+                raise ValueError("entrypoints.docs must not be empty when declared")
+            if not docs.lower().endswith((".md", ".markdown")):
+                raise ValueError(
+                    f"entrypoints.docs must be a Markdown file (.md), got '{docs}'"
+                )
+            if docs.startswith(("/", "\\")) or ".." in docs.replace("\\", "/").split("/"):
+                raise ValueError(
+                    f"entrypoints.docs must be a relative path inside the archive, got '{docs}'"
+                )
+            ep.docs = docs
+        return ep
 
 
 def parse_manifest(model_dir: Path) -> ManifestSchema:

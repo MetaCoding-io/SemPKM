@@ -2234,6 +2234,33 @@ kbd {
   font-weight: 600;
 }
 
+/* Model Documentation tab (Markdown shipped inside the model archive) */
+.model-docs-panel {
+  padding: 0.5rem 0;
+  max-width: 960px;
+}
+
+.model-docs-content.markdown-body {
+  padding: 0 0.25rem;
+}
+
+.model-docs-content.markdown-body > h1:first-child,
+.model-docs-content.markdown-body > h2:first-child {
+  margin-top: 0.25em;
+}
+
+.model-docs-empty .model-docs-hint {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+}
+
+.model-docs-empty code {
+  font-size: 0.78rem;
+  background: var(--color-surface-hover);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+
 /* Ontology Diagram (Cytoscape) */
 .ontology-diagram-panel {
   padding: 0.5rem 0;

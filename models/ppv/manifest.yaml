@@ -14,6 +14,7 @@ entrypoints:
   rules: "rules/ppv.ttl"
   dashboards: "dashboards/ppv.json"
   workflows: "workflows/ppv.json"
+  docs: "README.md"
 entailment_defaults:
   owl_inverseOf: true
   rdfs_subClassOf: false

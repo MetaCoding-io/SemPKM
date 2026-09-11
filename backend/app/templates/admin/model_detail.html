@@ -24,7 +24,7 @@
                     hx-post="/admin/models/{{ detail.info.model_id }}/refresh-artifacts"
                     hx-target="#app-content"
                     hx-swap="innerHTML"
-                    hx-confirm="Refresh artifacts for {{ detail.info.name }}? This will reload shapes, views, ontology, and rules from disk."
+                    hx-confirm="Refresh artifacts for {{ detail.info.name }}? This will reload shapes, views, ontology, rules, and documentation from disk."
                     style="margin-left: 8px;">
                 Refresh
             </button>
@@ -60,6 +60,13 @@
     <div class="model-detail-tabs">
         <button class="model-tab active" data-tab="schema" onclick="switchModelTab('schema')">
             <i data-lucide="list"></i> Schema
+        </button>
+        <button class="model-tab" data-tab="docs" onclick="switchModelTab('docs')"
+                hx-get="/admin/models/{{ detail.info.model_id }}/docs"
+                hx-target="#docs-content"
+                hx-swap="innerHTML"
+                hx-trigger="click once">
+            <i data-lucide="book-open"></i> Documentation
         </button>
         <button class="model-tab" data-tab="relationships" onclick="switchModelTab('relationships')"
                 hx-get="/admin/models/{{ detail.info.model_id }}/ontology-diagram"
@@ -301,6 +308,15 @@
 
     </div><!-- end schema-panel -->
 
+    <!-- Documentation Tab Panel -->
+    <div id="docs-panel" class="model-tab-panel" style="display:none;">
+        <div id="docs-content">
+            <div class="diagram-loading">
+                <i data-lucide="loader-2" class="spin"></i> Loading documentation...
+            </div>
+        </div>
+    </div>
+
     <!-- Relationships Tab Panel -->
     <div id="relationships-panel" class="model-tab-panel" style="display:none;">
         <div id="relationships-content">
@@ -330,6 +346,7 @@
             btn.classList.toggle('active', btn.dataset.tab === tabName);
         });
         document.getElementById('schema-panel').style.display = tabName === 'schema' ? '' : 'none';
+        document.getElementById('docs-panel').style.display = tabName === 'docs' ? '' : 'none';
         document.getElementById('relationships-panel').style.display = tabName === 'relationships' ? '' : 'none';
         document.getElementById('inference-panel').style.display = tabName === 'inference' ? '' : 'none';
         if (typeof lucide !== 'undefined') lucide.createIcons();
