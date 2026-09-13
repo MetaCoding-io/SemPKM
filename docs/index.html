@@ -528,7 +528,7 @@
 
     <div class="ecosystem-scroll fade-in">
       <svg class="ecosystem-svg" viewBox="0 -16 1240 656" font-family="'DM Sans', -apple-system, sans-serif"
-           role="img" aria-label="Diagram: Alice and Bob each use a browser window showing SemPKM's Object Browser, open on the shared object Q4 Plan, connected to their own SemPKM instances. Alice's phone runs the AndroidUsageControl app, sending context events to her instance, which runs agents on her knowledge graph. The two instances federate via signed RDF patches, and Q4 Plan exists in both graphs.">
+           role="img" aria-label="Diagram: Alice and Bob each use a browser window showing SemPKM's Object Browser, open on the shared object Q4 Plan, connected to their own SemPKM instances. Alice's browser also runs the SemPKM Capture extension, clipping typed objects from any web page into her instance via the API. Her phone runs the AndroidUsageControl app, sending context events to her instance, which runs agents on her knowledge graph. The two instances federate via signed RDF patches, and Q4 Plan exists in both graphs.">
         <defs>
           <marker id="eco-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
             <path d="M0 0L10 5L0 10z" fill="#686880"/>
@@ -610,6 +610,38 @@
         </g>
         <path d="M515 187 L 515 227" fill="none" stroke="#686880" stroke-width="1.5" marker-end="url(#eco-arrow)"/>
         <text x="525" y="211" fill="#9898b0" font-size="10" font-family="monospace">Web UI</text>
+
+        <!-- SemPKM Capture extension: any page into the graph -->
+        <a href="guide/index.html#32-browser-extension">
+        <g>
+          <rect x="70" y="210" width="220" height="112" rx="8" fill="#16161f" stroke="#2e2e44" stroke-width="1.5"/>
+          <circle cx="82" cy="220" r="2.5" fill="#2e2e44"/><circle cx="91" cy="220" r="2.5" fill="#2e2e44"/><circle cx="100" cy="220" r="2.5" fill="#2e2e44"/>
+          <rect x="110" y="214.5" width="134" height="11" rx="5.5" fill="#0a0a0f" stroke="#1e1e2e"/>
+          <text x="177" y="222.5" text-anchor="middle" fill="#686880" font-size="6.5" font-family="monospace">any-website.com/article</text>
+          <rect x="250" y="214" width="12" height="12" rx="3" fill="url(#eco-hex)"/>
+          <line x1="70" y1="230" x2="290" y2="230" stroke="#1e1e2e"/>
+          <rect x="82" y="242" width="74" height="3" rx="1.5" fill="#2a2a3e"/>
+          <rect x="82" y="252" width="66" height="3" rx="1.5" fill="#2a2a3e"/>
+          <rect x="82" y="262" width="72" height="3" rx="1.5" fill="#2a2a3e"/>
+          <rect x="82" y="272" width="58" height="3" rx="1.5" fill="#2a2a3e"/>
+          <rect x="82" y="282" width="70" height="3" rx="1.5" fill="#2a2a3e"/>
+          <rect x="82" y="292" width="63" height="3" rx="1.5" fill="#2a2a3e"/>
+          <rect x="82" y="302" width="68" height="3" rx="1.5" fill="#2a2a3e"/>
+          <!-- capture popup -->
+          <rect x="164" y="238" width="114" height="74" rx="6" fill="#12121a" stroke="#e8772e" stroke-opacity="0.5"/>
+          <path d="M174 244 l4.5 2.6 v5.2 l-4.5 2.6 l-4.5 -2.6 v-5.2 z" fill="none" stroke="url(#eco-hex)" stroke-width="1.5"/>
+          <text x="183" y="252" fill="#e8e8f0" font-size="7" font-weight="700">SemPKM Capture</text>
+          <rect x="172" y="259" width="42" height="10" rx="5" fill="#0a0a0f" stroke="#2e2e44"/>
+          <text x="193" y="266.5" text-anchor="middle" fill="#9898b0" font-size="5.5" font-family="monospace">bpkm:Note</text>
+          <rect x="172" y="275" width="94" height="3" rx="1.5" fill="#2a2a3e"/>
+          <rect x="172" y="283" width="80" height="3" rx="1.5" fill="#2a2a3e"/>
+          <rect x="172" y="293" width="30" height="12" rx="3" fill="#8fce87"/>
+          <text x="187" y="301.5" text-anchor="middle" fill="#0a0a0f" font-size="6.5" font-weight="700">Save</text>
+          <text x="180" y="342" text-anchor="middle" fill="#9898b0" font-size="11">SemPKM Capture &middot; Alt+S &#8599;</text>
+        </g>
+        </a>
+        <path d="M294 266 L 322 266" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#eco-arrow-amber)"/>
+        <text x="308" y="258" text-anchor="middle" fill="#f59e0b" font-size="9" font-family="monospace">API</text>
 
         <!-- Alice's phone -->
         <g>
@@ -818,8 +850,10 @@
     </div>
 
     <p class="fade-in ecosystem-footnote">
-      Context reporting is covered in
-      <a href="guide/index.html#48-mobile-app-context">Chapter 48: Mobile App &amp; Context</a>,
+      The browser extension is covered in
+      <a href="guide/index.html#32-browser-extension">Chapter 32</a>,
+      context reporting in
+      <a href="guide/index.html#48-mobile-app-context">Chapter 48</a>,
       sharing between instances in
       <a href="guide/index.html#51-federation">Chapter 51: Federation</a>.
     </p>
