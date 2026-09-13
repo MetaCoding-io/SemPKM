@@ -475,10 +475,95 @@ _These need API keys/OAuth to test fully. Test at minimum: settings UI loads, co
 | 63 | 🔴 Broken | object-crud | 2 | `object.create` does not set `dcterms:created` automatically — new objects have no creation timestamp. The "Eisenhower Matrices Table" shows the seed data row with a CREATED value but the user-created row has an empty CREATED cell. | Create any object → view in table → CREATED column is empty |
 | 64 | 🔴 Broken | views | 5 | "Browse: Eisenhower Quadrant" view does not exist in the VIEWS section — the ViewSpec didn't load into the triplestore. Root cause is #4a (model installer only loading a fraction of artifacts). All business-planning custom renderers are effectively broken. | Explorer → VIEWS → no quadrant entry |
 | 65 | 🟢 Polish | object-crud | 2 | Object tab header needs a refresh button (cycle icon, same as explorer panel) next to the star/favorite icon. Currently no way to reload an object without closing and reopening the tab. | Any object tab → no refresh action |
+| 66 | 🟡 Bug | model-mgmt | 1 | Archive validator's view→class reference-integrity check never fires — it looks for predicate `urn:sempkm:targetClass` but all views files (and the runtime) use `urn:sempkm:vocab:targetClass`. A model whose ViewSpec targets a nonexistent class installs without error. Detailed fix notes below. | Install a model with a views file targeting a bogus class → no validation error |
+| 67 | 🟡 Bug | object-crud | 2 | Write path ignores declared SHACL datatypes — `_to_rdf_value()` guesses `xsd:date`/`xsd:dateTime`/IRI-ness by string sniffing instead of consulting the property's `sh:datatype`/`sh:class`. Mis-typed literals cause SHACL lint violations and wrong sort/filter behavior in views. Affects all 4 write handlers via the shared helper. Detailed fix notes below. | Create object with a `sh:datatype xsd:boolean` field → value stored as plain string literal → lint flags datatype mismatch |
+| 68 | 🟡 Bug | inference | 18 | `entailment_defaults` is not a declared field on `ManifestSchema` — Pydantic silently drops it, and inference + admin code work around this by re-reading the raw manifest YAML in two separate places. No schema validation on the key, and the workaround readers can drift. Detailed fix notes below. | Add a typo'd `entailment_defaults` key to a manifest → installs silently, defaults ignored |
+| 69 | 🟡 Bug | validation | 9 | pyshacl runs without any ontology graph — validation sees no `rdfs:subClassOf`/OWL axioms, so an object typed as a subclass fails `sh:class` constraints that name the superclass (e.g. a `bpkm:Note` referenced by a property constrained to `gist:FormattedContent` is flagged). Inferred triples in `urn:sempkm:inferred` are also excluded from the validated data. Detailed fix notes below. | Reference a subclass-typed object from a property whose `sh:class` names the parent class → false-positive lint violation |
 
 **Severity:** 🔴 Broken (feature doesn't work) · 🟡 Bug (works but wrong) · 🟢 Polish (cosmetic/UX)
 
 **Category:** `model-mgmt` · `object-crud` · `workspace` · `views` · `canvas` · `sparql` · `search` · `validation` · `vfs` · `import` · `apps` · `sync` · `copilot` · `auth` · `identity` · `dashboard` · `workflow` · `inference` · `events` · `docs` · `ui-quality`
+
+---
+
+## Fix Notes: #66–#69 (backend model layer)
+
+> Found during the 2026-08-20 LinkML integration assessment (`.planning/research/linkml-integration-assessment.md`). All four verified against current `main`. File:line references are exact as of that date.
+
+### #66 — Dead view reference-integrity check (wrong predicate IRI)
+
+**Root cause:** `backend/app/models/validator.py:20` defines
+
+```python
+SEMPKM_TARGET_CLASS = URIRef("urn:sempkm:targetClass")
+```
+
+but every shipped views file binds `"sempkm": "urn:sempkm:vocab:"` (verified across all 8 `models/*/views/*.jsonld`), and the runtime reads views with `urn:sempkm:vocab:targetClass` (`backend/app/views/service.py:38` defines `SEMPKM_VOCAB = "urn:sempkm:vocab:"`, used at line 167). Check #4 in `validate_reference_integrity()` (the loop over `views.triples((None, SEMPKM_TARGET_CLASS, None))`, ~line 168) therefore iterates zero triples and can never report an issue.
+
+**Fix:**
+1. Change the constant to `URIRef("urn:sempkm:vocab:targetClass")`.
+2. Better: define the vocab namespace once (e.g. `SEMPKM_VOCAB = "urn:sempkm:vocab:"` in `backend/app/rdf/namespaces.py`) and derive both the validator constant and `views/service.py:38` from it, so they can't drift again.
+
+**Verify:** unit test in `backend/tests/` — build a `ModelArchive` whose views graph contains a `sempkm:ViewSpec` with `urn:sempkm:vocab:targetClass` pointing at a class **not** in the ontology graph, call `validate_archive`, assert one error with rule `ref-integrity-view-class`. This test fails before the fix (no error reported) and passes after. Also re-run `pytest backend/tests -k validator` and confirm the 8 bundled models still validate cleanly (`test_model_audit.py` covers install).
+
+**Gotcha:** after the fix, any *existing* model archive with a broken view target will start failing installation — check all 8 bundled models' views files reference real ontology classes before merging (the check only applies to targets inside the model's own namespace, so gist/external targets are unaffected).
+
+### #67 — Write path ignores declared `sh:datatype` (string-sniffing coercion)
+
+**Root cause:** `_to_rdf_value()` at `backend/app/commands/handlers/object_create.py:49-76` converts form values to RDF terms purely by inspecting the Python value: strings starting with `http(s)://`/`urn:` become IRIs, ISO-8601-looking strings become `xsd:dateTime`/`xsd:date`, everything else becomes an untyped string literal. The SHACL `sh:datatype` declared on the property shape is never consulted. The helper is shared — imported and called from:
+- `object_create.py:116,119`
+- `object_patch.py:84`
+- `edge_create.py:56`
+- `edge_patch.py:38`
+
+**Symptoms:** booleans arrive from forms as `"true"`/`"false"` and are stored as plain string literals (the `isinstance(value, bool)` branch never fires for form input); integers/decimals stored as strings; a free-text field whose value happens to start with `urn:` becomes a URIRef; all of which produce SHACL datatype-mismatch lint results and break typed sorting/filtering in table views.
+
+**Fix (shape-driven coercion with sniffing as fallback):**
+1. Extend the helper signature: `_to_rdf_value(value, *, expected_datatype: str | None = None, is_object_ref: bool = False)`.
+   - `expected_datatype` (an XSD IRI string) → emit `Literal(value, datatype=URIRef(expected_datatype))`, converting `"true"/"false"` → boolean, numeric strings → int/decimal first so rdflib serializes canonically.
+   - `is_object_ref` (property has `sh:class` or `sh:nodeKind sh:IRI`) → emit `URIRef(value)`, error if not IRI-shaped.
+   - Neither → current sniffing behavior (back-compat for untyped/unknown properties, e.g. RDF import and user-created types with no shape).
+2. Thread the shape info in at the dispatch layer, not inside the pure handlers: in `backend/app/commands/dispatcher.py`, before invoking the handler, resolve the object's type → `ShapesService.get_form_for_type()` (`backend/app/services/shapes.py:356-400`, already TTL-cached) → build `{predicate_iri: PropertyShape}` and pass it through to the handlers (`PropertyShape` already carries `datatype` and `target_class` fields, `shapes.py:30-66`). For edge handlers, the predicate's shape comes from the source object's type.
+3. Update all 4 handlers to pass the per-predicate shape into `_to_rdf_value`.
+
+**Verify:** unit tests on `_to_rdf_value` per datatype (`xsd:boolean`, `xsd:integer`, `xsd:decimal`, `xsd:date`, `xsd:dateTime`, `xsd:anyURI`, `sh:class` ref, no-shape fallback). Integration: create a Task with a boolean/int field via `POST /api/commands`, SPARQL the stored literal's datatype, assert typed. E2E: `e2e/tests/04-validation/` — a freshly created valid object should produce zero datatype lint results.
+
+**Gotcha:** existing stored data keeps its old (untyped) literals — this fix is forward-only. Don't attempt migration here; note it as a follow-up (relates to the "Mental Model Schema Migrations" idea in `.gsd/QUEUE.md`). Watch `sh:in` dropdowns: their values are plain strings by design; only coerce when `sh:datatype` says so.
+
+### #68 — `entailment_defaults` silently dropped by `ManifestSchema`
+
+**Root cause:** `ManifestSchema` (`backend/app/models/manifest.py:60-122`) declares `settings` and `icons` but **not** `entailment_defaults`. Pydantic's default `extra="ignore"` silently discards the key during `parse_manifest()`. Two places work around this by re-reading the raw YAML with their own parsing loops:
+- `backend/app/inference/service.py:664-665`
+- `backend/app/admin/router.py:1386-1410` (`_load_entailment_defaults`)
+
+Consequences: the key gets zero schema validation (a typo'd entailment name or non-bool value is silently accepted/ignored), and the two ad-hoc readers can drift from each other and from the manifest spec.
+
+**Fix:**
+1. Add to `ManifestSchema` (next to `settings`/`icons`):
+   ```python
+   entailment_defaults: dict[str, bool] = Field(default_factory=dict)
+   ```
+   Optionally validate keys against the known entailment types in `backend/app/inference/entailments.py` — warn (don't fail install) on unknown keys, since older/newer models may name entailments this version doesn't know.
+2. Replace both raw-YAML readers with the parsed manifest: `_load_entailment_defaults` in `admin/router.py` and the block in `inference/service.py:655-670` should call `parse_manifest(model_dir)` (or better, read from the model registry if the parsed manifest is stored there at install time) and return `manifest.entailment_defaults`.
+3. Grep for any other raw-YAML manifest reads while in there (`rg "yaml.safe_load" backend/app`) and consolidate on `parse_manifest`.
+
+**Verify:** unit test — manifest YAML with `entailment_defaults: {inverse_properties: true, subclass_transitivity: false}` parses into the field; manifest with a bogus value type (`entailment_defaults: {x: "yes"}`) raises a Pydantic error. Regression: `pytest backend/tests -k "manifest or inference"`; the admin model-detail Inference section (bug #8's screen) still shows correct per-model defaults.
+
+**Gotcha:** `ppv` is the model that ships manifest extras — confirm its manifest still parses and its inference defaults still apply after the change (`test_ppv_ontology.py`).
+
+### #69 — pyshacl validates without ontology axioms (`ont_graph` absent)
+
+**Root cause:** `ValidationService.validate()` at `backend/app/services/validation.py:52-119` CONSTRUCTs **only** `urn:sempkm:current` as the data graph (lines 72-74) and calls `pyshacl.validate(data_graph, shacl_graph=..., advanced=True)` with no `ont_graph` and no inference (lines 99-106). The shapes loader (`model_shapes_loader`, `backend/app/services/models.py:1372-1441`) merges shapes + rules graphs but no ontologies. So SHACL validation has no knowledge of `rdfs:subClassOf`, `owl:inverseOf`, etc.
+
+**Concrete failure:** models subclass gist (`bpkm:Note rdfs:subClassOf gist:FormattedContent`). A property shape with `sh:class gist:FormattedContent` (or `sh:class` naming any superclass) flags every reference to a subclass-typed object as a violation, because the data graph contains only `?x a bpkm:Note` and pyshacl can't derive the supertype. Separately, triples materialized by the inference engine into `urn:sempkm:inferred` (inverse edges etc.) are invisible to validation.
+
+**Fix — two options; pick one and record it in `.gsd/DECISIONS.md`:**
+- **Option A (recommended): include the inferred graph in the data.** Change the CONSTRUCT to `FROM <urn:sempkm:current> FROM <urn:sempkm:inferred>` (named-graph IRIs are in `backend/app/rdf/namespaces.py:79-91`). The inference engine (`backend/app/inference/service.py`, owlrl OWL 2 RL) already materializes subclass/inverse entailments there, so validation sees exactly what the user sees, at zero extra per-run cost. Note the interaction: only *enabled* entailment types are materialized, and user-dismissed inferred triples are excluded — that's arguably correct ("validate what's visible") but is a semantic choice worth writing down. Also add the *type hierarchy itself* (model ontology graphs + `urn:sempkm:ontology:gist`) via `ont_graph=` **without** an `inference=` argument, so pyshacl's own `sh:class` evaluation can walk `rdfs:subClassOf` — pyshacl handles subclass traversal for `sh:class` natively when the hierarchy is present.
+- **Option B: full pyshacl-side inference.** Pass `ont_graph=` (merged model ontologies + gist) plus `inference="rdfs"`. Self-contained, but re-computes the closure over the whole current graph on **every** validation run (it already CONSTRUCTs the full graph each time — see bug #32's performance findings) and duplicates work the inference engine does. Avoid unless Option A proves insufficient.
+
+**Verify:** integration test — install basic-pkm, create a shape constraint `sh:class gist:FormattedContent` on a test property, link a `bpkm:Note`, run validation, assert conforms. Before the fix this reports a violation; after, it passes. Then run the full validation-pipeline suite (`test_validation_pipeline.py`, `test_cross_model_validation.py`) and `e2e/tests/04-validation/` — expect some previously-reported violations to legitimately disappear; eyeball the diff to confirm none of the *intended* violations (required-field, datatype, `sh:in`) got swallowed.
+
+**Gotcha:** watch validation latency after adding graphs (gist is ~138 KB Turtle, parsed per run unless cached) — cache the parsed ontology graph in the service alongside the existing shapes cache pattern (`test_shapes_cache.py` shows the convention).
 
 ---
 
