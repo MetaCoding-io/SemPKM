@@ -56,6 +56,7 @@ class ManifestEntrypoints(BaseModel):
     dashboards: str | None = None
     workflows: str | None = None
     docs: str | None = None   # Markdown documentation (e.g. "README.md")
+    migrations: str | None = None   # Directory of versioned data migrations
 
 
 class ManifestSchema(BaseModel):
@@ -122,7 +123,31 @@ class ManifestSchema(BaseModel):
             ep.workflows = ep.workflows.replace("{modelId}", self.modelId)
         if ep.docs is not None:
             ep.docs = ep.docs.replace("{modelId}", self.modelId)
+        if ep.migrations is not None:
+            ep.migrations = ep.migrations.replace("{modelId}", self.modelId)
         return self
+
+    @field_validator("entrypoints")
+    @classmethod
+    def validate_migrations_entrypoint(
+        cls, ep: ManifestEntrypoints
+    ) -> ManifestEntrypoints:
+        """The migrations entrypoint must be a relative directory in the archive."""
+        if ep.migrations is None:
+            return ep
+        path = ep.migrations.strip()
+        if not path:
+            raise ValueError(
+                "entrypoints.migrations must not be empty when declared"
+            )
+        normalized = path.replace("\\", "/")
+        if normalized.startswith("/") or ".." in normalized.split("/"):
+            raise ValueError(
+                "entrypoints.migrations must be a relative path inside the "
+                f"archive, got '{path}'"
+            )
+        ep.migrations = normalized.rstrip("/")
+        return ep
 
     @field_validator("entrypoints")
     @classmethod

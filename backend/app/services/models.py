@@ -19,14 +19,26 @@ from rdflib.namespace import RDF, XSD
 from app.events.store import EventStore, Operation
 from app.models.loader import ModelArchive, load_archive, load_model_docs
 from app.models.manifest import ManifestSchema, parse_manifest
+from app.models.migrations import (
+    MigrationCompiler,
+    MigrationDelta,
+    MigrationError,
+    MigrationSpec,
+    discover_migrations,
+    select_chain,
+)
 from app.models.registry import (
     MODELS_GRAPH,
     InstalledModel,
     ModelGraphs,
     check_user_data_exists,
+    clear_inferred_graph,
     clear_model_graphs,
+    get_applied_migrations,
     is_model_installed,
     list_models as registry_list_models,
+    record_applied_migration,
+    set_model_version,
     unregister_model,
 )
 from app.models.validator import ArchiveValidationReport, validate_archive
@@ -38,6 +50,14 @@ logger = logging.getLogger(__name__)
 
 # SemPKM vocabulary namespace
 SEMPKM_NS = "urn:sempkm:"
+
+# A bulk migration can touch far more subjects than are useful to list on the
+# event. Beyond this many, the event records the true subject count instead of
+# every IRI, so the event graph does not balloon.
+MAX_EVENT_AFFECTED_SUBJECTS = 1000
+
+# Triples per INSERT DATA statement when writing a migration journal.
+JOURNAL_CHUNK_SIZE = 1000
 
 
 # --- browserVisible helpers ---
@@ -240,6 +260,81 @@ class InstallResult:
 
 
 @dataclass
+class PlannedMigration:
+    """One migration's compiled delta, as shown in an upgrade preview."""
+
+    version: str
+    description: str
+    delete_count: int
+    insert_count: int
+    already_applied: bool
+    steps: list[dict] = field(default_factory=list)
+
+
+@dataclass
+class UpgradePlan:
+    """The read-only preview of what an upgrade would change.
+
+    Produced without writing anything, so an operator can see the exact
+    number of triples each step touches before committing to it.
+    """
+
+    success: bool
+    model_id: str
+    from_version: str = ""
+    to_version: str = ""
+    migrations: list[PlannedMigration] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+
+    @property
+    def pending(self) -> list[PlannedMigration]:
+        return [m for m in self.migrations if not m.already_applied]
+
+    @property
+    def delete_count(self) -> int:
+        return sum(m.delete_count for m in self.pending)
+
+    @property
+    def insert_count(self) -> int:
+        return sum(m.insert_count for m in self.pending)
+
+    @property
+    def is_noop(self) -> bool:
+        """True when the upgrade would change no instance data at all."""
+        return self.delete_count == 0 and self.insert_count == 0
+
+
+@dataclass
+class UpgradeResult:
+    """Result of a model upgrade operation."""
+
+    success: bool
+    model_id: str
+    from_version: str = ""
+    to_version: str = ""
+    migrations_applied: list[str] = field(default_factory=list)
+    migrations_skipped: list[str] = field(default_factory=list)
+    triples_deleted: int = 0
+    triples_inserted: int = 0
+    graphs_refreshed: list[str] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+
+
+@dataclass
+class RollbackResult:
+    """Result of rolling one migration back off a model."""
+
+    success: bool
+    model_id: str
+    version: str
+    triples_restored: int = 0
+    triples_removed: int = 0
+    errors: list[str] = field(default_factory=list)
+
+
+@dataclass
 class RemoveResult:
     """Result of a model remove operation."""
 
@@ -421,6 +516,19 @@ class ModelService:
             for issue in report.warnings
         ]
 
+        # 4b. Parse migrations now, so a malformed migration fails the install
+        # rather than surfacing at the first upgrade. A fresh install starts
+        # at the manifest's version with no legacy data, so every migration
+        # the archive ships is recorded as already applied.
+        try:
+            migration_specs = discover_migrations(model_dir, manifest)
+        except MigrationError as e:
+            return InstallResult(
+                success=False,
+                model_id=model_id,
+                errors=[f"Migration error: {e}"],
+            )
+
         # 5-9. Write graphs in a transaction
         graphs = ModelGraphs(model_id)
         installed_at = datetime.now(timezone.utc).isoformat()
@@ -467,6 +575,22 @@ class ModelService:
                 model_id=model_id,
                 errors=[f"Transaction error during install: {e}"],
             )
+
+        # 7b. Seed the applied-migration ledger. Nothing predates a fresh
+        # install, so the archive's whole migration history counts as done.
+        for spec in migration_specs:
+            try:
+                await record_applied_migration(self._client, model_id, spec.version)
+            except Exception as e:
+                logger.warning(
+                    "Failed to record migration %s as applied for '%s': %s",
+                    spec.version,
+                    model_id,
+                    e,
+                )
+                warning_messages.append(
+                    f"Could not record migration {spec.version} in the ledger: {e}"
+                )
 
         # 8. Materialize seed data via EventStore (outside model transaction)
         if archive.seed is not None and len(archive.seed) > 0:
@@ -579,7 +703,10 @@ class ModelService:
         )
 
     async def refresh_artifacts(
-        self, model_id: str, user_id: uuid.UUID | None = None
+        self,
+        model_id: str,
+        user_id: uuid.UUID | None = None,
+        model_dir: Path | None = None,
     ) -> RefreshResult:
         """Refresh a model's artifact graphs from disk without touching seed or user data.
 
@@ -592,6 +719,8 @@ class ModelService:
             model_id: The model identifier to refresh.
             user_id: Owner UUID for refreshed TBox surfaces. If None, TBox
                 refresh is skipped.
+            model_dir: Archive to reload from. Defaults to whatever
+                ``resolve_model_dir`` finds for this model id.
 
         Returns:
             RefreshResult with success status, refreshed graph names, and any errors.
@@ -612,9 +741,11 @@ class ModelService:
                 errors=[f"Failed to check model status: {e}"],
             )
 
-        # 2. Locate model directory on disk (bundled or marketplace)
+        # 2. Locate model directory on disk (bundled or marketplace) unless
+        # the caller already knows which archive to reload from.
         from app.models.paths import resolve_model_dir
-        model_dir = resolve_model_dir(model_id)
+        if model_dir is None:
+            model_dir = resolve_model_dir(model_id)
         if model_dir is None:
             return RefreshResult(
                 success=False,
@@ -752,6 +883,521 @@ class ModelService:
             graphs_refreshed=graphs_refreshed,
         )
 
+    # ------------------------------------------------------------------
+    # Versioned upgrades
+    # ------------------------------------------------------------------
+
+    async def _upgrade_context(self, model_id: str, model_dir: Path | None = None):
+        """Gather everything an upgrade needs, or the reason it cannot run.
+
+        Args:
+            model_id: The installed model to upgrade.
+            model_dir: Archive to upgrade from. Defaults to whatever
+                ``resolve_model_dir`` finds. The marketplace passes the
+                freshly downloaded archive explicitly, because a bundled copy
+                of the same model id would otherwise win the search order.
+
+        Returns:
+            A tuple of ``(context, errors)``. ``context`` is None when
+            ``errors`` is non-empty.
+        """
+        from app.models.paths import resolve_model_dir
+
+        try:
+            models = await self.list_models()
+        except Exception as e:
+            return None, [f"Failed to list installed models: {e}"]
+
+        installed = next((m for m in models if m.model_id == model_id), None)
+        if installed is None:
+            return None, [f"Model '{model_id}' is not installed."]
+
+        if model_dir is None:
+            model_dir = resolve_model_dir(model_id)
+        if model_dir is None:
+            return None, [
+                f"Model directory for '{model_id}' not found on disk in any "
+                "search path."
+            ]
+
+        try:
+            manifest = parse_manifest(model_dir)
+        except Exception as e:
+            return None, [f"Manifest error: {e}"]
+
+        try:
+            specs = discover_migrations(model_dir, manifest)
+        except MigrationError as e:
+            return None, [f"Migration error: {e}"]
+
+        try:
+            chain = select_chain(specs, installed.version, manifest.version)
+        except MigrationError as e:
+            return None, [str(e)]
+
+        try:
+            applied = await get_applied_migrations(self._client, model_id)
+        except Exception as e:
+            return None, [f"Failed to read applied migrations: {e}"]
+
+        return (installed, model_dir, manifest, chain, applied), []
+
+    async def plan_upgrade(
+        self, model_id: str, model_dir: Path | None = None
+    ) -> UpgradePlan:
+        """Compile what an upgrade would change, without changing anything.
+
+        Every query this issues is a SELECT, so the plan is safe to run at any
+        time -- including repeatedly, from a preview screen.
+
+        Counts are exact for the first pending migration. When a chain has
+        more than one, later migrations are compiled against the current
+        state rather than the state their predecessors would leave behind,
+        so their counts are estimates; the plan says so in its warnings.
+
+        Args:
+            model_id: The model identifier to plan an upgrade for.
+
+        Returns:
+            An UpgradePlan with per-migration and per-step counts.
+        """
+        context, errors = await self._upgrade_context(model_id, model_dir)
+        if context is None:
+            return UpgradePlan(success=False, model_id=model_id, errors=errors)
+        installed, _model_dir, manifest, chain, applied = context
+
+        plan = UpgradePlan(
+            success=True,
+            model_id=model_id,
+            from_version=installed.version,
+            to_version=manifest.version,
+        )
+
+        if manifest.version == installed.version:
+            plan.warnings.append(
+                f"Model '{model_id}' is already at version {installed.version}."
+            )
+
+        compiler = MigrationCompiler(self._client, manifest.prefixes)
+        pending_seen = 0
+        for spec in chain:
+            already = spec.version in applied
+            if already:
+                plan.migrations.append(
+                    PlannedMigration(
+                        version=spec.version,
+                        description=spec.description,
+                        delete_count=0,
+                        insert_count=0,
+                        already_applied=True,
+                    )
+                )
+                continue
+
+            pending_seen += 1
+            try:
+                delta = await compiler.compile_migration(spec)
+            except MigrationError as e:
+                plan.success = False
+                plan.errors.append(f"{spec.source}: {e}")
+                continue
+            except Exception as e:
+                plan.success = False
+                plan.errors.append(f"{spec.source}: failed to compile: {e}")
+                continue
+
+            plan.migrations.append(
+                PlannedMigration(
+                    version=spec.version,
+                    description=spec.description,
+                    delete_count=delta.delete_count,
+                    insert_count=delta.insert_count,
+                    already_applied=False,
+                    steps=[
+                        {
+                            "id": step.step_id,
+                            "kind": step.kind,
+                            "label": step.label,
+                            "deletes": len(step.deletes),
+                            "inserts": len(step.inserts),
+                            "samples": step.samples(),
+                        }
+                        for step in delta.steps
+                    ],
+                )
+            )
+
+        if pending_seen > 1:
+            plan.warnings.append(
+                "This upgrade runs more than one migration. Counts for "
+                "migrations after the first are estimates, because they are "
+                "compiled against today's data rather than the data their "
+                "predecessors will leave behind."
+            )
+        if plan.success and not chain and manifest.version != installed.version:
+            plan.warnings.append(
+                f"Version {installed.version} to {manifest.version} ships no "
+                "migrations. Schema artifacts will be refreshed and no "
+                "instance data will change."
+            )
+        return plan
+
+    async def upgrade(
+        self,
+        model_id: str,
+        user_id: uuid.UUID | None = None,
+        *,
+        model_dir: Path | None = None,
+        allow_same_version: bool = False,
+    ) -> UpgradeResult:
+        """Upgrade an installed model in place, migrating its instance data.
+
+        Unlike the old remove-then-reinstall path, this never deletes user
+        data and is therefore not blocked when instances of the model's types
+        exist. It refreshes the schema artifacts, then applies each pending
+        migration as one atomic event, recording each in the applied-migration
+        ledger as it lands.
+
+        Migrations run in sequence, each compiled against the state its
+        predecessor left behind, because a later migration may depend on an
+        earlier one's rewrite. If one fails, the ones before it stay applied
+        and stay recorded, so re-running resumes rather than repeating work.
+
+        Args:
+            model_id: The model identifier to upgrade.
+            user_id: Actor for event provenance and refreshed TBox surfaces.
+            model_dir: Archive to upgrade from. Defaults to whatever
+                ``resolve_model_dir`` finds; the marketplace passes the
+                freshly downloaded archive explicitly.
+            allow_same_version: Run even when the disk version equals the
+                installed version, for re-applying a corrected archive.
+
+        Returns:
+            An UpgradeResult naming what was applied, skipped, and changed.
+        """
+        context, errors = await self._upgrade_context(model_id, model_dir)
+        if context is None:
+            return UpgradeResult(success=False, model_id=model_id, errors=errors)
+        installed, model_dir, manifest, chain, applied = context
+
+        result = UpgradeResult(
+            success=True,
+            model_id=model_id,
+            from_version=installed.version,
+            to_version=manifest.version,
+        )
+
+        if manifest.version == installed.version and not allow_same_version:
+            result.warnings.append(
+                f"Model '{model_id}' is already at version {installed.version}; "
+                "nothing to upgrade."
+            )
+            return result
+
+        # Validate the archive before touching anything, so a broken bundle
+        # fails while the installed model is still whole.
+        try:
+            archive = load_archive(model_dir, manifest)
+        except Exception as e:
+            result.success = False
+            result.errors.append(f"Archive loading error: {e}")
+            return result
+
+        report = validate_archive(archive)
+        if not report.is_valid:
+            result.success = False
+            result.errors.extend(
+                f"[{issue.file}:{issue.rule}] {issue.message}"
+                for issue in report.errors
+            )
+            return result
+        result.warnings.extend(
+            f"[{issue.file}:{issue.rule}] {issue.message}"
+            for issue in report.warnings
+        )
+
+        # Schema first: the migrated data should land against the new shapes.
+        refresh = await self.refresh_artifacts(
+            model_id, user_id=user_id, model_dir=model_dir
+        )
+        if not refresh.success:
+            result.success = False
+            result.errors.extend(refresh.errors)
+            return result
+        result.graphs_refreshed = refresh.graphs_refreshed
+
+        # The ontology just changed, so every inferred triple is suspect.
+        # Entailment settings are deliberately left alone -- this is the same
+        # model, not a new one.
+        try:
+            await clear_inferred_graph(self._client)
+        except Exception as e:
+            logger.warning(
+                "Failed to clear inferred graph during upgrade of '%s': %s",
+                model_id,
+                e,
+            )
+            result.warnings.append(
+                f"Inferred triples could not be cleared: {e}. Run a full "
+                "inference recompute from the admin portal."
+            )
+
+        compiler = MigrationCompiler(self._client, manifest.prefixes)
+        for spec in chain:
+            if spec.version in applied:
+                result.migrations_skipped.append(spec.version)
+                logger.info(
+                    "Migration %s for model '%s' already applied, skipping",
+                    spec.version,
+                    model_id,
+                )
+                continue
+
+            try:
+                delta = await compiler.compile_migration(spec)
+                await self._apply_migration(model_id, spec, delta, user_id)
+            except MigrationError as e:
+                result.success = False
+                result.errors.append(f"Migration {spec.version} failed: {e}")
+                return result
+            except Exception as e:
+                logger.exception(
+                    "Migration %s failed for model '%s'", spec.version, model_id
+                )
+                result.success = False
+                result.errors.append(f"Migration {spec.version} failed: {e}")
+                return result
+
+            result.migrations_applied.append(spec.version)
+            result.triples_deleted += delta.delete_count
+            result.triples_inserted += delta.insert_count
+
+        try:
+            await set_model_version(self._client, model_id, manifest.version)
+        except Exception as e:
+            result.success = False
+            result.errors.append(f"Failed to update recorded version: {e}")
+            return result
+
+        logger.info(
+            "Model '%s' upgraded %s -> %s: %d migration(s), -%d/+%d triples",
+            model_id,
+            installed.version,
+            manifest.version,
+            len(result.migrations_applied),
+            result.triples_deleted,
+            result.triples_inserted,
+        )
+        return result
+
+    async def _apply_migration(
+        self,
+        model_id: str,
+        spec: MigrationSpec,
+        delta: MigrationDelta,
+        user_id: uuid.UUID | None,
+    ) -> None:
+        """Journal a migration's delta, commit it, and record it as applied.
+
+        The journal is written before the commit so that a reversal is
+        possible even if the process dies mid-upgrade; a journal whose commit
+        never landed is harmless, because the next attempt overwrites it.
+        """
+        graphs = ModelGraphs(model_id)
+        deletes = delta.all_deletes()
+        inserts = delta.all_inserts()
+
+        await self._write_journal(graphs.migration_removed(spec.version), deletes)
+        await self._write_journal(graphs.migration_added(spec.version), inserts)
+
+        model_iri = URIRef(f"urn:sempkm:model:{model_id}")
+        subjects = delta.affected_subjects()
+        affected = [str(model_iri)] + subjects[:MAX_EVENT_AFFECTED_SUBJECTS]
+
+        data_triples = [
+            (model_iri, URIRef(f"{SEMPKM_NS}migratedTo"), Literal(spec.version)),
+            (
+                model_iri,
+                URIRef(f"{SEMPKM_NS}migrationDeleteCount"),
+                Literal(len(deletes), datatype=XSD.integer),
+            ),
+            (
+                model_iri,
+                URIRef(f"{SEMPKM_NS}migrationInsertCount"),
+                Literal(len(inserts), datatype=XSD.integer),
+            ),
+            (
+                model_iri,
+                URIRef(f"{SEMPKM_NS}migrationSubjectCount"),
+                Literal(len(subjects), datatype=XSD.integer),
+            ),
+        ]
+
+        step_summary = ", ".join(
+            f"{s.step_id} (-{len(s.deletes)}/+{len(s.inserts)})" for s in delta.steps
+        )
+        operation = Operation(
+            operation_type="model.migrate",
+            affected_iris=affected,
+            description=(
+                f"Migrate model '{model_id}' to {spec.version}"
+                + (f": {step_summary}" if step_summary else "")
+            ),
+            data_triples=data_triples,
+            materialize_inserts=inserts,
+            materialize_delete_data=deletes,
+        )
+        performed_by = URIRef(f"urn:sempkm:user:{user_id}") if user_id else None
+        await self._event_store.commit([operation], performed_by=performed_by)
+
+        await record_applied_migration(self._client, model_id, spec.version)
+
+    async def _write_journal(self, graph_iri: str, triples: list[tuple]) -> None:
+        """Replace a migration journal graph with the given triples."""
+        await self._client.update(f"CLEAR SILENT GRAPH <{graph_iri}>")
+        for start in range(0, len(triples), JOURNAL_CHUNK_SIZE):
+            chunk = triples[start : start + JOURNAL_CHUNK_SIZE]
+            lines = "\n".join(
+                f"    {_rdf_term_to_sparql(s)} {_rdf_term_to_sparql(p)} "
+                f"{_rdf_term_to_sparql(o)} ."
+                for s, p, o in chunk
+            )
+            await self._client.update(
+                f"INSERT DATA {{\n  GRAPH <{graph_iri}> {{\n{lines}\n  }}\n}}"
+            )
+
+    async def rollback_migration(
+        self,
+        model_id: str,
+        version: str,
+        user_id: uuid.UUID | None = None,
+    ) -> RollbackResult:
+        """Reverse one applied migration using its journal.
+
+        This undoes the migration's effect on instance data only. It does not
+        restore the previous schema artifacts or the previous recorded
+        version, because the archive on disk is still the newer one. To return
+        a model fully to an earlier release, roll its migrations back and then
+        install the older archive.
+
+        Args:
+            model_id: The model identifier.
+            version: The migration version to reverse.
+            user_id: Actor for event provenance.
+
+        Returns:
+            A RollbackResult with the triple counts restored and removed.
+        """
+        result = RollbackResult(success=True, model_id=model_id, version=version)
+
+        try:
+            applied = await get_applied_migrations(self._client, model_id)
+        except Exception as e:
+            return RollbackResult(
+                success=False,
+                model_id=model_id,
+                version=version,
+                errors=[f"Failed to read applied migrations: {e}"],
+            )
+
+        if version not in applied:
+            return RollbackResult(
+                success=False,
+                model_id=model_id,
+                version=version,
+                errors=[
+                    f"Migration {version} is not recorded as applied to "
+                    f"'{model_id}'."
+                ],
+            )
+
+        graphs = ModelGraphs(model_id)
+        try:
+            removed = await self._read_journal(graphs.migration_removed(version))
+            added = await self._read_journal(graphs.migration_added(version))
+        except Exception as e:
+            return RollbackResult(
+                success=False,
+                model_id=model_id,
+                version=version,
+                errors=[f"Failed to read migration journal: {e}"],
+            )
+
+        if not removed and not added:
+            return RollbackResult(
+                success=False,
+                model_id=model_id,
+                version=version,
+                errors=[
+                    f"No journal found for migration {version}; it cannot be "
+                    "rolled back automatically."
+                ],
+            )
+
+        model_iri = URIRef(f"urn:sempkm:model:{model_id}")
+        operation = Operation(
+            operation_type="model.migrate.rollback",
+            affected_iris=[str(model_iri)],
+            description=f"Roll back migration {version} of model '{model_id}'",
+            data_triples=[
+                (model_iri, URIRef(f"{SEMPKM_NS}rolledBack"), Literal(version))
+            ],
+            materialize_inserts=removed,
+            materialize_delete_data=added,
+        )
+        performed_by = URIRef(f"urn:sempkm:user:{user_id}") if user_id else None
+
+        try:
+            await self._event_store.commit([operation], performed_by=performed_by)
+        except Exception as e:
+            return RollbackResult(
+                success=False,
+                model_id=model_id,
+                version=version,
+                errors=[f"Failed to commit rollback: {e}"],
+            )
+
+        # Drop the ledger entry and the journal only after the data is back.
+        try:
+            await self._client.update(
+                f"""DELETE DATA {{
+  GRAPH <{MODELS_GRAPH}> {{
+    <{model_iri}> <{SEMPKM_NS}appliedMigration> "{version}" .
+  }}
+}}"""
+            )
+            for graph_iri in (
+                graphs.migration_removed(version),
+                graphs.migration_added(version),
+            ):
+                await self._client.update(f"CLEAR SILENT GRAPH <{graph_iri}>")
+        except Exception as e:
+            result.errors.append(
+                f"Data was restored but the ledger could not be cleaned up: {e}"
+            )
+            result.success = False
+
+        result.triples_restored = len(removed)
+        result.triples_removed = len(added)
+        logger.info(
+            "Rolled back migration %s of model '%s': +%d/-%d triples",
+            version,
+            model_id,
+            len(removed),
+            len(added),
+        )
+        return result
+
+    async def _read_journal(self, graph_iri: str) -> list[tuple]:
+        """Read a migration journal graph back as a list of triples."""
+        turtle = await self._client.construct(
+            f"CONSTRUCT {{ ?s ?p ?o }} FROM <{graph_iri}> WHERE {{ ?s ?p ?o }}"
+        )
+        graph = Graph()
+        if turtle and turtle.strip():
+            graph.parse(data=turtle, format="turtle")
+        return list(graph)
+
     async def remove(
         self, model_id: str, user_id: uuid.UUID | None = None
     ) -> RemoveResult:
@@ -853,9 +1499,20 @@ class ModelService:
                 e,
             )
 
-        # 4. Clear all model named graphs
+        # 4. Clear all model named graphs, including any migration journals
         try:
-            await clear_model_graphs(self._client, model_id)
+            try:
+                applied = await get_applied_migrations(self._client, model_id)
+            except Exception:
+                logger.warning(
+                    "Could not read applied migrations for '%s'; migration "
+                    "journals may be left behind",
+                    model_id,
+                    exc_info=True,
+                )
+                applied = set()
+            journals = ModelGraphs(model_id).migration_graphs(sorted(applied))
+            await clear_model_graphs(self._client, model_id, extra_graphs=journals)
         except Exception as e:
             return RemoveResult(
                 success=False,
@@ -1512,13 +2169,39 @@ async def ensure_starter_model(
             )
             return
         if installed:
+            # Upgrade in place. The old path cleared the model's graphs and
+            # reinstalled, which silently re-seated the schema underneath any
+            # objects the user had already created. upgrade() refreshes the
+            # artifacts and migrates the data instead.
             logger.info(
-                "Starter model upgrade: v%s -> v%s, reinstalling",
+                "Starter model upgrade: v%s -> v%s",
                 installed.version,
                 disk_manifest.version,
             )
-            await clear_model_graphs(model_service._client, installed.model_id)
-            await unregister_model(model_service._client, installed.model_id)
+            upgrade_result = await model_service.upgrade(installed.model_id)
+            if upgrade_result.success:
+                logger.info(
+                    "Starter model upgraded to v%s (%d migration(s), "
+                    "-%d/+%d triples)",
+                    disk_manifest.version,
+                    len(upgrade_result.migrations_applied),
+                    upgrade_result.triples_deleted,
+                    upgrade_result.triples_inserted,
+                )
+                return
+
+            # Leave the working install alone rather than reinstalling over
+            # live data. An owner can retry from the admin portal, where the
+            # errors are visible.
+            logger.error(
+                "Starter model upgrade v%s -> v%s failed, leaving v%s "
+                "installed: %s",
+                installed.version,
+                disk_manifest.version,
+                installed.version,
+                "; ".join(upgrade_result.errors),
+            )
+            return
         else:
             logger.info(
                 "Found %d model(s) but not starter model, installing",

@@ -85,7 +85,7 @@ All modules live under `backend/app/`. Standard shape per module: `__init__.py`,
 | Module | Purpose |
 |--------|---------|
 | `services` | Domain service singletons: labels, shapes, webhooks, settings, search (Lucene), LLM connection, marketplace registry, ops log, email, icons, prefixes |
-| `models` | Mental Model loader, registry, manifest validation, bundled-model discovery |
+| `models` | Mental Model loader, registry, manifest validation, bundled-model discovery, versioned data migrations (`migrations.py`) |
 | `views` | ViewSpec service + paginated SPARQL query execution for all view renderers |
 | `validation` | Background SHACL validation queue (asyncio worker) |
 | `inference` | OWL 2 RL forward-chaining inference engine |
@@ -182,6 +182,7 @@ Mental Models are pluggable domain schemas containing:
 - `views/` — ViewSpec definitions for the view renderers (JSON-LD)
 - `seed/` — Seed data objects (JSON-LD)
 - `README.md` — Markdown documentation (`entrypoints.docs`, or root `README.md` by convention); rendered on the admin model detail page's Documentation tab, served at `GET /api/models/{id}/docs`, and mirrored into the user guide as `docs/guide/model-{id}.md` by `scripts/sync-model-docs.py` (generated files; the pre-commit hook and `test_model_docs.py` reject stale mirrors)
+- `migrations/{version}.yaml` — declarative data migrations, named for the version they upgrade *to*, run when a user upgrades the model
 - optionally dashboards, workflows, and rules
 
 **Bundled models** (`models/`, mounted read-only at `/app/models/`):
@@ -196,6 +197,8 @@ Mental Models are pluggable domain schemas containing:
 | `ppv` | Pillars–Pipelines–Vaults personal productivity |
 | `rss-feeds` | Types backing the RSS Reader app |
 | `media-scheduler` | Types backing the Media Scheduler app |
+
+**Upgrades.** Bumping a model's version swaps its TBox but leaves instance data on the old schema, so `migrations/` supplies the ABox half. `app/models/migrations.py` parses each file, selects the chain for a version bump by semver, and compiles every step (`rename_class`, `rename_property`, `drop_property`, `set_default`, and a `sparql` escape hatch) into a **concrete delta** via read-only SELECTs. `ModelService.plan_upgrade()` returns that delta as a preview; `ModelService.upgrade()` refreshes the artifact graphs, then commits each migration as one `model.migrate` event with ground triples in `Operation.materialize_delete_data`. Applied versions are recorded as `sempkm:appliedMigration` on the registry node, which makes an interrupted upgrade resumable, and each delta is journalled to `urn:sempkm:model:{id}:migration:{version}:{removed,added}` so `rollback_migration()` can reverse it. This replaces the old remove-then-reinstall update path, which `remove()` blocked whenever user data existed.
 
 Models install via the admin UI (bundled catalog card grid) or from the **remote marketplace** (`MarketplaceRegistryService`: JSON registry + SHA-256-verified `.tar.gz` archives, version checking, downloads to `/app/data/models/`). Each model's artifacts land in named graphs: `urn:sempkm:model:{id}:ontology`, `:shapes`, `:views`, `:seed`.
 
@@ -298,7 +301,7 @@ HTML response (hx-swap into DOM)
 - **New command type:** `commands/schemas.py` (union) + `commands/handlers/{name}.py` + register in `dispatcher.py`
 - **New service:** `services/{name}.py` + instantiate in `main.py` lifespan + DI in `dependencies.py`
 - **New router/feature:** `{feature}/router.py` + `__init__.py` + register in `main.py` + templates in `templates/{feature}/`
-- **New Mental Model:** `models/{id}/manifest.yaml` + `README.md` + `ontology/`, `shapes/`, `views/`, `seed/`
+- **New Mental Model:** `models/{id}/manifest.yaml` + `README.md` + `ontology/`, `shapes/`, `views/`, `seed/`, optional `migrations/`
 - **New platform app:** `apps/{id}/manifest.yaml` + entrypoint; install via Admin > Applications
 - **New user guide chapter:** the chapter list lives in THREE places — `docs/guide/README.md`, `docs/guide/index.html`, and `GUIDE_SECTIONS` in `shell/router.py` (see `.gsd/KNOWLEDGE.md`)
 

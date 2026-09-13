@@ -207,3 +207,126 @@ async def get_model_docs(
             status_code=404, detail=f"Model '{model_id}' ships no documentation"
         )
     return PlainTextResponse(docs, media_type="text/markdown; charset=utf-8")
+
+
+class MigrationStepPreview(BaseModel):
+    """One step's contribution to an upgrade plan."""
+
+    id: str
+    kind: str
+    label: str
+    deletes: int
+    inserts: int
+    samples: dict[str, list[str]]
+
+
+class MigrationPreview(BaseModel):
+    """One migration's contribution to an upgrade plan."""
+
+    version: str
+    description: str
+    delete_count: int
+    insert_count: int
+    already_applied: bool
+    steps: list[MigrationStepPreview] = Field(default_factory=list)
+
+
+class UpgradePlanResponse(BaseModel):
+    """Read-only preview of what upgrading a model would change."""
+
+    model_id: str
+    from_version: str
+    to_version: str
+    delete_count: int
+    insert_count: int
+    migrations: list[MigrationPreview]
+    warnings: list[str] = Field(default_factory=list)
+
+
+class UpgradeResponse(BaseModel):
+    """Result of an in-place model upgrade."""
+
+    model_id: str
+    from_version: str
+    to_version: str
+    migrations_applied: list[str]
+    migrations_skipped: list[str]
+    triples_deleted: int
+    triples_inserted: int
+    warnings: list[str] = Field(default_factory=list)
+
+
+@router.get(
+    "/{model_id}/upgrade-plan",
+    response_model=UpgradePlanResponse,
+    responses={400: {"model": ErrorResponse}},
+)
+async def get_upgrade_plan(
+    model_id: str,
+    user: User = Depends(require_role("owner")),
+    model_service: ModelService = Depends(get_model_service),
+) -> UpgradePlanResponse:
+    """Preview an upgrade without applying it.
+
+    Compiles each pending migration into the exact triples it would remove
+    and add. Issues only SELECT queries, so it is safe to call at any time.
+    """
+    plan = await model_service.plan_upgrade(model_id)
+    if not plan.success:
+        raise HTTPException(status_code=400, detail={"errors": plan.errors})
+
+    return UpgradePlanResponse(
+        model_id=plan.model_id,
+        from_version=plan.from_version,
+        to_version=plan.to_version,
+        delete_count=plan.delete_count,
+        insert_count=plan.insert_count,
+        warnings=plan.warnings,
+        migrations=[
+            MigrationPreview(
+                version=m.version,
+                description=m.description,
+                delete_count=m.delete_count,
+                insert_count=m.insert_count,
+                already_applied=m.already_applied,
+                steps=[MigrationStepPreview(**step) for step in m.steps],
+            )
+            for m in plan.migrations
+        ],
+    )
+
+
+@router.post(
+    "/{model_id}/upgrade",
+    response_model=UpgradeResponse,
+    responses={400: {"model": ErrorResponse}},
+)
+async def upgrade_model(
+    model_id: str,
+    request: Request,
+    user: User = Depends(require_role("owner")),
+    model_service: ModelService = Depends(get_model_service),
+) -> UpgradeResponse:
+    """Upgrade an installed model in place, migrating its instance data.
+
+    Refreshes the model's schema artifacts from the on-disk archive, then
+    applies each pending migration as one atomic event. Never deletes user
+    data, so unlike remove-then-reinstall it is not blocked when instances of
+    the model's types exist.
+    """
+    result = await model_service.upgrade(model_id, user_id=user.id)
+    if not result.success:
+        raise HTTPException(status_code=400, detail={"errors": result.errors})
+
+    request.app.state.view_spec_service.invalidate_cache()
+
+    return UpgradeResponse(
+        model_id=result.model_id,
+        from_version=result.from_version,
+        to_version=result.to_version,
+        migrations_applied=result.migrations_applied,
+        migrations_skipped=result.migrations_skipped,
+        triples_deleted=result.triples_deleted,
+        triples_inserted=result.triples_inserted,
+        warnings=result.warnings,
+    )

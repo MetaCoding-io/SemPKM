@@ -666,6 +666,69 @@ pre.json-output {
   color: var(--color-text-muted);
 }
 
+/* Upgrade preview — the read-only plan shown before a model version bump */
+.upgrade-preview {
+  margin: 20px 0;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--_color-amber-500);
+  border-radius: 6px;
+  background: var(--color-bg-subtle, transparent);
+}
+
+.upgrade-preview-warning {
+  margin: 4px 0;
+  font-size: 0.85rem;
+  color: var(--_color-amber-500);
+}
+
+.upgrade-preview-summary {
+  margin: 8px 0 16px;
+  font-size: 0.9rem;
+}
+
+.upgrade-preview-migration {
+  margin-top: 16px;
+}
+
+.upgrade-preview-migration h4 {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+}
+
+.upgrade-preview-desc {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.upgrade-preview-steps {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.upgrade-preview-steps th,
+.upgrade-preview-steps td {
+  padding: 6px 8px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.upgrade-preview-sample {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.upgrade-preview-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
 .marketplace-loading,
 .marketplace-empty,
 .marketplace-error,

@@ -56,6 +56,27 @@ class ModelGraphs:
     def all_graphs(self) -> list[str]:
         return [self.ontology, self.shapes, self.views, self.seed, self.rules]
 
+    def migration_removed(self, version: str) -> str:
+        """Journal graph holding the triples a migration deleted."""
+        return f"urn:sempkm:model:{self.model_id}:migration:{version}:removed"
+
+    def migration_added(self, version: str) -> str:
+        """Journal graph holding the triples a migration inserted."""
+        return f"urn:sempkm:model:{self.model_id}:migration:{version}:added"
+
+    def migration_graphs(self, versions) -> list[str]:
+        """Every journal graph for the given migration versions.
+
+        Journals are keyed by version rather than folded into one graph so
+        that a rollback can target exactly one migration, and so that
+        uninstall can clear them from the applied-migration ledger alone.
+        """
+        graphs: list[str] = []
+        for version in versions:
+            graphs.append(self.migration_removed(version))
+            graphs.append(self.migration_added(version))
+        return graphs
+
 
 @dataclass
 class InstalledModel:
@@ -156,6 +177,83 @@ async def unregister_model(
     await client.update(sparql)
 
 
+async def get_applied_migrations(
+    client: TriplestoreClient, model_id: str
+) -> set[str]:
+    """Read the set of migration versions already applied to a model.
+
+    The ledger is what makes an interrupted upgrade resumable: a migration
+    recorded here is never re-applied, so a retry picks up where the previous
+    attempt stopped rather than rewriting data twice.
+
+    Args:
+        client: The triplestore client.
+        model_id: The model identifier.
+
+    Returns:
+        Set of version strings, empty when the model has none recorded.
+    """
+    model_iri = f"urn:sempkm:model:{model_id}"
+    sparql = f"""SELECT ?version WHERE {{
+  GRAPH <{MODELS_GRAPH}> {{
+    <{model_iri}> <{SEMPKM_NS}appliedMigration> ?version .
+  }}
+}}"""
+    result = await client.query(sparql)
+    bindings = result.get("results", {}).get("bindings", [])
+    return {b["version"]["value"] for b in bindings if "version" in b}
+
+
+async def record_applied_migration(
+    client: TriplestoreClient, model_id: str, version: str
+) -> None:
+    """Append one migration version to a model's applied-migration ledger.
+
+    Args:
+        client: The triplestore client.
+        model_id: The model identifier.
+        version: The migration's target version.
+    """
+    model_iri = f"urn:sempkm:model:{model_id}"
+    escaped = version.replace("\\", "\\\\").replace('"', '\\"')
+    sparql = f"""INSERT DATA {{
+  GRAPH <{MODELS_GRAPH}> {{
+    <{model_iri}> <{SEMPKM_NS}appliedMigration> "{escaped}" .
+  }}
+}}"""
+    await client.update(sparql)
+
+
+async def set_model_version(
+    client: TriplestoreClient, model_id: str, version: str
+) -> None:
+    """Replace a model's recorded version in place.
+
+    Used by the upgrade path, which keeps the registry entry (and with it the
+    installed-at timestamp and the migration ledger) rather than unregistering
+    and re-registering the model.
+
+    Args:
+        client: The triplestore client.
+        model_id: The model identifier.
+        version: The new version string.
+    """
+    model_iri = f"urn:sempkm:model:{model_id}"
+    escaped = version.replace("\\", "\\\\").replace('"', '\\"')
+    sparql = f"""DELETE {{
+  GRAPH <{MODELS_GRAPH}> {{ <{model_iri}> <{SEMPKM_NS}version> ?old . }}
+}}
+INSERT {{
+  GRAPH <{MODELS_GRAPH}> {{ <{model_iri}> <{SEMPKM_NS}version> "{escaped}" . }}
+}}
+WHERE {{
+  OPTIONAL {{
+    GRAPH <{MODELS_GRAPH}> {{ <{model_iri}> <{SEMPKM_NS}version> ?old . }}
+  }}
+}}"""
+    await client.update(sparql)
+
+
 async def list_models(
     client: TriplestoreClient,
 ) -> list[InstalledModel]:
@@ -251,7 +349,9 @@ async def write_graph_to_named_graph(
 
 
 async def clear_model_graphs(
-    client: TriplestoreClient, model_id: str
+    client: TriplestoreClient,
+    model_id: str,
+    extra_graphs: list[str] | None = None,
 ) -> None:
     """Clear all named graphs for a model.
 
@@ -261,9 +361,11 @@ async def clear_model_graphs(
     Args:
         client: The triplestore client.
         model_id: The model identifier whose graphs to clear.
+        extra_graphs: Additional graph IRIs to clear alongside the artifact
+            graphs, such as migration journals.
     """
     graphs = ModelGraphs(model_id)
-    for graph_iri in graphs.all_graphs:
+    for graph_iri in [*graphs.all_graphs, *(extra_graphs or [])]:
         await client.update(f"CLEAR SILENT GRAPH <{graph_iri}>")
 
 

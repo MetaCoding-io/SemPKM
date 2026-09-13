@@ -45,6 +45,87 @@
         <div class="success-box" id="admin-messages">{{ success }}</div>
         {% endif %}
 
+        {# Upgrade preview — read-only plan of what a version bump would change #}
+        {% if upgrade_plan is defined and upgrade_plan and upgrade_plan.success %}
+        <div class="upgrade-preview" id="upgrade-preview">
+            <h3 class="section-label">
+                Upgrade preview: {{ upgrade_plan.model_id }}
+                v{{ upgrade_plan.from_version }} &rarr; v{{ upgrade_plan.to_version }}
+            </h3>
+            {% for warning in upgrade_plan.warnings %}
+            <p class="upgrade-preview-warning">{{ warning }}</p>
+            {% endfor %}
+
+            {% if upgrade_plan.is_noop %}
+            <p class="upgrade-preview-summary">
+                No instance data would change. Only the schema artifacts are reloaded.
+            </p>
+            {% else %}
+            <p class="upgrade-preview-summary">
+                <strong>{{ upgrade_plan.delete_count }}</strong> triple(s) would be
+                removed and <strong>{{ upgrade_plan.insert_count }}</strong> added
+                across {{ upgrade_plan.pending | length }} migration(s).
+                Your objects are never deleted; only the triples listed below change.
+            </p>
+            {% endif %}
+
+            {% for migration in upgrade_plan.migrations %}
+            <div class="upgrade-preview-migration">
+                <h4>
+                    v{{ migration.version }}
+                    {% if migration.already_applied %}
+                    <span class="version-badge version-badge--uptodate">Already applied</span>
+                    {% endif %}
+                </h4>
+                {% if migration.description %}
+                <p class="upgrade-preview-desc">{{ migration.description }}</p>
+                {% endif %}
+                {% if not migration.already_applied %}
+                <table class="upgrade-preview-steps">
+                    <thead>
+                        <tr><th>Step</th><th>Kind</th><th>Removed</th><th>Added</th><th>Examples</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for step in migration.steps %}
+                        <tr>
+                            <td>{{ step.label }}</td>
+                            <td><code>{{ step.kind }}</code></td>
+                            <td>{{ step.deletes }}</td>
+                            <td>{{ step.inserts }}</td>
+                            <td>
+                                {% for sample in step.samples.inserts %}
+                                <div class="upgrade-preview-sample">+ {{ sample }}</div>
+                                {% endfor %}
+                                {% for sample in step.samples.deletes %}
+                                <div class="upgrade-preview-sample">&minus; {{ sample }}</div>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <div class="upgrade-preview-actions">
+                <button class="btn btn-primary btn-sm"
+                        hx-post="/admin/models/{{ upgrade_plan.model_id }}/upgrade"
+                        hx-target="#model-table"
+                        hx-swap="outerHTML"
+                        hx-confirm="Apply this upgrade to {{ upgrade_plan.model_id }}?">
+                    Apply upgrade
+                </button>
+                <button class="btn btn-sm"
+                        hx-get="/admin/models"
+                        hx-target="#app-content"
+                        hx-swap="innerHTML">
+                    Dismiss
+                </button>
+            </div>
+        </div>
+        {% endif %}
+
         {# Available (uninstalled) bundled models #}
         {% if available_models is defined and available_models | length > 0 %}
         <h3 class="section-label" style="margin-top: 24px;">Available Models</h3>
@@ -132,6 +213,8 @@
                     <td>
                         {% if status and status.has_update %}
                         <span class="version-badge version-badge--update">Update available: v{{ status.latest_version }}</span>
+                        {% elif (disk_upgrades or {}).get(model.model_id) %}
+                        <span class="version-badge version-badge--update">On disk: v{{ disk_upgrades[model.model_id] }}</span>
                         {% elif status %}
                         <span class="version-badge version-badge--uptodate">Up to date</span>
                         {% endif %}
@@ -149,6 +232,16 @@
                             Update
                         </button>
                         <span class="update-indicator htmx-indicator loading">Updating…</span>
+                        {% endif %}
+                        {% set disk_version = (disk_upgrades or {}).get(model.model_id) %}
+                        {% if disk_version %}
+                        <button class="btn btn-primary btn-sm"
+                                hx-post="/admin/models/{{ model.model_id }}/upgrade-preview"
+                                hx-target="#model-table"
+                                hx-swap="outerHTML"
+                                title="Preview the data changes for v{{ disk_version }} before applying">
+                            Upgrade to v{{ disk_version }}
+                        </button>
                         {% endif %}
                         <button class="btn btn-warning btn-sm"
                                 hx-get="/admin/models/{{ model.model_id }}/entailment"

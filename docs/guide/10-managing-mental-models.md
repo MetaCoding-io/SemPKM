@@ -190,6 +190,8 @@ Use Refresh when:
 
 You do **not** need Refresh for normal day-to-day use — it is specifically for updating model definitions.
 
+Refresh is the right tool only while the model's version stays put, or while the changes are additive. If the version has moved and the release renames or removes types or properties, use [Upgrade](#upgrading-a-mental-model) instead: it reloads the same artifacts *and* migrates your existing objects to match them.
+
 ### What Refresh Preserves
 
 Refresh is designed to update model *definitions* without touching your *data*:
@@ -237,6 +239,99 @@ Documentation is read from disk each time the tab is opened, so a **Refresh** (o
 Every refresh operation — whether it succeeds or fails — is recorded in the [Operations Log](#operations-log). The log entry shows the activity type ("Model Refresh"), the affected model, the duration, and the result (success or failure with error details). This provides an audit trail for model management activities.
 
 > **Tip:** If a refresh fails, check the Operations Log for the detailed error message. Common causes include malformed JSON-LD syntax or missing entrypoint files referenced in the manifest.
+
+## Upgrading a Mental Model
+
+Refresh reloads a model's *definitions*. Upgrade is what you want when the
+model's **version** has moved and its instance data needs to move with it.
+
+The difference matters. Refresh is safe for additive changes: a new type, a new
+property, a corrected view. It is not enough when a release renames a class or
+a property, because your existing objects keep the old names and drop out of
+the forms and views that no longer match them. An upgrade runs the model's
+migrations, which rewrite that data.
+
+Upgrading never deletes your objects. This is also what replaced the old
+behavior, where updating a model meant removing and reinstalling it -- and
+removal is refused whenever instances of the model's types exist, so any model
+you had actually used could not be updated at all.
+
+### When an Upgrade Is Available
+
+Two badges in the installed-models table point at one:
+
+- **Update available: v…** -- a newer version exists in the marketplace. Use
+  the **Update** button, which downloads and verifies the archive first, then
+  upgrades.
+- **On disk: v…** -- the archive already on disk, bundled or downloaded
+  earlier, is newer than what is installed. Use the **Upgrade to v…** button.
+
+### Previewing an Upgrade
+
+**Upgrade to v…** does not apply anything. It shows a preview first: each
+migration in the chain, each step within it, how many triples the step would
+remove and add, and a few example rows. Building the preview issues only read
+queries, so it changes nothing and you can run it as often as you like.
+
+Read the preview before applying. It is the one place that tells you, in
+advance, how much of your data a release touches.
+
+Two things to know about the numbers:
+
+- Counts are exact for the first pending migration. If the chain runs more than
+  one, the later counts are estimates, because they are computed against
+  today's data rather than the data their predecessors will leave behind. The
+  preview says so when this applies.
+- A version bump that ships no migrations shows as changing nothing. That is
+  normal and means the release altered only the schema.
+
+Click **Apply upgrade** to run it, or **Dismiss** to walk away.
+
+### What an Upgrade Does
+
+In order:
+
+1. Validates the new archive. A broken bundle fails here, while the installed
+   model is still whole.
+2. Reloads the ontology, shapes, views and rules, exactly as Refresh does.
+3. Clears inferred triples, since the ontology they were derived from has
+   changed. Your per-model entailment settings are kept.
+4. Applies each pending migration as a single event, recording it in the
+   model's ledger as it lands.
+5. Updates the model's recorded version.
+
+Because each migration is recorded as it completes, an upgrade interrupted
+partway through resumes when you run it again rather than repeating work that
+already landed.
+
+Migrations appear in the [Event Log](16-event-log.md) as `model.migrate`
+events, attributed to the user who ran the upgrade.
+
+### Rolling a Migration Back
+
+Each migration writes a journal of exactly which triples it removed and added,
+which is what makes it reversible. Rolling one back restores that delta.
+
+Rollback is a data-level operation, available through the API rather than a
+button:
+
+```
+POST /api/models/{model_id}/upgrade        # apply
+GET  /api/models/{model_id}/upgrade-plan   # preview, read-only
+```
+
+A rollback undoes a migration's effect on your objects. It does not restore the
+previous schema artifacts or the previous version number, because the archive
+on disk is still the newer one. To return a model fully to an earlier release,
+roll its migrations back and then install the older archive.
+
+### Upgrades at Startup
+
+The Basic PKM starter model upgrades itself when the bundled archive moves
+ahead of what is installed. It now runs the migration chain rather than
+clearing the model's graphs and reinstalling over live data. If the upgrade
+fails, the previous version stays installed and the error is logged, so you can
+retry from the admin portal where the details are visible.
 
 ## Running Multiple Mental Models
 
@@ -306,6 +401,8 @@ my-model/
     my-model.jsonld       # ViewSpec definitions for table, card, and graph views
   seed/
     my-model.jsonld       # (Optional) Example objects loaded on install
+  migrations/
+    2.0.0.yaml            # (Optional) Data migrations run when upgrading to that version
 ```
 
 The filenames default to `{modelId}.jsonld` but can be customized via the entrypoints section of the manifest. All JSON-LD files must include a `@context` with the model's prefix mappings and use the `@graph` array pattern for multiple resource definitions.
@@ -317,6 +414,9 @@ The filenames default to `{modelId}.jsonld` but can be customized via the entryp
 | Install | Models page form | `POST /api/models/install` | Loads ontology, shapes, views, seed data; registers model |
 | Remove | Models page button | `DELETE /api/models/{id}` | Clears ontology, shapes, views graphs; unregisters model; preserves user data |
 | List | Models page table | `GET /api/models` | Shows all installed models with metadata |
+| Refresh | Models page button | — | Reloads ontology, shapes, views, rules from disk; leaves all data alone |
+| Preview upgrade | Models page button | `GET /api/models/{id}/upgrade-plan` | Compiles what a version bump would change; writes nothing |
+| Upgrade | Models page button | `POST /api/models/{id}/upgrade` | Reloads artifacts and migrates instance data to the new version |
 | Auto-install | Automatic on startup | Automatic on startup | Basic PKM installed if no models present |
 
 ## The Ontology Viewer

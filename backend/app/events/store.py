@@ -36,6 +36,11 @@ from app.rdf.iri import mint_event_iri
 from app.rdf.namespaces import CURRENT_GRAPH_IRI, SEMPKM
 from app.triplestore.client import TriplestoreClient
 
+# Ground triples are batched into statements of at most this many triples so
+# that a large migration produces a handful of round trips rather than one per
+# triple, without building a single multi-megabyte SPARQL request.
+MATERIALIZE_CHUNK_SIZE = 1000
+
 
 @dataclass
 class Operation:
@@ -44,6 +49,21 @@ class Operation:
     Represents one logical change (e.g., object.create, edge.create) with
     the triples to store in the event graph and the materialization actions
     to apply to the current state graph.
+
+    There are two delete channels, and they exist for different shapes of
+    change:
+
+    ``materialize_deletes`` holds triple *patterns*, which may contain
+    ``Variable`` terms (e.g. ``(subject, predicate, Variable("old_0"))`` to
+    clear whatever value a property currently has). Each pattern becomes its
+    own ``DELETE WHERE`` round trip, because RDF4J's transaction endpoint
+    does not reliably accept semicolon-joined statements.
+
+    ``materialize_delete_data`` holds fully-ground triples with no variables.
+    Because they need no matching, they are batched into chunked
+    ``DELETE DATA`` statements — a few round trips instead of one per triple.
+    Bulk rewrites such as Mental Model migrations, which compute their exact
+    delta up front, belong in this channel.
     """
 
     operation_type: str  # e.g. "object.create"
@@ -56,6 +76,9 @@ class Operation:
     materialize_deletes: list[tuple] = field(
         default_factory=list
     )  # Triple patterns to DELETE from current state
+    materialize_delete_data: list[tuple] = field(
+        default_factory=list
+    )  # Fully-ground triples to DELETE, emitted as chunked DELETE DATA
 
 
 @dataclass
@@ -204,15 +227,24 @@ class EventStore:
                     )
                     await self._client.transaction_update(txn_url, delete_sparql)
 
+            # Ground deletes need no matching, so they batch into chunked
+            # DELETE DATA rather than one round trip apiece.
+            all_delete_data: list[tuple] = []
+            for op in operations:
+                all_delete_data.extend(op.materialize_delete_data)
+
+            for chunk in _chunked(all_delete_data, MATERIALIZE_CHUNK_SIZE):
+                await self._client.transaction_update(
+                    txn_url, _build_delete_data_sparql(materialize_graph, chunk)
+                )
+
             # Step 3: Materialize inserts into state graph
             all_inserts: list[tuple] = []
             for op in operations:
                 all_inserts.extend(op.materialize_inserts)
 
-            if all_inserts:
-                insert_sparql = _build_insert_data_sparql(
-                    materialize_graph, all_inserts
-                )
+            for chunk in _chunked(all_inserts, MATERIALIZE_CHUNK_SIZE):
+                insert_sparql = _build_insert_data_sparql(materialize_graph, chunk)
                 await self._client.transaction_update(txn_url, insert_sparql)
 
             # Commit the transaction (event + materialization are atomic)
@@ -303,15 +335,22 @@ class EventStore:
                     )
                     await self._client.transaction_update(txn_url, delete_sparql)
 
+            all_delete_data: list[tuple] = []
+            for op in operations:
+                all_delete_data.extend(op.materialize_delete_data)
+
+            for chunk in _chunked(all_delete_data, MATERIALIZE_CHUNK_SIZE):
+                await self._client.transaction_update(
+                    txn_url, _build_delete_data_sparql(CURRENT_GRAPH_IRI, chunk)
+                )
+
             # Then inserts
             all_inserts: list[tuple] = []
             for op in operations:
                 all_inserts.extend(op.materialize_inserts)
 
-            if all_inserts:
-                insert_sparql = _build_insert_data_sparql(
-                    CURRENT_GRAPH_IRI, all_inserts
-                )
+            for chunk in _chunked(all_inserts, MATERIALIZE_CHUNK_SIZE):
+                insert_sparql = _build_insert_data_sparql(CURRENT_GRAPH_IRI, chunk)
                 await self._client.transaction_update(txn_url, insert_sparql)
 
             await self._client.commit_transaction(txn_url)
@@ -397,6 +436,52 @@ def _build_insert_data_sparql(
 {triples_str}
   }}
 }}"""
+
+
+def _build_delete_data_sparql(
+    graph_iri: URIRef, triples: list[tuple]
+) -> str:
+    """Build SPARQL DELETE DATA for removing fully-ground triples.
+
+    Unlike :func:`_build_delete_where_sparql`, this emits a single statement
+    covering every triple, which is only valid because ``DELETE DATA``
+    requires ground terms — no variables and no blank nodes.
+
+    Args:
+        graph_iri: The named graph to delete from.
+        triples: List of ground (s, p, o) tuples.
+
+    Returns:
+        SPARQL DELETE DATA string.
+
+    Raises:
+        ValueError: If any term is a Variable or BNode.
+    """
+    triple_lines = []
+    for s, p, o in triples:
+        for term in (s, p, o):
+            if isinstance(term, (Variable, BNode)):
+                raise ValueError(
+                    "materialize_delete_data requires ground triples; "
+                    f"got {type(term).__name__} in ({s}, {p}, {o}). "
+                    "Use materialize_deletes for patterns with variables."
+                )
+        triple_lines.append(
+            f"    {_serialize_rdf_term(s)} {_serialize_rdf_term(p)} {_serialize_rdf_term(o)} ."
+        )
+    triples_str = "\n".join(triple_lines)
+
+    return f"""DELETE DATA {{
+  GRAPH <{graph_iri}> {{
+{triples_str}
+  }}
+}}"""
+
+
+def _chunked(items: list, size: int):
+    """Yield successive size-length chunks of items."""
+    for start in range(0, len(items), size):
+        yield items[start : start + size]
 
 
 def _build_delete_where_sparql(

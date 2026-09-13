@@ -20,6 +20,8 @@ my-research/
     my-research.jsonld
   seed/
     my-research.jsonld
+  migrations/
+    2.0.0.yaml
 ```
 
 Each subdirectory contains a single JSON-LD file (named after the model ID by convention). The manifest tells SemPKM where to find each file and provides metadata about the model. The `README.md` is the model's human-readable documentation -- SemPKM renders it in the admin portal (see [Documentation](#documentation) below).
@@ -36,6 +38,7 @@ Each subdirectory contains a single JSON-LD file (named after the model ID by co
 | `views/`    | `{modelId}.jsonld` | View specifications (table, card, graph)     | Yes      |
 | `seed/`     | `{modelId}.jsonld` | Starter objects loaded on first install      | No       |
 | (root)      | `README.md`       | Markdown documentation rendered in the admin portal | Recommended |
+| `migrations/` | `{version}.yaml` | Data migrations run when users upgrade to that version | No |
 
 ## The Manifest
 
@@ -114,10 +117,11 @@ The `entrypoints` section maps artifact types to file paths. If you omit entrypo
 | `dashboards`| *(none)*                       | No       |
 | `workflows` | *(none)*                       | No       |
 | `docs`      | *(none; `README.md` is picked up by convention)* | No |
+| `migrations`| *(none)*                       | No       |
 
 The `{modelId}` placeholder is resolved automatically from the manifest. You can also specify explicit paths if you prefer a different naming convention.
 
-`rules` points at a SHACL-AF Turtle file (inference rules and validation constraints). `dashboards` and `workflows` are JSON files that v2 manifests use to ship dashboards and guided workflows (see [Chapter 29](29-dashboards-and-workflows.md)). `docs` is described in the next section.
+`rules` points at a SHACL-AF Turtle file (inference rules and validation constraints). `dashboards` and `workflows` are JSON files that v2 manifests use to ship dashboards and guided workflows (see [Chapter 29](29-dashboards-and-workflows.md)). `docs` is described in the next section, and `migrations` under [Evolving a Model](#evolving-a-model).
 
 ### Documentation
 
@@ -686,6 +690,128 @@ Open each view from the **Views** menu and verify:
 
 Create an object with intentionally invalid data (e.g., leave a required field empty, enter an invalid dropdown value) and check the **Lint Panel** in the right pane. SHACL validation results should appear after a brief delay.
 
+## Evolving a Model
+
+Bumping a model's `version` swaps its ontology, shapes, views and rules. It does
+nothing at all to the objects your users have already created. If release 3.0.0
+renames a class or a property, every existing object keeps the old name and
+quietly falls out of its forms and views.
+
+Migrations close that gap. A migration is a declarative description of how to
+rewrite instance data, shipped inside the archive and named for the version it
+upgrades **to**:
+
+```
+my-research/
+  manifest.yaml          # version: "3.0.0"
+  migrations/
+    2.1.0.yaml
+    3.0.0.yaml
+```
+
+Declare the directory in the manifest:
+
+```yaml
+entrypoints:
+  migrations: "migrations"
+```
+
+When a user upgrades, SemPKM runs every migration whose version is greater than
+their installed version and less than or equal to the version on disk, in
+semver order. A release that changes no instance data simply ships no migration
+file; gaps are expected and are not an error.
+
+### Writing a Migration
+
+```yaml
+version: "3.0.0"
+description: Split Note into Note and Bookmark
+steps:
+  - id: retype-url-notes
+    kind: rename_class
+    from: rsx:Note
+    to: rsx:Bookmark
+    where: "?s <urn:sempkm:model:my-research:noteUrl> ?url ."
+
+  - id: rename-url-property
+    kind: rename_property
+    from: rsx:noteUrl
+    to: rsx:bookmarkUrl
+
+  - id: backfill-status
+    kind: set_default
+    class: rsx:Task
+    property: rsx:status
+    value: todo
+```
+
+The `version` key must match the filename. Every step needs a unique `id`,
+which is what the preview and the event log identify it by. Class and property
+references are CURIEs expanded against the manifest's `prefixes`, or absolute
+IRIs.
+
+### Step Kinds
+
+| Kind              | Required            | Optional                                  | Effect |
+|-------------------|---------------------|-------------------------------------------|--------|
+| `rename_class`    | `from`, `to`        | `where`                                   | Retypes every instance of `from` to `to` |
+| `rename_property` | `from`, `to`        | `where`                                   | Moves every value of `from` onto `to` |
+| `drop_property`   | `property`          | `where`                                   | Removes every value of the property |
+| `set_default`     | `class`, `property` | `value` or `value_iri`, `datatype`, `lang`, `where` | Fills the property only on instances that lack it |
+| `sparql`          | `where`             | `delete`, `insert`                        | Escape hatch: bind a pattern, rewrite the matches |
+
+The optional `where` on the first four kinds is a SPARQL group-graph-pattern
+fragment that narrows which subjects the step touches. The `sparql` kind takes
+the same fragment plus triple-pattern templates that are instantiated once per
+binding:
+
+```yaml
+  - id: move-legacy-field
+    kind: sparql
+    where: "?s <urn:sempkm:model:my-research:oldField> ?v ."
+    delete: ["?s <urn:sempkm:model:my-research:oldField> ?v"]
+    insert: ["?s <urn:sempkm:model:my-research:newField> ?v"]
+```
+
+Fragments are read-only patterns scoped to the current-state graph. The
+keywords that would break either of those properties -- `GRAPH`, `SERVICE`,
+`INSERT`, `DELETE`, `LOAD`, `CLEAR`, `DROP`, `CREATE`, `ADD`, `MOVE`, `COPY`,
+`WITH`, `USING` -- are rejected when the migration is parsed.
+
+### How Migrations Run
+
+Every step compiles to a **concrete delta** before anything is written. SemPKM
+runs a `SELECT` that enumerates the exact triples the step would remove and
+add, and only then commits them. That is what makes the preview exact rather
+than an estimate, what keeps a migration inside the event log like any other
+change, and what lets a migration be rolled back afterwards.
+
+Three consequences worth designing around:
+
+- **Migrations are recorded once.** Each applied version is written to the
+  model's ledger, so an upgrade interrupted halfway resumes instead of
+  re-running the steps that already landed. Write each step to be correct
+  once, not to be idempotent.
+- **Later migrations see earlier ones.** Within a chain, each migration is
+  compiled against the state its predecessor left behind, so 3.0.0 can rely on
+  2.1.0 having run.
+- **There is a size cap.** A single step may match at most 50,000 rows and one
+  migration file at most 100,000 triples. A step that exceeds either fails the
+  whole migration rather than applying part of it. Narrow it with `where`, or
+  split it across files.
+
+A fresh install records the archive's whole migration history as already
+applied, since there is no legacy data to rewrite. Seed data is never migrated;
+it is model-authored content and is replaced when the artifacts reload.
+
+### Testing a Migration
+
+Install the previous version, create objects of the affected types, drop the
+new archive in place, and preview the upgrade from the admin portal
+(**Mental Models** &rarr; **Upgrade to v…**). The preview names each step, the
+number of triples it removes and adds, and a few example rows, without writing
+anything. Chapter 10 covers the operator side.
+
 ## Packaging
 
 For distribution, Mental Models are packaged as `.sempkm-model` archives. This is a ZIP file containing the model directory:
@@ -709,6 +835,8 @@ my-research.sempkm-model
     my-research.jsonld
   seed/
     my-research.jsonld
+  migrations/
+    3.0.0.yaml
 ```
 
 Include the `README.md` (or whatever file `entrypoints.docs` names) in the archive -- if the manifest declares it and the archive omits it, installation is rejected.

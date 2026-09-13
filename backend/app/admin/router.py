@@ -60,6 +60,49 @@ def _client_ip(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
 
+def scan_disk_upgrades(models: list) -> dict[str, str]:
+    """Find installed models whose on-disk archive is newer than the install.
+
+    The marketplace has its own update check. This covers the other source of
+    a version bump: a bundled or already-downloaded archive that moved ahead
+    of the installed version, which until now only the starter model noticed,
+    and only at boot.
+
+    Args:
+        models: Installed models, as returned by ``ModelService.list_models``.
+
+    Returns:
+        Mapping of model_id to the newer on-disk version.
+    """
+    from packaging.version import InvalidVersion, Version
+
+    from app.models.manifest import parse_manifest
+    from app.models.paths import resolve_model_dir
+
+    upgrades: dict[str, str] = {}
+    for model in models:
+        try:
+            model_dir = resolve_model_dir(model.model_id)
+            if model_dir is None:
+                continue
+            disk_version = parse_manifest(model_dir).version
+            if Version(disk_version) > Version(model.version):
+                upgrades[model.model_id] = disk_version
+        except (InvalidVersion, ValueError, OSError):
+            logger.debug(
+                "Could not compare on-disk version for '%s'",
+                model.model_id,
+                exc_info=True,
+            )
+        except Exception:
+            logger.warning(
+                "Unexpected error scanning on-disk version for '%s'",
+                model.model_id,
+                exc_info=True,
+            )
+    return upgrades
+
+
 def scan_available_models(models_dir: str, installed_ids: set[str]) -> list[dict]:
     """Scan a directory for bundled Mental Model archives not yet installed.
 
@@ -318,6 +361,7 @@ async def admin_models(
         "custom_types": custom_types,
         "all_properties": all_properties,
         "update_status": update_status,
+        "disk_upgrades": scan_disk_upgrades(models),
     }
     if _is_htmx_request(request):
         return templates_response(request, "admin/models.html", context, block_name="content")
@@ -748,6 +792,136 @@ async def admin_models_marketplace_install(
     return templates_response(request, "admin/models.html", context, block_name="model_table")
 
 
+async def _models_table_context(request: Request, model_service: ModelService) -> dict:
+    """Build the context the model-table partial needs after an action."""
+    models = await model_service.list_models()
+    installed_ids = {m.model_id for m in models}
+    return {
+        "request": request,
+        "models": models,
+        "available_models": scan_available_models("/app/models", installed_ids),
+        "disk_upgrades": scan_disk_upgrades(models),
+    }
+
+
+@router.post("/models/{model_id}/upgrade-preview")
+async def admin_models_upgrade_preview(
+    request: Request,
+    model_id: str,
+    user: User = Depends(require_role("owner")),
+    model_service: ModelService = Depends(get_model_service),
+):
+    """Show what upgrading a model would change, without changing anything.
+
+    Every query behind this is a SELECT, so it is safe to run repeatedly.
+    """
+    context = await _models_table_context(request, model_service)
+    plan = await model_service.plan_upgrade(model_id)
+    context["upgrade_plan"] = plan
+    if not plan.success:
+        context["error"] = (
+            f"Could not plan an upgrade for '{model_id}': "
+            f"{'; '.join(plan.errors)}"
+        )
+    return templates_response(
+        request, "admin/models.html", context, block_name="model_table"
+    )
+
+
+@router.post("/models/{model_id}/upgrade")
+async def admin_models_upgrade(
+    request: Request,
+    model_id: str,
+    user: User = Depends(require_role("owner")),
+    model_service: ModelService = Depends(get_model_service),
+    ops_log: OperationsLogService = Depends(get_ops_log_service),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Upgrade an installed model from its on-disk archive, migrating data.
+
+    This is the non-marketplace counterpart to ``admin_models_update``: the
+    archive is already on disk, either bundled or downloaded earlier, and has
+    moved ahead of the installed version.
+    """
+    t0 = time.monotonic()
+    result = await model_service.upgrade(model_id, user.id)
+    duration_ms = (time.monotonic() - t0) * 1000
+
+    context = await _models_table_context(request, model_service)
+
+    if not result.success:
+        context["error"] = (
+            f"Upgrade of '{model_id}' failed: {'; '.join(result.errors)}"
+        )
+        logger.warning(
+            "model.upgrade failed: model=%s errors=%s", model_id, result.errors
+        )
+        return templates_response(
+            request, "admin/models.html", context, block_name="model_table"
+        )
+
+    await _reset_inference_state(db, model_id)
+    request.app.state.view_spec_service.invalidate_cache()
+
+    summary = (
+        f"Model '{model_id}' upgraded from v{result.from_version} to "
+        f"v{result.to_version}."
+    )
+    if result.migrations_applied:
+        summary += (
+            f" Applied {len(result.migrations_applied)} migration(s) "
+            f"({', '.join(result.migrations_applied)}): "
+            f"{result.triples_deleted} triple(s) removed, "
+            f"{result.triples_inserted} added."
+        )
+    else:
+        summary += " No instance data needed migrating."
+    if result.warnings:
+        summary += " " + " ".join(result.warnings)
+    context["success"] = summary
+
+    try:
+        await ops_log.log_activity(
+            activity_type="model.upgrade",
+            label=(
+                f"Upgraded '{model_id}' from v{result.from_version} to "
+                f"v{result.to_version}"
+            ),
+            actor=f"urn:sempkm:user:{user.id}",
+            used_iris=[f"urn:sempkm:model:{model_id}"],
+            status="success",
+        )
+    except Exception:
+        logger.warning("Failed to write ops log for model upgrade", exc_info=True)
+
+    await _security_audit(
+        request,
+        "model_upgraded",
+        user_id=user.id,
+        detail={
+            "model_id": model_id,
+            "old_version": result.from_version,
+            "new_version": result.to_version,
+            "migrations_applied": result.migrations_applied,
+            "triples_deleted": result.triples_deleted,
+            "triples_inserted": result.triples_inserted,
+            "duration_ms": round(duration_ms),
+        },
+    )
+
+    logger.info(
+        "model.upgrade ok: model=%s old=%s new=%s migrations=%d duration_ms=%.0f",
+        model_id,
+        result.from_version,
+        result.to_version,
+        len(result.migrations_applied),
+        duration_ms,
+    )
+    return templates_response(
+        request, "admin/models.html", context, block_name="model_table"
+    )
+
+
 @router.post("/models/{model_id}/update")
 async def admin_models_update(
     request: Request,
@@ -834,18 +1008,26 @@ async def admin_models_update(
             )
         model_dir = manifest_candidates[0].parent
 
-        # Archive downloaded and verified — NOW safe to remove old version
-        result = await model_service.remove(model_id)
-        if not result.success:
-            raise ValueError(f"Failed to remove old version: {'; '.join(result.errors)}")
+        # Archive downloaded and verified. Upgrade in place rather than
+        # remove-then-reinstall: remove() refuses to run once instances of the
+        # model's types exist, which used to make any model in real use
+        # impossible to update. upgrade() refreshes the schema artifacts and
+        # migrates instance data instead, and never deletes user data.
+        upgrade_result = await model_service.upgrade(
+            model_id, user.id, model_dir=model_dir
+        )
+        if not upgrade_result.success:
+            raise ValueError(
+                f"Upgrade failed: {'; '.join(upgrade_result.errors)}"
+            )
 
-        # Clean up inference artifacts from old version
-        await _cleanup_inference_on_uninstall(client, db, user.id, model_id)
+        # upgrade() drops the inferred graph; clear the incremental-inference
+        # bookkeeping alongside it so the next recompute starts clean. The
+        # model's entailment settings are kept, unlike on uninstall.
+        await _reset_inference_state(db, model_id)
 
-        # Install new version
-        install_result = await model_service.install(model_dir, user.id)
-
-        # Persist to models_data_dir
+        # Persist to models_data_dir only once the upgrade has succeeded, so a
+        # failed update leaves the previous archive on disk intact.
         dest = registry_service._models_data_dir / model_id
         if dest.exists():
             _shutil.rmtree(dest)
@@ -865,7 +1047,17 @@ async def admin_models_update(
 
         old_ver = current.version
         new_ver = entry.get("version", "unknown")
-        context["success"] = f"Model '{model_id}' updated from v{old_ver} to v{new_ver}."
+        summary = f"Model '{model_id}' updated from v{old_ver} to v{new_ver}."
+        if upgrade_result.migrations_applied:
+            summary += (
+                f" Applied {len(upgrade_result.migrations_applied)} migration(s) "
+                f"({', '.join(upgrade_result.migrations_applied)}): "
+                f"{upgrade_result.triples_deleted} triple(s) removed, "
+                f"{upgrade_result.triples_inserted} added."
+            )
+        if upgrade_result.warnings:
+            summary += " " + " ".join(upgrade_result.warnings)
+        context["success"] = summary
 
         # Ops log
         try:
@@ -1157,6 +1349,29 @@ async def _refresh_detail_response(
 
 
 # ---- Inference cleanup on model uninstall ----
+
+
+async def _reset_inference_state(db: AsyncSession, model_id: str) -> None:
+    """Clear incremental-inference bookkeeping after a model's ontology changed.
+
+    Unlike :func:`_cleanup_inference_on_uninstall`, this keeps the model's
+    entailment settings — an upgrade is the same model, so the user's choice
+    of which entailments to run still applies.
+    """
+    from app.inference.models import InferenceTripleState
+    from sqlalchemy import delete
+
+    try:
+        await db.execute(delete(InferenceTripleState))
+        logger.info(
+            "Cleared inference_triple_state after upgrading model '%s'", model_id
+        )
+    except Exception:
+        logger.warning(
+            "Failed to clear inference_triple_state after upgrading model '%s'",
+            model_id,
+            exc_info=True,
+        )
 
 
 async def _cleanup_inference_on_uninstall(
