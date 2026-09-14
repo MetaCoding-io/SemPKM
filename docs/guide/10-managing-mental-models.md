@@ -225,11 +225,12 @@ You can also refresh from the **model detail page** (`/admin/models/{model_id}`)
 
 ### The Model Detail Page
 
-Clicking a model's name in the installed models table opens its detail page with four tabs:
+Clicking a model's name in the installed models table opens its detail page with five tabs:
 
 - **Schema** -- every type with its fields, relationships, and views, plus per-type analytics on the flip side of each card.
 - **Documentation** -- the Markdown documentation bundled inside the model archive (its `README.md` or `entrypoints.docs` file), rendered as HTML. This is the authoritative guide to what the model's types mean and how to use them, and it always matches the installed version.
 - **Relationships** -- an interactive diagram of object properties and class hierarchy.
+- **Migrations** -- every data migration applied to this model, with a rollback action on the most recent one. See [Rolling a Migration Back](#rolling-a-migration-back).
 - **Inference Settings** -- per-model entailment toggles.
 
 Documentation is read from disk each time the tab is opened, so a **Refresh** (or a marketplace update) shows the new text immediately. Models that ship no documentation show an empty state on the tab and produce a `missing-docs` warning at install time.
@@ -312,18 +313,52 @@ events, attributed to the user who ran the upgrade.
 Each migration writes a journal of exactly which triples it removed and added,
 which is what makes it reversible. Rolling one back restores that delta.
 
-Rollback is a data-level operation, available through the API rather than a
-button:
+Open the model's detail page (click its name in the installed-models table) and
+choose the **Migrations** tab. It lists every migration applied to the model,
+newest first, with how many triples a rollback would restore and remove. The
+most recent one carries a **Roll back** button.
 
-```
-POST /api/models/{model_id}/upgrade        # apply
-GET  /api/models/{model_id}/upgrade-plan   # preview, read-only
-```
+The counts are worth reading before you click. They are the exact size of the
+change being reversed, not an estimate, because they come from the journal
+itself.
+
+#### Newest First
+
+Only the most recent migration offers the button. Migrations must reverse in
+the order they were applied, because a later one may have rewritten the very
+triples an earlier journal refers to.
+
+Suppose 2.0.0 retyped `Note` to `Bookmark`, and 3.0.0 then retyped `Bookmark`
+to `Link`. Reversing 2.0.0 on its own would try to remove a `Bookmark` type
+that is no longer there, and would add `Note` back alongside the `Link` the
+object now has. You would end up with objects carrying two types and neither
+of them right. SemPKM refuses that rather than letting it happen: roll 3.0.0
+back first, then 2.0.0.
+
+Two other cases show no button. A migration that changed no instance data has
+nothing to undo. A migration whose journal is missing -- because the model was
+removed and reinstalled, for instance -- cannot be reversed automatically, and
+is labelled **Journal missing**.
+
+#### What Rollback Does Not Do
 
 A rollback undoes a migration's effect on your objects. It does not restore the
 previous schema artifacts or the previous version number, because the archive
 on disk is still the newer one. To return a model fully to an earlier release,
 roll its migrations back and then install the older archive.
+
+Rollbacks are events in their own right, recorded as `model.migrate.rollback`
+and attributed to whoever ran them, so reversing a migration is as visible in
+the [Event Log](16-event-log.md) as applying it was.
+
+#### From the API
+
+The same operations are available without the UI:
+
+```
+GET  /api/models/{model_id}/migrations                      # the ledger
+POST /api/models/{model_id}/migrations/{version}/rollback   # reverse one
+```
 
 ### Upgrades at Startup
 
@@ -417,6 +452,8 @@ The filenames default to `{modelId}.jsonld` but can be customized via the entryp
 | Refresh | Models page button | — | Reloads ontology, shapes, views, rules from disk; leaves all data alone |
 | Preview upgrade | Models page button | `GET /api/models/{id}/upgrade-plan` | Compiles what a version bump would change; writes nothing |
 | Upgrade | Models page button | `POST /api/models/{id}/upgrade` | Reloads artifacts and migrates instance data to the new version |
+| List migrations | Model detail, Migrations tab | `GET /api/models/{id}/migrations` | Shows every migration applied, newest first, with journal sizes |
+| Roll back migration | Migrations tab button | `POST /api/models/{id}/migrations/{version}/rollback` | Reverses the most recent migration's data changes; leaves schema and version alone |
 | Auto-install | Automatic on startup | Automatic on startup | Basic PKM installed if no models present |
 
 ## The Ontology Viewer

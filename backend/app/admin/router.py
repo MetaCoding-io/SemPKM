@@ -474,6 +474,95 @@ async def admin_model_docs(
     return templates_response(request, "admin/model_docs.html", context)
 
 
+@router.get("/models/{model_id}/migrations")
+async def admin_model_migrations(
+    request: Request,
+    model_id: str,
+    user: User = Depends(require_role("owner")),
+    model_service: ModelService = Depends(get_model_service),
+):
+    """Render the Migrations tab partial for an installed model."""
+    models = await model_service.list_models()
+    info = next((m for m in models if m.model_id == model_id), None)
+    if info is None:
+        safe_id = html.escape(model_id)
+        return HTMLResponse(
+            f'<div class="error-box">Model \'{safe_id}\' not found.</div>',
+            status_code=404,
+        )
+    entries = await model_service.list_applied_migrations(model_id)
+    context = {"request": request, "info": info, "migrations": entries}
+    return templates_response(request, "admin/model_migrations.html", context)
+
+
+@router.post("/models/{model_id}/migrations/{version}/rollback")
+async def admin_model_migration_rollback(
+    request: Request,
+    model_id: str,
+    version: str,
+    user: User = Depends(require_role("owner")),
+    model_service: ModelService = Depends(get_model_service),
+    ops_log: OperationsLogService = Depends(get_ops_log_service),
+):
+    """Reverse one applied migration and re-render the Migrations tab.
+
+    Rolls the migration's instance-data changes back from its journal. The
+    service refuses anything but the most recently applied migration, so the
+    button is only offered on that one.
+    """
+    result = await model_service.rollback_migration(model_id, version, user.id)
+
+    models = await model_service.list_models()
+    info = next((m for m in models if m.model_id == model_id), None)
+    entries = await model_service.list_applied_migrations(model_id)
+    context = {"request": request, "info": info, "migrations": entries}
+
+    if result.success:
+        context["success"] = (
+            f"Rolled back migration {version}: {result.triples_restored} "
+            f"triple(s) restored, {result.triples_removed} removed. The "
+            "model's schema and version are unchanged."
+        )
+        status = "success"
+    else:
+        context["error"] = f"Rollback of {version} failed: " + "; ".join(result.errors)
+        status = "failure"
+        logger.warning(
+            "model.migration_rollback failed: model=%s version=%s errors=%s",
+            model_id,
+            version,
+            result.errors,
+        )
+
+    try:
+        await ops_log.log_activity(
+            activity_type="model.migration_rollback",
+            label=f"Rolled back migration {version} of '{model_id}'",
+            actor=f"urn:sempkm:user:{user.id}",
+            used_iris=[f"urn:sempkm:model:{model_id}"],
+            status=status,
+        )
+    except Exception:
+        logger.warning(
+            "Failed to write ops log for migration rollback", exc_info=True
+        )
+
+    await _security_audit(
+        request,
+        "model_migration_rolled_back",
+        user_id=user.id,
+        detail={
+            "model_id": model_id,
+            "version": version,
+            "success": result.success,
+            "triples_restored": result.triples_restored,
+            "triples_removed": result.triples_removed,
+        },
+    )
+
+    return templates_response(request, "admin/model_migrations.html", context)
+
+
 @router.get("/models/{model_id}/ontology-diagram")
 async def admin_model_ontology_diagram(
     request: Request,

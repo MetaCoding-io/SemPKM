@@ -799,6 +799,12 @@ Three consequences worth designing around:
   migration file at most 100,000 triples. A step that exceeds either fails the
   whole migration rather than applying part of it. Narrow it with `where`, or
   split it across files.
+- **Each migration is reversible on its own, newest first.** The delta is
+  journalled, and an operator can roll the most recent migration back from the
+  model detail page. They cannot reverse an older one while newer ones sit on
+  top of it, since your later migration may have rewritten the same triples.
+  Prefer one coherent migration per release over a long tail of small ones an
+  operator would have to unwind in order.
 
 A fresh install records the archive's whole migration history as already
 applied, since there is no legacy data to rewrite. Seed data is never migrated;

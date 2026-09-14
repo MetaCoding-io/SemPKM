@@ -42,6 +42,7 @@ from app.models.registry import (
     unregister_model,
 )
 from app.models.validator import ArchiveValidationReport, validate_archive
+from packaging.version import InvalidVersion, Version
 from app.services.prefixes import PrefixRegistry
 from app.triplestore.client import TriplestoreClient
 from app.rdf.namespaces import CURRENT_GRAPH
@@ -320,6 +321,42 @@ class UpgradeResult:
     graphs_refreshed: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
+
+
+@dataclass
+class MigrationLedgerEntry:
+    """One applied migration, as shown on the model's Migrations tab."""
+
+    version: str
+    removed_count: int
+    added_count: int
+    reversible: bool
+    is_latest: bool
+
+    @property
+    def is_noop(self) -> bool:
+        """True when the migration changed no instance data."""
+        return self.removed_count == 0 and self.added_count == 0
+
+
+def _sort_key(version: str):
+    """Semver sort key that tolerates an unparseable version string."""
+    try:
+        return (Version(version), version)
+    except InvalidVersion:
+        return (Version("0.0.0"), version)
+
+
+def _newest_version(versions) -> str | None:
+    """The highest semver in a collection, or None when it is empty.
+
+    Falls back to string ordering for anything unparseable, so a hand-edited
+    ledger entry cannot crash the rollback guard.
+    """
+    candidates = list(versions)
+    if not candidates:
+        return None
+    return max(candidates, key=_sort_key)
 
 
 @dataclass
@@ -1266,6 +1303,69 @@ class ModelService:
                 f"INSERT DATA {{\n  GRAPH <{graph_iri}> {{\n{lines}\n  }}\n}}"
             )
 
+    async def list_applied_migrations(
+        self, model_id: str
+    ) -> list[MigrationLedgerEntry]:
+        """List the migrations applied to a model, newest first.
+
+        Each entry carries the size of its journal, which is both what a
+        rollback would restore and the signal for whether one is possible at
+        all: a migration whose journal is gone cannot be reversed.
+
+        Args:
+            model_id: The model identifier.
+
+        Returns:
+            Ledger entries ordered newest version first. Empty when the model
+            has no recorded migrations, or when the ledger cannot be read.
+        """
+        try:
+            applied = await get_applied_migrations(self._client, model_id)
+        except Exception:
+            logger.warning(
+                "Failed to read applied migrations for '%s'", model_id, exc_info=True
+            )
+            return []
+
+        if not applied:
+            return []
+
+        newest = _newest_version(applied)
+        graphs = ModelGraphs(model_id)
+        entries: list[MigrationLedgerEntry] = []
+
+        for version in applied:
+            removed = await self._count_graph(graphs.migration_removed(version))
+            added = await self._count_graph(graphs.migration_added(version))
+            entries.append(
+                MigrationLedgerEntry(
+                    version=version,
+                    removed_count=removed,
+                    added_count=added,
+                    # A migration that moved nothing has an empty journal and
+                    # nothing to undo, so it is not offered as reversible.
+                    reversible=bool(removed or added),
+                    is_latest=version == newest,
+                )
+            )
+
+        entries.sort(key=lambda e: _sort_key(e.version), reverse=True)
+        return entries
+
+    async def _count_graph(self, graph_iri: str) -> int:
+        """Count the triples in a named graph, treating failure as empty."""
+        try:
+            result = await self._client.query(
+                f"SELECT (COUNT(*) AS ?count) FROM <{graph_iri}> WHERE {{ ?s ?p ?o }}"
+            )
+            bindings = result.get("results", {}).get("bindings", [])
+            if not bindings:
+                return 0
+            return int(bindings[0]["count"]["value"])
+        except Exception:
+            logger.warning("Failed to count graph <%s>", graph_iri, exc_info=True)
+            return 0
+
     async def rollback_migration(
         self,
         model_id: str,
@@ -1273,6 +1373,14 @@ class ModelService:
         user_id: uuid.UUID | None = None,
     ) -> RollbackResult:
         """Reverse one applied migration using its journal.
+
+        Migrations must be rolled back newest first. A journal records the
+        exact triples its migration moved, so a later migration that touched
+        the same triples invalidates an earlier journal: if 2.0.0 retyped A to
+        B and 3.0.0 then retyped B to C, reversing 2.0.0 on its own would try
+        to delete a type triple that no longer exists and would leave the
+        object typed as both A and C. Rolling back out of order is therefore
+        refused rather than silently corrupting data.
 
         This undoes the migration's effect on instance data only. It does not
         restore the previous schema artifacts or the previous recorded
@@ -1308,6 +1416,20 @@ class ModelService:
                 errors=[
                     f"Migration {version} is not recorded as applied to "
                     f"'{model_id}'."
+                ],
+            )
+
+        newest = _newest_version(applied)
+        if newest is not None and newest != version:
+            return RollbackResult(
+                success=False,
+                model_id=model_id,
+                version=version,
+                errors=[
+                    f"Migration {version} is not the most recent migration "
+                    f"applied to '{model_id}' ({newest}). Roll migrations back "
+                    "newest first: a later migration may have rewritten the "
+                    "same triples this one's journal refers to."
                 ],
             )
 

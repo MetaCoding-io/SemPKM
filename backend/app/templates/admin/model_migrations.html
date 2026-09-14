@@ -1,0 +1,104 @@
+{# Migrations tab for the model detail page: the applied-migration ledger,
+   with a rollback action on the most recent entry. #}
+<div id="migrations-content-inner">
+    {% if error is defined and error %}
+    <div class="error-box">{{ error }}</div>
+    {% elif success is defined and success %}
+    <div class="success-box">{{ success }}</div>
+    {% endif %}
+
+    {% if not migrations %}
+    <div class="empty-state">
+        <p><strong>No migrations recorded.</strong></p>
+        <p>
+            This model has never run a data migration. Migrations are recorded
+            here when you upgrade a model whose archive ships them, and on a
+            fresh install, where the archive's whole history counts as already
+            applied.
+        </p>
+    </div>
+    {% else %}
+    <p class="migrations-intro">
+        Every migration applied to <strong>{{ info.name }}</strong>, newest
+        first. Each one recorded the exact triples it moved, which is what a
+        rollback restores.
+    </p>
+
+    <table class="config-table migrations-table">
+        <thead>
+            <tr>
+                <th>Version</th>
+                <th>Restored on rollback</th>
+                <th>Removed on rollback</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for migration in migrations %}
+            <tr>
+                <td><strong>v{{ migration.version }}</strong></td>
+                <td>{{ migration.removed_count }}</td>
+                <td>{{ migration.added_count }}</td>
+                <td>
+                    {% if migration.is_noop %}
+                    <span class="version-badge version-badge--uptodate">No data changed</span>
+                    {% elif not migration.reversible %}
+                    <span class="version-badge version-badge--update">Journal missing</span>
+                    {% elif migration.is_latest %}
+                    <span class="version-badge version-badge--uptodate">Most recent</span>
+                    {% else %}
+                    <span class="version-badge version-badge--uptodate">Applied</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if migration.reversible and migration.is_latest %}
+                    <button class="btn btn-warning btn-sm"
+                            hx-post="/admin/models/{{ info.model_id }}/migrations/{{ migration.version }}/rollback"
+                            hx-target="#migrations-content"
+                            hx-swap="innerHTML"
+                            hx-confirm="Roll back migration v{{ migration.version }} of {{ info.name }}? This restores {{ migration.removed_count }} triple(s) and removes {{ migration.added_count }}. The model's schema and version are left as they are."
+                            hx-indicator="find .rollback-indicator">
+                        Roll back
+                    </button>
+                    <span class="rollback-indicator htmx-indicator loading">Rolling back…</span>
+                    {% elif migration.reversible %}
+                    <span class="migrations-hint">
+                        Roll back v{{ migrations[0].version }} first
+                    </span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="migrations-notes">
+        <p>
+            <strong>Rollback order.</strong> Migrations reverse newest first. A
+            later migration may have rewritten the same triples an earlier
+            journal refers to, so reversing out of order would corrupt data
+            rather than restore it. Only the most recent migration offers the
+            button.
+        </p>
+        <p>
+            <strong>What rollback does not do.</strong> It reverses the
+            migration's effect on your objects only. The model keeps its
+            current schema artifacts and its recorded version, because the
+            archive on disk is still the newer one. To return the model fully
+            to an earlier release, roll its migrations back and then install
+            the older archive.
+        </p>
+        <p>
+            A rollback is itself an event, so it appears in the event log as
+            <code>model.migrate.rollback</code>, attributed to you.
+        </p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>

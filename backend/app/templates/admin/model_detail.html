@@ -75,6 +75,13 @@
                 hx-trigger="click once">
             <i data-lucide="git-branch"></i> Relationships
         </button>
+        <button class="model-tab" data-tab="migrations" onclick="switchModelTab('migrations')"
+                hx-get="/admin/models/{{ detail.info.model_id }}/migrations"
+                hx-target="#migrations-content"
+                hx-swap="innerHTML"
+                hx-trigger="click once">
+            <i data-lucide="history"></i> Migrations
+        </button>
         <button class="model-tab" data-tab="inference" onclick="switchModelTab('inference')"
                 hx-get="/admin/models/{{ detail.info.model_id }}/entailment"
                 hx-target="#inference-content"
@@ -326,6 +333,15 @@
         </div>
     </div>
 
+    <!-- Migrations Tab Panel -->
+    <div id="migrations-panel" class="model-tab-panel" style="display:none;">
+        <div id="migrations-content">
+            <div class="diagram-loading">
+                <i data-lucide="loader-2" class="spin"></i> Loading migrations...
+            </div>
+        </div>
+    </div>
+
     <!-- Inference Settings Tab Panel -->
     <div id="inference-panel" class="model-tab-panel" style="display:none;">
         <div id="inference-content">
@@ -348,6 +364,7 @@
         document.getElementById('schema-panel').style.display = tabName === 'schema' ? '' : 'none';
         document.getElementById('docs-panel').style.display = tabName === 'docs' ? '' : 'none';
         document.getElementById('relationships-panel').style.display = tabName === 'relationships' ? '' : 'none';
+        document.getElementById('migrations-panel').style.display = tabName === 'migrations' ? '' : 'none';
         document.getElementById('inference-panel').style.display = tabName === 'inference' ? '' : 'none';
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }

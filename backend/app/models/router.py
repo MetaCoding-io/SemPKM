@@ -330,3 +330,91 @@ async def upgrade_model(
         triples_inserted=result.triples_inserted,
         warnings=result.warnings,
     )
+
+
+class MigrationLedgerItem(BaseModel):
+    """One migration recorded against an installed model."""
+
+    version: str
+    removed_count: int
+    added_count: int
+    reversible: bool
+    is_latest: bool
+
+
+class MigrationLedgerResponse(BaseModel):
+    """The migrations applied to a model, newest first."""
+
+    model_id: str
+    migrations: list[MigrationLedgerItem]
+
+
+class RollbackResponse(BaseModel):
+    """Result of reversing one applied migration."""
+
+    model_id: str
+    version: str
+    triples_restored: int
+    triples_removed: int
+
+
+@router.get(
+    "/{model_id}/migrations",
+    response_model=MigrationLedgerResponse,
+    responses={404: {"model": ErrorResponse}},
+)
+async def list_model_migrations(
+    model_id: str,
+    user: User = Depends(require_role("owner")),
+    model_service: ModelService = Depends(get_model_service),
+) -> MigrationLedgerResponse:
+    """List the migrations applied to an installed model, newest first."""
+    models = await model_service.list_models()
+    if not any(m.model_id == model_id for m in models):
+        raise HTTPException(
+            status_code=404, detail=f"Model '{model_id}' is not installed"
+        )
+    entries = await model_service.list_applied_migrations(model_id)
+    return MigrationLedgerResponse(
+        model_id=model_id,
+        migrations=[
+            MigrationLedgerItem(
+                version=e.version,
+                removed_count=e.removed_count,
+                added_count=e.added_count,
+                reversible=e.reversible,
+                is_latest=e.is_latest,
+            )
+            for e in entries
+        ],
+    )
+
+
+@router.post(
+    "/{model_id}/migrations/{version}/rollback",
+    response_model=RollbackResponse,
+    responses={400: {"model": ErrorResponse}},
+)
+async def rollback_model_migration(
+    model_id: str,
+    version: str,
+    user: User = Depends(require_role("owner")),
+    model_service: ModelService = Depends(get_model_service),
+) -> RollbackResponse:
+    """Reverse one applied migration from its journal.
+
+    Only the most recently applied migration can be reversed: a later
+    migration may have rewritten the same triples an earlier journal refers
+    to. Rollback restores instance data only, leaving the model's schema
+    artifacts and recorded version as they are.
+    """
+    result = await model_service.rollback_migration(model_id, version, user.id)
+    if not result.success:
+        raise HTTPException(status_code=400, detail={"errors": result.errors})
+
+    return RollbackResponse(
+        model_id=result.model_id,
+        version=result.version,
+        triples_restored=result.triples_restored,
+        triples_removed=result.triples_removed,
+    )

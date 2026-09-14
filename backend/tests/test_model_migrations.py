@@ -887,3 +887,227 @@ class TestRollback:
             result = await service.rollback_migration(MODEL_ID, "2.0.0")
         assert not result.success
         assert "not recorded as applied" in result.errors[0]
+
+    async def test_rollback_refuses_an_out_of_order_migration(self):
+        """A later migration invalidates an earlier one's journal.
+
+        If 2.0.0 retyped A to B and 3.0.0 then retyped B to C, reversing
+        2.0.0 alone would delete a type triple that is no longer there and
+        leave the object typed as both A and C.
+        """
+        event_store = AsyncMock()
+        service = ModelService(FakeClient(), event_store, MagicMock())
+
+        with patch(
+            "app.services.models.get_applied_migrations",
+            AsyncMock(return_value={"2.0.0", "3.0.0"}),
+        ):
+            result = await service.rollback_migration(MODEL_ID, "2.0.0")
+
+        assert not result.success
+        assert "not the most recent" in result.errors[0]
+        assert "3.0.0" in result.errors[0]
+        event_store.commit.assert_not_awaited()
+
+    async def test_newest_is_chosen_by_semver_not_string_order(self):
+        """10.0.0 is newer than 9.0.0, though it sorts earlier as a string."""
+        event_store = AsyncMock()
+        service = ModelService(FakeClient(), event_store, MagicMock())
+
+        with patch(
+            "app.services.models.get_applied_migrations",
+            AsyncMock(return_value={"9.0.0", "10.0.0"}),
+        ):
+            result = await service.rollback_migration(MODEL_ID, "9.0.0")
+
+        assert not result.success
+        assert "10.0.0" in result.errors[0]
+        event_store.commit.assert_not_awaited()
+
+    async def test_rollback_refuses_when_the_journal_is_gone(self):
+        client = FakeClient()
+        client.construct_result = b""
+        event_store = AsyncMock()
+        service = ModelService(client, event_store, MagicMock())
+
+        with patch(
+            "app.services.models.get_applied_migrations",
+            AsyncMock(return_value={"2.0.0"}),
+        ):
+            result = await service.rollback_migration(MODEL_ID, "2.0.0")
+
+        assert not result.success
+        assert "No journal found" in result.errors[0]
+        event_store.commit.assert_not_awaited()
+
+    async def test_rollback_clears_the_ledger_entry_and_journal(self):
+        client = FakeClient()
+        removed = Graph()
+        removed.add((URIRef("urn:o:1"), RDF.type, URIRef(f"{NS}Note")))
+        added = Graph()
+        added.add((URIRef("urn:o:1"), RDF.type, URIRef(f"{NS}Bookmark")))
+        journals = iter(
+            [removed.serialize(format="turtle"), added.serialize(format="turtle")]
+        )
+
+        async def fake_construct(_sparql):
+            return next(journals)
+
+        client.construct = fake_construct
+        service = ModelService(client, AsyncMock(), MagicMock())
+
+        with patch(
+            "app.services.models.get_applied_migrations",
+            AsyncMock(return_value={"2.0.0"}),
+        ):
+            result = await service.rollback_migration(MODEL_ID, "2.0.0")
+
+        assert result.success, result.errors
+        writes = "\n".join(client.updates)
+        assert "appliedMigration" in writes and "DELETE DATA" in writes
+        assert "migration:2.0.0:removed" in writes
+        assert "migration:2.0.0:added" in writes
+
+
+class TestAppliedMigrationLedger:
+    async def test_lists_newest_first_with_journal_sizes(self):
+        client = FakeClient(
+            [
+                [{"count": {"value": "3"}}],  # 2.0.0 removed
+                [{"count": {"value": "4"}}],  # 2.0.0 added
+                [{"count": {"value": "1"}}],  # 10.0.0 removed
+                [{"count": {"value": "2"}}],  # 10.0.0 added
+            ]
+        )
+        service = ModelService(client, AsyncMock(), MagicMock())
+
+        with patch(
+            "app.services.models.get_applied_migrations",
+            AsyncMock(return_value=["2.0.0", "10.0.0"]),
+        ):
+            entries = await service.list_applied_migrations(MODEL_ID)
+
+        assert [e.version for e in entries] == ["10.0.0", "2.0.0"]
+        assert entries[0].is_latest is True
+        assert entries[1].is_latest is False
+        assert entries[1].removed_count == 3
+        assert entries[1].added_count == 4
+        assert all(e.reversible for e in entries)
+
+    async def test_a_migration_that_moved_nothing_is_not_reversible(self):
+        client = FakeClient(
+            [[{"count": {"value": "0"}}], [{"count": {"value": "0"}}]]
+        )
+        service = ModelService(client, AsyncMock(), MagicMock())
+
+        with patch(
+            "app.services.models.get_applied_migrations",
+            AsyncMock(return_value=["2.0.0"]),
+        ):
+            entries = await service.list_applied_migrations(MODEL_ID)
+
+        assert entries[0].reversible is False
+        assert entries[0].is_noop is True
+
+    async def test_empty_ledger_returns_nothing(self):
+        service = ModelService(FakeClient(), AsyncMock(), MagicMock())
+        with patch(
+            "app.services.models.get_applied_migrations",
+            AsyncMock(return_value=set()),
+        ):
+            assert await service.list_applied_migrations(MODEL_ID) == []
+
+    async def test_listing_only_reads(self):
+        client = FakeClient(
+            [[{"count": {"value": "1"}}], [{"count": {"value": "1"}}]]
+        )
+        service = ModelService(client, AsyncMock(), MagicMock())
+        with patch(
+            "app.services.models.get_applied_migrations",
+            AsyncMock(return_value=["2.0.0"]),
+        ):
+            await service.list_applied_migrations(MODEL_ID)
+        assert client.updates == []
+
+
+# ---------------------------------------------------------------------------
+# Migrations tab rendering
+# ---------------------------------------------------------------------------
+
+
+TEMPLATE_DIR = Path(__file__).resolve().parents[1] / "app" / "templates"
+
+
+def _template_env():
+    from jinja2 import Environment, FileSystemLoader
+
+    env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)))
+    # Registered by the app at startup; stubbed so templates compile here.
+    env.filters.setdefault("asset_url", lambda name: f"/static/{name}")
+    return env
+
+
+def _entry(version, removed, added, reversible, is_latest):
+    from app.services.models import MigrationLedgerEntry
+
+    return MigrationLedgerEntry(
+        version=version,
+        removed_count=removed,
+        added_count=added,
+        reversible=reversible,
+        is_latest=is_latest,
+    )
+
+
+def _info():
+    info = MagicMock()
+    info.model_id = MODEL_ID
+    info.name = "Test Model"
+    return info
+
+
+class TestMigrationsTabTemplate:
+    """The rollback button is the guard users actually see, so gate it here."""
+
+    @staticmethod
+    def _render(migrations, **extra):
+        template = _template_env().get_template("admin/model_migrations.html")
+        return template.render(request=None, info=_info(), migrations=migrations, **extra)
+
+    def test_empty_ledger_renders_an_empty_state(self):
+        out = self._render([])
+        assert "No migrations recorded" in out
+        assert "/rollback" not in out
+
+    def test_only_the_newest_migration_offers_rollback(self):
+        out = self._render(
+            [
+                _entry("10.0.0", 1, 2, True, True),
+                _entry("2.0.0", 3, 4, True, False),
+            ]
+        )
+        assert out.count("/rollback") == 1
+        assert f"/admin/models/{MODEL_ID}/migrations/10.0.0/rollback" in out
+        assert "Roll back v10.0.0 first" in out
+
+    def test_a_migration_that_changed_nothing_offers_no_rollback(self):
+        out = self._render([_entry("2.0.0", 0, 0, False, True)])
+        assert "/rollback" not in out
+        assert "No data changed" in out
+
+    def test_a_missing_journal_offers_no_rollback(self):
+        out = self._render([_entry("2.0.0", 5, 5, False, True)])
+        assert "/rollback" not in out
+        assert "Journal missing" in out
+
+    def test_messages_render(self):
+        assert "boom" in self._render([], error="boom")
+        assert "restored" in self._render([], success="3 triples restored")
+
+    def test_detail_page_wires_the_migrations_tab(self):
+        source = (TEMPLATE_DIR / "admin" / "model_detail.html").read_text()
+        assert 'data-tab="migrations"' in source
+        assert 'hx-target="#migrations-content"' in source
+        assert 'id="migrations-panel"' in source
+        # The tab must compile, not just contain the right strings.
+        _template_env().get_template("admin/model_detail.html")

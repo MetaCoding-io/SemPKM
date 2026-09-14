@@ -729,6 +729,44 @@ pre.json-output {
   margin-top: 16px;
 }
 
+/* Migrations tab — the applied-migration ledger and its rollback action */
+.migrations-intro {
+  margin: 0 0 16px;
+  font-size: 0.9rem;
+}
+
+.migrations-table td,
+.migrations-table th {
+  vertical-align: middle;
+}
+
+.migrations-hint {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.rollback-indicator {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-left: 8px;
+}
+
+.migrations-notes {
+  margin-top: 20px;
+  padding: 12px 16px;
+  border-left: 3px solid var(--color-border);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.migrations-notes p {
+  margin: 0 0 10px;
+}
+
+.migrations-notes p:last-child {
+  margin-bottom: 0;
+}
+
 .marketplace-loading,
 .marketplace-empty,
 .marketplace-error,
