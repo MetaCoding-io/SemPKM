@@ -869,18 +869,55 @@
   </div>
 </section>
 
-<!-- ── Bottom CTA ── -->
-<section class="section-alt cta-section">
+<!-- ── Contact ── -->
+<section class="section-alt cta-section" id="contact">
   <div class="container">
-    <span class="section-label fade-in">Ready to try it?</span>
-    <h2 class="section-title fade-in">Stop collecting notes. Start building knowledge.</h2>
-    <p class="section-subtitle fade-in" style="margin:0 auto;">
-      Explore the live demo, self-host with a single Docker command, or read the guide.
-    </p>
-    <div class="cta-buttons fade-in">
-      <a href="https://demo.sempkm.app" class="btn btn-primary">Try the Demo</a>
-      <a href="guide/index.html#03-installation-and-setup" class="btn btn-secondary">Self-Host with Docker</a>
-      <a href="guide/index.html" class="btn btn-outline">Read the User Guide</a>
+    <div class="contact-layout fade-in">
+      <div class="contact-copy">
+        <span class="section-label">Stay close</span>
+        <h2 class="section-title">Tell me what you want from a structured PKM.</h2>
+        <p class="section-subtitle">
+          Follow SemPKM's progress, ask a question, or tell me about the knowledge system you're trying to build.
+        </p>
+        <p class="contact-privacy">A short note is plenty. No mailing-list churn, and I won't share your information.</p>
+        <div class="cta-buttons" style="justify-content:flex-start;">
+          <a href="https://demo.sempkm.app" class="btn btn-secondary">Try the Demo</a>
+          <a href="guide/index.html" class="btn btn-outline">Read the User Guide</a>
+        </div>
+      </div>
+
+      <form action="https://formspree.io/f/xrpgndbq" method="POST" class="contact-form" data-formspree>
+        <input type="hidden" name="_subject" value="New SemPKM website message">
+        <input type="hidden" name="source" value="homepage">
+        <label class="contact-honeypot" aria-hidden="true">
+          Leave this field empty
+          <input type="text" name="_gotcha" tabindex="-1" autocomplete="off">
+        </label>
+
+        <div class="contact-form-grid">
+          <label class="contact-field">
+            <span>Name <span class="contact-optional">(optional)</span></span>
+            <input type="text" name="name" autocomplete="name" placeholder="Your name">
+          </label>
+          <label class="contact-field">
+            <span>Email</span>
+            <input type="email" name="email" autocomplete="email" placeholder="you@example.com" required>
+          </label>
+          <label class="contact-field contact-field-full">
+            <span>What do you use now? <span class="contact-optional">(optional)</span></span>
+            <input type="text" name="current_tool" placeholder="Obsidian, Notion, Tana, files, something custom…">
+          </label>
+          <label class="contact-field contact-field-full">
+            <span>What would you like to talk about? <span class="contact-optional">(optional)</span></span>
+            <textarea name="message" placeholder="What you're building, what keeps breaking, or what you'd like SemPKM to do."></textarea>
+          </label>
+        </div>
+
+        <div class="contact-form-footer">
+          <button type="submit" class="btn btn-primary">Send to SemPKM</button>
+          <p class="contact-form-status" data-form-status role="status" aria-live="polite"></p>
+        </div>
+      </form>
     </div>
   </div>
 </section>
@@ -989,5 +1026,6 @@
 
 </script>
 
+<script src="contact-form.js"></script>
 </body>
 </html>
