@@ -233,7 +233,7 @@
       I'm researching people who use tools like Obsidian, Tana, Capacities, Anytype, Notion, Logseq, and similar systems with real types of things, properties, relationships, queries, templates, or scripts. I want to understand how those systems actually evolve in practice — especially where they become powerful, fragile, or hard to maintain.
     </p>
     <div class="hero-actions">
-      <a href="https://form.jotform.com/241021015942139" class="btn btn-primary" target="_blank" rel="noopener">Volunteer for an Interview</a>
+      <a href="#volunteer" class="btn btn-primary">Volunteer for an Interview</a>
       <a href="#who" class="btn btn-secondary">See if You're a Fit</a>
     </div>
     <div class="research-note">
@@ -348,18 +348,62 @@
 
 <section class="cta-section" id="volunteer">
   <div class="container">
-    <span class="section-label fade-in">Interested?</span>
-    <h2 class="section-title fade-in">I'd like to see the system you've actually built.</h2>
-    <p class="section-subtitle fade-in" style="margin:0 auto;">
-      Whether you love your current setup, are frustrated with it, or simplified after going too far, your experience can help shape what SemPKM becomes.
-    </p>
-    <div class="cta-buttons fade-in">
-      <a href="https://form.jotform.com/241021015942139" class="btn btn-primary" target="_blank" rel="noopener">Volunteer for an Interview</a>
-      <a href="https://github.com/MetaCoding-io/SemPKM" class="btn btn-outline" target="_blank" rel="noopener">See SemPKM on GitHub</a>
+    <div class="contact-layout fade-in">
+      <div class="contact-copy">
+        <span class="section-label">Interested?</span>
+        <h2 class="section-title">I'd like to see the system you've actually built.</h2>
+        <p class="section-subtitle">
+          Whether you love your current setup, are frustrated with it, or simplified after going too far, your experience can help shape what SemPKM becomes.
+        </p>
+        <p class="contact-privacy">
+          I'll use this only to decide whether a research conversation is a good fit. Nothing is attributed or shared without asking you first.
+        </p>
+        <div class="cta-buttons" style="justify-content:flex-start;">
+          <a href="https://github.com/MetaCoding-io/SemPKM" class="btn btn-outline" target="_blank" rel="noopener">See SemPKM on GitHub</a>
+        </div>
+      </div>
+
+      <form action="https://formspree.io/f/xrpgndbq" method="POST" class="contact-form" data-formspree>
+        <input type="hidden" name="_subject" value="Structured PKM research volunteer">
+        <input type="hidden" name="source" value="structured-pkm-research">
+        <label class="contact-honeypot" aria-hidden="true">
+          Leave this field empty
+          <input type="text" name="_gotcha" tabindex="-1" autocomplete="off">
+        </label>
+
+        <div class="contact-form-grid">
+          <label class="contact-field">
+            <span>Name</span>
+            <input type="text" name="name" autocomplete="name" placeholder="Your name" required>
+          </label>
+          <label class="contact-field">
+            <span>Email</span>
+            <input type="email" name="email" autocomplete="email" placeholder="you@example.com" required>
+          </label>
+          <label class="contact-field contact-field-full">
+            <span>Primary PKM tool</span>
+            <input type="text" name="primary_tool" placeholder="Obsidian, Tana, Capacities, Notion, Logseq…" required>
+          </label>
+          <label class="contact-field contact-field-full">
+            <span>How is your system structured?</span>
+            <textarea name="system_description" placeholder="The types of things you track, properties or frontmatter, queries, plugins, templates, scripts, or relationships you rely on." required></textarea>
+          </label>
+          <label class="contact-field contact-field-full">
+            <span>What has become difficult or surprisingly effective? <span class="contact-optional">(optional)</span></span>
+            <textarea name="research_focus" placeholder="A migration, schema change, fragile workflow, useful convention, or something you simplified."></textarea>
+          </label>
+          <label class="contact-consent">
+            <input type="checkbox" name="contact_permission" value="yes" required>
+            <span>It's okay to email me about a 30–40 minute research interview.</span>
+          </label>
+        </div>
+
+        <div class="contact-form-footer">
+          <button type="submit" class="btn btn-primary">Volunteer for an Interview</button>
+          <p class="contact-form-status" data-form-status role="status" aria-live="polite"></p>
+        </div>
+      </form>
     </div>
-    <p class="research-cta-note fade-in">
-      The button opens MetaCoding Solutions' contact form. Please mention <code>Structured PKM research</code> and, if you want, include which tool you use and one sentence about your setup. I'll use that only to decide whether this research conversation is a good fit.
-    </p>
   </div>
 </section>
 
@@ -445,5 +489,6 @@
 })();
 </script>
 
+<script src="../../contact-form.js"></script>
 </body>
 </html>
