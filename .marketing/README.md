@@ -8,6 +8,7 @@ This directory contains evidence-backed marketing and positioning research for S
 - `product-marketing-principles.md` — durable product/marketing principles that have emerged repeatedly from the research.
 - `jobs-pains-gains-positioning.md` — Jobs/Pains/Gains profile and positioning matrix for the initial beachhead: structured-PKM system builders, especially schema-strained Obsidian users.
 - `customer-discovery-interview-kit.md` — practical kit for validating the beachhead with real users: recruiting criteria, screener, 30–40 minute interview script, message testing, notes template, evidence scoring, validation criteria, and first-wave recruiting guidance.
+- `customer-discovery-recruiting-candidates.md` — public-source shortlist of recent users who described the complaint categories in the research corpus, grouped by complaint and outreach priority. Contains public handles and public post links only; it is not a private contact database.
 
 ## Research status
 
@@ -33,4 +34,6 @@ The corpus should remain append-only where possible: add additional high-signal 
 
 ## Current phase
 
-Desk research and initial positioning synthesis are complete enough to begin **customer discovery interviews**. The next goal is to conduct an initial wave of five interviews, compare the results against `jobs-pains-gains-positioning.md`, and revise the beachhead and message hypotheses before producing final homepage copy.
+Desk research and initial positioning synthesis are complete enough to begin **customer discovery interviews**. The immediate goal is to use `customer-discovery-recruiting-candidates.md` to recruit an initial wave of five interviews, compare the results against `jobs-pains-gains-positioning.md`, and revise the beachhead and message hypotheses before producing final homepage copy.
+
+A dedicated recruiting page is being prepared at `docs/research/structured-pkm/index.html`; when deployed through the existing GitHub Pages site it will be available at `https://sempkm.metacoding.io/research/structured-pkm/`.
