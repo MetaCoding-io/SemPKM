@@ -991,3 +991,25 @@ M051 (Workspace UX) ────────────┬──→ M054 (Explo
 
 **Context files:** `.gsd/milestones/M048/M048-CONTEXT.md` through `.gsd/milestones/M056/M056-CONTEXT.md`
 **Full issue log:** `TOUR.md` — 65 items with severity, category, section, description, and repro steps
+
+---
+
+## Workspace UI Polish
+
+**Queued:** 2026-11-04
+**Status:** Designed
+
+Design review of the main workspace found that the visual system is sound but the data model leaks into the UI everywhere (shape names as type labels, QNames and predicates, raw command names, JSON error bodies rendered as content), the shell reads as a developer console (two full-width rails, Admin/Debug in primary nav), Save/Cancel semantics are inverted, and there is no visible keyboard focus. Four slices, mostly template and CSS work.
+
+**Design:** `.gsd/design/WORKSPACE-UI-POLISH-AND-PKM-GAPS.md` (Part 1)
+
+---
+
+## PKM Table Stakes
+
+**Queued:** 2026-11-04
+**Status:** Designed
+
+Capabilities Obsidian, Roam and Logseq users expect that SemPKM lacks: `[[` wikilink autocomplete in the body editor, quick capture, daily notes, a home screen; then hover previews with excerpts, unlinked mentions, outline/word count, a per-object History tab, transclusion, per-type templates and Markdown export. Two milestones.
+
+**Design:** `.gsd/design/WORKSPACE-UI-POLISH-AND-PKM-GAPS.md` (Part 2)
